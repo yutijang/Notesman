@@ -1,0 +1,32 @@
+# Ignore build output
+/build/
+/out/
+/bin/
+/obj/
+/CMakeFiles/
+/CMakeCache.txt
+
+# VSCode
+.vscode/
+
+# Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Compiler outputs
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.obj
+
+# Logs
+*.log
+
+CMakePresets8.json
+
+.clangd
+.clang-format

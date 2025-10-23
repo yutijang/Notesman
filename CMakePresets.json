@@ -1,0 +1,165 @@
+{
+    "version": 10,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 31,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER_LAUNCHER": "sccache",
+                "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
+            },
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        {
+            "name": "windows-clang-base",
+            "hidden": true,
+            "inherits": [
+                "base"
+            ],
+            "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "Windows",
+                "CMAKE_CXX_COMPILER": "clang-cl",
+                "CMAKE_LINKER": "lld-link"
+            },
+            "environment": {
+                "VCPKG_ROOT": "D:/cpp/vcpkg"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "linux-clang-base",
+            "hidden": true,
+            "inherits": [
+                "base"
+            ],
+            "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "Linux",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_LINKER": "lld",
+                "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
+            },
+            "environment": {
+                "VCPKG_ROOT": "/mnt/PROJECTS/vcpkg"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "windows-debug",
+            "inherits": [
+                "windows-clang-base"
+            ],
+            "displayName": "Windows Clang-CL Debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebugDLL"
+            }
+        },
+        {
+            "name": "windows-release",
+            "inherits": [
+                "windows-clang-base"
+            ],
+            "displayName": "Windows Clang-CL Release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDLL"
+            }
+        },
+        {
+            "name": "linux-debug",
+            "inherits": [
+                "linux-clang-base"
+            ],
+            "displayName": "Linux Clang++ Debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "linux-release",
+            "inherits": [
+                "linux-clang-base"
+            ],
+            "displayName": "Linux Clang++ Release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_FLAGS_RELEASE": "-O3"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-debug",
+            "configurePreset": "windows-debug",
+            "jobs": 4
+        },
+        {
+            "name": "windows-release",
+            "configurePreset": "windows-release",
+            "jobs": 4
+        },
+        {
+            "name": "linux-debug",
+            "configurePreset": "linux-debug",
+            "jobs": 4
+        },
+        {
+            "name": "linux-release",
+            "configurePreset": "linux-release",
+            "jobs": 4
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "base-tests",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "stopOnFailure": false,
+                "jobs": 4
+            }
+        },
+        {
+            "name": "linux-debug-tests",
+            "displayName": "Run all tests (Linux Debug)",
+            "description": "Run all Catch2 tests built with the linux-debug preset",
+            "inherits": "base-tests",
+            "configurePreset": "linux-debug",
+            "filter": {
+                "include": {
+                    "name": ".*"
+                }
+            }
+        },
+        {
+            "name": "linux-debug-AppSettings",
+            "displayName": "Run AppSettings tests only",
+            "description": "Run only tests related to AppSettings",
+            "inherits": "base-tests",
+            "configurePreset": "linux-debug",
+            "filter": {
+                "include": {
+                    "name": "^AppSettings"
+                }
+            }
+        }
+    ]
+}

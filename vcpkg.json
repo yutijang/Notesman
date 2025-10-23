@@ -1,0 +1,19 @@
+{
+    "name": "notesman",
+    "version": "1.0.0",
+    "dependencies": [
+        {
+            "name": "openssl"
+        },
+        {
+            "name": "qtbase",
+            "features": [
+                "gui",
+                "widgets"
+            ]
+        },
+        {
+            "name": "catch2"
+        }
+    ]
+}

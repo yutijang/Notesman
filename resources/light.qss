@@ -1,0 +1,109 @@
+QWidget {
+    background-color: #fafafa;
+    color: #202020;
+}
+
+QPushButton {
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    padding: 4px 8px;
+    border: 1px solid #b3b3b3;
+}
+
+QPushButton:hover {
+    background-color: #d0d0d0;
+}
+
+QLineEdit {
+    border: 1px solid #b3b3b3;
+    padding: 3px 4px;
+    border-radius: 4px;
+}
+
+#tagLineEdit {
+    background-color: #fafafa;
+    border: 1px solid #b3b3b3;
+    padding: 4px 4px;
+    border-radius: 4px;
+}
+
+QTextEdit {
+    background-color: #F5F5F5;
+}
+
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    image: url(:/icons/unchecked.png); 
+    
+    /* Đặt background trong suốt (quan trọng) */
+    background: transparent; 
+
+    /* Loại bỏ viền mặc định nếu có (để ảnh hiển thị không bị ảnh hưởng) */
+    border: none;
+}
+
+QRadioButton::indicator:checked {
+    image: url(:/icons/checked.png); 
+}
+
+QRadioButton::indicator:hover {
+    image: url(:/icons/hover_unchecked.png);
+}
+
+/* A. Áp dụng ảnh HOVER chỉ khi KHÔNG ở trạng thái checked */
+/* Bộ chọn: QRadioButton::indicator không ở trạng thái checked nhưng đang ở trạng thái hover. */
+QRadioButton::indicator:!checked:hover {
+    image: url(:/icons/hover_unchecked.png); /* Ảnh hover mới */
+}
+
+/* B. Tùy chọn: Xác nhận lại ảnh CHECKED khi hover (để đảm bảo không bị ghi đè) */
+/* Bộ chọn: QRadioButton::indicator đang ở cả trạng thái checked VÀ hover. */
+/* Trong trường hợp này, ta muốn nó giữ nguyên ảnh checked. */
+QRadioButton::indicator:checked:hover {
+    image: url(:/icons/checked.png); /* Giữ nguyên ảnh checked */
+}
+
+QMenu {
+    /* Thêm viền (border) */
+    border: 1px solid #CCCCCC; /* Viền 1px màu xám sáng */
+    
+    /* Tùy chọn: Đặt màu nền bên trong */
+    background-color: #F0F0F0; 
+
+    /* Tùy chọn: Làm tròn góc */
+    border-radius: 4px;
+    
+    /* Tùy chọn: Thêm padding để nội dung cách viền ra */
+    padding: 4px;
+}
+
+/* Áp dụng style cho từng mục (item) */
+QMenu::item {
+    /* Đảm bảo item có padding để highlight hiển thị đẹp hơn */
+    padding: 3px 20px 3px 10px; 
+    /* Đặt background-color mặc định là transparent */
+    background-color: transparent; 
+}
+
+QMenu::item:selected {
+    /* Style khi mục được chọn (hover) */
+    background-color: #3399FF; /* Nền xanh khi hover */
+    color: white;              /* Chữ trắng khi hover */
+    border-radius: 2px;
+}
+
+QScrollBar:vertical {
+    background: #ebebeb;
+    width: 12px;
+}
+
+QScrollBar::handle:vertical {
+    background: #cacaca;
+    min-height: 20px;
+    border-radius: 6px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+}
