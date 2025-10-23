@@ -5,19 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 
-// Lưu ý: Đối với các bài test GUI, hàm main() của test executable
-// (thường là trong test_main.cpp) phải đảm bảo khởi tạo một instance QApplication
-// trước khi chạy bất kỳ TEST_CASE nào.
-
-// Giả định: Các class dependency như NotesAppCore, AppController không cần
-// được khởi tạo hoặc được thay thế bằng mock/nullptr vì ta chỉ test cấu trúc
-// của MainWindow.
-
 TEST_CASE("MainWindow Tab Structure Check", "[GUI][MainWindow][Structure]") {
-    // Bước 1: Khởi tạo QApplication
-    // Ta sử dụng QCoreApplication::instance() để kiểm tra nếu QApplication đã được
-    // khởi tạo. Nếu test của bạn chạy trong môi trường đã khởi tạo QApplication
-    // (do Qt6::Test hoặc test_main.cpp), dòng này sẽ an toàn.
     if (QCoreApplication::instance() == nullptr) {
         static int argc = 0;
         static char* argv[] = {nullptr}; // NOLINT(modernize-avoid-c-arrays)
