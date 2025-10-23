@@ -60,6 +60,15 @@ jobs:
         run: |
           ./vcpkg/vcpkg install
 
+      - name: Print ICU Host Build Error Log
+        # Chỉ chạy nếu bước vcpkg install thất bại
+        if: ${{ failure() }}
+        run: |
+          echo "--- START ICU HOST BUILD ERROR LOG (config-x64-linux-dbg-err.log) ---"
+          # Lỗi đang xảy ra ở Triplet Host (x64-linux)
+          find vcpkg/buildtrees/icu -name "config-x64-linux-dbg-err.log" -exec cat {} +
+          echo "--- END ICU HOST BUILD ERROR LOG ---"
+          
       - name: Configure & Build
         run: |
           cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
