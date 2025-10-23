@@ -12,6 +12,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Install Clang/LLVM Toolchain
+        run: |
+          sudo apt-get update
+          # Cài đặt Clang, LLVM, và các công cụ liên quan
+          sudo apt-get install -y clang lld
+          # Đặt clang là compiler mặc định (tùy chọn nhưng hữu ích)
+          sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
+          sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
+          
       - name: Install System Dependencies
         run: |
           sudo apt-get update
@@ -29,8 +38,7 @@ jobs:
             libxfixes-dev \
             libxi-dev \
             libxrender-dev \
-            libxcb1-dev \
-            libxcb-keysyms0-dev \
+            libxcb1-dev \            
             libxcb-xinput-dev \
             libxkbcommon-x11-dev \
             libgl1-mesa-dev \
@@ -74,19 +82,24 @@ jobs:
         env:
           VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
           VCPKG_DEFAULT_HOST_TRIPLET: x64-linux
+          CC: clang
+          CXX: clang++          
         run: |
           ./vcpkg/vcpkg install
 
-      - name: Print ICU Host Build Error Log
-        # Chỉ chạy nếu bước vcpkg install thất bại
-        if: ${{ failure() }}
-        run: |
-          echo "--- START ICU HOST BUILD ERROR LOG (config-x64-linux-dbg-err.log) ---"
-          # Lỗi đang xảy ra ở Triplet Host (x64-linux)
-          find vcpkg/buildtrees/icu -name "config-x64-linux-dbg-err.log" -exec cat {} +
-          echo "--- END ICU HOST BUILD ERROR LOG ---"
+#      - name: Print ICU Host Build Error Log
+#        # Chỉ chạy nếu bước vcpkg install thất bại
+#        if: ${{ failure() }}
+#        run: |
+#          echo "--- START ICU HOST BUILD ERROR LOG (config-x64-linux-dbg-err.log) ---"
+#          # Lỗi đang xảy ra ở Triplet Host (x64-linux)
+#          find vcpkg/buildtrees/icu -name "config-x64-linux-dbg-err.log" -exec cat {} +
+#          echo "--- END ICU HOST BUILD ERROR LOG ---"
           
       - name: Configure & Build
+        env:
+          CC: clang
+          CXX: clang++
         run: |
           cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
           cmake --build build --config Release
