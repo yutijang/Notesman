@@ -39,7 +39,7 @@ jobs:
             libxi-dev \
             libxrender-dev \
             libxcb1-dev \
-            libxcb-keysyms-dev \
+            libxcb-keysyms1-dev \
             libxcb-xinput-dev \
             libxkbcommon-x11-dev \
             libgl1-mesa-dev \
