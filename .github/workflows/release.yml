@@ -26,10 +26,12 @@ jobs:
           cmake-version: "3.31.0"
 
       - name: Install vcpkg
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
         run: |
           git clone https://github.com/microsoft/vcpkg.git ./vcpkg
           ./vcpkg/bootstrap-vcpkg.sh
-          ./vcpkg/vcpkg install --manifest
+          ./vcpkg/vcpkg install
 
       - name: Configure & Build
         run: |
