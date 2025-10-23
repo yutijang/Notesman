@@ -21,9 +21,9 @@ jobs:
             ${{ runner.os }}-vcpkg-
 
       - name: Setup CMake
-        uses: lukka/get-cmake@v4
+        uses: lukka/get-cmake@latest
         with:
-          cmake-version: "3.27.5"
+          cmake-version: "3.31.0"
 
       - name: Install vcpkg
         run: |
