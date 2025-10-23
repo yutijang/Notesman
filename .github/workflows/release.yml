@@ -17,7 +17,13 @@ jobs:
           sudo apt-get update
           # autoconf/libtool/pkg-config là cần thiết cho configure script
           # build-essential chứa các công cụ C/C++ cơ bản          
-          sudo apt-get install -y autoconf libtool pkg-config build-essential autoconf-archive
+          sudo apt-get install -y \
+            autoconf \
+            libtool \
+            pkg-config \
+            build-essential \
+            autoconf-archive \
+            libltdl-dev
 
       - name: Cache vcpkg installed
         uses: actions/cache@v3
