@@ -51,8 +51,6 @@ jobs:
           VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
           VCPKG_DEFAULT_HOST_TRIPLET: x64-linux-dynamic
         run: |
-          git clone https://github.com/microsoft/vcpkg.git ./vcpkg
-          ./vcpkg/bootstrap-vcpkg.sh
           ./vcpkg/vcpkg install
 
       - name: Configure & Build
