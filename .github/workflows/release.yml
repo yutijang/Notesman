@@ -25,9 +25,31 @@ jobs:
         with:
           cmake-version: "3.31.0"
 
+      - name: Setup VCPKG Tools
+        uses: actions/cache/restore@v3
+        id: cache-vcpkg-source
+        with:
+          path: ./vcpkg
+          key: ${{ runner.os }}-vcpkg-source
+      
+      - name: Clone and Bootstrap VCPKG
+        # Chỉ chạy nếu cache-hit không thành công
+        if: steps.cache-vcpkg-source.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git ./vcpkg
+          ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Cache VCPKG Tools
+        uses: actions/cache/save@v3
+        if: steps.cache-vcpkg-source.outputs.cache-hit != 'true'
+        with:
+          path: ./vcpkg
+          key: ${{ runner.os }}-vcpkg-source
+          
       - name: Install vcpkg
         env:
           VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
+          VCPKG_DEFAULT_HOST_TRIPLET: x64-linux-dynamic
         run: |
           git clone https://github.com/microsoft/vcpkg.git ./vcpkg
           ./vcpkg/bootstrap-vcpkg.sh
