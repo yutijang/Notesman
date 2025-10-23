@@ -12,6 +12,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          # autoconf/libtool/pkg-config là cần thiết cho configure script
+          # build-essential chứa các công cụ C/C++ cơ bản
+          sudo apt-get install -y autoconf libtool pkg-config build-essential
+
       - name: Cache vcpkg installed
         uses: actions/cache@v3
         with:
@@ -49,7 +56,7 @@ jobs:
       - name: Install vcpkg
         env:
           VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
-          VCPKG_DEFAULT_HOST_TRIPLET: x64-linux-dynamic
+          VCPKG_DEFAULT_HOST_TRIPLET: x64-linux
         run: |
           ./vcpkg/vcpkg install
 
