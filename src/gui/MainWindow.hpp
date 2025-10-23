@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QString>
 #include <cstdint>
 #include "AppSettings.hpp"
 
@@ -23,6 +22,7 @@ class QLabel;
 class TagInput;
 class BrowseTabWidget;
 class AddTabWidget;
+class SettingsTabWidget;
 class CodeEditorLineHighlighter;
 class AppController;
 
@@ -50,8 +50,6 @@ class MainWindow : public QMainWindow {
         void requestDatabaseInit(); // Gửi tín hiệu cho AppController/AppInitializer
         void requestDatabaseCreation();
 
-        void rowDoubleClicked(const QString &id, const QString &title, const QString &path);
-
     public slots:
         void setCore(NotesAppCore* core);
         void showError(const QString &message);
@@ -70,8 +68,6 @@ class MainWindow : public QMainWindow {
         void onAddNoteClicked();
         void onApplyButtonSettingsClicked();
         void onDefaultButtonSettingsClicked();
-
-        void pickupFile();
         void pickupFolder();
 
     private: // NOLINT(readability-redundant-access-specifiers)
@@ -82,7 +78,7 @@ class MainWindow : public QMainWindow {
         QTabWidget* m_tabWidget{};
         BrowseTabWidget* m_browseTab{};
         AddTabWidget* m_addTab{};
-        QWidget* m_settingsTab{};
+        SettingsTabWidget* m_settingsTab{};
 
         // Browse Tab
 
@@ -91,27 +87,12 @@ class MainWindow : public QMainWindow {
         CodeEditorLineHighlighter* m_lineHighlighter{};
 
         // Settings Tab
-        QRadioButton* m_langEnRad{};
-        QRadioButton* m_langViRad{};
-        QRadioButton* m_themeLightRad{};
-        QRadioButton* m_themeDarkRad{};
-        QLineEdit* m_resDirInp{};
-        QComboBox* m_resManCom{};
-        QPushButton* m_applyBtn{};
-        QPushButton* m_defaultBtn{};
-        QLabel* m_langLbl{};
-        QLabel* m_themeLbl{};
-        QLabel* m_resDirLbl{};
-        QLabel* m_resManLbl{};
-
-        QLabel* m_notiSettingsChangedLbl{};
 
         // Build UI internal
         void buildUi();
         void setupBrowseTab();
         void setupAddTab();
         void setupSettingsTab();
-        // void loadCustomFont();
 
         void onTextRadioToggled(bool checked);
 

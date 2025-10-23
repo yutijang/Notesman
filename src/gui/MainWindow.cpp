@@ -26,6 +26,7 @@
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
 #include "AddTabWidget.hpp"
+#include "SettingsTabWidget.hpp"
 #include "MainWindow.hpp"
 #include "AppSettings.hpp"
 #include "CodeEditorLineHighlighter.hpp"
@@ -40,6 +41,7 @@
 namespace {
     constexpr int GUI_WIDTH{1200};
     constexpr int GUI_HEIGHT{800};
+    constexpr int NOTI_TIMEOUT{3000};
 } // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
@@ -85,113 +87,17 @@ void MainWindow::setupAddTab() {
 }
 
 void MainWindow::setupSettingsTab() {
-    m_settingsTab = new QWidget(this);
-    auto* mainLayout = new QHBoxLayout(m_settingsTab);
+    m_settingsTab = new SettingsTabWidget(this);
 
-    auto* contentWidget = new QWidget();
-    auto* contentLayout = new QVBoxLayout(contentWidget);
-    contentWidget->setMinimumWidth(370); // NOLINT(readability-magic-numbers)
+    // Kết nối các tín hiệu từ SettingsTabWidget đến các slot trong MainWindow
+    connect(m_settingsTab, &SettingsTabWidget::applyClicked, this,
+            &MainWindow::onApplyButtonSettingsClicked);
+    connect(m_settingsTab, &SettingsTabWidget::defaultClicked, this,
+            &MainWindow::onDefaultButtonSettingsClicked);
 
-    auto* langLayout = new QHBoxLayout();
-    auto* langRadioLayout = new QHBoxLayout();
-    m_langLbl = new QLabel(tr("Select language for GUI"));
-
-    auto* langGroup = new QButtonGroup(this);
-    m_langEnRad = new QRadioButton(tr("English"));
-    m_langViRad = new QRadioButton(tr("Vietnamese"));
-    m_langEnRad->setChecked(true);
-
-    langGroup->addButton(m_langEnRad);
-    langGroup->addButton(m_langViRad);
-
-    langRadioLayout->addWidget(m_langEnRad);
-    langRadioLayout->addWidget(m_langViRad);
-    langLayout->addWidget(m_langLbl);
-    langLayout->addStretch(1);
-    langLayout->addLayout(langRadioLayout);
-
-    auto* themeLayout = new QHBoxLayout();
-    auto* themeRadioLayout = new QHBoxLayout();
-    m_themeLbl = new QLabel(tr("Select theme"));
-
-    auto* themeGroup = new QButtonGroup(this);
-    m_themeLightRad = new QRadioButton(tr("Light"));
-    m_themeDarkRad = new QRadioButton(tr("Dark"));
-    m_themeLightRad->setChecked(true);
-
-    themeGroup->addButton(m_themeLightRad);
-    themeGroup->addButton(m_themeDarkRad);
-
-    themeRadioLayout->addWidget(m_themeLightRad);
-    themeRadioLayout->addWidget(m_themeDarkRad);
-    themeLayout->addWidget(m_themeLbl);
-    themeLayout->addStretch(1);
-    themeLayout->addLayout(themeRadioLayout);
-
-    auto* resDirLayout = new QHBoxLayout();
-    m_resDirLbl = new QLabel(tr("Resource storage directory"));
-    m_resDirInp = new QLineEdit();
-    m_resDirInp->setText("resources/");
-    m_resDirInp->setMaximumWidth(400); // NOLINT(readability-magic-numbers)
-    auto* resDirButton = new QPushButton("...");
-    resDirButton->setMaximumWidth(40); // NOLINT(readability-magic-numbers)
-    resDirButton->setProperty("targetEdit", QVariant::fromValue(m_resDirInp));
-    connect(resDirButton, &QPushButton::clicked, this, &MainWindow::pickupFolder);
-
-    resDirLayout->addWidget(m_resDirLbl);
-    resDirLayout->addWidget(m_resDirInp);
-    resDirLayout->addWidget(resDirButton);
-    resDirLayout->setSpacing(3);
-
-    auto* resManLayout = new QHBoxLayout();
-    m_resManLbl = new QLabel(tr("Notes file management type"));
-    m_resManCom = new QComboBox();
-    m_resManCom->setMaximumWidth(200); // NOLINT(readability-magic-numbers)
-    m_resManCom->addItem(tr("Notes Manager"), QVariant::fromValue(true));
-    m_resManCom->addItem(tr("Save path only"), QVariant::fromValue(false));
-
-    resManLayout->addWidget(m_resManLbl);
-    resManLayout->addWidget(m_resManCom);
-
-    // Nhãn thông báo cập nhật Settings
-    m_notiSettingsChangedLbl = new QLabel("");
-    m_notiSettingsChangedLbl->setAlignment(Qt::AlignCenter);
-
-    // Thêm container chứa nhóm nút nằm ngang QHBoxLayout
-    auto* buttonLayout = new QHBoxLayout();
-
-    m_applyBtn = new QPushButton(tr("Apply"));
-    m_applyBtn->setMinimumWidth(UiConst::BUTTON_WIDTH);
-    m_applyBtn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    m_applyBtn->setIcon(QIcon(":/icons/apply.ico"));
-    connect(m_applyBtn, &QPushButton::clicked, this, &MainWindow::onApplyButtonSettingsClicked);
-
-    m_defaultBtn = new QPushButton(tr("Default"));
-    m_defaultBtn->setMinimumWidth(UiConst::BUTTON_WIDTH);
-    m_defaultBtn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    connect(m_defaultBtn, &QPushButton::clicked, this, &MainWindow::onDefaultButtonSettingsClicked);
-
-    // Layout nhóm nút nằm ngang và căn giữa nên thêm giãn trái và giãn phải
-    buttonLayout->addStretch(1);  // Giãn bên trái
-    buttonLayout->addWidget(m_applyBtn);
-    buttonLayout->addWidget(m_defaultBtn);
-    buttonLayout->addStretch(1);  // Giãn bên phải
-    buttonLayout->setSpacing(10); // NOLINT(readability-magic-numbers)
-
-    contentLayout->addLayout(langLayout);
-    contentLayout->addLayout(themeLayout);
-    contentLayout->addLayout(resDirLayout);
-    contentLayout->addLayout(resManLayout);
-    contentLayout->addStretch(1);
-    contentLayout->addWidget(m_notiSettingsChangedLbl);
-    contentLayout->addLayout(buttonLayout);
-
-    contentLayout->setSpacing(20); // NOLINT(readability-magic-numbers)
-
-    // Bắt đầu xếp các widget và layout theo thứ tự mong muốn
-    mainLayout->addStretch(1);
-    mainLayout->addWidget(contentWidget, 3);
-    mainLayout->addStretch(1);
+    // Kết nối tín hiệu browse folder đến hàm chung pickupFolder()
+    connect(m_settingsTab, &SettingsTabWidget::resourceDirBrowseRequested, this,
+            &MainWindow::pickupFolder);
 
     m_tabWidget->addTab(m_settingsTab, QIcon(":/icons/settings_tab.ico"), tr("Settings"));
 }
@@ -330,28 +236,28 @@ void MainWindow::onApplyButtonSettingsClicked() {
     }
 
     Language lang{};
-    if (m_langEnRad->isChecked()) {
+    if (m_settingsTab->langEnRad()->isChecked()) {
         lang = Language::english;
-    } else if (m_langViRad->isChecked()) {
+    } else if (m_settingsTab->langViRad()->isChecked()) {
         lang = Language::vietnamese;
     }
     settingsPtr->setLanguage(lang);
 
     Theme theme{};
-    if (m_themeLightRad->isChecked()) {
+    if (m_settingsTab->themeLightRad()->isChecked()) {
         theme = Theme::light;
-    } else if (m_themeDarkRad->isChecked()) {
+    } else if (m_settingsTab->themeDarkRad()->isChecked()) {
         theme = Theme::dark;
     }
     settingsPtr->setTheme(theme);
 
     {
-        auto path = m_resDirInp->text().trimmed();
+        auto path = m_settingsTab->resourceDirInput()->text().trimmed();
         if (!path.isEmpty()) { settingsPtr->setResourceDir(path.toStdString()); }
     }
 
     {
-        bool isMan = m_resManCom->currentData().toBool();
+        bool isMan = m_settingsTab->resourceManagementCombo()->currentData().toBool();
         settingsPtr->setManagedResources(isMan);
     }
 
@@ -362,19 +268,18 @@ void MainWindow::onApplyButtonSettingsClicked() {
         m_appController->applyTheme(theme);
         applySyntaxHighlightingTheme(settingsPtr->theme());
 
-        m_notiSettingsChangedLbl->setText(tr("Settings updated!"));
+        m_settingsTab->notificationLabel()->setText(tr("Settings updated!"));
         m_settingsMessageState = SettingsMessageState::Updated;
     } else {
-        m_notiSettingsChangedLbl->setText(tr("Nothing changed, settings not save"));
+        m_settingsTab->notificationLabel()->setText(tr("Nothing changed, settings not save"));
         m_settingsMessageState = SettingsMessageState::None;
     }
 
-    m_notiSettingsChangedLbl->setVisible(true);
+    m_settingsTab->notificationLabel()->setVisible(true);
 
-    QTimer::singleShot(3000, this, [this]() { // NOLINT(readability-magic-numbers)
-        // Lambda này sẽ được thực thi sau 3000 miligiây (3 giây)
-        m_notiSettingsChangedLbl->clear();           // Xóa nội dung
-        m_notiSettingsChangedLbl->setVisible(false); // Ẩn Label
+    QTimer::singleShot(NOTI_TIMEOUT, this, [this]() {
+        m_settingsTab->notificationLabel()->clear();
+        m_settingsTab->notificationLabel()->setVisible(false);
     });
 }
 
@@ -389,14 +294,13 @@ void MainWindow::onDefaultButtonSettingsClicked() {
     const AppSettings defaultSettings{};
     applySettingsToUi(&defaultSettings);
 
-    m_notiSettingsChangedLbl->setText(tr("Settings default!"));
-    m_notiSettingsChangedLbl->setVisible(true);
+    m_settingsTab->notificationLabel()->setText(tr("Settings default!"));
+    m_settingsTab->notificationLabel()->setVisible(true);
     m_settingsMessageState = SettingsMessageState::Default;
 
-    QTimer::singleShot(3000, this, [this]() { // NOLINT(readability-magic-numbers)
-        // Lambda này sẽ được thực thi sau 3 giây
-        m_notiSettingsChangedLbl->clear();           // Xóa nội dung
-        m_notiSettingsChangedLbl->setVisible(false); // Ẩn Label
+    QTimer::singleShot(NOTI_TIMEOUT, this, [this]() {
+        m_settingsTab->notificationLabel()->clear();
+        m_settingsTab->notificationLabel()->setVisible(false);
     });
 }
 
@@ -477,31 +381,6 @@ void MainWindow::onTextRadioToggled(bool checked) {
     }
 }
 
-void MainWindow::pickupFile() {
-    auto* senderButton = qobject_cast<QPushButton*>(sender());
-    if (senderButton == nullptr) { return; }
-
-    QVariant targetVar = senderButton->property("targetEdit");
-    auto* targetEdit = targetVar.value<QLineEdit*>();
-    if (targetEdit == nullptr) { return; }
-
-    // Sử dụng QFileDialog::getOpenFileName để mở hộp thoại chọn file.
-    // Cú pháp: getOpenFileName(parent, tiêu đề, thư mục mặc định, bộ lọc)
-    QString filePath = QFileDialog::getOpenFileName(
-        this,                       // Parent widget
-        tr("Select Resource File"), // Tiêu đề hộp thoại
-        QDir::homePath(),           // Thư mục mặc định là thư mục Home
-        tr("All Files (*);;Text Files (*.txt *.md);;C++ Source (*.cpp *.h)") // Bộ lọc (Filter)
-    );
-
-    // Kiểm tra nếu người dùng đã chọn một file (filePath không rỗng)
-    if (!filePath.isEmpty()) {
-        // Best Practice: Luôn dùng QDir::toNativeSeparators để đảm bảo
-        // đường dẫn hiển thị đúng định dạng của hệ điều hành hiện tại (Windows/Linux)
-        targetEdit->setText(QDir::toNativeSeparators(filePath));
-    }
-}
-
 void MainWindow::pickupFolder() {
     auto* senderButton = qobject_cast<QPushButton*>(sender());
     if (senderButton == nullptr) { return; }
@@ -521,7 +400,6 @@ void MainWindow::viewResource(const QString &id, const QString &title, const QSt
     auto* dialog = new QDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose); // Tự giải phóng khi đóng
     dialog->setWindowTitle(QString("Chi tiết tài liệu: %1").arg(title));
-    // dialog->resize(m_addTab->editorWidth(), 800); // NOLINT(readability-magic-numbers)
 
     const int editorW = m_addTab->editorWidth();
     const int mainH = this->height();
@@ -530,8 +408,7 @@ void MainWindow::viewResource(const QString &id, const QString &title, const QSt
     auto* viewSourceTextEdit = new QTextEdit(dialog);
     viewSourceTextEdit->setTextInteractionFlags(Qt::TextSelectableByMouse |
                                                 Qt::TextSelectableByKeyboard | Qt::TextEditable);
-    QFont codeFont("JetBrains Mono", UiConst::FONT_SIZE); // NOLINT(readability-magic-numbers)
-    viewSourceTextEdit->setFont(codeFont);
+    viewSourceTextEdit->setFont(QFont("JetBrains Mono", UiConst::FONT_SIZE));
     viewSourceTextEdit->setFixedWidth(editorW);
 
     Theme curTheme = m_appController->settings()->theme();
@@ -644,26 +521,26 @@ void MainWindow::applySettingsToUi(const AppSettings* settings) {
 
     // Ngôn ngữ
     if (settings->language() == Language::english) {
-        m_langEnRad->setChecked(true);
+        m_settingsTab->langEnRad()->setChecked(true);
     } else if (settings->language() == Language::vietnamese) {
-        m_langViRad->setChecked(true);
+        m_settingsTab->langViRad()->setChecked(true);
     }
 
     // Giao diện
     if (settings->theme() == Theme::light) {
-        m_themeLightRad->setChecked(true);
+        m_settingsTab->themeLightRad()->setChecked(true);
     } else if (settings->theme() == Theme::dark) {
-        m_themeDarkRad->setChecked(true);
+        m_settingsTab->themeDarkRad()->setChecked(true);
     }
 
     // Thư mục tài nguyên
-    m_resDirInp->setText(QString::fromStdString(settings->resourceDir()));
+    m_settingsTab->resourceDirInput()->setText(QString::fromStdString(settings->resourceDir()));
 
     // Kiểu quản lý tài nguyên
     if (settings->isManagedResources()) {
-        m_resManCom->setCurrentIndex(0); // "Notes Manager"
+        m_settingsTab->resourceManagementCombo()->setCurrentIndex(0); // "Notes Manager"
     } else {
-        m_resManCom->setCurrentIndex(1); // "Save path only"
+        m_settingsTab->resourceManagementCombo()->setCurrentIndex(1); // "Save path only"
     }
 }
 
@@ -704,30 +581,21 @@ void MainWindow::retranslateUi() {
     // ===========================
 
     // ========= Settings Tab =========
-    m_langLbl->setText(tr("Select language for GUI"));
-    m_langEnRad->setText(tr("English"));
-    m_langViRad->setText(tr("Vietnamese"));
-    m_themeLbl->setText(tr("Select theme"));
-    m_themeLightRad->setText(tr("Light"));
-    m_themeDarkRad->setText(tr("Dark"));
-    m_resDirLbl->setText(tr("Resource storage directory"));
-    m_resManLbl->setText(tr("Notes file management type"));
-    m_resManCom->setItemText(0, tr("Notes Manager"));
-    m_resManCom->setItemText(1, tr("Save path only"));
+    m_settingsTab->retranslateUi();
 
     // Dịch lại thông báo đang hiển thị (nếu còn hiệu lực)
     switch (m_settingsMessageState) {
         case SettingsMessageState::Updated:
-            m_notiSettingsChangedLbl->setText(tr("Settings updated!"));
+            m_settingsTab->notificationLabel()->setText(tr("Settings updated!"));
             break;
         case SettingsMessageState::Default:
-            m_notiSettingsChangedLbl->setText(tr("Settings default!"));
+            m_settingsTab->notificationLabel()->setText(tr("Settings default!"));
             break;
         case SettingsMessageState::None:
         default                        : break;
     }
-    m_applyBtn->setText(tr("Apply"));
-    m_defaultBtn->setText(tr("Default"));
+    m_settingsTab->applyButton()->setText(tr("Apply"));
+    m_settingsTab->defaultButton()->setText(tr("Default"));
 
     // =================================
 }
