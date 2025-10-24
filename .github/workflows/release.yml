@@ -107,7 +107,7 @@ jobs:
       - name: Bundle Qt runtime libraries
         run: |
           mkdir -p dist
-          cp build/Notesman dist/
+          cp ./bin/Notesman dist/
           command -v rsync >/dev/null 2>&1 && \
             rsync -av ./vcpkg/installed/x64-linux-dynamic/plugins/ dist/plugins/ || \
             cp -vr ./vcpkg/installed/x64-linux-dynamic/plugins dist/ || true
