@@ -34,6 +34,7 @@ jobs:
             autoconf-archive \
             libltdl-dev \
             libx11-dev \
+            libx11-xcb-dev \
             libxext-dev \
             libxfixes-dev \
             libxi-dev \
@@ -42,8 +43,27 @@ jobs:
             libxcb-keysyms1-dev \
             libxcb-xinput-dev \
             libxkbcommon-x11-dev \
+            libxkbcommon-dev \
             libgl1-mesa-dev \
-            libegl1-mesa-dev            
+            libegl1-mesa-dev \
+            libicu-dev \
+            libc6-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libdbus-1-dev \
+            libwayland-dev \
+            libvulkan-dev \
+            ninja-build \
+            libxcb-render0-dev \
+            libxcb-render-util0-dev \
+            libxcb-image0-dev \
+            libxcb-shm0-dev \
+            libxcb-icccm4-dev \
+            libxcb-sync-dev \
+            libxcb-xfixes0-dev \
+            libxcb-shape0-dev \
+            libxcb-randr0-dev \
+            libatspi2.0-dev
 
       - name: Cache vcpkg installed
         uses: actions/cache@v3
@@ -102,7 +122,9 @@ jobs:
           CC: clang
           CXX: clang++
         run: |
-          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake -B build -S . \
+            -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DCMAKE_POLICY_DEFAULT_CMP0177=NEW  # Normalize paths
           cmake --build build --config Release
 
       - name: Package binaries
