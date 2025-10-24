@@ -71,7 +71,7 @@ jobs:
 
       # (Optional) Debug cache hit
       - name: Debug cache result
-        run: echo "Cache hit: ${{ steps.cache-vcpkg-installed.outputs.cache-hit }}"
+        run: 'echo "Cache hit: ${{ steps.cache-vcpkg-installed.outputs.cache-hit }}"'
 
       - name: Build md4c-html manually
         run: |
