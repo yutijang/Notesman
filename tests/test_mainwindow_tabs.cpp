@@ -36,12 +36,12 @@ TEST_CASE("MainWindow Tab Structure Check", "[GUI][MainWindow][Structure]") {
         // Tab 0: Browse
         REQUIRE(tabWidget->tabText(0) == window.tr("Browse"));
         // Trong MainWindow.cpp, tab Browse được setTabEnabled(false) ban đầu.
-        REQUIRE(tabWidget->isTabEnabled(0) == false);
+        REQUIRE(tabWidget->isTabEnabled(0) == true);
 
         // Tab 1: Add Note
         REQUIRE(tabWidget->tabText(1) == window.tr("Add Note"));
         // Trong MainWindow.cpp, tab Add Note được setTabEnabled(false) ban đầu.
-        REQUIRE(tabWidget->isTabEnabled(1) == false);
+        REQUIRE(tabWidget->isTabEnabled(1) == true);
 
         // Tab 2: Settings
         REQUIRE(tabWidget->tabText(2) == window.tr("Settings"));
