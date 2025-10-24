@@ -1,149 +1,108 @@
 name: Release Notesman
 
 on:
-  workflow_dispatch:  # chỉ chạy thủ công
+  workflow_dispatch:
 
 jobs:
   build-linux:
     name: Build & Release Linux
     runs-on: ubuntu-latest
 
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
+      CC: clang
+      CXX: clang++
+
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Clang/LLVM Toolchain
+      - name: Install system dependencies (Qt6 GUI)
         run: |
           sudo apt-get update
-          # Cài đặt Clang, LLVM, và các công cụ liên quan
-          sudo apt-get install -y clang lld
-          # Đặt clang là compiler mặc định (tùy chọn nhưng hữu ích)
-          sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
-          sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
-          
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          # autoconf/libtool/pkg-config là cần thiết cho configure script
-          # build-essential chứa các công cụ C/C++ cơ bản          
           sudo apt-get install -y \
-            autoconf \
-            libtool \
-            pkg-config \
-            build-essential \
-            autoconf-archive \
-            libltdl-dev \
-            libx11-dev \
-            libx11-xcb-dev \
-            libxext-dev \
-            libxfixes-dev \
-            libxi-dev \
-            libxrender-dev \
-            libxcb1-dev \
-            libxcb-keysyms1-dev \
-            libxcb-xinput-dev \
-            libxkbcommon-x11-dev \
-            libxkbcommon-dev \
-            libgl1-mesa-dev \
-            libegl1-mesa-dev \
-            libicu-dev \
-            libc6-dev \
-            libfontconfig1-dev \
-            libfreetype6-dev \
-            libdbus-1-dev \
-            libwayland-dev \
-            libvulkan-dev \
-            ninja-build \
-            libxcb-render0-dev \
-            libxcb-render-util0-dev \
-            libxcb-image0-dev \
-            libxcb-shm0-dev \
-            libxcb-icccm4-dev \
-            libxcb-sync-dev \
-            libxcb-xfixes0-dev \
-            libxcb-shape0-dev \
-            libxcb-randr0-dev \
-            libatspi2.0-dev
+            clang lld cmake ninja-build \
+            autoconf libtool pkg-config build-essential \
+            libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev \
+            libxi-dev libxrender-dev libxcb1-dev libxcb-keysyms1-dev \
+            libxcb-image0-dev libxcb-shm0-dev libxcb-icccm4-dev \
+            libxcb-sync-dev libxcb-xfixes0-dev libxcb-shape0-dev \
+            libxcb-randr0-dev libxcb-render0-dev libxcb-render-util0-dev \
+            libxcb-util-dev libxcb-xinput-dev libxcb-xinerama0-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev \
+            libgl1-mesa-dev libegl1-mesa-dev libdbus-1-dev \
+            libfontconfig1-dev libfreetype6-dev libicu-dev libvulkan-dev
 
       - name: Cache vcpkg installed
         uses: actions/cache@v3
         with:
-          path: ./vcpkg/installed
+          path: ${{ env.VCPKG_ROOT }}/installed
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-
+          restore-keys: ${{ runner.os }}-vcpkg-
 
       - name: Setup CMake
         uses: lukka/get-cmake@latest
         with:
           cmake-version: "3.31.0"
 
-      - name: Setup VCPKG Tools
-        uses: actions/cache/restore@v3
+      - name: Setup or restore vcpkg source
         id: cache-vcpkg-source
+        uses: actions/cache@v3
         with:
-          path: ./vcpkg
+          path: ${{ env.VCPKG_ROOT }}
           key: ${{ runner.os }}-vcpkg-source
-      
-      - name: Clone and Bootstrap VCPKG
-        # Chỉ chạy nếu cache-hit không thành công
+
+      - name: Clone and bootstrap vcpkg if needed
         if: steps.cache-vcpkg-source.outputs.cache-hit != 'true'
         run: |
-          git clone https://github.com/microsoft/vcpkg.git ./vcpkg
-          ./vcpkg/bootstrap-vcpkg.sh
+          git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT
+          $VCPKG_ROOT/bootstrap-vcpkg.sh
 
-      - name: Cache VCPKG Tools
-        uses: actions/cache/save@v3
-        if: steps.cache-vcpkg-source.outputs.cache-hit != 'true'
-        with:
-          path: ./vcpkg
-          key: ${{ runner.os }}-vcpkg-source
-          
-      - name: Install vcpkg
-        env:
-          VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
-          VCPKG_DEFAULT_HOST_TRIPLET: x64-linux
-          CC: clang
-          CXX: clang++          
+      - name: Install dependencies via vcpkg
         run: |
-          ./vcpkg/vcpkg install
+          $VCPKG_ROOT/vcpkg install
 
-#      - name: Print ICU Host Build Error Log
-#        # Chỉ chạy nếu bước vcpkg install thất bại
-#        if: ${{ failure() }}
-#        run: |
-#          echo "--- START ICU HOST BUILD ERROR LOG (config-x64-linux-dbg-err.log) ---"
-#          # Lỗi đang xảy ra ở Triplet Host (x64-linux)
-#          find vcpkg/buildtrees/icu -name "config-x64-linux-dbg-err.log" -exec cat {} +
-#          echo "--- END ICU HOST BUILD ERROR LOG ---"
-          
-      - name: Configure & Build
-        env:
-          CC: clang
-          CXX: clang++
+      - name: Configure and build (Release)
         run: |
           cmake -B build -S . \
-            -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake \
-            -DCMAKE_POLICY_DEFAULT_CMP0177=NEW  # Normalize paths
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
+            -DCMAKE_POLICY_DEFAULT_CMP0177=NEW \
+            -G Ninja
           cmake --build build --config Release
 
       - name: Package binaries
-        run: tar -czf notesman-linux.tar.gz -C build Release
+        run: |
+          cd build
+          tar -czf ../notesman-linux.tar.gz .
 
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: v1.0.0
-          release_name: Notesman v1.0.0
-          draft: false
-          prerelease: false
+          name: Notesman v1.0.0
           body: "Initial release of Notesman."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Linux binary to Release
-        uses: actions/upload-release-asset@v1
+      - name: Upload artifact to Release
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./notesman-linux.tar.gz
-          asset_name: notesman-linux.tar.gz
-          asset_content_type: application/gzip
+          files: ./notesman-linux.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bundle Qt runtime libraries
+        run: |
+          mkdir -p dist
+          cp build/Notesman dist/
+          # Copy Qt runtime từ vcpkg
+          cp -v $(find ./vcpkg/installed/x64-linux-dynamic/lib -name "libQt6*.so*") dist/
+          cp -v $(find ./vcpkg/installed/x64-linux-dynamic/plugins -type f) dist/ || true
+          # Copy platform plugin (bắt buộc)
+          mkdir -p dist/platforms
+          cp -v ./vcpkg/installed/x64-linux-dynamic/plugins/platforms/libqxcb.so dist/platforms/
+          # Đóng gói lại
+          tar -czf notesman-linux.tar.gz -C dist .
