@@ -3,6 +3,9 @@ name: Release Notesman
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-linux:
     name: Build & Release Linux
