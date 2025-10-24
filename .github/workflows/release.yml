@@ -62,6 +62,15 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT
           $VCPKG_ROOT/bootstrap-vcpkg.sh
 
+      - name: Build md4c-html manually
+        run: |
+          git clone https://github.com/mity/md4c.git
+          cd md4c
+          mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DMD4C_BUILD_SHARED=ON -DMD4C_BUILD_STATIC=OFF -DMD4C_BUILD_MD2HTML=ON
+          cmake --build . --config Release
+          sudo cmake --install . --prefix /usr/local
+          
       - name: Install dependencies via vcpkg
         run: |
           $VCPKG_ROOT/vcpkg install
