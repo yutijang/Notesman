@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  discussions: write
 
 jobs:
   build-linux:
@@ -19,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install system dependencies (Qt6 GUI)
         run: |
@@ -40,13 +41,6 @@ jobs:
           #   libgl1-mesa-dev libegl1-mesa-dev libdbus-1-dev \
           #   libfontconfig1-dev libfreetype6-dev libicu-dev libvulkan-dev
 
-      - name: Cache vcpkg installed
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.VCPKG_ROOT }}/installed
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: ${{ runner.os }}-vcpkg-
-
       - name: Setup CMake
         uses: lukka/get-cmake@latest
         with:
@@ -64,6 +58,20 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT
           $VCPKG_ROOT/bootstrap-vcpkg.sh
+
+      # ✅ Cache built packages (must be AFTER vcpkg exists)
+      - name: Cache vcpkg installed
+        id: cache-vcpkg-installed
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.VCPKG_ROOT }}/installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      # (Optional) Debug cache hit
+      - name: Debug cache result
+        run: echo "Cache hit: ${{ steps.cache-vcpkg-installed.outputs.cache-hit }}"
 
       - name: Build md4c-html manually
         run: |
@@ -87,37 +95,35 @@ jobs:
             -G Ninja
           cmake --build build --config Release
 
-      - name: Package binaries
+      - name: Extract project version from CMakeLists.txt
+        id: get_version
         run: |
-          cd build
-          tar -czf ../notesman-linux.tar.gz .
+          VERSION=$(grep -Po '(?<=VERSION )\d+\.\d+\.\d+' CMakeLists.txt || echo "0.0.0")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v1.0.0
-          name: Notesman v1.0.0
-          body: "Initial release of Notesman."
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload artifact to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./notesman-linux.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Show extracted version
+        run: echo "Extracted version = ${{ steps.get_version.outputs.version }}"          
 
       - name: Bundle Qt runtime libraries
         run: |
           mkdir -p dist
           cp build/Notesman dist/
-          # Copy Qt runtime từ vcpkg
-          cp -v $(find ./vcpkg/installed/x64-linux-dynamic/lib -name "libQt6*.so*") dist/
-          cp -v $(find ./vcpkg/installed/x64-linux-dynamic/plugins -type f) dist/ || true
-          # Copy platform plugin (bắt buộc)
+          command -v rsync >/dev/null 2>&1 && \
+            rsync -av ./vcpkg/installed/x64-linux-dynamic/plugins/ dist/plugins/ || \
+            cp -vr ./vcpkg/installed/x64-linux-dynamic/plugins dist/ || true
+          cp -v $(find ./vcpkg/installed/x64-linux-dynamic/lib -name "libQt6*.so*") dist/ || true
           mkdir -p dist/platforms
           cp -v ./vcpkg/installed/x64-linux-dynamic/plugins/platforms/libqxcb.so dist/platforms/
-          # Đóng gói lại
-          tar -czf notesman-linux.tar.gz -C dist .
+          tar -czf notesman-linux-${{ steps.get_version.outputs.version }}.tar.gz -C dist .
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Notesman v${{ steps.get_version.outputs.version }}
+          body: "Automated release for Notesman v${{ steps.get_version.outputs.version }}."
+          files: notesman-linux-${{ steps.get_version.outputs.version }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
