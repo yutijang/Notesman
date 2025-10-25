@@ -1,8 +1,3 @@
-set(VCPKG_TARGET_ARCHITECTURE x64)
-set(VCPKG_CRT_LINKAGE dynamic)
+include(${VCPKG_ROOT}/triplets/x64-linux.cmake)
 set(VCPKG_LIBRARY_LINKAGE dynamic)
-
-set(VCPKG_CMAKE_SYSTEM_NAME Linux)
-
-# Dùng clang thay vì gcc
-set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "/usr/share/cmake/clang-toolchain.cmake" CACHE STRING "")
+set(VCPKG_CRT_LINKAGE dynamic)
