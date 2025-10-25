@@ -1,5 +1,5 @@
 # Kế thừa triplet gốc của vcpkg
-include(${VCPKG_ROOT}/triplets/x64-linux.cmake)
+include("${CMAKE_CURRENT_LIST_DIR}/../vcpkg/triplets/x64-linux.cmake")
 
 set(VCPKG_TARGET_ARCHITECTURE x64)
 set(VCPKG_CRT_LINKAGE dynamic)
