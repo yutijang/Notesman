@@ -76,9 +76,6 @@ jobs:
           install-deps: true
           cached: true
 
-      - name: Check Qt installation
-        run: ls -R $GITHUB_WORKSPACE/Qt
-
       - name: Locate Qt6 installation
         id: find_qt
         run: |
