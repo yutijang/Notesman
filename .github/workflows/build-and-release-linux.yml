@@ -51,10 +51,10 @@ jobs:
           ccache --show-config || true
 
       - name: Setup vcpkg (bootstrap)
-        uses: microsoft/vcpkg-action@v3
+        uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: "HEAD"
-          vcpkgRoot: ${{ env.VCPKG_ROOT }}
+          vcpkgGitCommitId: 'latest'
+          runVcpkgInstall: false
 
       - name: Prepare vcpkg manifest for CI (remove qtbase)
         run: |
