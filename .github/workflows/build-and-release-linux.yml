@@ -50,10 +50,13 @@ jobs:
           ccache --zero-stats || true
           ccache --show-config || true
 
+      - name: Clone vcpkg manually
+        run: git clone https://github.com/microsoft/vcpkg.git $GITHUB_WORKSPACE/vcpkg --depth=1
+
       - name: Setup vcpkg (bootstrap)
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: 'latest'
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           runVcpkgInstall: false
 
       - name: Prepare vcpkg manifest for CI (remove qtbase)
