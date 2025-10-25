@@ -26,12 +26,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            # Compiler & build tools
             build-essential clang lld cmake ninja-build pkg-config \
             autoconf automake autoconf-archive libtool libltdl-dev \
             python3 python3-pip curl git unzip zip \
-            
-            # X11 / GUI
             libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libxi-dev \
             libxrender-dev libxrandr-dev libxcursor-dev libxinerama-dev libxss-dev \
             libxkbcommon-dev libxkbcommon-x11-dev \
@@ -42,23 +39,11 @@ jobs:
             libxcb-xinerama0-dev libxcb-damage0-dev libxcb-composite0-dev \
             libgtk-3-dev libsm-dev libice-dev libpthread-stubs0-dev \
             libwayland-dev libwayland-egl-backend-dev \
-            
-            # OpenGL / Mesa
             libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev mesa-common-dev libglu1-mesa-dev \
-            
-            # Fonts & text rendering
             libfontconfig1-dev libfreetype6-dev libharfbuzz-dev libicu-dev \
-            
-            # System services / input
             libdbus-1-dev libatspi2.0-dev libinput-dev libmtdev-dev libevdev-dev libts-dev libudev-dev \
-            
-            # Vulkan
             libvulkan-dev \
-            
-            # Image formats
             libjpeg-dev libpng-dev libtiff-dev libgif-dev libwebp-dev libavif-dev \
-            
-            # Utilities / libraries
             libdouble-conversion-dev libmd4c-dev libb2-dev libproxy-dev zlib1g-dev libssl-dev
 
       - name: Setup CMake
