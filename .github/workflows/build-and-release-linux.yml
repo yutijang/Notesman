@@ -1,0 +1,248 @@
+name: Build & Release (Linux, Qt6 dynamic, vcpkg for other deps, ccache, AppImage)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'            # push tag vX.Y.Z sẽ trigger release
+
+permissions:
+  contents: write
+
+env:
+  BUILD_TYPE: Release
+  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+  VCPKG_DEFAULT_TRIPLET: x64-linux # we will request dynamic libs via env below
+  CCACHE_DIR: ${{ github.workspace }}/.ccache
+  CCACHE_MAXSIZE: 500M
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install apt packages (build tools)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential clang lld cmake ninja-build pkg-config \
+            jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev
+
+      - name: Setup ccache cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Configure ccache
+        run: |
+          mkdir -p "${CCACHE_DIR}"
+          echo "max_size = ${CCACHE_MAXSIZE}" > ~/.ccache/ccache.conf || true
+          export PATH="/usr/lib/ccache:$PATH" || true
+          ccache --zero-stats || true
+          ccache --show-config || true
+
+      - name: Setup vcpkg (bootstrap)
+        uses: microsoft/vcpkg-action@v3
+        with:
+          vcpkgGitCommitId: "HEAD"
+          vcpkgRoot: ${{ env.VCPKG_ROOT }}
+
+      - name: Prepare vcpkg manifest for CI (remove qtbase)
+        run: |
+          if [ ! -f vcpkg.json ]; then
+            echo "No vcpkg.json in repo root — aborting"
+            exit 1
+          fi
+          # create vcpkg-ci.json by removing qtbase dependency (we will install Qt from marketplace)
+          jq 'del(.dependencies[] | select(.name == "qtbase"))' vcpkg.json > vcpkg-ci.json
+          echo "---- vcpkg-ci.json ----"
+          cat vcpkg-ci.json
+
+      - name: Install Qt6 (from action marketplace) - Shared libs
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: "6.7.*"        # chỉnh phiên bản Qt6 mong muốn
+          host: linux
+          modules: qtbase,widgets,gui,tools
+          install-deps: true
+          cached: true
+
+      - name: Locate Qt6 installation
+        id: find_qt
+        run: |
+          # try common locations and PATH
+          QT_BIN=""
+          # try qmake-qt6 or qmake
+          for q in $(which qmake-qt6 2>/dev/null || true) $(which qmake 2>/dev/null || true); do
+            if [ -n "$q" ] && [ -x "$q" ]; then
+              QT_BIN="$q"
+              break
+            fi
+          done
+
+          # fallback: find folder under $HOME/Qt or /opt
+          if [ -z "$QT_BIN" ]; then
+            QT_BIN=$(find $HOME /opt -maxdepth 3 -type f -name qmake-qt6 -o -name qmake 2>/dev/null | head -n1 || true)
+          fi
+
+          if [ -z "$QT_BIN" ]; then
+            echo "qt binary (qmake) not found — will try to detect Qt cmake dir via common locations"
+            # try to detect Qt6 CMake dir
+            QT_CMAKE_DIR=$(find $HOME /opt -type d -path "*/Qt*/6*/*/lib/cmake/Qt6" 2>/dev/null | head -n1 || true)
+            if [ -n "$QT_CMAKE_DIR" ]; then
+              QT_DIR=$(dirname $(dirname "$QT_CMAKE_DIR"))
+            else
+              echo "Could not detect Qt installation automatically. Aborting."
+              exit 1
+            fi
+          else
+            QT_DIR=$(dirname $(dirname "$QT_BIN"))
+          fi
+
+          # write output
+          echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
+          echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
+          echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
+          echo "Detected Qt dir: $QT_DIR"
+          ls -la "${QT_DIR}" || true
+      - name: Show found Qt info
+        run: |
+          echo "qt_bin = ${{ steps.find_qt.outputs.qt_bin }}"
+          echo "qt_dir = ${{ steps.find_qt.outputs.qt_dir }}"
+          echo "Qt6 cmake dir = ${{ steps.find_qt.outputs['Qt6_DIR'] }}" || true
+
+      - name: Install non-Qt dependencies via vcpkg (manifest-mode, using vcpkg-ci.json)
+        run: |
+          # ensure vcpkg available
+          "$VCPKG_ROOT/vcpkg" --version
+          # install dependencies from vcpkg-ci.json (this file has qtbase removed)
+          "$VCPKG_ROOT/vcpkg" install --manifest-root=. --manifest-file=vcpkg-ci.json --triplet "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+        env:
+          VCPKG_FEATURE_FLAGS: manifests
+          VCPKG_DEFAULT_TRIPLET: ${{ env.VCPKG_DEFAULT_TRIPLET }}
+          CC: clang
+          CXX: clang++
+
+      - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
+        run: |
+          cmake -B build -S . \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
+            -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+        env:
+          CC: clang
+          CXX: clang++
+
+      - name: Build (parallel)
+        run: |
+          cmake --build build --config ${BUILD_TYPE} --parallel
+
+      - name: Run tests (optional, skip if not desired)
+        run: |
+          if [ -x build/tests/gui-tests ] || [ -x build/tests/notes-core-tests ]; then
+            echo "Running unit tests (if any)..."
+            # adjust test paths as your project
+            ctest --test-dir build --output-on-failure || true
+          else
+            echo "No tests binary found, skipping tests."
+          fi
+
+      - name: Prepare AppDir for linuxdeployqt
+        run: |
+          set -e
+          APPDIR=AppDir
+          rm -rf "$APPDIR"
+          mkdir -p "$APPDIR/usr/bin"
+          mkdir -p "$APPDIR/usr/lib"
+          # Copy built binary: your project sets RUNTIME_OUTPUT_DIRECTORY -> bin/
+          if [ -f ./bin/Notesman ]; then
+            cp ./bin/Notesman "$APPDIR/usr/bin/Notesman"
+          elif [ -f build/Notesman ]; then
+            cp build/Notesman "$APPDIR/usr/bin/Notesman"
+          else
+            echo "Built binary not found in ./bin or build/ - adjust paths"
+            ls -la ./bin || true
+            ls -la build || true
+            exit 1
+          fi
+          # create a minimal desktop file (required by linuxdeployqt)
+          cat > "$APPDIR/Notesman.desktop" <<'EOF'
+          [Desktop Entry]
+          Name=Notesman
+          Exec=Notesman
+          Type=Application
+          Categories=Utility;
+          EOF
+          # icon placeholder (optional)
+          mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+          # if you have icon in repo, copy it e.g. resources/icon.png -> .png
+          # cp -v resources/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
+
+      - name: Download linuxdeployqt AppImage
+        run: |
+          # using linuxdeployqt continuous AppImage (may change — adjust if needed)
+          LINUXDEPLOYQT_URL="https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+          curl -L -o linuxdeployqt.AppImage "$LINUXDEPLOYQT_URL"
+          chmod a+x linuxdeployqt.AppImage
+          ./linuxdeployqt.AppImage --version || true
+
+      - name: Run linuxdeployqt to bundle Qt and produce AppImage
+        env:
+          QT_PLUGIN_PATH: "${{ steps.find_qt.outputs.qt_dir }}/plugins"
+        run: |
+          set -e
+          APPDIR=AppDir
+          # give linuxdeployqt the path to Qt binaries / qt libraries
+          # linuxdeployqt will try to detect needed libraries from the executable
+          # Run it and produce an AppImage
+          ./linuxdeployqt.AppImage "$APPDIR/usr/bin/Notesman" \
+            -appimage \
+            -qmake="${{ steps.find_qt.outputs.qt_bin }}" \
+            -verbose=1 \
+            -bundle-non-qt-libs \
+            || (echo "linuxdeployqt failed" && exit 1)
+
+      - name: Show resulting AppImage
+        run: |
+          ls -la *.AppImage || ls -la ./Notesman*.AppImage || true
+          # move AppImage into release dir
+          mkdir -p release
+          mv *.AppImage release/ || true
+          # fallback if linuxdeployqt names the AppImage differently:
+          if [ -z "$(ls release/*.AppImage 2>/dev/null || true)" ]; then
+            echo "No AppImage found in release/, listing directory:"
+            ls -la
+            exit 1
+          fi
+
+      - name: Upload AppImage as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notesman-linux-appimage
+          path: release/*.AppImage
+
+      - name: Create GitHub Release (on tag pushes)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Notesman ${{ github.ref_name }} (Linux AppImage)"
+          files: release/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Show ccache stats
+        run: |
+          ccache --show-stats || true
