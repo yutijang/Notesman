@@ -198,21 +198,20 @@ jobs:
           chmod a+x linuxdeployqt.AppImage
           ./linuxdeployqt.AppImage --version || true
 
-      - name: Run linuxdeployqt to bundle Qt and produce AppImage
-        env:
-          QT_PLUGIN_PATH: "${{ steps.find_qt.outputs.qt_dir }}/plugins"
+      - name: Download compatible linuxdeployqt
+        run: |
+          wget -q https://sourceforge.net/projects/linuxdeployqt.mirror/files/8/linuxdeployqt-continuous-x86_64.AppImage/download -O linuxdeployqt.AppImage
+          chmod +x linuxdeployqt.AppImage
+
+      - name: Bundle Qt and produce AppImage
         run: |
           set -e
           APPDIR=AppDir
-          # give linuxdeployqt the path to Qt binaries / qt libraries
-          # linuxdeployqt will try to detect needed libraries from the executable
-          # Run it and produce an AppImage
           ./linuxdeployqt.AppImage "$APPDIR/usr/bin/Notesman" \
             -appimage \
             -qmake="${{ steps.find_qt.outputs.qt_bin }}" \
             -verbose=1 \
-            -bundle-non-qt-libs \
-            || (echo "linuxdeployqt failed" && exit 1)
+            -bundle-non-qt-libs
 
       - name: Show resulting AppImage
         run: |
