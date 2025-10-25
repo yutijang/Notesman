@@ -54,12 +54,11 @@ jobs:
           key: ${{ runner.os }}-vcpkg-source
 
       - name: Clone and bootstrap vcpkg if needed
-        if: steps.cache-vcpkg-source.outputs.cache-hit != 'true'
+        if: ${{ steps.cache-vcpkg-source.outputs.cache-hit != 'true' }}
         run: |
           git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT
           $VCPKG_ROOT/bootstrap-vcpkg.sh
 
-      # ✅ Cache built packages (must be AFTER vcpkg exists)
       - name: Cache vcpkg installed
         id: cache-vcpkg-installed
         uses: actions/cache@v3
@@ -69,9 +68,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
-      # (Optional) Debug cache hit
       - name: Debug cache result
-        run: 'echo "Cache hit: ${{ steps.cache-vcpkg-installed.outputs.cache-hit }}"'
+        run: |
+          echo "Cache hit: ${{ steps.cache-vcpkg-installed.outputs.cache-hit }}"
 
       - name: Build md4c-html manually
         run: |
@@ -85,6 +84,13 @@ jobs:
       - name: Install dependencies via vcpkg
         run: |
           $VCPKG_ROOT/vcpkg install
+
+      - name: Save vcpkg installed cache
+        if: always() && steps.cache-vcpkg-installed.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: ${{ env.VCPKG_ROOT }}/installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}        
 
       - name: Configure and build (Release)
         run: |
@@ -104,16 +110,33 @@ jobs:
       - name: Show extracted version
         run: echo "Extracted version = ${{ steps.get_version.outputs.version }}"          
 
+      - name: Debug Qt6 library locations
+        run: |
+          echo "🔍 Searching for Qt6 libraries and plugins..."
+          find "${{ env.VCPKG_ROOT }}" -type f -name "libQt6*.so*" 2>/dev/null | sort || true
+          echo ""
+          echo "🔍 Searching for Qt6 plugins..."
+          find "${{ env.VCPKG_ROOT }}" -type f -path "*/plugins/*" 2>/dev/null | sort || true
+          echo ""
+          echo "✅ Done scanning Qt6 files under $VCPKG_ROOT"
+
       - name: Bundle Qt runtime libraries
         run: |
           mkdir -p dist
           cp ./bin/Notesman dist/
+
+          # Copy Qt plugins
           command -v rsync >/dev/null 2>&1 && \
-            rsync -av ./vcpkg/installed/x64-linux-dynamic/plugins/ dist/plugins/ || \
-            cp -vr ./vcpkg/installed/x64-linux-dynamic/plugins dist/ || true
-          cp -v $(find ./vcpkg/installed/x64-linux-dynamic/lib -name "libQt6*.so*") dist/ || true
+            rsync -av "${{ env.VCPKG_ROOT }}/installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/plugins/" dist/plugins/ || \
+            cp -vr "${{ env.VCPKG_ROOT }}/installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/plugins" dist/ || true
+
+          # Copy Qt shared libs
+          cp -v $(find "${{ env.VCPKG_ROOT }}/installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/lib" -name "libQt6*.so*") dist/ || true
+
+          # Ensure platform plugin exists
           mkdir -p dist/platforms
-          cp -v ./vcpkg/installed/x64-linux-dynamic/plugins/platforms/libqxcb.so dist/platforms/
+          cp -v "${{ env.VCPKG_ROOT }}/installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/plugins/platforms/libqxcb.so" dist/platforms/ || true
+
           tar -czf notesman-linux-${{ steps.get_version.outputs.version }}.tar.gz -C dist .
 
       - name: Create GitHub Release
@@ -126,4 +149,3 @@ jobs:
           files: notesman-linux-${{ steps.get_version.outputs.version }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
