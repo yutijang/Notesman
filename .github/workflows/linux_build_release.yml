@@ -39,7 +39,8 @@ jobs:
             libfreetype6-dev libharfbuzz-dev libicu-dev libdbus-1-dev libatspi2.0-dev \
             libinput-dev libmtdev-dev libevdev-dev libts-dev libudev-dev libvulkan-dev \
             libjpeg-dev libpng-dev libtiff-dev libgif-dev libwebp-dev libavif-dev \
-            libdouble-conversion-dev libmd4c-dev libb2-dev libproxy-dev zlib1g-dev libssl-dev
+            libdouble-conversion-dev libmd4c-dev libb2-dev libproxy-dev zlib1g-dev libssl-dev \
+            libmd4c-dev libmd4c-html0
 
       - name: Setup CMake
         uses: lukka/get-cmake@latest
@@ -87,6 +88,7 @@ jobs:
           VCPKG_FEATURE_FLAGS: manifests
           VCPKG_LIBRARY_LINKAGE: dynamic
           VCPKG_BUILD_TYPE: release
+          VCPKG_PREFER_SYSTEM_LIBS: 0
           CC: clang
           CXX: clang++
 
