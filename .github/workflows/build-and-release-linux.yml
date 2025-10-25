@@ -76,7 +76,7 @@ jobs:
           arch: gcc_64              # Kiến trúc phổ biến cho Ubuntu runners
           install-deps: true
           cached: true
-          modules: "qtbase qttools qtwidgets qtgui"
+          modules: "qtbase qttools"
 
       - name: Check Qt installation
         run: ls -R $GITHUB_WORKSPACE/Qt
