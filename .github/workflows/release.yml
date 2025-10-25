@@ -68,7 +68,7 @@ jobs:
         id: cache-vcpkg-installed
         uses: actions/cache@v3
         with:
-          path: ${{ env.VCPKG_ROOT }}/installed
+          path: ${{ env.VCPKG_ROOT }}/build/vcpkg_installed
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
@@ -89,12 +89,15 @@ jobs:
       - name: Install dependencies via vcpkg
         run: |
           $VCPKG_ROOT/vcpkg install --triplet x64-linux-dynamic --clean-after-build
+        env:
+          VCPKG_FEATURE_FLAGS: manifests
+          VCPKG_LIBRARY_LINKAGE: dynamic          
 
       - name: Save vcpkg installed cache
         if: always() && steps.cache-vcpkg-installed.outputs.cache-hit != 'true' && (test -d ${{ env.VCPKG_ROOT }}/installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/lib)
         uses: actions/cache/save@v3
         with:
-          path: ${{ env.VCPKG_ROOT }}/installed
+          path: ${{ env.VCPKG_ROOT }}/build/vcpkg_installed
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}        
 
       - name: Configure and build (Release)
@@ -130,25 +133,54 @@ jobs:
           mkdir -p dist
           cp ./bin/Notesman dist/
 
-          # Copy Qt shared libs
+          echo "🔍 Searching for Qt6 shared libraries..."
           QT_LIBS=$(find "${{ env.VCPKG_ROOT }}/installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/lib" -name "libQt6*.so*" 2>/dev/null)
+
+          # Nếu không tìm thấy trong installed/, thử packages/
+          if [ -z "$QT_LIBS" ]; then
+            echo "⚠️  Not found under installed/, trying packages/..."
+            QT_LIBS=$(find "${{ env.VCPKG_ROOT }}/packages" -name "libQt6*.so*" 2>/dev/null)
+          fi
+
           if [ -n "$QT_LIBS" ]; then
-            cp -v $QT_LIBS dist/
+            echo "✅ Found Qt6 shared libs:"
+            echo "$QT_LIBS"
+            cp -v $QT_LIBS dist/ || true
+          else
+            echo "❌ No Qt6 shared libraries found."
           fi
 
-          # Copy Qt plugins
+          echo ""
+          echo "🔍 Searching for Qt6 plugins..."
           QT_PLUGINS="${{ env.VCPKG_ROOT }}/installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/plugins"
-          if [ -d "$QT_PLUGINS" ]; then
-            cp -vr "$QT_PLUGINS" dist/
+
+          # Nếu không có plugins trong installed/, thử packages/
+          if [ ! -d "$QT_PLUGINS" ]; then
+            echo "⚠️  Not found under installed/, trying packages/..."
+            QT_PLUGINS="${{ env.VCPKG_ROOT }}/packages/qtbase_x64-linux/debug/Qt6/plugins"
           fi
 
-          # Platform plugin
+          if [ -d "$QT_PLUGINS" ]; then
+            echo "✅ Copying Qt6 plugins from: $QT_PLUGINS"
+            cp -vr "$QT_PLUGINS" dist/
+          else
+            echo "❌ No Qt6 plugins directory found."
+          fi
+
+          echo ""
+          echo "🔍 Checking for platform plugin (libqxcb.so)..."
           if [ -f "$QT_PLUGINS/platforms/libqxcb.so" ]; then
             mkdir -p dist/platforms
             cp -v "$QT_PLUGINS/platforms/libqxcb.so" dist/platforms/
+          else
+            echo "⚠️  Platform plugin libqxcb.so not found."
           fi
 
+          echo ""
+          echo "📦 Creating archive..."
           tar -czf notesman-linux-${{ steps.get_version.outputs.version }}.tar.gz -C dist .
+
+          echo "✅ Packaging complete."
 
       - name: Create GitHub Release
         id: create_release
