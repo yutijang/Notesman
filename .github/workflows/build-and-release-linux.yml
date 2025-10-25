@@ -70,7 +70,7 @@ jobs:
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v3
         with:
-          version: "6.7.3"          # Tự động lấy bản mới nhất trong series 6.7
+          version: "6.7.3"
           host: linux
           target: desktop
           install-deps: true
@@ -114,6 +114,7 @@ jobs:
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
           echo "Detected Qt dir: $QT_DIR"
           ls -la "${QT_DIR}" || true
+
       - name: Show found Qt info
         run: |
           echo "qt_bin = ${{ steps.find_qt.outputs.qt_bin }}"
@@ -122,10 +123,9 @@ jobs:
 
       - name: Install non-Qt dependencies via vcpkg (manifest-mode, using vcpkg-ci.json)
         run: |
-          # ensure vcpkg available
           "$VCPKG_ROOT/vcpkg" --version
-          # install dependencies from vcpkg-ci.json (this file has qtbase removed)
-          "$VCPKG_ROOT/vcpkg" install --manifest-root=. --manifest-file=vcpkg-ci.json --triplet "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          cp vcpkg-ci.json vcpkg.json
+          "$VCPKG_ROOT/vcpkg" install --triplet "${{ env.VCPKG_DEFAULT_TRIPLET }}"
         env:
           VCPKG_FEATURE_FLAGS: manifests
           VCPKG_DEFAULT_TRIPLET: ${{ env.VCPKG_DEFAULT_TRIPLET }}
