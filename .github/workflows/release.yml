@@ -85,7 +85,10 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release -DMD4C_BUILD_SHARED=ON -DMD4C_BUILD_STATIC=OFF -DMD4C_BUILD_MD2HTML=ON
           cmake --build . --config Release
           sudo cmake --install . --prefix /usr/local
-          
+
+      - name: Clean old vcpkg build
+        run: rm -rf "$VCPKG_ROOT/buildtrees/qt*" "$VCPKG_ROOT/packages/qt*" "$VCPKG_ROOT/downloads"
+
       - name: Install dependencies via vcpkg
         run: |
           $VCPKG_ROOT/vcpkg install --triplet x64-linux-dynamic \
