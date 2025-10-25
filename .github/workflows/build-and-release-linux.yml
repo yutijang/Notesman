@@ -70,11 +70,17 @@ jobs:
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v3
         with:
-          version: "6.7.*"        # chỉnh phiên bản Qt6 mong muốn
+          version: "6.7.*"          # Tự động lấy bản mới nhất trong series 6.7
           host: linux
-          modules: qtbase,widgets,gui,tools
+          target: desktop
+          arch: gcc_64              # Kiến trúc phổ biến cho Ubuntu runners
           install-deps: true
           cached: true
+          modules: |
+            qtbase
+            qttools
+            qtwidgets
+            qtgui
 
       - name: Locate Qt6 installation
         id: find_qt
