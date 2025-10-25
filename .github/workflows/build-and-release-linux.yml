@@ -73,7 +73,6 @@ jobs:
           version: "6.7.3"          # Tự động lấy bản mới nhất trong series 6.7
           host: linux
           target: desktop
-          arch: gcc_64              # Kiến trúc phổ biến cho Ubuntu runners
           install-deps: true
           cached: true
 
