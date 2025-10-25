@@ -1,4 +1,4 @@
-name: Release Notesman
+name: Release Linux build
 
 on:
   workflow_dispatch:
