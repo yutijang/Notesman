@@ -4,6 +4,12 @@
 #include <QHttpPart>
 #include <QTcpServer>
 #include <QNetworkAccessManager>
+#include <QCoreApplication>
+#include <QFileInfo>
+#include <QUrlQuery>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 #include "GoogleDriveService.hpp"
 #include "OAuthManager.hpp"

@@ -1,4 +1,13 @@
 #include <QNetworkReply>
+#include <QRandomGenerator>
+#include <QJsonObject>
+#include <QSettings>
+#include <QJsonDocument>
+#include <QUrl>
+#include <QUrlQuery>
+#include <QDesktopServices>
+#include <QTimeZone>
+#include <QEventLoop>
 #include <qt6keychain/keychain.h>
 
 #include "OAuthManager.hpp"

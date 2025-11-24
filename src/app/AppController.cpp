@@ -3,7 +3,6 @@
 #include <QObject>
 #include <QFileInfo>
 #include <QDir>
-#include <QCoreApplication>
 #include <QString>
 #include <QMessageBox>
 #include <QTranslator>
@@ -11,7 +10,6 @@
 #include <QStyleFactory>
 #include <QTimer>
 #include <QThread>
-#include <QRandomGenerator>
 #include <QRegularExpression>
 
 #include "AppController.hpp"
