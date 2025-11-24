@@ -1,0 +1,38 @@
+<RCC>
+    <qresource prefix="/">
+        <file>schema/notes_manager_schema.sql</file>
+    </qresource>
+
+    <qresource prefix="/">
+        <file>fonts/Roboto-Condensed-webfont.ttf</file>
+        <file>fonts/JetBrainsMono-Regular.ttf</file>
+    </qresource>
+
+    <qresource prefix="/">
+        <file>icons/browse_tab.ico</file>
+        <file>icons/add_tab.ico</file>
+        <file>icons/settings_tab.ico</file>
+        <file>icons/search_button.ico</file>
+        <file>icons/add.ico</file>
+        <file>icons/apply.ico</file>
+        <file>icons/clear.ico</file>
+        <file>icons/erase.ico</file>
+        <file>icons/view.ico</file>
+        <file>icons/info.ico</file>
+        <file>icons/about.ico</file>
+        <file>icons/update.ico</file>
+        <file>icons/icon.png</file>
+        <file>icons/checked.png</file>
+        <file>icons/hover_unchecked.png</file>
+        <file>icons/unchecked.png</file>
+    </qresource>
+
+    <qresource prefix="/">
+        <file>i18n/app_vi.qm</file>
+    </qresource>
+
+    <qresource prefix="/">
+        <file>qss/light.qss</file>
+        <file>qss/dark.qss</file>
+    </qresource>    
+</RCC>

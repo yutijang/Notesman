@@ -1,0 +1,6 @@
+#pragma once
+
+namespace OAuthConfig {
+    inline constexpr const char* CLIENT_ID = "@CLIENT_ID@";
+    inline constexpr const char* CLIENT_SECRET = "@CLIENT_SECRET@";
+} // namespace OAuthConfig

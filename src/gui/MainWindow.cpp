@@ -1,0 +1,655 @@
+#include <QMainWindow>
+#include <QTabWidget>
+#include <QWidget>
+#include <QLineEdit>
+#include <QLabel>
+#include <QMessageBox>
+#include <QShowEvent>
+#include <QScreen>
+#include <QSettings>
+#include <QDebug>
+#include <QMenu>
+#include <QPoint>
+#include <ranges>
+#include <QTimer>
+#include <QApplication>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QProgressDialog>
+#include <QStatusBar>
+#include <QVBoxLayout>
+#include <QDir>
+#include <QModelIndexList>
+
+#include "UiConstants.hpp"
+#include "BrowseTabWidget.hpp"
+#include "AddTabWidget.hpp"
+#include "SettingsTabWidget.hpp"
+#include "MainWindow.hpp"
+#include "CodeEditorLineHighlighter.hpp"
+#include "ResultsTable.hpp"
+#include "cpphighlightertheme.hpp"
+#include "cpphighlighter.hpp"
+#include "model.hpp"
+#include "NotesAppCore.hpp"
+#include "PlainTextEdit.hpp"
+#include "AppController.hpp"
+#include "InfoCornerWidget.hpp"
+#include "app_version.hpp"
+#include "ResourceSearchWorker.hpp"
+#include "UpdateInfoSummary.hpp"
+
+namespace {
+    constexpr int GUI_WIDTH{1200};
+    constexpr int GUI_HEIGHT{800};
+    constexpr int DL_MAX_PERCENT{100};
+} // namespace
+
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
+    setWindowIcon(QIcon(":/icons/icon.png"));
+    setWindowTitle(tr("Notes Manager"));
+    resize(GUI_WIDTH, GUI_HEIGHT);
+
+    buildUi();
+}
+
+void MainWindow::buildUi() {
+    m_tabWidget = new QTabWidget(this);
+    setCentralWidget(m_tabWidget);
+
+    setupBrowseTab();
+    setupAddTab();
+    setupSettingsTab();
+    setupIconInfo();
+    statusBar()->showMessage(tr("Ready"), 0);
+
+    m_tabWidget->setCurrentWidget(m_browseTab);
+}
+
+void MainWindow::setupBrowseTab() {
+    m_browseTab = new BrowseTabWidget(this);
+
+    QObject::connect(m_browseTab, &BrowseTabWidget::resourceDoubleClicked, this,
+                     &MainWindow::viewResource);
+
+    QObject::connect(m_browseTab, &BrowseTabWidget::contextMenuRequested, this,
+                     &MainWindow::showContextMenu);
+
+    QObject::connect(m_browseTab, &BrowseTabWidget::statusUpdate, this, &MainWindow::updateStatus);
+
+    QObject::connect(this, &MainWindow::updateColumnWidthsRequest, m_browseTab,
+                     &BrowseTabWidget::updateColumnWidths);
+
+    m_tabWidget->addTab(m_browseTab, QIcon(":/icons/browse_tab.ico"), tr("Browse"));
+}
+
+void MainWindow::setupAddTab() {
+    m_addTab = new AddTabWidget(this);
+
+    m_tabWidget->addTab(m_addTab, QIcon(":/icons/add_tab.ico"), tr("Add Notes"));
+}
+
+void MainWindow::setupSettingsTab() {
+    m_settingsTab = new SettingsTabWidget(this);
+
+    QObject::connect(this, &MainWindow::settingsTabShowNotification, m_settingsTab,
+                     &SettingsTabWidget::showNotification);
+
+    QObject::connect(this, &MainWindow::settingsStateChangeRequest, m_settingsTab,
+                     &SettingsTabWidget::handleSettingsStateChange);
+
+    m_tabWidget->addTab(m_settingsTab, QIcon(":/icons/settings_tab.ico"), tr("Settings"));
+}
+
+void MainWindow::setupIconInfo() {
+    auto* infoWidget = new InfoCornerWidget(this);
+    m_tabWidget->setCornerWidget(infoWidget, Qt::TopRightCorner);
+
+    QObject::connect(infoWidget, &InfoCornerWidget::checkUpdateRequested, this,
+                     &MainWindow::onCheckUpdateClicked);
+
+    QObject::connect(infoWidget, &InfoCornerWidget::aboutRequested, this, &MainWindow::onAbout);
+}
+
+void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) {
+    m_settingsMessageState = state;
+
+    if (state == UiConst::SettingsMessageState::Default) {
+        emit settingsStateChangeRequest(AppController::defaultUiSettings());
+    }
+}
+
+void MainWindow::showEvent(QShowEvent* event) {
+    QMainWindow::showEvent(event);             // Gọi base trước
+
+    QSettings settings("Notesman", "configs"); // Tạo INI/JSON config
+
+    // Đọc vị trí lưu
+    int x = settings.value("window/posX", -1).toInt();
+    int y = settings.value("window/posY", -1).toInt();
+    int w = settings.value("window/width", width()).toInt();
+    int h = settings.value("window/height", height()).toInt();
+
+    if (x != -1 && y != -1) {
+        // Dùng vị trí lưu (và kích thước nếu cần)
+        w = qMax(GUI_WIDTH, w);
+        h = qMax(GUI_HEIGHT, h);
+        resize(w, h);
+        move(x, y);
+    } else {
+        // Fallback: Căn giữa màn hình
+        QScreen* screen = QApplication::primaryScreen();
+        QRect geom = screen->geometry();
+        move((geom.width() - width()) / 2, (geom.height() - height()) / 2);
+    }
+
+    emit updateColumnWidthsRequest();
+
+    emit requestDatabaseInit();
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+    // Lưu vị trí và kích thước
+    QSettings settings("Notesman", "configs");
+    settings.setValue("window/posX", x());
+    settings.setValue("window/posY", y());
+    settings.setValue("window/width", width());
+    settings.setValue("window/height", height());
+
+    QMainWindow::closeEvent(event); // Gọi base để đóng
+}
+
+// ===================================================
+// Core injection & helpers
+// ===================================================
+void MainWindow::setCore(NotesAppCore* core) {
+    m_core = core;
+    // showInfo(tr("Database initialized successfully."));
+
+    m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_addTab), true);
+    m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_browseTab), true);
+}
+
+void MainWindow::showNoti(const QString &message, UiConst::MessageType type) {
+    if (type == UiConst::MessageType::info) {
+        QMessageBox::information(this, tr("Information"), message);
+    } else if (type == UiConst::MessageType::error) {
+        QMessageBox::critical(this, tr("Error"), message);
+    }
+}
+
+// NOLINTNEXTLINE
+void MainWindow::viewResource(int id, const QString &title, const QString &path) {
+    auto* dialog = new QDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose); // Tự giải phóng khi đóng
+    dialog->setWindowTitle(QString(tr("View detail resource: %1")).arg(title));
+
+    static constexpr int editorW{640};
+    static constexpr int offset{30};
+    const int mainH = this->height();
+    dialog->setMinimumWidth(editorW + offset);
+    const int frameH = dialog->style()->pixelMetric(QStyle::PM_TitleBarHeight) +
+                       (dialog->style()->pixelMetric(QStyle::PM_DefaultFrameWidth) * 2);
+    dialog->resize(editorW, mainH - frameH + offset);
+
+    auto* viewSourceTextEdit = createResourceTextEdit(this);
+    viewSourceTextEdit->setMinimumWidth(editorW);
+
+    loadResourceContent(id, path, viewSourceTextEdit);
+
+    setupHighlighter(viewSourceTextEdit);
+
+    auto* layout = new QVBoxLayout(dialog);
+    layout->addWidget(viewSourceTextEdit);
+    dialog->setLayout(layout);
+
+    dialog->show();
+
+    QTimer::singleShot(0, this, [this]() {
+        m_browseTab->resultsTable()->clearSelection();
+        m_browseTab->resultsTable()->setCurrentItem(nullptr);
+        m_browseTab->resultsTable()->clearFocus();
+    });
+}
+
+void MainWindow::showContextMenu(const QPoint &pos, int id, const QString &title,
+                                 const QString &path) {
+    if (m_browseTab == nullptr) {
+        qWarning() << "BrowseTabWidget not initialized!";
+        return;
+    }
+
+    auto* resultsTbl = m_browseTab->resultsTable();
+    if (resultsTbl == nullptr) {
+        qWarning() << "ResultsTable not available!";
+        return;
+    }
+
+    QMenu menu(this);
+
+    QAction* viewAction{};
+    // if (path.isEmpty()) {
+    viewAction = menu.addAction(tr("View Resource"));
+    viewAction->setIcon(QIcon(":/icons/view.ico"));
+    QObject::connect(viewAction, &QAction::triggered, this,
+                     [this, id, title, path]() { viewResource(id, title, path); });
+    // }
+
+    QAction* openAction = menu.addAction(tr("Open path"));
+    QObject::connect(openAction, &QAction::triggered, this, [path]() {
+        if (path.isEmpty()) {
+            qDebug() << "No path to open.";
+            return;
+        }
+        QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+    });
+
+    menu.addSeparator();
+
+    QAction* deleteAction = menu.addAction(tr("Delete Resource"));
+    deleteAction->setIcon(QIcon(":/icons/erase.ico"));
+    QObject::connect(deleteAction, &QAction::triggered, this,
+                     [this, resultsTbl] { handleContextMenuDeleteAction(resultsTbl); });
+
+    menu.exec(resultsTbl->viewport()->mapToGlobal(
+        pos + QPoint(5, 5))); // NOLINT(readability-magic-numbers)
+}
+
+void MainWindow::setAppController(AppController* controller) {
+    m_appController = controller;
+
+    QObject::connect(m_appController, &AppController::settingsLoaded, this,
+                     [this](const SettingsData &settings) {
+                         if (m_tabWidget->currentIndex() == 2) {
+                             emit settingsUiRefreshRequest(settings);
+                         }
+                     });
+
+    QObject::connect(m_tabWidget, &QTabWidget::currentChanged, this, [this](int index) {
+        constexpr int settingsTabIndex{2};
+        if (index == settingsTabIndex && m_appController) {
+            const SettingsData ui = m_appController->currentUiSettings();
+            emit settingsUiRefreshRequest(ui);
+        }
+    });
+
+    QObject::connect(this, &MainWindow::settingsUiRefreshRequest, m_settingsTab,
+                     &SettingsTabWidget::handleUiRefreshRequest);
+
+    QObject::connect(m_browseTab, &BrowseTabWidget::getAllDataRequested, m_appController,
+                     &AppController::handleGetAllDataRequest);
+    QObject::connect(m_appController, &AppController::displayResultForGetAll, m_browseTab,
+                     &BrowseTabWidget::displayResults);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::defaultSettingsRequested, m_appController,
+                     &AppController::handleDefaultSettingsRequest);
+
+    QObject::connect(m_appController, &AppController::settingsUpdateStatus, this,
+                     [this](const QString &, UiConst::SettingsMessageState state) {
+                         this->handleSettingsStateChange(state);
+                     });
+
+    QObject::connect(m_appController, &AppController::settingsUpdateStatus, m_settingsTab,
+                     &SettingsTabWidget::showNotification);
+
+    QObject::connect(m_appController, &AppController::initialSettingsLoaded, m_settingsTab,
+                     &SettingsTabWidget::handleInitialSettingsLoad);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::applySettingsRequested, m_appController,
+                     &AppController::handleApplySettingsRequest);
+
+    QObject::connect(m_appController, &AppController::requestSyntaxHighlightingUpdate, this,
+                     &MainWindow::handleSyntaxHighlightingUpdate);
+
+    QObject::connect(m_appController, &AppController::addTabNotiRequest, m_addTab,
+                     &AddTabWidget::showNotification);
+
+    QObject::connect(m_addTab, &AddTabWidget::addNoteRequested, m_appController,
+                     &AppController::handleAddNoteRequest);
+
+    QObject::connect(m_appController, &AppController::resetAddTabInputsRequest, m_addTab,
+                     &AddTabWidget::resetAddTabInputs);
+
+    QObject::connect(m_browseTab, &BrowseTabWidget::searchRequested, m_appController,
+                     &AppController::handleSearchRequest);
+
+    QObject::connect(m_appController, &AppController::mainWindowNotify, this,
+                     &MainWindow::showNoti);
+
+    QObject::connect(m_appController, &AppController::searchFinishedFromController, m_browseTab,
+                     &BrowseTabWidget::handleResultsSearchRequested);
+
+    QObject::connect(this, &MainWindow::checkUpdateRequest, m_appController,
+                     &AppController::handleCheckUpdateRequested);
+
+    QObject::connect(this, &MainWindow::updateDecision, m_appController,
+                     &AppController::onUpdateDecision);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleLogin, m_appController,
+                     &AppController::handleLoginGMRequested);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleUnlink, m_appController,
+                     &AppController::handleUnlinkGMRequested);
+
+    QObject::connect(m_appController, &AppController::gmailLinked, m_settingsTab,
+                     &SettingsTabWidget::handleAfterLinkAccount);
+
+    QObject::connect(m_appController, &AppController::gmailUnlinked, m_settingsTab,
+                     &SettingsTabWidget::handleAfterUnlinkAccount);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::onUploadButtonClicked, m_appController,
+                     &AppController::uploadDbAuto);
+    QObject::connect(m_settingsTab, &SettingsTabWidget::onDownloadButtonClicked, m_appController,
+                     &AppController::downloadDbAuto);
+}
+
+void MainWindow::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) { retranslateUi(); }
+    QMainWindow::changeEvent(event);
+}
+
+void MainWindow::retranslateUi() {
+    setWindowTitle(tr("Notes Manager"));
+
+    m_tabWidget->setTabText(0, tr("Browse"));
+    m_tabWidget->setTabText(1, tr("Add Notes"));
+    m_tabWidget->setTabText(2, tr("Settings"));
+
+    // ========= Browse Tab =========
+    m_browseTab->retranslateUi();
+    // ==============================
+
+    // ========= Add Tab =========
+    m_addTab->retranslateUi();
+    // ===========================
+
+    // ========= Settings Tab =========
+    m_settingsTab->retranslateUi();
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch-default"
+    // Dịch lại thông báo đang hiển thị (nếu còn hiệu lực)
+    switch (m_settingsMessageState) {
+        case UiConst::SettingsMessageState::Updated:
+            // m_settingsTab->notificationLabel()->setText(tr("Settings updated!"));
+            emit settingsTabShowNotification(tr("Settings updated!"));
+            break;
+        case UiConst::SettingsMessageState::Default:
+            // m_settingsTab->notificationLabel()->setText(tr("Settings default!"));
+            emit settingsTabShowNotification(tr("Settings default!"));
+            break;
+        case UiConst::SettingsMessageState::None: break;
+    }
+#pragma clang diagnostic pop
+    // =================================
+}
+
+void MainWindow::applySyntaxHighlightingTheme(Theme theme) {
+    if (m_addTab->textEdit() == nullptr) { return; }
+
+    // Chọn theme tô màu
+    const CppHighlighterTheme hlTheme =
+        (theme == Theme::light) ? createLightTheme() : createDarkTheme();
+
+    // Nếu chưa có highlighter thì tạo mới
+    if (m_cppHighlighter == nullptr) {
+        m_cppHighlighter = new CppHighlighter(m_addTab->textEdit()->document(), hlTheme);
+    } else {
+        m_cppHighlighter->stopGradualRehighlight();
+        m_cppHighlighter->setTheme(hlTheme);
+    }
+
+    // Áp dụng highlight dần (mượt, không đơ)
+    m_cppHighlighter->rehighlightGradually(m_addTab->textEdit()->document(),
+                                           20, // NOLINT(readability-magic-numbers)
+                                           4);
+
+    // Cập nhật dòng caret highlight
+    if (m_lineHighlighter != nullptr) {
+        delete m_lineHighlighter;
+        m_lineHighlighter = nullptr;
+    }
+
+    m_lineHighlighter = new CodeEditorLineHighlighter(m_addTab->textEdit());
+    if (theme == Theme::light) {
+        m_lineHighlighter->setColors(QColor("#dBdBdB"), QColor("#efefef"));
+    } else {
+        m_lineHighlighter->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
+    }
+}
+
+// Position validated
+void MainWindow::onAbout() {
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(tr("About"));
+    msgBox.setTextFormat(Qt::RichText);
+
+    const QString kLinkColor = (m_appController->isDarkTheme()) ? "#4FC3F7" : "#0000EE";
+
+    msgBox.setText(tr("%1<br>Version: %2<br>Author: %3<br>Website: <a href=\"%4\" "
+                      "style=\"color: %5; text-decoration: underline;\">%4</a>")
+                       .arg(app::meta::NAME)
+                       .arg(app::meta::VERSION)
+                       .arg(app::meta::AUTHOR)
+                       .arg(app::meta::WEBSITE)
+                       .arg(kLinkColor));
+
+    auto* msgLabel = msgBox.findChild<QLabel*>("qt_msgbox_label");
+    if (msgLabel != nullptr) { msgLabel->setStyleSheet("padding: 10px 30px 30px 10px;"); }
+
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+}
+
+void MainWindow::onCheckUpdateClicked() {
+    emit checkUpdateRequest();
+}
+
+void MainWindow::onUpdateAvailable(const UpdateInfoSummary &infoSummary) {
+    if (!infoSummary.isValid()) {
+        emit updateDecision(false, infoSummary);
+        return;
+    }
+
+    const auto reply = QMessageBox::question(
+        this, tr("Update available"),
+        tr("Version %1 is available.\nDo you want to download it?").arg(infoSummary.releaseName));
+
+    const auto accepted = (reply == QMessageBox::Yes);
+    emit updateDecision(accepted, infoSummary);
+}
+
+void MainWindow::onNoUpdateAvailable() {
+    QMessageBox::information(this, tr("No update"), tr("You are using the latest version."));
+}
+
+void MainWindow::onUpdateCheckFailed(const QString &error) {
+    QMessageBox::warning(this, tr("Update check failed"), error);
+}
+
+void MainWindow::onDownloadStarted() {
+    if (m_progressDialog == nullptr) {
+        m_progressDialog =
+            new QProgressDialog(tr("Downloading update..."), tr("Cancel"), 0, DL_MAX_PERCENT, this);
+        m_progressDialog->setWindowModality(Qt::WindowModal);
+        m_progressDialog->setAutoClose(true);
+        m_progressDialog->setAutoReset(true);
+    }
+    m_progressDialog->setValue(0);
+    m_progressDialog->show();
+}
+
+void MainWindow::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
+    if ((m_progressDialog != nullptr) && bytesTotal > 0) {
+        const int kpercent = static_cast<int>((bytesReceived * 100) / bytesTotal);
+        m_progressDialog->setValue(kpercent);
+    }
+}
+
+void MainWindow::onDownloadFinished(const QString &filePath) {
+    if (m_progressDialog != nullptr) {
+        m_progressDialog->setValue(DL_MAX_PERCENT);
+        m_progressDialog->close();
+        m_progressDialog = nullptr;
+    }
+
+    if (m_appController == nullptr) {
+        emit onDownloadFailed(tr("Internal error: no controller"));
+        return;
+    }
+
+    QFileInfo file(filePath);
+    if (!file.exists() || !file.isFile()) {
+        emit onDownloadFailed(tr("Downloaded file missing"));
+        return;
+    }
+
+    auto downloadedFileHash = NotesAppCore::computeFileHash(filePath.toUtf8().toStdString());
+    if (downloadedFileHash.empty()) {
+        emit onDownloadFailed(tr("Cannot compute file hash"));
+        return;
+    }
+
+    const auto assetHash = m_appController->lastUpdateInfoAssetHash();
+    if (assetHash.isEmpty()) {
+        emit onDownloadFailed(tr("Invalid expected hash"));
+        return;
+    }
+
+    if (QString::fromStdString(downloadedFileHash) != assetHash) {
+        emit onDownloadFailed(tr("Hash mismatch"));
+        return;
+    }
+
+    QMessageBox::information(this, tr("Download complete"),
+                             tr("The update package has been downloaded:\n%1").arg(filePath));
+}
+
+void MainWindow::onDownloadFailed(const QString &errorString) {
+    QMessageBox::warning(this, tr("Download failed"), errorString);
+}
+
+void MainWindow::updateStatus(const QString &message, int timeout) {
+    statusBar()->showMessage(message, timeout);
+}
+
+void MainWindow::handleSyntaxHighlightingUpdate(Theme theme) {
+    applySyntaxHighlightingTheme(theme);
+}
+
+// --- BEGIN viewResource helper ---
+
+// NOLINTNEXTLINE
+void MainWindow::loadResourceContent(int id, const QString &path,
+                                     PlainTextEdit* viewSourceTextEdit) {
+    if (path.isEmpty()) {
+        auto resId = static_cast<sqlite3_int64>(id);
+        auto resFullOpt = m_core->getFullResource(resId);
+
+        if (resFullOpt && resFullOpt->content) {
+            viewSourceTextEdit->setPlainText(QString::fromStdString(*resFullOpt->content));
+        } else {
+            viewSourceTextEdit->setPlainText(tr("No content available."));
+        }
+
+        return;
+    }
+
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Error: Cannot open file" << path;
+        viewSourceTextEdit->setPlainText(tr("Error: Cannot load file '%1'").arg(path));
+        return;
+    }
+
+    QTextStream in(&file);
+    viewSourceTextEdit->setPlainText(in.readAll());
+}
+
+PlainTextEdit* MainWindow::createResourceTextEdit(QWidget* parent) {
+    auto* textEdit = new PlainTextEdit(parent);
+    textEdit->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard |
+                                      Qt::TextEditable);
+    textEdit->setFont(QFont("JetBrains Mono", UiConst::FONT_SIZE));
+    textEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    return textEdit;
+}
+
+void MainWindow::setupHighlighter(PlainTextEdit* viewSourceTextEdit) {
+    bool isDarkTheme = m_appController->isDarkTheme();
+    const CppHighlighterTheme hlTheme = (isDarkTheme) ? createDarkTheme() : createLightTheme();
+    auto* cppHighlighter = new CppHighlighter(viewSourceTextEdit->document(), hlTheme);
+    cppHighlighter->rehighlightGradually(viewSourceTextEdit->document(),
+                                         20, // NOLINT(readability-magic-numbers)
+                                         4);
+
+    auto* viewLineHL = new CodeEditorLineHighlighter(viewSourceTextEdit);
+    if (isDarkTheme) {
+        viewLineHL->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
+    } else {
+        viewLineHL->setColors(QColor("#dBdBdB"), QColor("#efefef"));
+    }
+}
+
+// --- END viewResource helper ---
+
+// --- BEGIN showContextMenu helper ---
+
+void MainWindow::handleContextMenuDeleteAction(ResultsTable* resultTable) {
+    if (resultTable == nullptr) { return; }
+
+    const auto selectedRows = resultTable->selectionModel()->selectedRows();
+    if (selectedRows.empty()) { return; }
+
+    std::vector<sqlite3_int64> idsToDelete;
+    const auto idsToDelCount =
+        static_cast<std::vector<sqlite3_int64>::size_type>(selectedRows.size());
+    idsToDelete.reserve(idsToDelCount);
+
+    QString textSel;
+    if (idsToDelCount == 1) {
+        const auto &index = selectedRows[0];
+        auto* itemSel = resultTable->item(index.row(), 1);
+        if (itemSel != nullptr) { textSel = itemSel->text(); }
+    }
+
+    for (const QModelIndex &idx : selectedRows) {
+        const QString strId = resultTable->item(idx.row(), 0)->text();
+        bool ok = false;
+        const sqlite3_int64 resId = strId.toLongLong(&ok);
+        if (ok) { idsToDelete.push_back(resId); }
+    }
+
+    removeSelectedRowsFromTable(resultTable, selectedRows);
+
+    m_core->deleteResources(idsToDelete);
+
+    if (idsToDelCount > 1) {
+        updateStatus(tr("Deleted %1 resources").arg(idsToDelCount), UiConst::NOTI_TIMEOUT);
+    } else if (!textSel.isEmpty()) {
+        updateStatus(tr("Deleted %1").arg(textSel), UiConst::NOTI_TIMEOUT);
+    } else {
+        updateStatus(tr("Deleted resource"), UiConst::NOTI_TIMEOUT);
+    }
+}
+
+void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
+                                             const QModelIndexList &selectedRows) {
+    table->setUpdatesEnabled(false);
+    table->setSortingEnabled(false);
+
+    for (const auto &selectedRow : std::ranges::reverse_view(selectedRows)) {
+        table->removeRow(selectedRow.row());
+    }
+
+    table->setUpdatesEnabled(true);
+    table->setSortingEnabled(true);
+
+    table->clearSelection();
+    table->setCurrentIndex(QModelIndex());
+    table->clearFocus();
+    table->viewport()->update();
+}
+
+// --- END showContextMenu helper ---

@@ -1,0 +1,270 @@
+name: Windows debug
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  BUILD_TYPE: Release
+  VCPKG_ROOT: ${{ github.workspace }}\vcpkg
+  VCPKG_DEFAULT_TRIPLET: x64-windows
+  CCACHE_DIR: ${{ github.workspace }}\.ccache
+  CCACHE_MAXSIZE: 500M
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build tools
+        shell: pwsh
+        run: |
+          choco install ninja cmake ccache llvm -y --no-progress --limit-output
+          ccache --version
+          cmake --version
+          ninja --version
+          clang-cl --version
+          lld-link.exe --version
+
+      - name: Setup ccache cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt', '**/*.cpp', '**/*.hpp', '**/*.h', '**/*.cxx', '**/*.ixx', '**/cmake_pch.*', 'build/**/*.pch', '**/CMakeCache.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Configure ccache
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "${env:CCACHE_DIR}" | Out-Null
+
+          $ccacheConfDir = Join-Path $env:USERPROFILE ".ccache"
+          New-Item -ItemType Directory -Force -Path $ccacheConfDir | Out-Null
+
+          $ccacheConfPath = Join-Path $ccacheConfDir "ccache.conf"
+          "max_size = ${env:CCACHE_MAXSIZE}" | Out-File -Encoding ascii -FilePath $ccacheConfPath
+
+          ccache --zero-stats
+          ccache --show-config
+
+      - name: Setup vcpkg (bootstrap)
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '271a5b8850aa50f9a40269cbf3cf414b36e333d6'
+          runVcpkgInstall: false
+
+      - name: Prepare vcpkg manifest for CI (remove qtbase)
+        shell: pwsh
+        run: |
+          if (!(Test-Path "vcpkg.json")) {
+            Write-Host "No vcpkg.json in repo root — aborting"
+            exit 1
+          }
+          $json = Get-Content vcpkg.json | ConvertFrom-Json
+          $json.dependencies = $json.dependencies | Where-Object { $_.name -ne "qtbase" }
+          $json | ConvertTo-Json -Depth 10 | Out-File vcpkg-ci.json -Encoding utf8
+          Write-Host "---- vcpkg-ci.json ----"
+          Get-Content vcpkg-ci.json
+
+      - name: Install Qt6 (from action marketplace)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          install-deps: false
+          cache: true
+
+      - name: Locate Qt6 installation
+        id: find_qt
+        shell: pwsh
+        run: |
+          $qmake = Get-Command qmake.exe -ErrorAction SilentlyContinue
+          if (-not $qmake) {
+            Write-Host "qmake not found — aborting."
+            exit 1
+          }
+          $qtDir = Split-Path (Split-Path $qmake.Source)
+          Write-Host "Detected Qt dir: $qtDir"
+          echo "qt_dir=$qtDir" >> $env:GITHUB_OUTPUT
+          echo "Qt6_DIR=$qtDir\lib\cmake\Qt6" >> $env:GITHUB_OUTPUT
+
+      - name: Show found Qt info
+        shell: pwsh
+        run: |
+          Write-Host "qt_dir = ${{ steps.find_qt.outputs.qt_dir }}"
+          Write-Host "Qt6 cmake dir = ${{ steps.find_qt.outputs['Qt6_DIR'] }}"
+
+      - name: Install non-Qt dependencies via vcpkg (manifest-mode)
+        shell: pwsh
+        run: |
+          Copy-Item vcpkg-ci.json vcpkg.json -Force
+          & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+        env:
+          VCPKG_FEATURE_FLAGS: manifests
+          VCPKG_DEFAULT_TRIPLET: ${{ env.VCPKG_DEFAULT_TRIPLET }}
+
+      - name: Configure CMake (with MSVC toolchain + vcpkg)
+        shell: pwsh
+        run: |
+          cmake -B build -S . `
+            -G "Ninja" `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}\scripts\buildsystems\vcpkg.cmake" `
+            -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" `
+            -DCMAKE_C_COMPILER=clang-cl `
+            -DCMAKE_CXX_COMPILER=clang-cl `
+            -DCMAKE_LINKER=lld-link `
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build project
+        shell: pwsh
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          $testDirs = @("bin\tests", "build\tests", "build\bin\tests")
+          $found = $false
+          foreach ($dir in $testDirs) {
+            if (Test-Path $dir) {
+              $tests = Get-ChildItem $dir -Filter "*-tests.exe" -File
+              if ($tests.Count -gt 0) {
+                $found = $true
+                Write-Host "Found $($tests.Count) test binaries in ${dir}:"
+                foreach ($t in $tests) {
+                  Write-Host "  → $($t.Name)"
+                  & $t.FullName
+                }
+                break
+              }
+            }
+          }
+          if (-not $found) {
+            Write-Host "No test binaries found, skipping tests."
+          }
+
+      - name: Prepare release folder
+        shell: pwsh
+        run: |
+          $releaseDir = "release"
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+          Copy-Item "bin\Notesman.exe" $releaseDir\ -Force
+          $qtBin = "${{ steps.find_qt.outputs.qt_dir }}\bin"
+          & "$qtBin\windeployqt.exe" --release --dir $releaseDir "$releaseDir\Notesman.exe"
+          if (-not (Test-Path "$releaseDir\Qt6Core.dll")) {
+            Write-Error "Qt6 DLLs not found in release folder after windeployqt"
+          }
+
+          Remove-Item "$releaseDir\iconengines" -Recurse
+          Remove-Item "$releaseDir\translations" -Recurse
+          Remove-Item "$releaseDir\generic" -Recurse
+
+          $allImagePlugins = Get-ChildItem "$releaseDir\imageformats\" -Filter "*.dll" -ErrorAction SilentlyContinue
+          $essentialImagePlugins = @("qico.dll")
+
+          foreach ($plugin in $allImagePlugins) {
+              if ($plugin.Name -notin $essentialImagePlugins) {
+                  Remove-Item $plugin.FullName
+                  Write-Host "Removed image format plugin: $($plugin.Name)"
+              }
+          }
+
+      - name: Copy OpenSSL DLLs (from vcpkg or fallback search)
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          $opensslBin = Join-Path $vcpkgRoot "installed\$arch\bin"
+
+          if (Test-Path $opensslBin) {
+            Write-Host "Copying OpenSSL DLLs from vcpkg: $opensslBin"
+            Copy-Item "$opensslBin\libcrypto-3-x64.dll" "release\" -Force -ErrorAction SilentlyContinue
+            Copy-Item "$opensslBin\libssl-3-x64.dll" "release\" -Force -ErrorAction SilentlyContinue
+          } else {
+            Write-Warning "OpenSSL directory not found: $opensslBin"
+          }
+          
+          $dlls = @("libcrypto-3-x64.dll", "libssl-3-x64.dll")
+          foreach ($dll in $dlls) {
+            if (-not (Test-Path "release\$dll")) {
+              Write-Warning "$dll not found in release — searching entire workspace..."
+              $found = Get-ChildItem -Path "${{ github.workspace }}" -Recurse -Filter $dll -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) {
+                Write-Host "Found $dll at: $($found.FullName)"
+                Copy-Item $found.FullName "release\" -Force
+              } else {
+                Write-Error "$dll could not be found anywhere in workspace."
+              }
+            } else {
+              Write-Host "$dll already present in release folder."
+            }
+          }
+
+      - name: Create ZIP package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path release\* -DestinationPath "Notesman-x64.zip" -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notesman-windows-zip
+          path: Notesman-x64.zip
+
+      - name: Extract project version from CMakeLists.txt
+        id: get_version
+        shell: pwsh
+        run: |
+          $ver = Select-String -Path "CMakeLists.txt" -Pattern "(?<=VERSION )\d+\.\d+\.\d+" | ForEach-Object { $_.Matches.Value }
+          if (-not $ver) { $ver = "0.0.0" }
+          echo "version=$ver" >> $env:GITHUB_OUTPUT
+
+      # - name: Create GitHub Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     tag_name: v${{ steps.get_version.outputs.version }}
+      #     name: "Notesman v${{ steps.get_version.outputs.version }} (Windows)"
+      #     body: "Automated release for Notesman v${{ steps.get_version.outputs.version }}."
+      #     files: Notesman-x64.zip
+      #     token: ${{ secrets.RELEASE_AUTHOR_PAT }}
+
+      - name: Upload to existing GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          files: Notesman-x64.zip
+          token: ${{ secrets.RELEASE_AUTHOR_PAT }}
+          fail_on_unmatched_files: false
+
+      - name: Update GitHub Release title and body
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: "Notesman v${{ steps.get_version.outputs.version }} (Linux + Windows)"
+          body: |
+            **Notesman v${{ steps.get_version.outputs.version }}**
+            
+            This release includes builds for both **Linux** and **Windows**.
+
+            **Included assets:**
+            - Linux AppImage build
+            - Windows ZIP/executable build
+
+            ---
+            _Generated automatically by GitHub Actions._
+
+      - name: Show ccache stats
+        shell: pwsh
+        run: ccache --show-stats

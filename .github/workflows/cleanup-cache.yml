@@ -1,0 +1,67 @@
+name: Cleanup Cache
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'   # Mỗi Chủ Nhật 00:00 UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Setup GitHub CLI
+        run: sudo apt-get install gh -y
+
+      - name: Authenticate
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Install gh-actions-cache extension
+        run: gh extension install actions/gh-actions-cache
+
+      - name: List caches
+        run: gh actions-cache list -R ${{ github.repository }} --limit 100 > cache_list.txt
+
+      - name: Show top caches
+        run: |
+          echo "=== Current cache summary ==="
+          awk -F'\t' '{printf "%-80s %10s %10s\n", $1, $2, $3}' cache_list.txt | head -n 20
+
+      - name: Delete caches older than 30 days
+        run: |
+          echo "Deleting caches older than 30 days (older than 2592000 seconds)..."
+          awk -F'\t' '{ if ($3 ~ /^[0-9]+$/ && $3 > 2592000) print $1 }' cache_list.txt | \
+          while read cache_id; do
+            echo "🧹 Deleting old cache: $cache_id"
+            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
+          done
+
+      - name: Keep only 5 newest ccache caches
+        run: |
+          echo "Cleaning ccache caches (keep 5 newest per OS)..."
+          grep "ccache-" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +6 | \
+          while read cache_id; do
+            echo "🧹 Deleting ccache cache: $cache_id"
+            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
+          done
+
+      - name: Keep only 5 newest vcpkg caches
+        run: |
+          echo "Cleaning vcpkg caches (keep 5 newest per OS)..."
+          grep "vcpkg-bin-" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +6 | \
+          while read cache_id; do
+            echo "🧹 Deleting vcpkg cache: $cache_id"
+            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
+          done
+
+      - name: Keep only 3 newest Qt installer caches
+        run: |
+          echo "Cleaning Qt installer caches (keep 3 newest per OS)..."
+          grep "install-qt-action-" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +4 | \
+          while read cache_id; do
+            echo "🧹 Deleting Qt cache: $cache_id"
+            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
+          done

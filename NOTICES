@@ -1,0 +1,22 @@
+| Library           | License                        | Path                                   |
+| ----------------- | ------------------------------ | -------------------------------------- |
+| Qt 6              | LGPLv3                         | licenses/LGPL-3.0.txt                  |
+| OpenSSL           | Apache 2.0                     | licenses/Apache-2.0.txt                |
+| Zlib              | Zlib License                   | licenses/zlib_license.txt              |
+| libpng            | libpng License                 | licenses/libpng_license.txt            |
+| brotli            | MIT                            | licenses/brotli_license.txt            |
+| bzip2             | bzip2 License                  | licenses/bzip2_license.txt             |
+| Catch2            | Boost Software License 1.0     | licenses/catch2_license.txt            |
+| dbus              | AFL-2.1 OR GPL-2.0-only        | licenses/dbus_license.txt              |
+| double-conversion | BSD-3-Clause                   | licenses/double-conversion_license.txt |
+| egl-registry      | Khronos MIT                    | licenses/egl-registry_license.txt      |
+| Expat             | Expat License                  | licenses/expat_license.txt             |
+| FreeType          | FreeType Project License (FTL) | licenses/freetype_license.txt          |
+| HarfBuzz          | MIT                            | licenses/harfbuzz_license.txt          |
+| icu               | Unicode License Agreement      | licenses/icu_license.txt               |
+| libjpeg-turbo     | IJG (Independent JPEG Group)   | licenses/libjpeg-turbo_license.txt     |
+| LZ4               | BSD-2-Clause                   | licenses/lz4_license.txt               |
+| OpenGL Registry   | Khronos MIT                    | licenses/opengl-registry_license.txt   |
+| pcre2             | BSD-2-Clause                   | licenses/pcre2_license.txt             |
+| SQLite3           | Public Domain                  | licenses/sqlite3-publicdomain.txt      |
+| ZSTD              | BSD-3-Clause                   | licenses/zstd_license.txt              |

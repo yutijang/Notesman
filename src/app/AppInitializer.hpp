@@ -1,0 +1,61 @@
+#pragma once
+
+#include <memory>
+#include <QLocalServer>
+#include <QLocalSocket>
+#include <QObject>
+#include <QString>
+
+#include "MainWindow.hpp"
+#include "AppController.hpp"
+#include "NotesAppCore.hpp"
+#include "sqldb_raii.hpp"
+#include "resource_repository.hpp"
+#include "file_repository.hpp"
+#include "text_content_repository.hpp"
+#include "tag_repository.hpp"
+#include "file_service.hpp"
+#include "resource_service.hpp"
+#include "UiConstants.hpp"
+
+class AppInitializer final : public QObject {
+        Q_OBJECT
+
+    public:
+        AppInitializer() = default;
+        ~AppInitializer() override = default;
+
+        bool ensureSingleInstance();
+        void run();
+
+        void createDatabase();
+
+        void verifyDatabase();
+
+    signals:
+        void coreReady(NotesAppCore* core);
+
+        void errorOccurred(const QString &message, UiConst::MessageType type);
+        void infoMessage(const QString &message, UiConst::MessageType type);
+
+    public slots:
+        void initializeCore();
+
+    private slots:
+        void onSecondInstanceMessage();
+
+    private: // NOLINT(readability-redundant-access-specifiers)
+        void setupInitializerConnections();
+
+        std::unique_ptr<SQLiteDB> m_db;
+        std::unique_ptr<ResourceRepository> m_resRepo;
+        std::unique_ptr<FileRepository> m_fileRepo;
+        std::unique_ptr<TextContentRepository> m_textRepo;
+        std::unique_ptr<TagRepository> m_tagRepo;
+        std::unique_ptr<FileService> m_fileService;
+        std::unique_ptr<ResourceService> m_resService;
+        std::unique_ptr<MainWindow> m_mainWindow;
+        std::unique_ptr<AppController> m_controller;
+        std::unique_ptr<QLocalServer> m_localServer;
+        std::unique_ptr<NotesAppCore> m_core;
+};

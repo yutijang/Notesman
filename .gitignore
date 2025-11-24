@@ -1,0 +1,38 @@
+# Ignore build output
+/build/
+/out/
+/bin/
+/obj/
+/CMakeFiles/
+/CMakeCache.txt
+
+# VSCode
+.vscode/
+backup/
+
+# Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Compiler outputs
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.obj
+
+# Logs
+*.log
+
+CMakePresets8.json
+
+.clangd
+.clang-format
+
+app_version.hpp
+version.rc
+
+src/app/google_oauth_config.hpp

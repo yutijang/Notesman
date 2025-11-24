@@ -1,0 +1,137 @@
+#pragma once
+
+#include <memory>
+#include <QObject>
+#include <QTranslator>
+#include <QTcpServer>
+
+#include "AppSettings.hpp"
+#include "DownloadManager.hpp"
+#include "GoogleDriveService.hpp"
+#include "OAuthManager.hpp"
+#include "UpdateManager.hpp"
+#include "model.hpp"
+#include "UiConstants.hpp"
+#include "SettingsData.hpp"
+#include "UpdateInfoSummary.hpp"
+
+class NotesAppCore;
+class MainWindow;
+
+class AppController final : public QObject {
+        Q_OBJECT
+
+    public:
+        explicit AppController(QObject* parent = nullptr);
+        ~AppController() override = default;
+
+        void loadSettings();
+        void saveSettings();
+
+        void updateSettings(const AppSettings &newSettings);
+
+        [[nodiscard]] const AppSettings* settings() const noexcept { return m_settings.get(); }
+
+        [[nodiscard]] bool isDarkTheme() const noexcept {
+            return m_settings->theme() == Theme::dark;
+        }
+
+        void applyLanguage(Language lang);
+        void applyTheme(Theme theme);
+
+        void setMainWindow(MainWindow* window);
+        void setCore(NotesAppCore* core);
+
+        UpdateManager* updateManager();
+        DownloadManager* downloadManager();
+
+        [[nodiscard]] SettingsData currentUiSettings() const;
+        [[nodiscard]] static SettingsData defaultUiSettings();
+
+        [[nodiscard]] QString lastUpdateInfoAssetHash() const noexcept {
+            return m_lastUpdateInfoSummary.assetHash;
+        }
+
+        void oauthManager();
+
+    public slots: // NOLINT(readability-redundant-access-specifiers)
+        void handleGetAllDataRequest();
+
+        void handleDefaultSettingsRequest();
+
+        void handleApplySettingsRequest(const SettingsData &data);
+
+        void handleAddNoteRequest(const QString &title, const QString &textContent,
+                                  const QString &filePath, const QStringList &tags,
+                                  bool isTextMode);
+
+        void handleSearchRequest(const QString &keyword, const QString &mode);
+
+        void handleCheckUpdateRequested();
+
+        void onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo);
+
+        void handleLoginGMRequested();
+
+        void handleUnlinkGMRequested();
+
+        void uploadDbAuto();
+        void downloadDbAuto();
+
+    signals:
+        void settingsLoaded(const SettingsData &settings);
+
+        void languageChanged();
+
+        void displayResultForGetAll(const std::vector<FullResource> &results);
+
+        void settingsUpdateStatus(const QString &message, UiConst::SettingsMessageState state);
+
+        void initialSettingsLoaded(const SettingsData &settings);
+
+        void requestSyntaxHighlightingUpdate(Theme theme);
+
+        void addTabNotiRequest(const QString &message);
+
+        void resetAddTabInputsRequest();
+
+        void searchFinishedFromController(const std::vector<FullResource> &results);
+
+        void mainWindowNotify(const QString &message, UiConst::MessageType type);
+
+        void gmailLinked(const QString &email);
+        void gmailUnlinked();
+
+    private:
+        std::unique_ptr<AppSettings> m_settings;
+        std::unique_ptr<QTranslator> m_translator;
+        std::unique_ptr<UpdateManager> m_updateManager;
+        std::unique_ptr<DownloadManager> m_downloadManager;
+        std::unique_ptr<OAuthManager> m_oauthManager;
+        std::unique_ptr<GoogleDriveService> m_GDService;
+
+        NotesAppCore* m_core{nullptr};
+        MainWindow* m_mainWindow{nullptr};
+        UpdateInfoSummary m_lastUpdateInfoSummary{};
+
+        void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;
+
+        // static QString generateRandomString(int length);
+        // static QString sha256Base64Url(const QString &input);
+        // void exchangeAuthCodeForTokens(const QString &authCode);
+        // void fetchUserEmail();
+        // void requestNewAccessToken(const QString &refreshToken,
+        //    const std::function<void()> &finishedCallback);
+        // void saveRefreshToken(const QString &refreshToken);
+        // QString loadRefreshToken();
+        // QString accessToken();
+        // void cleanupAuthServer();
+        // void processTokenJson(const QJsonObject &json);
+
+        // void uploadDatabase(const std::function<void(bool)> &done);
+        // void findDatabaseFile(const std::function<void(QString)> &done);
+        // void updateDatabase(const QString &fileId, const std::function<void(bool)> &done);
+        // void downloadDatabase(const QString &fileId, const std::function<void(bool)> &done);
+
+        // void handleOAuthRedirect();
+};
