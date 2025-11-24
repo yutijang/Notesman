@@ -146,6 +146,16 @@ jobs:
             Write-Error "Qt6 DLLs not found in release folder after windeployqt"
           }
 
+          $vcpkgBin = "$env:VCPKG_ROOT\installed\x64-windows\bin"
+          $qtKeychainDll = Join-Path $vcpkgBin "qt6keychain.dll"
+
+          if (Test-Path $qtKeychainDll) {
+              Copy-Item $qtKeychainDll $releaseDir -Force
+              Write-Host "Copied qt6keychain.dll"
+          } else {
+              Write-Error "qt6keychain.dll not found in vcpkg bin directory: $qtKeychainDll"
+          }          
+
           Remove-Item "$releaseDir\iconengines" -Recurse
           Remove-Item "$releaseDir\translations" -Recurse
           Remove-Item "$releaseDir\generic" -Recurse

@@ -89,6 +89,7 @@ jobs:
           target: desktop
           install-deps: true
           cache: true
+          modules: "base,gui,widgets,dbus"
 
       - name: Locate Qt6 installation
         id: find_qt
