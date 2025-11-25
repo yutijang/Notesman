@@ -8,7 +8,7 @@
 #include <QDesktopServices>
 #include <QTimeZone>
 #include <QEventLoop>
-#include <qt6keychain/keychain.h>
+#include <keychain.h>
 
 #include "OAuthManager.hpp"
 #include "google_oauth_config.hpp"

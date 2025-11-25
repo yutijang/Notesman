@@ -1,13 +1,10 @@
 {
     "name": "notesman",
     "version": "1.0.0",
-    "builtin-baseline": "fca0e6b324d41da363b0e1dc33b0595491250a77",
+    "builtin-baseline": "bd52fac7114fdaa2208de8dd1227212a6683e562",
     "dependencies": [
         {
             "name": "openssl"
-        },
-        {
-            "name": "qtkeychain-qt6"
         },
         {
             "name": "qtbase",

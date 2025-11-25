@@ -62,13 +62,16 @@ target_include_directories(gui-tests
         ${PROJECT_SOURCE_DIR}/src/core/model
         ${PROJECT_SOURCE_DIR}/src/core/repository
         ${PROJECT_SOURCE_DIR}/src/core/service
-        ${PROJECT_SOURCE_DIR}/src/core/settings 
-        ${PROJECT_SOURCE_DIR}/src/helper        
+        ${PROJECT_SOURCE_DIR}/src/core/settings
+        ${PROJECT_SOURCE_DIR}/src/gui
+        ${PROJECT_SOURCE_DIR}/src/app
+        ${PROJECT_SOURCE_DIR}/src/helper
 )
 
 target_link_libraries(gui-tests
     PRIVATE
-        notes-app-lib         # Thư viện logic chính (app + gui)
+        notes-app-lib-core         # Thư viện logic chính (app + gui)
+        notes-app-lib-qtkeychain
         Catch2::Catch2WithMain  # Cần có main() và các macro test
         Qt6::Test             # Cần thiết cho các tính năng test của Qt
         Qt6::Widgets          # Cần thiết nếu test tương tác với QWidgets (gần như chắc chắn)

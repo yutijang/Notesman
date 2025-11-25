@@ -46,7 +46,6 @@ set(APP_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/app/UpdateManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/DownloadManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/workers/ResourceSearchWorker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/OAuthManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/GoogleDriveService.cpp
 )
 
@@ -71,13 +70,13 @@ set(HELPER_SOURCES
 # =========================================================
 # notes-app-lib (App + GUI)
 # =========================================================
-add_library(notes-app-lib STATIC
+add_library(notes-app-lib-core STATIC
     ${APP_SOURCES}
     ${GUI_SOURCES}
     ${HELPER_SOURCES}
 )
 
-target_include_directories(notes-app-lib
+target_include_directories(notes-app-lib-core
   SYSTEM PRIVATE
     ${PROJECT_SOURCE_DIR}/extern/sqlite3
   PUBLIC
@@ -92,21 +91,43 @@ target_include_directories(notes-app-lib
     ${GENERATED_DIR}
 )
 
-target_precompile_headers(notes-app-lib
+target_precompile_headers(notes-app-lib-core
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/pch_qt.hpp
 )
 
-target_link_libraries(notes-app-lib
+target_link_libraries(notes-app-lib-core
   PUBLIC
     notes-core
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
     Qt6::Network
-  PRIVATE
-    Qt6Keychain::Qt6Keychain
 )
+
+#===
+add_library(notes-app-lib-qtkeychain STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/OAuthManager.cpp
+)
+
+target_include_directories(notes-app-lib-qtkeychain
+  SYSTEM PRIVATE
+    ${qtkeychain_SOURCE_DIR}
+    ${qtkeychain_BINARY_DIR}
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/app
+)
+
+target_precompile_headers(notes-app-lib-qtkeychain
+  REUSE_FROM notes-app-lib-core
+)
+
+target_link_libraries(notes-app-lib-qtkeychain
+  PRIVATE
+    notes-app-lib-core
+    qt6keychain
+)
+#===
 
 # =========================================================
 # Executable (GUI entry point)
@@ -116,11 +137,11 @@ add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/resources/resources.qrc
 )
 
-target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib)
+target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    notes-app-lib
+    notes-app-lib-qtkeychain
 )
 
 if(WIN32)
