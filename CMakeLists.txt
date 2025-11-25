@@ -66,7 +66,7 @@ include(FetchContent)
 FetchContent_Declare(
     qtkeychain
     GIT_REPOSITORY https://github.com/frankosterfeld/qtkeychain.git
-    GIT_TAG v0.13.2
+    GIT_TAG 0.15.0
 )
 
 set(BUILD_TRANSLATIONS OFF CACHE BOOL "" FORCE)

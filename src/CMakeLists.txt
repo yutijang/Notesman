@@ -80,14 +80,13 @@ target_include_directories(notes-app-lib-core
   SYSTEM PRIVATE
     ${PROJECT_SOURCE_DIR}/extern/sqlite3
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/settings
     ${CMAKE_CURRENT_SOURCE_DIR}/app
     ${CMAKE_CURRENT_SOURCE_DIR}/app/workers
     ${CMAKE_CURRENT_SOURCE_DIR}/gui
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper         
     ${GENERATED_DIR}
 )
 
@@ -112,10 +111,8 @@ add_library(notes-app-lib-qtkeychain STATIC
 
 target_include_directories(notes-app-lib-qtkeychain
   SYSTEM PRIVATE
-    ${qtkeychain_SOURCE_DIR}
-    ${qtkeychain_BINARY_DIR}
-  PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/app
+    ${qtkeychain_SOURCE_DIR}/qtkeychain
+    ${qtkeychain_BINARY_DIR}/qtkeychain
 )
 
 target_precompile_headers(notes-app-lib-qtkeychain
@@ -142,6 +139,7 @@ target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     notes-app-lib-qtkeychain
+    notes-app-lib-core
 )
 
 if(WIN32)
