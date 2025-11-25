@@ -34,7 +34,8 @@ jobs:
           sudo apt-get update -y && \
           sudo apt-get install -y --no-install-recommends \
             build-essential clang lld cmake ninja-build pkg-config \
-            jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev
+            jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
+            libsecret-1-dev libqt6dbus-dev
 
       - name: Setup ccache cache
         uses: actions/cache@v4
@@ -61,7 +62,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: ${{ env.VCPKG_ROOT }}
-          vcpkgGitCommitId: '271a5b8850aa50f9a40269cbf3cf414b36e333d6'
+          vcpkgGitCommitId: 'fca0e6b324d41da363b0e1dc33b0595491250a77'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
           runVcpkgInstall: false
 
@@ -89,7 +90,7 @@ jobs:
           target: desktop
           install-deps: true
           cache: true
-          modules: "base,gui,widgets,dbus"
+          modules: "base,gui,widgets,network,dbus"
 
       - name: Locate Qt6 installation
         id: find_qt
@@ -161,6 +162,33 @@ jobs:
           EOF
           mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
           cp -v resources/icons/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
+
+          QTKEYCHAIN_LIB_NAME="libqt6keychain.so.1"
+          
+          if [ -n "$VCPKG_ROOT" ]; then
+              VCPKG_LIB_PATH="$VCPKG_ROOT/installed/x64-linux/lib/$QTKEYCHAIN_LIB_NAME"
+              if [ -f "$VCPKG_LIB_PATH" ]; then
+                  cp "$VCPKG_LIB_PATH" "$APPDIR/usr/lib/"
+                  echo "Copied qtkeychain from vcpkg: $VCPKG_LIB_PATH"
+                  exit 0 # Đã tìm thấy và copy, thoát khỏi logic tìm kiếm
+              fi
+          fi
+          
+          SYSTEM_LIB_PATHS="/usr/lib/x86_64-linux-gnu /usr/local/lib"
+          QTKEYCHAIN_FOUND=false
+          
+          for dir in $SYSTEM_LIB_PATHS; do
+              if [ -f "$dir/$QTKEYCHAIN_LIB_NAME" ]; then
+                  cp "$dir/$QTKEYCHAIN_LIB_NAME" "$APPDIR/usr/lib/"
+                  echo "Copied qtkeychain from system path: $dir/$QTKEYCHAIN_LIB_NAME"
+                  QTKEYCHAIN_FOUND=true
+                  break
+              fi
+          done
+
+          if [ "$QTKEYCHAIN_FOUND" = false ]; then
+              echo "::warning title=qtkeychain not found::The required library $QTKEYCHAIN_LIB_NAME was not found in common paths. Final AppImage may fail."
+          fi          
 
       - name: Download linuxdeploy and plugin-qt
         run: |
