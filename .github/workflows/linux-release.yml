@@ -189,7 +189,35 @@ jobs:
 
           if [ "$QTKEYCHAIN_FOUND" = false ]; then
               echo "::warning title=qtkeychain not found::The required library $QTKEYCHAIN_LIB_NAME was not found in common paths. Final AppImage may fail."
-          fi          
+          fi
+
+      - name: Locate qtkeychain built by FetchContent
+        run: |
+          set -e
+          APPDIR=AppDir/usr/lib
+          QTKEYCHAIN_NAME="libqt6keychain.so.1"
+
+          SEARCH_PATHS="
+            build/_deps/qtkeychain-build
+            build/_deps/qtkeychain-build/lib
+            build/_deps/qtkeychain-build/src
+            build/_deps/qtkeychain-build/*/
+          "
+
+          FOUND="false"
+          for p in $SEARCH_PATHS; do
+            FILE=$(find $p -maxdepth 2 -type f -name "$QTKEYCHAIN_NAME" 2>/dev/null | head -n1 || true)
+            if [ -n "$FILE" ]; then
+              echo "Found qtkeychain at: $FILE"
+              cp "$FILE" "$APPDIR/"
+              FOUND="true"
+              break
+            fi
+          done
+
+          if [ "$FOUND" = "false" ]; then
+            echo "::warning title=qtkeychain not found in FetchContent build::libqt6keychain.so.1 was not found under _deps."
+          fi
 
       - name: Download linuxdeploy and plugin-qt
         run: |
