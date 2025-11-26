@@ -109,6 +109,8 @@ void AppInitializer::run() {
     }
 
     m_mainWindow->show();
+
+    QTimer::singleShot(0, [this]() { m_controller->oauthManager(); });
 }
 
 void AppInitializer::initializeCore() {

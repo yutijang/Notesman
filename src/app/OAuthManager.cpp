@@ -8,6 +8,10 @@
 #include <QDesktopServices>
 #include <QTimeZone>
 #include <QEventLoop>
+#include <QTcpSocket>
+#include <QDateTime>
+#include <QCryptographicHash>
+#include <QRegularExpression>
 #include <keychain.h>
 
 #include "OAuthManager.hpp"

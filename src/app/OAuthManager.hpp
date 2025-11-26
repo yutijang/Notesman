@@ -5,6 +5,8 @@
 #include <QString>
 #include <QTcpServer>
 #include <QNetworkAccessManager>
+#include <QDateTime>
+#include <QJsonObject>
 
 class OAuthManager final : public QObject {
         Q_OBJECT

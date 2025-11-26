@@ -138,8 +138,8 @@ target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
+    notes-app-lib-core # Thứ tự QUAN TRỌNG
     notes-app-lib-qtkeychain
-    notes-app-lib-core
 )
 
 if(WIN32)

@@ -18,9 +18,7 @@
 #include "ResourceSearchWorker.hpp"
 #include "UpdateInfoSummary.hpp"
 
-AppController::AppController(QObject* parent) : QObject(parent) {
-    oauthManager();
-}
+AppController::AppController(QObject* parent) : QObject(parent) {}
 
 void AppController::loadSettings() {
     const std::filesystem::path configPath =
