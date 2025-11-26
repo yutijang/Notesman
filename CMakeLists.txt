@@ -1,25 +1,26 @@
 cmake_minimum_required(VERSION 3.31)
 project(Notesman
-  VERSION 1.0.73
-  LANGUAGES C CXX
-  DESCRIPTION "C++ notes manager for learn"
+    VERSION 1.0.73
+    LANGUAGES C CXX
+    DESCRIPTION "C++ notes manager for learn"
 )
 
 # Bật export compile commands cho clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# --- Global metadata ---
+# --- Global metadata ----------------------------------------
 set(PROJECT_AUTHOR "yutijang")
 set(PROJECT_WEBSITE "https://github.com/yutijang/Notesman")
+# ------------------------------------------------------------
 
-# --- generate app_version.hpp for source code and clangd ---
+# --- generate app_version.hpp for source code and clangd ----
 set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
 configure_file(
-  ${CMAKE_SOURCE_DIR}/cmake/templates/app_version.hpp.in
-  ${GENERATED_DIR}/app_version.hpp
-  @ONLY
+    ${CMAKE_SOURCE_DIR}/cmake/templates/app_version.hpp.in
+    ${GENERATED_DIR}/app_version.hpp
+    @ONLY
 )
 
 if(WIN32)
@@ -33,9 +34,9 @@ if(WIN32)
     configure_file(${ICON_RC_IN} ${ICON_RC_OUT} @ONLY)
     set(APP_ICON_RC ${ICON_RC_OUT} CACHE INTERNAL "")
 endif()
-# -----------------------------------------------------------
+# ------------------------------------------------------------
 
-# --- OAuth config ---
+# --- OAuth config -------------------------------------------
 set(CLIENT_ID     "$ENV{GOOGLE_CLIENT_ID}")
 set(CLIENT_SECRET "$ENV{GOOGLE_CLIENT_SECRET}")
 
@@ -44,8 +45,8 @@ configure_file(
     ${GENERATED_DIR}/google_oauth_config.hpp
     @ONLY
 )
+# ------------------------------------------------------------
 
-# -----------------------------------------------------------
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -60,7 +61,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 find_package(OpenSSL REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network REQUIRED)
 
-# --- QtKeychain -----------------
+# --- QtKeychain ---------------------------------------------
 include(FetchContent)
 
 FetchContent_Declare(
@@ -83,10 +84,11 @@ if (TARGET qt6keychain)
         -Wno-attributes
     )
 endif()
-# -----------------------------------------------------------
-# =========================================================
+# ------------------------------------------------------------
+
+# ============================================================
 # Qt setup
-# =========================================================
+# ============================================================
 # Bật Qt MOC/UIC/RCC cho toàn project
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)

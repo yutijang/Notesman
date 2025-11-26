@@ -108,24 +108,27 @@ void OAuthManager::openBrowser(const QUrl &url) {
 void OAuthManager::handleOAuthRedirect() {
     QTcpSocket* socket = m_oauthServer->nextPendingConnection();
 
-    connect(socket, &QTcpSocket::readyRead, [this, socket]() {
-        const QByteArray request = socket->readAll();
-        const QString requestStr = QString::fromUtf8(request);
+    QObject::connect(socket, &QTcpSocket::readyRead, [this, socket] { handleRedirect(socket); });
+}
 
-        QRegularExpression rx(R"(GET\s+([^\s]+)\s+HTTP/1\.1)");
-        QRegularExpressionMatch match = rx.match(requestStr);
+void OAuthManager::handleRedirect(QTcpSocket* socket) {
+    const QByteArray request = socket->readAll();
+    const QString requestStr = QString::fromUtf8(request);
 
-        if (!match.hasMatch()) { return; }
+    QRegularExpression rx(R"(GET\s+([^\s]+)\s+HTTP/1\.1)");
+    QRegularExpressionMatch match = rx.match(requestStr);
 
-        QUrl url(match.captured(1));
-        QUrlQuery query(url);
+    if (!match.hasMatch()) { return; }
 
-        const QString authCode = query.queryItemValue("code");
+    QUrl url(match.captured(1));
+    QUrlQuery query(url);
 
-        if (!authCode.isEmpty()) { exchangeAuthCodeForTokens(authCode); }
+    const QString authCode = query.queryItemValue("code");
 
-        // Trả về HTML
-        const QByteArray responseBody = R"html(
+    if (!authCode.isEmpty()) { exchangeAuthCodeForTokens(authCode); }
+
+    // Trả về HTML
+    const QByteArray responseBody = R"html(
 <!DOCTYPE html>
 <html>
 <head>
@@ -167,22 +170,21 @@ void OAuthManager::handleOAuthRedirect() {
 </html>
 )html";
 
-        // Xây dựng HTTP Response
-        QByteArray response;
-        response.append("HTTP/1.1 200 OK\r\n");
-        response.append("Content-Type: text/html; charset=utf-8\r\n");
-        response.append("Connection: close\r\n"); // Báo hiệu đóng kết nối ngay sau khi gửi
-        response.append("Content-Length: " +
-                        QByteArray::number(std::string_view(responseBody).size()) + "\r\n");
-        response.append("\r\n");                  // Dòng trống bắt buộc giữa Header và Body
-        response.append(responseBody);
+    // Xây dựng HTTP Response
+    QByteArray response;
+    response.append("HTTP/1.1 200 OK\r\n");
+    response.append("Content-Type: text/html; charset=utf-8\r\n");
+    response.append("Connection: close\r\n"); // Báo hiệu đóng kết nối ngay sau khi gửi
+    response.append("Content-Length: " + QByteArray::number(std::string_view(responseBody).size()) +
+                    "\r\n");
+    response.append("\r\n");                  // Dòng trống bắt buộc giữa Header và Body
+    response.append(responseBody);
 
-        socket->write(response);
+    socket->write(response);
 
-        // Đợi byte được ghi vào buffer rồi mới ngắt kết nối
-        socket->flush();
-        socket->disconnectFromHost();
-    });
+    // Đợi byte được ghi vào buffer rồi mới ngắt kết nối
+    socket->flush();
+    socket->disconnectFromHost();
 }
 
 void OAuthManager::exchangeAuthCodeForTokens(const QString &authCode) {
@@ -203,27 +205,30 @@ void OAuthManager::exchangeAuthCodeForTokens(const QString &authCode) {
 
     auto* reply = m_networkManager.post(req, bodyData);
 
-    connect(reply, &QNetworkReply::finished, [this, reply]() {
-        if (reply->error() != QNetworkReply::NoError) {
-            qWarning() << "Token exchange failed:" << reply->errorString();
-            reply->deleteLater();
-            return;
-        }
+    QObject::connect(reply, &QNetworkReply::finished,
+                     [this, reply]() { handlePostFinished(reply); });
+}
 
-        const QByteArray data = reply->readAll();
+void OAuthManager::handlePostFinished(QNetworkReply* reply) {
+    if (reply->error() != QNetworkReply::NoError) {
+        qWarning() << "Token exchange failed:" << reply->errorString();
         reply->deleteLater();
+        return;
+    }
 
-        QJsonDocument json = QJsonDocument::fromJson(data);
-        if (!json.isObject()) {
-            qWarning() << "Invalid token JSON";
-            return;
-        }
+    const QByteArray data = reply->readAll();
+    reply->deleteLater();
 
-        processTokenJson(json.object());
+    QJsonDocument json = QJsonDocument::fromJson(data);
+    if (!json.isObject()) {
+        qWarning() << "Invalid token JSON";
+        return;
+    }
 
-        // → tiếp tục lấy email user
-        fetchUserEmail();
-    });
+    processTokenJson(json.object());
+
+    // → tiếp tục lấy email user
+    fetchUserEmail();
 }
 
 void OAuthManager::fetchUserEmail() {
@@ -268,7 +273,9 @@ void OAuthManager::handleLoginGMRequested() {
     // Khởi tạo server local
     constexpr int port{8080};
     m_oauthServer = new QTcpServer(this);
-    connect(m_oauthServer, &QTcpServer::newConnection, this, &OAuthManager::handleOAuthRedirect);
+    QObject::connect(m_oauthServer, &QTcpServer::newConnection, this,
+                     &OAuthManager::handleOAuthRedirect);
+
     if (!m_oauthServer->listen(QHostAddress::LocalHost, port)) {
         qWarning() << "Cannot start local OAuth server";
         return;
@@ -331,7 +338,7 @@ void OAuthManager::requestNewAccessToken(const QString &refreshToken,
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
     auto* reply = m_networkManager.post(req, body.toString(QUrl::FullyEncoded).toUtf8());
-    connect(reply, &QNetworkReply::finished, this, [this, reply, finishedCallback]() {
+    QObject::connect(reply, &QNetworkReply::finished, this, [this, reply, finishedCallback]() {
         if (reply->error() != QNetworkReply::NoError) {
             qWarning() << "Request new access token failed:" << reply->errorString();
             reply->deleteLater();
@@ -352,7 +359,7 @@ void OAuthManager::saveRefreshToken(const QString &refreshToken) {
     job->setKey(KEY_REFRESH_TOKEN);
     job->setTextData(refreshToken);
 
-    QObject::connect(job, &QKeychain::Job::finished, [=](QKeychain::Job* j) {
+    QObject::connect(job, &QKeychain::Job::finished, [](QKeychain::Job* j) {
         if (j->error()) {
             qWarning() << "Failed to save refresh token:" << j->errorString();
         } else {

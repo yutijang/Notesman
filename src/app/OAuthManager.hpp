@@ -9,6 +9,9 @@
 #include <QJsonObject>
 #include <QUrl>
 
+class QTcpSocket;
+class QNetworkReply;
+
 class OAuthManager final : public QObject {
         Q_OBJECT
 
@@ -25,7 +28,11 @@ class OAuthManager final : public QObject {
         void handleUnlinkGMRequested();
         void handleLoginGMRequested();
 
-    private:
+    private slots:
+        void handleRedirect(QTcpSocket* socket);
+        void handlePostFinished(QNetworkReply* reply);
+
+    private: // NOLINT(readability-redundant-access-specifiers)
         // helper
         static QString generateRandomString(int length);
         static QString sha256Base64Url(const QString &input);
