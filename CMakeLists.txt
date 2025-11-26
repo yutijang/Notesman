@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 project(Notesman
-  VERSION 1.0.72
+  VERSION 1.0.73
   LANGUAGES C CXX
   DESCRIPTION "C++ notes manager for learn"
 )
