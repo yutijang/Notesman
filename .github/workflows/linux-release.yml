@@ -37,7 +37,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential clang lld cmake ninja-build pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev qt6-base-dev
+            libsecret-1-dev
 
       - name: Setup ccache cache
         uses: actions/cache@v4
@@ -64,7 +64,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: ${{ env.VCPKG_ROOT }}
-          vcpkgGitCommitId: 'fca0e6b324d41da363b0e1dc33b0595491250a77'
+          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
           runVcpkgInstall: false
 
@@ -92,7 +92,6 @@ jobs:
           target: desktop
           install-deps: true
           cache: true
-          modules: "base,gui,widgets,network,dbus"
 
       - name: Locate Qt6 installation
         id: find_qt
