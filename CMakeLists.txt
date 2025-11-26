@@ -75,6 +75,14 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static QtKeychain" FORCE)
 set(BUILD_WITH_QT6 ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(qtkeychain)
+
+# --- Tắt warning cho mã nguồn qtkeychain ---
+if (TARGET qt6keychain)
+    target_compile_options(qt6keychain PRIVATE
+        -Wno-ignored-attributes
+        -Wno-attributes
+    )
+endif()
 # -----------------------------------------------------------
 # =========================================================
 # Qt setup
