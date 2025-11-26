@@ -12,6 +12,8 @@
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QRegularExpression>
+#include <QStringList>
+#include <QProcess>
 #include <keychain.h>
 
 #include "OAuthManager.hpp"
@@ -79,6 +81,26 @@ void OAuthManager::processTokenJson(const QJsonObject &json) {
     QSettings settings(SETTINGS_ORG, SETTINGS_APP);
     settings.setValue(KEY_ACCESS_TOKEN, m_accessToken);
     settings.setValue(KEY_TOKEN_EXPIRY, m_accessTokenExpiry.toSecsSinceEpoch());
+}
+
+void OAuthManager::openBrowser(const QUrl &url) {
+#ifdef _WIN32
+    QDesktopServices::openUrl(url);
+#else
+    bool isWSL = !qEnvironmentVariable("WSL_DISTRO_NAME").isEmpty();
+
+    if (isWSL) {
+        QString urlStr = url.toString();
+        QStringList args;
+        args << "-Command" << QString("Start-Process \"%1\"").arg(urlStr);
+        QProcess::startDetached("/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+                                args);
+    } else {
+        if (!QDesktopServices::openUrl(url)) {
+            qWarning() << "Cannot open URL in default browser:" << url;
+        }
+    }
+#endif
 }
 
 // --- END helper ---
@@ -264,7 +286,8 @@ void OAuthManager::handleLoginGMRequested() {
     query.addQueryItem("access_type", "offline");
     authUrl.setQuery(query);
 
-    QDesktopServices::openUrl(authUrl);
+    // QDesktopServices::openUrl(authUrl);
+    openBrowser(authUrl);
 }
 
 void OAuthManager::handleUnlinkGMRequested() {

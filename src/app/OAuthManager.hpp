@@ -7,6 +7,7 @@
 #include <QNetworkAccessManager>
 #include <QDateTime>
 #include <QJsonObject>
+#include <QUrl>
 
 class OAuthManager final : public QObject {
         Q_OBJECT
@@ -30,6 +31,7 @@ class OAuthManager final : public QObject {
         static QString sha256Base64Url(const QString &input);
         void cleanupAuthServer();
         void processTokenJson(const QJsonObject &json);
+        static void openBrowser(const QUrl &url);
         //
 
         void exchangeAuthCodeForTokens(const QString &authCode);
