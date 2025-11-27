@@ -35,6 +35,8 @@ class SettingsTabWidget final : public QWidget {
         void handleDownloadDBRequested(bool isDisable);
         void handleUploadDBRequested(bool isDisable);
 
+        void handleLoginFailed(const QString &error = QString());
+
     signals:
         // void applyClicked();
         void applySettingsRequested(const SettingsData &data);

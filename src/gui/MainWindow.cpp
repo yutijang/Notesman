@@ -346,6 +346,9 @@ void MainWindow::setAppController(AppController* controller) {
                      &SettingsTabWidget::handleDownloadDBRequested);
     QObject::connect(this, &MainWindow::startUploadDBForward, m_settingsTab,
                      &SettingsTabWidget::handleUploadDBRequested);
+
+    QObject::connect(this, &MainWindow::loginFailedForward, m_settingsTab,
+                     &SettingsTabWidget::handleLoginFailed);
 }
 
 void MainWindow::changeEvent(QEvent* event) {

@@ -14,6 +14,7 @@
 #include <QRegularExpression>
 #include <QStringList>
 #include <QProcess>
+#include <QTimer>
 #include <keychain.h>
 
 #include "OAuthManager.hpp"
@@ -34,6 +35,7 @@ namespace {
     constexpr auto KEY_ACCESS_TOKEN = "google/access_token";
     constexpr auto KEY_TOKEN_EXPIRY = "google/access_token_expiry";
     constexpr auto KEY_REFRESH_TOKEN = "Notesman_google_refresh_token";
+    constexpr int LOGIN_TIMEOUT{60000};
 } // namespace
 
 // --- BEGIN helper ---
@@ -118,57 +120,33 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
     QRegularExpression rx(R"(GET\s+([^\s]+)\s+HTTP/1\.1)");
     QRegularExpressionMatch match = rx.match(requestStr);
 
-    if (!match.hasMatch()) { return; }
+    if (!match.hasMatch()) {
+        socket->disconnectFromHost();
+        return;
+    }
 
     QUrl url(match.captured(1));
     QUrlQuery query(url);
 
     const QString authCode = query.queryItemValue("code");
+    const QString error = query.queryItemValue("error");
 
-    if (!authCode.isEmpty()) { exchangeAuthCodeForTokens(authCode); }
+    if (!authCode.isEmpty()) {
+        exchangeAuthCodeForTokens(authCode);
+    } else if (!error.isEmpty()) {
+        qWarning() << "OAuth login failed, error:" << error;
+        emit loginFailed("OAuth login was canceled");
+    }
 
     // Trả về HTML
-    const QByteArray responseBody = R"html(
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Authorization Successful</title>
-<style>
-  body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f0f2f5; }
-  h1 { color: #1a73e8; }
-  #countdown { font-size: 2em; font-weight: bold; color: #d93025; }
-</style>
-</head>
-<body>
-    <h1>Authorization successful!</h1>
-    <p>You can return to the application.</p>
-    <p>Closing in <span id="countdown">3</span> seconds.</p>
-
-    <script>
-      let seconds = 3;
-      const countdownElement = document.getElementById('countdown');
-
-      const countdownInterval = setInterval(() => {
-        seconds--;
-        countdownElement.textContent = seconds;
-
-        if (seconds <= 0) {
-          clearInterval(countdownInterval);
-          window.close(); 
-        }
-      }, 1000);
-
-      // Fallback: Nếu trình duyệt chặn window.close()
-      setTimeout(() => {
-        if (!window.closed) {
-           document.body.innerHTML += '<p style="color:gray; font-size:0.9em;">(Browser prevented auto-close. Please close this tab manually.)</p>';
-        }
-      }, 4000);
-    </script>
-</body>
-</html>
-)html";
+    QByteArray responseBody;
+    if (!authCode.isEmpty()) {
+        responseBody =
+            R"html(<!doctypehtml><meta charset=UTF-8><title>Authorization Successful</title><style>body{font-family:Arial,sans-serif;text-align:center;margin-top:50px;background-color:#f0f2f5}h1{color:#1a73e8}#countdown{font-size:2em;font-weight:700;color:#d93025}</style><h1>Authorization successful!</h1><p>You can return to the application.)html";
+    } else if (!error.isEmpty()) {
+        responseBody =
+            R"html(<!doctypehtml><meta charset=UTF-8><title>Authorization failed</title><style>body{font-family:Arial,sans-serif;text-align:center;margin-top:50px;background-color:#f0f2f5}h1{color:#1a73e8}#countdown{font-size:2em;font-weight:700;color:#d93025}</style><h1>Authorization failed!</h1><p>You canceled login. Please try again.)html";
+    }
 
     // Xây dựng HTTP Response
     QByteArray response;
@@ -295,6 +273,16 @@ void OAuthManager::handleLoginGMRequested() {
 
     // QDesktopServices::openUrl(authUrl);
     openBrowser(authUrl);
+
+    auto* timeout = new QTimer(this);
+    timeout->setSingleShot(true);
+    timeout->start(LOGIN_TIMEOUT); // 60 giây
+    QObject::connect(timeout, &QTimer::timeout, this, [this]() {
+        if (!m_isLogin) {
+            emit loginFailed("OAuth login failed: timed out");
+            cleanupAuthServer();
+        }
+    });
 }
 
 void OAuthManager::handleUnlinkGMRequested() {

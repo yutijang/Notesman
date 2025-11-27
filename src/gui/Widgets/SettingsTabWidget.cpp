@@ -332,6 +332,8 @@ void SettingsTabWidget::handleAfterLinkAccount(const QString &htmlTextEmail) {
     m_addressUserGMLoginLbl->setText(htmlTextEmail);
 
     m_isLinked = true;
+
+    m_linkGDBtn->setEnabled(true);
     m_linkGDBtn->setText("Unlink");
     m_linkGDBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
 
@@ -352,12 +354,21 @@ void SettingsTabWidget::handleAfterUnlinkAccount() {
 void SettingsTabWidget::onLinkBtnClicked() {
     if (!m_isLinked) {
         // Chưa liên kết → yêu cầu AppController bắt đầu OAuth
+        m_linkGDBtn->setEnabled(false);
+
         emit requestGoogleLogin();
+
         return;
     }
 
     // Đã liên kết → Unlink
     emit requestGoogleUnlink();
+}
+
+void SettingsTabWidget::handleLoginFailed(const QString &error) {
+    m_linkGDBtn->setEnabled(true);
+
+    showNotification(error);
 }
 
 void SettingsTabWidget::handleUploadDBRequested(bool isDisable) {

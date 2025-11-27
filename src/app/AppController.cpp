@@ -181,6 +181,9 @@ void AppController::oauthManager() {
             QObject::connect(m_GDService.get(), &GoogleDriveService::onUploadDBBtnRequest,
                              m_mainWindow, &MainWindow::startUploadDBForward);
 
+            QObject::connect(m_oauthManager.get(), &OAuthManager::loginFailed, m_mainWindow,
+                             &MainWindow::loginFailedForward);
+
             m_oauthManager->tryAutoLogin();
         }
     }

@@ -24,6 +24,8 @@ class OAuthManager final : public QObject {
         void gmailLinked(const QString &email);
         void gmailUnlinked();
 
+        void loginFailed(const QString &error = QString());
+
     public slots:
         void handleUnlinkGMRequested();
         void handleLoginGMRequested();
