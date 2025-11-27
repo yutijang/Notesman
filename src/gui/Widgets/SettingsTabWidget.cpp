@@ -93,7 +93,7 @@ void SettingsTabWidget::setupConnections() {
     QObject::connect(m_defaultBtn, &QPushButton::clicked, this,
                      &SettingsTabWidget::onDefaultBtnClicked);
     QObject::connect(m_resDirBtn, &QPushButton::clicked, this,
-                     &SettingsTabWidget::handleBrowseBtnClicked);
+                     &SettingsTabWidget::onBrowseBtnClicked);
 
     QObject::connect(m_uploadDBBtn, &QPushButton::clicked, this,
                      &SettingsTabWidget::onUploadButtonClicked);
@@ -101,7 +101,7 @@ void SettingsTabWidget::setupConnections() {
                      &SettingsTabWidget::onDownloadButtonClicked);
 
     QObject::connect(m_linkGDBtn, &QPushButton::clicked, this,
-                     &SettingsTabWidget::handleLinkBtnClicked);
+                     &SettingsTabWidget::onLinkBtnClicked);
 
     // Gán lại thuộc tính động cho nút browse
     m_resDirBtn->setProperty("targetEdit", QVariant::fromValue(m_resDirInp));
@@ -154,7 +154,7 @@ void SettingsTabWidget::onDefaultBtnClicked() {
     if (reply == QMessageBox::Yes) { emit defaultSettingsRequested(); }
 }
 
-void SettingsTabWidget::handleBrowseBtnClicked() {
+void SettingsTabWidget::onBrowseBtnClicked() {
     auto* senderButton = qobject_cast<QPushButton*>(sender());
     if (senderButton == nullptr) { return; }
 
@@ -346,7 +346,7 @@ void SettingsTabWidget::handleAfterUnlinkAccount() {
     m_downloadDBBtn->setVisible(false);
 }
 
-void SettingsTabWidget::handleLinkBtnClicked() {
+void SettingsTabWidget::onLinkBtnClicked() {
     if (!m_isLinked) {
         // Chưa liên kết → yêu cầu AppController bắt đầu OAuth
         emit requestGoogleLogin();

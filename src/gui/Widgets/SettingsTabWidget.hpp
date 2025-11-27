@@ -46,10 +46,10 @@ class SettingsTabWidget final : public QWidget {
     private slots:
         void onApplyBtnClicked();
         void onDefaultBtnClicked();
-        void handleBrowseBtnClicked();
+        void onBrowseBtnClicked();
         void loadSettingsToUi(const SettingsData &settings) const;
 
-        void handleLinkBtnClicked();
+        void onLinkBtnClicked();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         QRadioButton* m_langEnRad{};
