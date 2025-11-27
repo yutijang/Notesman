@@ -369,6 +369,8 @@ void SettingsTabWidget::handleDownloadDBRequested(bool isDisabled) {
             m_downloadDBBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
             m_downloadDBBtn->setEnabled(true);
             m_downloadDBBtn->setText(tr("Download"));
+
+            showNotification(tr("Download completed"));
         }
     }
 }

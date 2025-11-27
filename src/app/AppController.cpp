@@ -347,17 +347,17 @@ void AppController::onUpdateDecision(bool accepted, const UpdateInfoSummary &upd
 }
 
 void AppController::handleLoginGMRequested() {
-    m_oauthManager->handleLoginGMRequested();
+    if (m_oauthManager != nullptr) { m_oauthManager->handleLoginGMRequested(); }
 }
 
 void AppController::handleUnlinkGMRequested() {
-    m_oauthManager->handleUnlinkGMRequested();
+    if (m_oauthManager != nullptr) { m_oauthManager->handleUnlinkGMRequested(); }
 }
 
 void AppController::uploadDbAuto() {
-    m_GDService->uploadDbAuto();
+    if (m_GDService != nullptr) { m_GDService->uploadDbAuto(); }
 }
 
 void AppController::downloadDbAuto() {
-    m_GDService->downloadDbAuto();
+    if (m_GDService != nullptr) { m_GDService->downloadDbAuto(); }
 }

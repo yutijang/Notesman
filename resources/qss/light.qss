@@ -25,6 +25,12 @@ QPushButton:hover {
     background-color: #d0d0d0;
 }
 
+QPushButton:disabled {
+    background-color: #dddddd;
+    border: 1px solid #c0c0c0;
+    color: #a0a0a0;
+}
+
 QLineEdit {
     border: 1px solid #b3b3b3;
     padding: 3px 4px;
