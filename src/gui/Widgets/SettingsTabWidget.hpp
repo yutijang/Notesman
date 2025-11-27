@@ -32,6 +32,8 @@ class SettingsTabWidget final : public QWidget {
         void handleAfterLinkAccount(const QString &email);
         void handleAfterUnlinkAccount();
 
+        void handleDownloadDBRequested(bool isDisabled);
+
     signals:
         // void applyClicked();
         void applySettingsRequested(const SettingsData &data);

@@ -56,36 +56,6 @@ void SettingsTabWidget::setupUi() {
     mainLayout->addStretch(1);
 }
 
-QVBoxLayout* SettingsTabWidget::setupAccountLinkGroup() {
-    auto* backupDBGroupLayout = new QVBoxLayout();
-
-    auto* accountLinkLayout = new QHBoxLayout();
-    m_linkGDBtn = new QPushButton(tr("Link Gmail for backup database to Google Drive"));
-    m_linkGDBtn->setMaximumWidth(300); // NOLINT(readability-magic-numbers)
-    m_addressUserGMLoginLbl = new QLabel("");
-
-    accountLinkLayout->addWidget(m_linkGDBtn);
-    accountLinkLayout->addWidget(m_addressUserGMLoginLbl);
-
-    auto* upDownButtonLayout = new QHBoxLayout();
-
-    m_uploadDBBtn = new QPushButton(tr("Upload"));
-    m_uploadDBBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
-    m_uploadDBBtn->setVisible(false);
-
-    m_downloadDBBtn = new QPushButton(tr("Download"));
-    m_downloadDBBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
-    m_downloadDBBtn->setVisible(false);
-
-    upDownButtonLayout->addWidget(m_uploadDBBtn);
-    upDownButtonLayout->addWidget(m_downloadDBBtn);
-
-    backupDBGroupLayout->addLayout(accountLinkLayout);
-    backupDBGroupLayout->addLayout(upDownButtonLayout);
-
-    return backupDBGroupLayout;
-}
-
 void SettingsTabWidget::setupConnections() {
     // Kết nối các nút để phát tín hiệu cho MainWindow
     QObject::connect(m_applyBtn, &QPushButton::clicked, this,
@@ -253,6 +223,38 @@ QHBoxLayout* SettingsTabWidget::setupResourceManagerTypeGroup() {
     return resManLayout;
 }
 
+QVBoxLayout* SettingsTabWidget::setupAccountLinkGroup() {
+    auto* backupDBGroupLayout = new QVBoxLayout();
+
+    auto* accountLinkLayout = new QHBoxLayout();
+    m_linkGDBtn = new QPushButton(tr("Link Gmail for backup database to Google Drive"));
+    m_linkGDBtn->setMaximumWidth(300); // NOLINT(readability-magic-numbers)
+    m_addressUserGMLoginLbl = new QLabel("");
+
+    accountLinkLayout->addWidget(m_linkGDBtn);
+    accountLinkLayout->addWidget(m_addressUserGMLoginLbl);
+
+    auto* upDownButtonLayout = new QHBoxLayout();
+
+    m_uploadDBBtn = new QPushButton(tr("Upload"));
+    m_uploadDBBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
+    m_uploadDBBtn->setVisible(false);
+
+    m_downloadDBBtn = new QPushButton(tr("Download"));
+    m_downloadDBBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
+    m_downloadDBBtn->setVisible(false);
+
+    upDownButtonLayout->addWidget(m_uploadDBBtn);
+    upDownButtonLayout->addWidget(m_downloadDBBtn);
+    upDownButtonLayout->addStretch(1);
+    upDownButtonLayout->setSpacing(10); // NOLINT(readability-magic-numbers)
+
+    backupDBGroupLayout->addLayout(accountLinkLayout);
+    backupDBGroupLayout->addLayout(upDownButtonLayout);
+
+    return backupDBGroupLayout;
+}
+
 QHBoxLayout* SettingsTabWidget::setupButtonGroup() {
     // Thêm container chứa nhóm nút nằm ngang QHBoxLayout
     auto* buttonLayout = new QHBoxLayout();
@@ -355,4 +357,18 @@ void SettingsTabWidget::onLinkBtnClicked() {
 
     // Đã liên kết → Unlink
     emit requestGoogleUnlink();
+}
+
+void SettingsTabWidget::handleDownloadDBRequested(bool isDisabled) {
+    if (m_downloadDBBtn != nullptr) {
+        if (isDisabled) {
+            m_downloadDBBtn->setMaximumWidth(120); // NOLINT(readability-magic-numbers)
+            m_downloadDBBtn->setEnabled(false);
+            m_downloadDBBtn->setText(tr("Downloading..."));
+        } else {
+            m_downloadDBBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
+            m_downloadDBBtn->setEnabled(true);
+            m_downloadDBBtn->setText(tr("Download"));
+        }
+    }
 }

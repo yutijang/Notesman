@@ -166,6 +166,9 @@ void AppController::oauthManager() {
             QObject::connect(m_oauthManager.get(), &OAuthManager::gmailUnlinked, this,
                              &AppController::gmailUnlinked);
 
+            QObject::connect(m_GDService.get(), &GoogleDriveService::onDownloadDBBtnRequest,
+                             m_mainWindow, &MainWindow::startDownloadDBForward);
+
             m_oauthManager->tryAutoLogin();
         }
     }

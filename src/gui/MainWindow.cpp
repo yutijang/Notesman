@@ -341,6 +341,9 @@ void MainWindow::setAppController(AppController* controller) {
                      &AppController::uploadDbAuto);
     QObject::connect(m_settingsTab, &SettingsTabWidget::onDownloadButtonClicked, m_appController,
                      &AppController::downloadDbAuto);
+
+    QObject::connect(this, &MainWindow::startDownloadDBForward, m_settingsTab,
+                     &SettingsTabWidget::handleDownloadDBRequested);
 }
 
 void MainWindow::changeEvent(QEvent* event) {

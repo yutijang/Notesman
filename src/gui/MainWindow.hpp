@@ -66,6 +66,8 @@ class MainWindow : public QMainWindow {
 
         void updateColumnWidthsRequest();
 
+        void startDownloadDBForward(bool isDisabled);
+
     public slots:
         void setCore(NotesAppCore* core);
 

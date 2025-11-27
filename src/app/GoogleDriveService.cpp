@@ -54,7 +54,7 @@ void GoogleDriveService::uploadDatabase(const std::function<void(bool)> &done) {
     auto* reply = m_networkManager.post(req, multi);
     multi->setParent(reply); // will be deleted with reply
 
-    connect(reply, &QNetworkReply::finished, this, [reply, done]() {
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         const bool ok = (reply->error() == QNetworkReply::NoError);
         if (!ok) { qWarning() << "Upload failed:" << reply->errorString(); }
         reply->deleteLater();
@@ -73,7 +73,7 @@ void GoogleDriveService::findDatabaseFile(const std::function<void(QString)> &do
 
     auto* reply = m_networkManager.get(req);
 
-    connect(reply, &QNetworkReply::finished, this, [reply, done]() {
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         QString id;
         if (reply->error() == QNetworkReply::NoError) {
             const auto obj = QJsonDocument::fromJson(reply->readAll()).object();
@@ -111,7 +111,7 @@ void GoogleDriveService::updateDatabase(const QString &fileId,
 
     auto* reply = m_networkManager.sendCustomRequest(req, "PATCH", dbBytes);
 
-    connect(reply, &QNetworkReply::finished, this, [reply, done]() {
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         bool ok = (reply->error() == QNetworkReply::NoError);
         if (!ok) { qWarning() << "Update failed:" << reply->errorString(); }
         reply->deleteLater();
@@ -128,7 +128,7 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
 
     auto* reply = m_networkManager.get(req);
 
-    connect(reply, &QNetworkReply::finished, this, [reply, done]() {
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply, done, this]() {
         if (reply->error() != QNetworkReply::NoError) {
             qWarning() << "Download failed:" << reply->errorString();
             reply->deleteLater();
@@ -148,6 +148,8 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
         file.close();
         reply->deleteLater();
         if (done) { done(true); }
+
+        emit onDownloadDBBtnRequest(false);
     });
 }
 
@@ -162,6 +164,8 @@ void GoogleDriveService::uploadDbAuto() {
 }
 
 void GoogleDriveService::downloadDbAuto() {
+    emit onDownloadDBBtnRequest(true);
+
     findDatabaseFile([this](const QString &id) {
         if (id.isEmpty()) {
             qWarning() << "No data.db on Drive";
