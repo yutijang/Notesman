@@ -17,7 +17,8 @@ class GoogleDriveService final : public QObject {
         void downloadDbAuto();
 
     signals:
-        void onDownloadDBBtnRequest(bool isDisabled);
+        void onDownloadDBBtnRequest(bool isDisable);
+        void onUploadDBBtnRequest(bool isDisable);
 
     private:
         void uploadDatabase(const std::function<void(bool)> &done);

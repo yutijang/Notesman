@@ -331,19 +331,21 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleUnlink, m_appController,
                      &AppController::handleUnlinkGMRequested);
 
-    QObject::connect(m_appController, &AppController::gmailLinked, m_settingsTab,
+    QObject::connect(m_appController, &AppController::gmailLinkedForView, m_settingsTab,
                      &SettingsTabWidget::handleAfterLinkAccount);
 
     QObject::connect(m_appController, &AppController::gmailUnlinked, m_settingsTab,
                      &SettingsTabWidget::handleAfterUnlinkAccount);
 
-    QObject::connect(m_settingsTab, &SettingsTabWidget::onUploadButtonClicked, m_appController,
+    QObject::connect(m_settingsTab, &SettingsTabWidget::requestUpload, m_appController,
                      &AppController::uploadDbAuto);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::onDownloadButtonClicked, m_appController,
+    QObject::connect(m_settingsTab, &SettingsTabWidget::requestDownload, m_appController,
                      &AppController::downloadDbAuto);
 
     QObject::connect(this, &MainWindow::startDownloadDBForward, m_settingsTab,
                      &SettingsTabWidget::handleDownloadDBRequested);
+    QObject::connect(this, &MainWindow::startUploadDBForward, m_settingsTab,
+                     &SettingsTabWidget::handleUploadDBRequested);
 }
 
 void MainWindow::changeEvent(QEvent* event) {
@@ -368,6 +370,9 @@ void MainWindow::retranslateUi() {
 
     // ========= Settings Tab =========
     m_settingsTab->retranslateUi();
+
+    // ========= AppController =========
+    m_appController->updateTranslatedStrings();
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wswitch-default"

@@ -54,6 +54,8 @@ class AppController final : public QObject {
 
         void oauthManager();
 
+        void updateTranslatedStrings();
+
     public slots: // NOLINT(readability-redundant-access-specifiers)
         void handleGetAllDataRequest();
 
@@ -99,8 +101,9 @@ class AppController final : public QObject {
 
         void mainWindowNotify(const QString &message, UiConst::MessageType type);
 
-        void gmailLinked(const QString &email);
         void gmailUnlinked();
+
+        void gmailLinkedForView(const QString &htmlTextEmail);
 
     private:
         std::unique_ptr<AppSettings> m_settings;
@@ -114,24 +117,7 @@ class AppController final : public QObject {
         MainWindow* m_mainWindow{nullptr};
         UpdateInfoSummary m_lastUpdateInfoSummary{};
 
+        QString m_currentLinkedEmail;
+
         void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;
-
-        // static QString generateRandomString(int length);
-        // static QString sha256Base64Url(const QString &input);
-        // void exchangeAuthCodeForTokens(const QString &authCode);
-        // void fetchUserEmail();
-        // void requestNewAccessToken(const QString &refreshToken,
-        //    const std::function<void()> &finishedCallback);
-        // void saveRefreshToken(const QString &refreshToken);
-        // QString loadRefreshToken();
-        // QString accessToken();
-        // void cleanupAuthServer();
-        // void processTokenJson(const QJsonObject &json);
-
-        // void uploadDatabase(const std::function<void(bool)> &done);
-        // void findDatabaseFile(const std::function<void(QString)> &done);
-        // void updateDatabase(const QString &fileId, const std::function<void(bool)> &done);
-        // void downloadDatabase(const QString &fileId, const std::function<void(bool)> &done);
-
-        // void handleOAuthRedirect();
 };

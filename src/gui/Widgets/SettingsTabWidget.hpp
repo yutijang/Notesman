@@ -29,10 +29,11 @@ class SettingsTabWidget final : public QWidget {
 
         void handleUiRefreshRequest(const SettingsData &settings) const;
 
-        void handleAfterLinkAccount(const QString &email);
+        void handleAfterLinkAccount(const QString &htmlTextEmail);
         void handleAfterUnlinkAccount();
 
-        void handleDownloadDBRequested(bool isDisabled);
+        void handleDownloadDBRequested(bool isDisable);
+        void handleUploadDBRequested(bool isDisable);
 
     signals:
         // void applyClicked();
@@ -42,8 +43,8 @@ class SettingsTabWidget final : public QWidget {
         void requestGoogleLogin();
         void requestGoogleUnlink();
 
-        void onUploadButtonClicked();
-        void onDownloadButtonClicked();
+        void requestUpload();
+        void requestDownload();
 
     private slots:
         void onApplyBtnClicked();
@@ -52,6 +53,9 @@ class SettingsTabWidget final : public QWidget {
         void loadSettingsToUi(const SettingsData &settings) const;
 
         void onLinkBtnClicked();
+
+        void onUploadButtonClicked();
+        void onDownloadButtonClicked();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         QRadioButton* m_langEnRad{};

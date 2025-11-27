@@ -162,12 +162,24 @@ void AppController::oauthManager() {
 
         if (m_oauthManager != nullptr) {
             QObject::connect(m_oauthManager.get(), &OAuthManager::gmailLinked, this,
-                             &AppController::gmailLinked);
+                             [this](const QString &email) {
+                                 m_currentLinkedEmail = email;
+
+                                 const auto htmlTextEmail =
+                                     tr("Hello, ") +
+                                     QString("<span style=\"color:%1;\"><i>%2</i></span>")
+                                         .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8",
+                                              m_currentLinkedEmail);
+
+                                 emit gmailLinkedForView(htmlTextEmail);
+                             });
             QObject::connect(m_oauthManager.get(), &OAuthManager::gmailUnlinked, this,
                              &AppController::gmailUnlinked);
 
             QObject::connect(m_GDService.get(), &GoogleDriveService::onDownloadDBBtnRequest,
                              m_mainWindow, &MainWindow::startDownloadDBForward);
+            QObject::connect(m_GDService.get(), &GoogleDriveService::onUploadDBBtnRequest,
+                             m_mainWindow, &MainWindow::startUploadDBForward);
 
             m_oauthManager->tryAutoLogin();
         }
@@ -209,6 +221,15 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
     if (settings->isDirty()) {
         applyLanguage(data.language);
         applyTheme(data.theme);
+
+        if (!m_currentLinkedEmail.isEmpty()) {
+            const auto htmlTextEmail =
+                tr("Hello, ") +
+                QString("<span style=\"color:%1;\"><i>%2</i></span>")
+                    .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
+
+            emit gmailLinkedForView(htmlTextEmail);
+        }
 
         saveSettings();
         settings->markDirty(false);
@@ -360,4 +381,14 @@ void AppController::uploadDbAuto() {
 
 void AppController::downloadDbAuto() {
     if (m_GDService != nullptr) { m_GDService->downloadDbAuto(); }
+}
+
+void AppController::updateTranslatedStrings() {
+    if (!m_currentLinkedEmail.isEmpty()) {
+        const auto htmlTextEmail =
+            tr("Hello, ") + QString("<span style=\"color:%1;\"><i>%2</i></span>")
+                                .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
+
+        emit gmailLinkedForView(htmlTextEmail);
+    }
 }

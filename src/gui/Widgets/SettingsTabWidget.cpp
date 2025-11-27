@@ -232,6 +232,7 @@ QVBoxLayout* SettingsTabWidget::setupAccountLinkGroup() {
     m_addressUserGMLoginLbl = new QLabel("");
 
     accountLinkLayout->addWidget(m_linkGDBtn);
+    accountLinkLayout->addStretch(1);
     accountLinkLayout->addWidget(m_addressUserGMLoginLbl);
 
     auto* upDownButtonLayout = new QHBoxLayout();
@@ -327,8 +328,8 @@ void SettingsTabWidget::handleUiRefreshRequest(const SettingsData &settings) con
     loadSettingsToUi(settings);
 }
 
-void SettingsTabWidget::handleAfterLinkAccount(const QString &email) {
-    m_addressUserGMLoginLbl->setText(email);
+void SettingsTabWidget::handleAfterLinkAccount(const QString &htmlTextEmail) {
+    m_addressUserGMLoginLbl->setText(htmlTextEmail);
 
     m_isLinked = true;
     m_linkGDBtn->setText("Unlink");
@@ -359,9 +360,25 @@ void SettingsTabWidget::onLinkBtnClicked() {
     emit requestGoogleUnlink();
 }
 
-void SettingsTabWidget::handleDownloadDBRequested(bool isDisabled) {
+void SettingsTabWidget::handleUploadDBRequested(bool isDisable) {
+    if (m_uploadDBBtn != nullptr) {
+        if (isDisable) {
+            m_uploadDBBtn->setMaximumWidth(100); // NOLINT(readability-magic-numbers)
+            m_uploadDBBtn->setEnabled(false);
+            m_uploadDBBtn->setText(tr("Uploading..."));
+        } else {
+            m_uploadDBBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
+            m_uploadDBBtn->setEnabled(true);
+            m_uploadDBBtn->setText(tr("Upload"));
+
+            showNotification(tr("Upload completed"));
+        }
+    }
+}
+
+void SettingsTabWidget::handleDownloadDBRequested(bool isDisable) {
     if (m_downloadDBBtn != nullptr) {
-        if (isDisabled) {
+        if (isDisable) {
             m_downloadDBBtn->setMaximumWidth(120); // NOLINT(readability-magic-numbers)
             m_downloadDBBtn->setEnabled(false);
             m_downloadDBBtn->setText(tr("Downloading..."));
@@ -373,4 +390,24 @@ void SettingsTabWidget::handleDownloadDBRequested(bool isDisabled) {
             showNotification(tr("Download completed"));
         }
     }
+}
+
+void SettingsTabWidget::onUploadButtonClicked() {
+    const auto reply = QMessageBox::question(
+        this, tr("Upload database to Google Drive"),
+        tr("Do you want to upload data.db to the linked Google Drive?\nThis will overwrite the "
+           "existing data.db file on Google Drive if it already exists."),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) { emit requestUpload(); }
+}
+
+void SettingsTabWidget::onDownloadButtonClicked() {
+    const auto reply = QMessageBox::question(
+        this, tr("Download database from Google Drive"),
+        tr("Do you want to download the file data.db from the linked Google Drive?\nThis will "
+           "overwrite the data.db file currently used by this application."),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) { emit requestDownload(); }
 }
