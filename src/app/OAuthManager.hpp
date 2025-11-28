@@ -26,9 +26,13 @@ class OAuthManager final : public QObject {
 
         void loginFailed(const QString &error = QString());
 
+        void loginCancelled();
+
     public slots:
         void handleUnlinkGMRequested();
         void handleLoginGMRequested();
+
+        void cancelCurrentLogin();
 
     private slots:
         void handleRedirect(QTcpSocket* socket);
@@ -57,4 +61,6 @@ class OAuthManager final : public QObject {
         QString m_accessToken;
         QDateTime m_accessTokenExpiry;
         bool m_isLogin{};
+
+        QTimer* m_currentLoginTimer{};
 };

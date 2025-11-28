@@ -184,6 +184,9 @@ void AppController::oauthManager() {
             QObject::connect(m_oauthManager.get(), &OAuthManager::loginFailed, m_mainWindow,
                              &MainWindow::loginFailedForward);
 
+            QObject::connect(this, &AppController::cancelLoginRequestedForward,
+                             m_oauthManager.get(), &OAuthManager::cancelCurrentLogin);
+
             m_oauthManager->tryAutoLogin();
         }
     }

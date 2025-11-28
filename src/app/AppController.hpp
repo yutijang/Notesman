@@ -105,6 +105,8 @@ class AppController final : public QObject {
 
         void gmailLinkedForView(const QString &htmlTextEmail);
 
+        void cancelLoginRequestedForward();
+
     private:
         std::unique_ptr<AppSettings> m_settings;
         std::unique_ptr<QTranslator> m_translator;

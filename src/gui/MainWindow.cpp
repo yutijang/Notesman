@@ -349,6 +349,9 @@ void MainWindow::setAppController(AppController* controller) {
 
     QObject::connect(this, &MainWindow::loginFailedForward, m_settingsTab,
                      &SettingsTabWidget::handleLoginFailed);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::cancelLoginRequested, m_appController,
+                     &AppController::cancelLoginRequestedForward);
 }
 
 void MainWindow::changeEvent(QEvent* event) {

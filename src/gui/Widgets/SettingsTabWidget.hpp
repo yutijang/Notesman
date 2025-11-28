@@ -38,7 +38,6 @@ class SettingsTabWidget final : public QWidget {
         void handleLoginFailed(const QString &error = QString());
 
     signals:
-        // void applyClicked();
         void applySettingsRequested(const SettingsData &data);
         void defaultSettingsRequested();
 
@@ -47,6 +46,8 @@ class SettingsTabWidget final : public QWidget {
 
         void requestUpload();
         void requestDownload();
+
+        void cancelLoginRequested();
 
     private slots:
         void onApplyBtnClicked();
@@ -60,6 +61,22 @@ class SettingsTabWidget final : public QWidget {
         void onDownloadButtonClicked();
 
     private: // NOLINT(readability-redundant-access-specifiers)
+        void setupUi();
+        void setupConnections();
+
+        [[nodiscard]] QHBoxLayout* setupLanguageGroup();
+        [[nodiscard]] QHBoxLayout* setupThemeGroup();
+        [[nodiscard]] QHBoxLayout* setupResourceDirGroup();
+        [[nodiscard]] QHBoxLayout* setupResourceManagerTypeGroup();
+        [[nodiscard]] QHBoxLayout* setupButtonGroup();
+        [[nodiscard]] QVBoxLayout* setupAccountLinkGroup();
+
+        [[nodiscard]] QWidget* setupLoginStatusGroup();
+
+        void updateCountdownDisplay();
+        void hideLoginStatus();
+        void showLoginStatus();
+
         QRadioButton* m_langEnRad{};
         QRadioButton* m_langViRad{};
         QRadioButton* m_themeLightRad{};
@@ -81,13 +98,10 @@ class SettingsTabWidget final : public QWidget {
 
         bool m_isLinked{};
 
-        void setupUi();
-        void setupConnections();
-
-        [[nodiscard]] QHBoxLayout* setupLanguageGroup();
-        [[nodiscard]] QHBoxLayout* setupThemeGroup();
-        [[nodiscard]] QHBoxLayout* setupResourceDirGroup();
-        [[nodiscard]] QHBoxLayout* setupResourceManagerTypeGroup();
-        [[nodiscard]] QHBoxLayout* setupButtonGroup();
-        [[nodiscard]] QVBoxLayout* setupAccountLinkGroup();
+        QWidget* m_loginStatusWidget{};
+        QLabel* m_statusLabel{};
+        QLabel* m_countdownLabel{};
+        QPushButton* m_cancelLoginBtn{};
+        QTimer m_countdownTimer;
+        int m_remainingSeconds{};
 };

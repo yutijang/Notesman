@@ -114,10 +114,17 @@ void OAuthManager::handleOAuthRedirect() {
 }
 
 void OAuthManager::handleRedirect(QTcpSocket* socket) {
-    const QByteArray request = socket->readAll();
-    const QString requestStr = QString::fromUtf8(request);
+    // const QByteArray request = socket->readAll();
+    // const QString requestStr = QString::fromUtf8(request);
 
-    QRegularExpression rx(R"(GET\s+([^\s]+)\s+HTTP/1\.1)");
+    if (!socket->canReadLine()) {
+        return;                                        // Đợi gói tin tiếp theo
+    }
+
+    const QByteArray requestLine = socket->readLine(); // Chỉ đọc dòng đầu: GET /... HTTP/1.1
+    const QString requestStr = QString::fromLatin1(requestLine);
+
+    QRegularExpression rx(R"(GET\s+\/\?(.*)\s+HTTP\/1\.)");
     QRegularExpressionMatch match = rx.match(requestStr);
 
     if (!match.hasMatch()) {
@@ -125,7 +132,7 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
         return;
     }
 
-    QUrl url(match.captured(1));
+    QUrl url("http://localhost/?" + match.captured(1));
     QUrlQuery query(url);
 
     const QString authCode = query.queryItemValue("code");
@@ -217,7 +224,7 @@ void OAuthManager::fetchUserEmail() {
 
     auto* reply = m_networkManager.get(req);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    QObject::connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         const QByteArray data = reply->readAll();
 
         reply->deleteLater();
@@ -244,6 +251,12 @@ void OAuthManager::fetchUserEmail() {
 void OAuthManager::handleLoginGMRequested() {
     cleanupAuthServer();
 
+    if (m_currentLoginTimer != nullptr) {
+        m_currentLoginTimer->stop();
+        m_currentLoginTimer->deleteLater();
+        m_currentLoginTimer = nullptr;
+    }
+
     constexpr int randLen{64};
     m_codeVerifier = generateRandomString(randLen);
     QString codeChallenge = sha256Base64Url(m_codeVerifier);
@@ -256,6 +269,8 @@ void OAuthManager::handleLoginGMRequested() {
 
     if (!m_oauthServer->listen(QHostAddress::LocalHost, port)) {
         qWarning() << "Cannot start local OAuth server";
+        emit loginFailed(
+            tr("Port %1 is in use. Please close other apps using this port.").arg(port));
         return;
     }
 
@@ -274,13 +289,14 @@ void OAuthManager::handleLoginGMRequested() {
     // QDesktopServices::openUrl(authUrl);
     openBrowser(authUrl);
 
-    auto* timeout = new QTimer(this);
-    timeout->setSingleShot(true);
-    timeout->start(LOGIN_TIMEOUT); // 60 giây
-    QObject::connect(timeout, &QTimer::timeout, this, [this]() {
+    m_currentLoginTimer = new QTimer(this);
+    m_currentLoginTimer->setSingleShot(true);
+    m_currentLoginTimer->start(LOGIN_TIMEOUT); // 60 giây
+    QObject::connect(m_currentLoginTimer, &QTimer::timeout, this, [this]() {
         if (!m_isLogin) {
             emit loginFailed("OAuth login failed: timed out");
             cleanupAuthServer();
+            m_currentLoginTimer = nullptr;
         }
     });
 }
@@ -381,7 +397,7 @@ QString OAuthManager::accessToken() {
     if (m_accessToken.isEmpty() ||
         QDateTime::currentDateTimeUtc() >=
             m_accessTokenExpiry.addSecs(-30)) { // NOLINT(readability-magic-numbers)
-        QString refresh = loadRefreshToken();
+        const QString refresh = loadRefreshToken();
         if (!refresh.isEmpty()) {
             QEventLoop loop;
             requestNewAccessToken(refresh, [&]() { loop.quit(); });
@@ -410,4 +426,13 @@ void OAuthManager::tryAutoLogin() {
     } else {
         qDebug() << "Need manual login";
     }
+}
+
+void OAuthManager::cancelCurrentLogin() {
+    if (m_currentLoginTimer != nullptr) {
+        m_currentLoginTimer->stop();
+        m_currentLoginTimer->deleteLater();
+        m_currentLoginTimer = nullptr;
+    }
+    cleanupAuthServer();
 }

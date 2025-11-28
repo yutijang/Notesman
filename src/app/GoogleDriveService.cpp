@@ -111,13 +111,11 @@ void GoogleDriveService::updateDatabase(const QString &fileId,
 
     auto* reply = m_networkManager.sendCustomRequest(req, "PATCH", dbBytes);
 
-    QObject::connect(reply, &QNetworkReply::finished, this, [this, reply, done]() {
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         bool ok = (reply->error() == QNetworkReply::NoError);
         if (!ok) { qWarning() << "Update failed:" << reply->errorString(); }
         reply->deleteLater();
         if (done) { done(ok); }
-
-        emit onUploadDBBtnRequest(false);
     });
 }
 
@@ -158,11 +156,16 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
 void GoogleDriveService::uploadDbAuto() {
     emit onUploadDBBtnRequest(true);
 
-    findDatabaseFile([this](const QString &id) {
+    auto finalDoneCallback = [this](bool ok) {
+        qDebug() << "Upload/Update completed. Success:" << ok;
+        emit onUploadDBBtnRequest(false); // Bật lại nút
+    };
+
+    findDatabaseFile([this, finalDoneCallback](const QString &id) {
         if (id.isEmpty()) {
-            uploadDatabase([](bool ok) { qDebug() << "Upload new:" << ok; });
+            uploadDatabase(finalDoneCallback);
         } else {
-            updateDatabase(id, [](bool ok) { qDebug() << "Update:" << ok; });
+            updateDatabase(id, finalDoneCallback);
         }
     });
 }

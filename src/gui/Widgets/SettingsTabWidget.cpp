@@ -19,6 +19,9 @@
 
 namespace {
     constexpr int LAYOUT_MINWIDTH{370};
+    constexpr int COUNTDOWN{60};
+    constexpr auto SETTINGS_ORG = "Notesman";
+    constexpr auto SETTINGS_APP = "configs";
 } // namespace
 
 SettingsTabWidget::SettingsTabWidget(QWidget* parent) : QWidget(parent) {
@@ -72,6 +75,14 @@ void SettingsTabWidget::setupConnections() {
 
     QObject::connect(m_linkGDBtn, &QPushButton::clicked, this,
                      &SettingsTabWidget::onLinkBtnClicked);
+
+    QObject::connect(m_cancelLoginBtn, &QPushButton::clicked, this, [this]() {
+        m_countdownTimer.stop();
+        hideLoginStatus();
+        m_linkGDBtn->setEnabled(true);
+        showNotification(tr("Login was canceled"));
+        emit cancelLoginRequested();
+    });
 
     // Gán lại thuộc tính động cho nút browse
     m_resDirBtn->setProperty("targetEdit", QVariant::fromValue(m_resDirInp));
@@ -131,9 +142,9 @@ void SettingsTabWidget::onBrowseBtnClicked() {
     auto* targetEdit = senderButton->property("targetEdit").value<QLineEdit*>();
     if (targetEdit == nullptr) { return; }
 
-    QSettings settings("Notesman", "configs");
+    QSettings settings(SETTINGS_ORG, SETTINGS_APP);
     const QString kDefaultDir =
-        settings.value("settingsTab/lastBrowseDir", QDir::homePath()).toString();
+        settings.value(QStringLiteral("settingsTab/lastBrowseDir"), QDir::homePath()).toString();
 
     QString dirPath =
         QFileDialog::getExistingDirectory(this, tr("Select Output Folder"), kDefaultDir);
@@ -144,7 +155,7 @@ void SettingsTabWidget::onBrowseBtnClicked() {
 
         // Get parent path
         const QString parentDir = QFileInfo(cleanPath).absoluteDir().absolutePath();
-        settings.setValue("settingsTab/lastBrowseDir", parentDir);
+        settings.setValue(QStringLiteral("settingsTab/lastBrowseDir"), parentDir);
     }
 }
 
@@ -193,7 +204,7 @@ QHBoxLayout* SettingsTabWidget::setupResourceDirGroup() {
     auto* resDirLayout = new QHBoxLayout();
     m_resDirLbl = new QLabel(tr("Resource storage directory"));
     m_resDirInp = new QLineEdit();
-    m_resDirInp->setText("resources/");
+    m_resDirInp->setText(QStringLiteral("resources/"));
     m_resDirInp->setMaximumWidth(400); // NOLINT(readability-magic-numbers)
     m_resDirBtn = new QPushButton("...");
     m_resDirBtn->setMaximumWidth(UiConst::BUTTON_NEXT_INPUT_WIDTH);
@@ -252,8 +263,49 @@ QVBoxLayout* SettingsTabWidget::setupAccountLinkGroup() {
 
     backupDBGroupLayout->addLayout(accountLinkLayout);
     backupDBGroupLayout->addLayout(upDownButtonLayout);
+    backupDBGroupLayout->addWidget(setupLoginStatusGroup(), 0, Qt::AlignHCenter);
 
     return backupDBGroupLayout;
+}
+
+QWidget* SettingsTabWidget::setupLoginStatusGroup() {
+    m_loginStatusWidget = new QWidget();
+    m_loginStatusWidget->setVisible(false);
+
+    auto* mainLayout = new QVBoxLayout(m_loginStatusWidget);
+    mainLayout->setContentsMargins(0, 20, 0, 20); // NOLINT(readability-magic-numbers)
+
+    m_statusLabel = new QLabel(tr("Waiting for you to confirm in the browser..."));
+    m_statusLabel->setAlignment(Qt::AlignCenter);
+
+    auto* info1 = new QLabel(tr("This app will:"));
+    auto* info2 = new QLabel(tr("• See your email address"));
+    auto* info3 = new QLabel(tr("• Create and manage backup files on your Google Drive"));
+    auto* info4 = new QLabel(tr("• Nothing else – no access to your other files"));
+
+    m_countdownLabel = new QLabel(QString::number(COUNTDOWN));
+    m_countdownLabel->setStyleSheet("font-weight: bold; "
+                                    "font-size: 24px; "
+                                    "color: #d93025;");
+    m_countdownLabel->setAlignment(Qt::AlignCenter);
+
+    m_cancelLoginBtn = new QPushButton(tr("Cancel login"));
+
+    mainLayout->addStretch(1);
+    mainLayout->addWidget(m_statusLabel, 0, Qt::AlignHCenter);
+
+    mainLayout->addWidget(info1);
+    mainLayout->addWidget(info2);
+    mainLayout->addWidget(info3);
+    mainLayout->addWidget(info4);
+
+    mainLayout->addSpacing(12); // NOLINT(readability-magic-numbers)
+
+    mainLayout->addWidget(m_countdownLabel, 0, Qt::AlignHCenter);
+    mainLayout->addWidget(m_cancelLoginBtn, 0, Qt::AlignHCenter);
+    mainLayout->addStretch(1);
+
+    return m_loginStatusWidget;
 }
 
 QHBoxLayout* SettingsTabWidget::setupButtonGroup() {
@@ -305,8 +357,9 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     }
 
     // Thư mục tài nguyên
-    m_resDirInp->setText(
-        QString::fromUtf8(reinterpret_cast<const char*>(settings.resourceDir.u8string().c_str())));
+    // m_resDirInp->setText(
+    // QString::fromUtf8(reinterpret_cast<const char*>(settings.resourceDir.u8string().c_str())));
+    m_resDirInp->setText(QString::fromStdU16String(settings.resourceDir.u16string()));
 
     // Kiểu quản lý tài nguyên
     if (settings.isManagedResource) {
@@ -329,6 +382,8 @@ void SettingsTabWidget::handleUiRefreshRequest(const SettingsData &settings) con
 }
 
 void SettingsTabWidget::handleAfterLinkAccount(const QString &htmlTextEmail) {
+    hideLoginStatus();
+
     m_addressUserGMLoginLbl->setText(htmlTextEmail);
 
     m_isLinked = true;
@@ -355,7 +410,7 @@ void SettingsTabWidget::onLinkBtnClicked() {
     if (!m_isLinked) {
         // Chưa liên kết → yêu cầu AppController bắt đầu OAuth
         m_linkGDBtn->setEnabled(false);
-
+        showLoginStatus();
         emit requestGoogleLogin();
 
         return;
@@ -366,6 +421,8 @@ void SettingsTabWidget::onLinkBtnClicked() {
 }
 
 void SettingsTabWidget::handleLoginFailed(const QString &error) {
+    hideLoginStatus();
+
     m_linkGDBtn->setEnabled(true);
 
     showNotification(error);
@@ -421,4 +478,37 @@ void SettingsTabWidget::onDownloadButtonClicked() {
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) { emit requestDownload(); }
+}
+
+void SettingsTabWidget::updateCountdownDisplay() {
+    m_remainingSeconds--;
+
+    if (m_remainingSeconds <= 0) {
+        m_countdownLabel->setText("0");
+        m_countdownTimer.stop();
+        return;
+    }
+
+    m_countdownLabel->setText(QString::number(m_remainingSeconds));
+}
+
+void SettingsTabWidget::hideLoginStatus() {
+    m_countdownTimer.stop();
+    m_countdownTimer.disconnect();
+
+    m_loginStatusWidget->setVisible(false);
+
+    m_remainingSeconds = 0;
+}
+
+void SettingsTabWidget::showLoginStatus() {
+    m_remainingSeconds = COUNTDOWN; // NOLINT(readability-magic-numbers)
+    m_countdownLabel->setText(QString::number(COUNTDOWN));
+
+    m_countdownTimer.disconnect();  // tránh chồng signal
+    QObject::connect(&m_countdownTimer, &QTimer::timeout, this,
+                     &SettingsTabWidget::updateCountdownDisplay);
+    m_countdownTimer.start(1000);   // NOLINT(readability-magic-numbers)
+
+    m_loginStatusWidget->setVisible(true);
 }
