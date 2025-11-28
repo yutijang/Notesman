@@ -149,16 +149,19 @@ jobs:
           Remove-Item "$releaseDir\iconengines" -Recurse
           Remove-Item "$releaseDir\translations" -Recurse
           Remove-Item "$releaseDir\generic" -Recurse
+          Remove-Item "$releaseDir\styles" -Recurse
           Remove-Item "$releaseDir\opengl32sw.dll" -ErrorAction SilentlyContinue
+          Remove-Item "$releaseDir\Qt6Svg.dll" -ErrorAction SilentlyContinue
+          Remove-Item "$releaseDir\D3Dcompiler_47.dll" -ErrorAction SilentlyContinue
 
           $allImagePlugins = Get-ChildItem "$releaseDir\imageformats\" -Filter "*.dll" -ErrorAction SilentlyContinue
           $essentialImagePlugins = @("qico.dll")
 
           foreach ($plugin in $allImagePlugins) {
-              if ($plugin.Name -notin $essentialImagePlugins) {
-                  Remove-Item $plugin.FullName
-                  Write-Host "Removed image format plugin: $($plugin.Name)"
-              }
+            if ($plugin.Name -notin $essentialImagePlugins) {
+              Remove-Item $plugin.FullName
+              Write-Host "Removed image format plugin: $($plugin.Name)"
+            }
           }
 
       - name: Copy OpenSSL DLLs (Final Optimized)
