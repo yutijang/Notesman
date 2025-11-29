@@ -1,6 +1,9 @@
+file(READ "${CMAKE_SOURCE_DIR}/version.txt" PROJECT_VERSION_RAW)
+string(STRIP "${PROJECT_VERSION_RAW}" PROJECT_VERSION_VALUE)
+
 cmake_minimum_required(VERSION 3.31)
 project(Notesman
-    VERSION 1.0.75
+    VERSION ${PROJECT_VERSION_VALUE}
     LANGUAGES C CXX
     DESCRIPTION "C++ notes manager for learn"
 )

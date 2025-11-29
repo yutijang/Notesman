@@ -237,10 +237,13 @@ jobs:
           name: notesman-linux-appimage
           path: release/*.AppImage
 
-      - name: Extract project version from CMakeLists.txt
+      - name: Read version from version.txt
         id: get_version
         run: |
-          VERSION=$(grep -Po '(?<=VERSION )\d+\.\d+\.\d+' CMakeLists.txt || echo "0.0.0")
+          VERSION=$(tr -d ' \n\r' < version.txt 2>/dev/null || true)
+          if [ -z "$VERSION" ]; then
+            VERSION="0.0.0"
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release (manual version)

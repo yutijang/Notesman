@@ -196,12 +196,15 @@ jobs:
           name: notesman-windows-zip
           path: Notesman-x64.zip
 
-      - name: Extract project version from CMakeLists.txt
+      - name: Extract project version
         id: get_version
         shell: pwsh
         run: |
-          $ver = Select-String -Path "CMakeLists.txt" -Pattern "(?<=VERSION )\d+\.\d+\.\d+" | ForEach-Object { $_.Matches.Value }
-          if (-not $ver) { $ver = "0.0.0" }
+          if (Test-Path "version.txt") {
+            $ver = (Get-Content "version.txt" -Raw).Trim()
+          } else {
+            $ver = "0.0.0"
+          }
           echo "version=$ver" >> $env:GITHUB_OUTPUT
 
       - name: Upload to existing GitHub Release
