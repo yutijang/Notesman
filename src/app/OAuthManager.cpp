@@ -105,6 +105,13 @@ void OAuthManager::openBrowser(const QUrl &url) {
 #endif
 }
 
+QString OAuthManager::htmlResponde(const QString &title, const QString &header,
+                                   const QString &message) noexcept {
+    return QStringLiteral(
+               R"html(<!doctypehtml><meta charset=UTF-8><title>%1</title><style>body{font-family:Arial,sans-serif;text-align:center;margin-top:50px;background-color:#f0f2f5}h1{color:#1a73e8}</style><h1>%2</h1><p>%3</p>)html")
+        .arg(title, header, message);
+}
+
 // --- END helper ---
 
 void OAuthManager::handleOAuthRedirect() {
@@ -114,9 +121,6 @@ void OAuthManager::handleOAuthRedirect() {
 }
 
 void OAuthManager::handleRedirect(QTcpSocket* socket) {
-    // const QByteArray request = socket->readAll();
-    // const QString requestStr = QString::fromUtf8(request);
-
     if (!socket->canReadLine()) {
         return;                                        // Đợi gói tin tiếp theo
     }
@@ -148,11 +152,17 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
     // Trả về HTML
     QByteArray responseBody;
     if (!authCode.isEmpty()) {
-        responseBody =
-            R"html(<!doctypehtml><meta charset=UTF-8><title>Authorization Successful</title><style>body{font-family:Arial,sans-serif;text-align:center;margin-top:50px;background-color:#f0f2f5}h1{color:#1a73e8}#countdown{font-size:2em;font-weight:700;color:#d93025}</style><h1>Authorization successful!</h1><p>You can return to the application.)html";
+        const QString title = tr("Authorization Successful");
+        const QString header = tr("Authorization successful!");
+        const QString body = tr("You can return to the application.");
+
+        responseBody = htmlResponde(title, header, body).toUtf8();
     } else if (!error.isEmpty()) {
-        responseBody =
-            R"html(<!doctypehtml><meta charset=UTF-8><title>Authorization failed</title><style>body{font-family:Arial,sans-serif;text-align:center;margin-top:50px;background-color:#f0f2f5}h1{color:#1a73e8}#countdown{font-size:2em;font-weight:700;color:#d93025}</style><h1>Authorization failed!</h1><p>You canceled login. Please try again.)html";
+        const QString title = tr("Authorization Failed");
+        const QString header = tr("Authorization failed!");
+        const QString body = tr("You canceled login. Please try again.");
+
+        responseBody = htmlResponde(title, header, body).toUtf8();
     }
 
     // Xây dựng HTTP Response
@@ -331,7 +341,7 @@ void OAuthManager::handleUnlinkGMRequested() {
 
 void OAuthManager::requestNewAccessToken(const QString &refreshToken,
                                          const std::function<void()> &finishedCallback) {
-    QUrl url("https://oauth2.googleapis.com/token");
+    QUrl url(GOOGLE_OAUTH2_TOKEN_URL);
     QUrlQuery body;
     body.addQueryItem("client_id", CLIENT_ID);
     body.addQueryItem("client_secret", CLIENT_SECRET);

@@ -378,7 +378,10 @@ void AppController::handleLoginGMRequested() {
 }
 
 void AppController::handleUnlinkGMRequested() {
-    if (m_oauthManager != nullptr) { m_oauthManager->handleUnlinkGMRequested(); }
+    if (m_oauthManager != nullptr) {
+        m_currentLinkedEmail.clear();
+        m_oauthManager->handleUnlinkGMRequested();
+    }
 }
 
 void AppController::uploadDbAuto() {

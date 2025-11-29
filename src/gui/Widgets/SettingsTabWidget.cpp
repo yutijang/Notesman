@@ -101,10 +101,15 @@ void SettingsTabWidget::retranslateUi() {
     m_resManCom->setItemText(1, tr("Save path only"));
     m_applyBtn->setText(tr("Apply"));
     m_defaultBtn->setText(tr("Default"));
+    m_linkGDBtn->setText(tr("Link Gmail for backup database to Google Drive"));
+    m_uploadDBBtn->setText(tr("Upload"));
+    m_downloadDBBtn->setText(tr("Download"));
+    m_statusLabel->setText(tr("Waiting for you to confirm in the browser..."));
     m_info1->setText(tr("This app will:"));
     m_info2->setText(tr("• See your email address"));
     m_info3->setText(tr("• Create and manage backup files on your Google Drive"));
     m_info4->setText(tr("• Nothing else - no access to your other files"));
+    m_cancelLoginBtn->setText(tr("Cancel login"));
 }
 
 void SettingsTabWidget::onApplyBtnClicked() {
@@ -243,7 +248,7 @@ QVBoxLayout* SettingsTabWidget::setupAccountLinkGroup() {
 
     auto* accountLinkLayout = new QHBoxLayout();
     m_linkGDBtn = new QPushButton(tr("Link Gmail for backup database to Google Drive"));
-    m_linkGDBtn->setMaximumWidth(300); // NOLINT(readability-magic-numbers)
+    m_linkGDBtn->setMaximumWidth(340); // NOLINT(readability-magic-numbers)
     m_addressUserGMLoginLbl = new QLabel("");
 
     accountLinkLayout->addWidget(m_linkGDBtn);
@@ -285,7 +290,7 @@ QWidget* SettingsTabWidget::setupLoginStatusGroup() {
     m_info1 = new QLabel(tr("This app will:"));
     m_info2 = new QLabel(tr("• See your email address"));
     m_info3 = new QLabel(tr("• Create and manage backup files on your Google Drive"));
-    m_info4 = new QLabel(tr("• Nothing else – no access to your other files"));
+    m_info4 = new QLabel(tr("• Nothing else - no access to your other files"));
 
     m_countdownLabel = new QLabel(QString::number(COUNTDOWN));
     m_countdownLabel->setStyleSheet("font-weight: bold; "
@@ -393,8 +398,8 @@ void SettingsTabWidget::handleAfterLinkAccount(const QString &htmlTextEmail) {
     m_isLinked = true;
 
     m_linkGDBtn->setEnabled(true);
-    m_linkGDBtn->setText("Unlink");
-    m_linkGDBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
+    m_linkGDBtn->setText(tr("Unlink"));
+    m_linkGDBtn->setMaximumWidth(100); // NOLINT(readability-magic-numbers)
 
     m_uploadDBBtn->setVisible(true);
     m_downloadDBBtn->setVisible(true);
@@ -403,8 +408,8 @@ void SettingsTabWidget::handleAfterLinkAccount(const QString &htmlTextEmail) {
 void SettingsTabWidget::handleAfterUnlinkAccount() {
     m_isLinked = false;
     m_addressUserGMLoginLbl->clear();
-    m_linkGDBtn->setText("Link Gmail for backup database to Google Drive");
-    m_linkGDBtn->setMaximumWidth(300); // NOLINT(readability-magic-numbers)
+    m_linkGDBtn->setText(tr("Link Gmail for backup database to Google Drive"));
+    m_linkGDBtn->setMaximumWidth(340); // NOLINT(readability-magic-numbers)
 
     m_uploadDBBtn->setVisible(false);
     m_downloadDBBtn->setVisible(false);

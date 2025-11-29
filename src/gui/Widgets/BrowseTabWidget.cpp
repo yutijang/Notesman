@@ -92,7 +92,7 @@ void BrowseTabWidget::setupUI() {
     m_resultsTbl = new ResultsTable(this);
     m_resultsTbl->setContextMenuPolicy(Qt::CustomContextMenu);
     m_resultsTbl->setColumnCount(3);
-    m_resultsTbl->setHorizontalHeaderLabels({tr("ID"), tr("Title"), tr("Path")});
+    m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title"), tr("Path")});
     m_resultsTbl->horizontalHeader()->setStretchLastSection(true);
     m_resultsTbl->verticalHeader()->setVisible(false);
     m_resultsTbl->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
@@ -131,7 +131,10 @@ void BrowseTabWidget::retranslateUi() {
     m_titleRad->setText(tr("Title"));
     m_contentRad->setText(tr("Content"));
 
-    m_resultsTbl->setHorizontalHeaderLabels({tr("ID"), tr("Title"), tr("Path")});
+    m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title"), tr("Path")});
+
+    m_clearTableBtn->setText(tr("Clear"));
+    m_getAllBtn->setText(tr("Get All"));
 }
 
 void BrowseTabWidget::updateColumnWidths() {

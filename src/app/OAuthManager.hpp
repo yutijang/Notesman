@@ -54,6 +54,8 @@ class OAuthManager final : public QObject {
         void saveRefreshToken(const QString &refreshToken);
         QString loadRefreshToken();
         void handleOAuthRedirect();
+        static QString htmlResponde(const QString &title, const QString &header,
+                                    const QString &message) noexcept;
 
         QTcpServer* m_oauthServer{};
         QString m_codeVerifier;
