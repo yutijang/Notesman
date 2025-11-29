@@ -104,4 +104,8 @@ class SettingsTabWidget final : public QWidget {
         QPushButton* m_cancelLoginBtn{};
         QTimer m_countdownTimer;
         int m_remainingSeconds{};
+        QLabel* m_info1{};
+        QLabel* m_info2{};
+        QLabel* m_info3{};
+        QLabel* m_info4{};
 };

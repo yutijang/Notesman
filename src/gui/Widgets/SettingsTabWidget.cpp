@@ -101,6 +101,10 @@ void SettingsTabWidget::retranslateUi() {
     m_resManCom->setItemText(1, tr("Save path only"));
     m_applyBtn->setText(tr("Apply"));
     m_defaultBtn->setText(tr("Default"));
+    m_info1->setText(tr("This app will:"));
+    m_info2->setText(tr("• See your email address"));
+    m_info3->setText(tr("• Create and manage backup files on your Google Drive"));
+    m_info4->setText(tr("• Nothing else - no access to your other files"));
 }
 
 void SettingsTabWidget::onApplyBtnClicked() {
@@ -278,10 +282,10 @@ QWidget* SettingsTabWidget::setupLoginStatusGroup() {
     m_statusLabel = new QLabel(tr("Waiting for you to confirm in the browser..."));
     m_statusLabel->setAlignment(Qt::AlignCenter);
 
-    auto* info1 = new QLabel(tr("This app will:"));
-    auto* info2 = new QLabel(tr("• See your email address"));
-    auto* info3 = new QLabel(tr("• Create and manage backup files on your Google Drive"));
-    auto* info4 = new QLabel(tr("• Nothing else – no access to your other files"));
+    m_info1 = new QLabel(tr("This app will:"));
+    m_info2 = new QLabel(tr("• See your email address"));
+    m_info3 = new QLabel(tr("• Create and manage backup files on your Google Drive"));
+    m_info4 = new QLabel(tr("• Nothing else – no access to your other files"));
 
     m_countdownLabel = new QLabel(QString::number(COUNTDOWN));
     m_countdownLabel->setStyleSheet("font-weight: bold; "
@@ -294,10 +298,10 @@ QWidget* SettingsTabWidget::setupLoginStatusGroup() {
     mainLayout->addStretch(1);
     mainLayout->addWidget(m_statusLabel, 0, Qt::AlignHCenter);
 
-    mainLayout->addWidget(info1);
-    mainLayout->addWidget(info2);
-    mainLayout->addWidget(info3);
-    mainLayout->addWidget(info4);
+    mainLayout->addWidget(m_info1);
+    mainLayout->addWidget(m_info2);
+    mainLayout->addWidget(m_info3);
+    mainLayout->addWidget(m_info4);
 
     mainLayout->addSpacing(12); // NOLINT(readability-magic-numbers)
 
