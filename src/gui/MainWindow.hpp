@@ -28,6 +28,7 @@ class CodeEditorLineHighlighter;
 class AppController;
 class QProgressDialog;
 class ResultsTable;
+class InfoCornerWidget;
 
 // ----------------------------------------------------
 
@@ -118,6 +119,8 @@ class MainWindow : public QMainWindow {
         CodeEditorLineHighlighter* m_lineHighlighter{};
 
         // Settings Tab
+
+        InfoCornerWidget* m_infoWidget{};
 
         // Build UI internal
         void buildUi();

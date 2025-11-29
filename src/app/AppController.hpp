@@ -83,7 +83,8 @@ class AppController final : public QObject {
     signals:
         void settingsLoaded(const SettingsData &settings);
 
-        void languageChanged();
+        // waitting for using
+        // void languageChanged();
 
         void displayResultForGetAll(const std::vector<FullResource> &results);
 

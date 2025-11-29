@@ -4,12 +4,14 @@
 #include <QWidget>
 #include <QFont>
 #include <QPoint>
+#include <QList>
 #include <QMouseEvent>
+#include <QSize>
 
 #include "InfoCornerWidget.hpp"
 
 namespace {
-    const auto INFO_ICON_SIZE = QSize(18, 18);
+    constexpr auto INFO_ICON_SIZE = QSize(18, 18);
 } // namespace
 
 InfoCornerWidget::InfoCornerWidget(QWidget* parent) : QToolButton(parent) {
@@ -47,4 +49,16 @@ void InfoCornerWidget::mousePressEvent(QMouseEvent* event) {
         return;
     }
     QToolButton::mousePressEvent(event); // Fallback default
+}
+
+void InfoCornerWidget::retranslateUi() {
+    this->setToolTip(tr("Updates and About"));
+
+    if (this->menu() != nullptr) {
+        QList<QAction*> actions = this->menu()->actions();
+        if (actions.size() >= 3) {
+            actions[0]->setText(tr("Check for updates"));
+            actions[2]->setText(tr("About"));
+        }
+    }
 }

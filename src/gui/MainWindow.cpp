@@ -102,13 +102,13 @@ void MainWindow::setupSettingsTab() {
 }
 
 void MainWindow::setupIconInfo() {
-    auto* infoWidget = new InfoCornerWidget(this);
-    m_tabWidget->setCornerWidget(infoWidget, Qt::TopRightCorner);
+    m_infoWidget = new InfoCornerWidget(this);
+    m_tabWidget->setCornerWidget(m_infoWidget, Qt::TopRightCorner);
 
-    QObject::connect(infoWidget, &InfoCornerWidget::checkUpdateRequested, this,
+    QObject::connect(m_infoWidget, &InfoCornerWidget::checkUpdateRequested, this,
                      &MainWindow::onCheckUpdateClicked);
 
-    QObject::connect(infoWidget, &InfoCornerWidget::aboutRequested, this, &MainWindow::onAbout);
+    QObject::connect(m_infoWidget, &InfoCornerWidget::aboutRequested, this, &MainWindow::onAbout);
 }
 
 void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) {
@@ -376,6 +376,9 @@ void MainWindow::retranslateUi() {
 
     // ========= Settings Tab =========
     m_settingsTab->retranslateUi();
+
+    // ========= InfoCornerWidget =========
+    m_infoWidget->retranslateUi();
 
     // ========= AppController =========
     m_appController->updateTranslatedStrings();

@@ -11,6 +11,8 @@ class InfoCornerWidget final : public QToolButton {
     public:
         explicit InfoCornerWidget(QWidget* parent = nullptr);
 
+        void retranslateUi();
+
     protected:
         void mousePressEvent(QMouseEvent* event) override;
 

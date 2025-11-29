@@ -78,7 +78,8 @@ void AppController::applyLanguage(Language lang) {
     QEvent event(QEvent::LanguageChange);
     QCoreApplication::sendEvent(qApp, &event);
 
-    emit languageChanged();
+    // waitting for using
+    // emit languageChanged();
 }
 
 void AppController::applyTheme(Theme theme) {
