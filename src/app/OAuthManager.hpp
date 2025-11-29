@@ -11,6 +11,7 @@
 
 class QTcpSocket;
 class QNetworkReply;
+class QTimer;
 
 class OAuthManager final : public QObject {
         Q_OBJECT
@@ -24,7 +25,7 @@ class OAuthManager final : public QObject {
         void gmailLinked(const QString &email);
         void gmailUnlinked();
 
-        void loginFailed(const QString &error = QString());
+        void loginFailed(const QString &error = QString{});
 
         void loginCancelled();
 

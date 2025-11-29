@@ -94,7 +94,6 @@ endif()
 # ============================================================
 # Bật Qt MOC/UIC/RCC cho toàn project
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 # if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release" AND DEFINED ENV{CI})

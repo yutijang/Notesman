@@ -69,7 +69,7 @@ class MainWindow : public QMainWindow {
         void startDownloadDBForward(bool isDisable);
         void startUploadDBForward(bool isDisable);
 
-        void loginFailedForward(const QString &error = QString());
+        void loginFailedForward(const QString &error = QString{});
 
     public slots:
         void setCore(NotesAppCore* core);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+#include <QTimer>
 
 #include "SettingsData.hpp"
 
@@ -10,6 +11,7 @@ class QComboBox;
 class QPushButton;
 class QLabel;
 class QHBoxLayout;
+class QVBoxLayout;
 
 class SettingsTabWidget final : public QWidget {
         Q_OBJECT
@@ -35,7 +37,7 @@ class SettingsTabWidget final : public QWidget {
         void handleDownloadDBRequested(bool isDisable);
         void handleUploadDBRequested(bool isDisable);
 
-        void handleLoginFailed(const QString &error = QString());
+        void handleLoginFailed(const QString &error = QString{});
 
     signals:
         void applySettingsRequested(const SettingsData &data);

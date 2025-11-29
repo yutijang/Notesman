@@ -233,7 +233,7 @@ void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
     const int &idItem = idData.toInt();
 
     auto* pathItem = m_resultsTbl->item(row, 2);
-    const QString &path = (pathItem != nullptr) ? pathItem->text() : QString();
+    const QString &path = (pathItem != nullptr) ? pathItem->text() : QString{};
 
     emit contextMenuRequested(pos, idItem, titleItem->text(), path);
 }
@@ -251,7 +251,7 @@ std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const 
 
     RowData r{.id = idData.toInt(),
               .title = titleItem->text(),
-              .path = (pathItem != nullptr) ? pathItem->text() : QString()};
+              .path = (pathItem != nullptr) ? pathItem->text() : QString{}};
 
     return r;
 }

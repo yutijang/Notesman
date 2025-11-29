@@ -146,7 +146,7 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
         exchangeAuthCodeForTokens(authCode);
     } else if (!error.isEmpty()) {
         qWarning() << "OAuth login failed, error:" << error;
-        emit loginFailed("OAuth login was canceled");
+        emit loginFailed(tr("OAuth login was canceled"));
     }
 
     // Trả về HTML
@@ -304,7 +304,7 @@ void OAuthManager::handleLoginGMRequested() {
     m_currentLoginTimer->start(LOGIN_TIMEOUT); // 60 giây
     QObject::connect(m_currentLoginTimer, &QTimer::timeout, this, [this]() {
         if (!m_isLogin) {
-            emit loginFailed("OAuth login failed: timed out");
+            emit loginFailed(tr("OAuth login failed: timed out"));
             cleanupAuthServer();
             m_currentLoginTimer = nullptr;
         }

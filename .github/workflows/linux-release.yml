@@ -15,7 +15,7 @@ env:
   CCACHE_DIR: ${{ github.workspace }}/.ccache
   CCACHE_MAXSIZE: 500M
   VCPKG_KEEP_ENV_VARS: "CCACHE_DIR;CCACHE_BASEDIR;CCACHE_CONFIGPATH"
-  VCPKG_FEATURE_FLAGS: "manifests;binarycaching"  
+  VCPKG_FEATURE_FLAGS: "manifests;compilertracking;binarycaching"  
   VCPKG_MAX_CONCURRENCY: 8
   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}  
@@ -55,7 +55,7 @@ jobs:
           max_size = ${CCACHE_MAXSIZE}
           compression = true
           compression_level = 5
-          sloppiness = time_macros,file_stat_matches
+          sloppiness = include_file_mtime
           base_dir = ${GITHUB_WORKSPACE}
           EOF
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV

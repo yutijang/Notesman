@@ -115,8 +115,8 @@ class AppController final : public QObject {
         std::unique_ptr<OAuthManager> m_oauthManager;
         std::unique_ptr<GoogleDriveService> m_GDService;
 
-        NotesAppCore* m_core{nullptr};
-        MainWindow* m_mainWindow{nullptr};
+        NotesAppCore* m_core{};
+        MainWindow* m_mainWindow{};
         UpdateInfoSummary m_lastUpdateInfoSummary{};
 
         QString m_currentLinkedEmail;

@@ -2,9 +2,10 @@
 
 #include <functional>
 #include <QObject>
+#include <QString>
 #include <QNetworkAccessManager>
 
-#include "OAuthManager.hpp"
+class OAuthManager;
 
 class GoogleDriveService final : public QObject {
         Q_OBJECT
