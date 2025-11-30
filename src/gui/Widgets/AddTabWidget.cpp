@@ -18,6 +18,7 @@
 #include "AddTabWidget.hpp"
 #include "UiConstants.hpp"
 #include "model.hpp"
+#include "DialogUtils.hpp"
 
 AddTabWidget::AddTabWidget(QWidget* parent) : QWidget(parent) {
     setupUi();
@@ -78,11 +79,10 @@ void AddTabWidget::onAddButtonClicked() {
 }
 
 void AddTabWidget::onClearButtonClicked() {
-    const auto result = QMessageBox::question(
-        this, tr("Caution"), tr("Would you like to clear content in all data field?"),
-        QMessageBox::Yes | QMessageBox::No);
+    const auto reply = DialogUtils::showQuestion(
+        this, tr("Caution"), tr("Would you like to clear content in all data field?"));
 
-    if (result == QMessageBox::Yes) { clearFields(); }
+    if (reply == QMessageBox::Yes) { clearFields(); }
 }
 
 void AddTabWidget::clearFields() {

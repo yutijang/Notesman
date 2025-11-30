@@ -38,6 +38,7 @@
 #include "app_version.hpp"
 #include "ResourceSearchWorker.hpp"
 #include "UpdateInfoSummary.hpp"
+#include "DialogUtils.hpp"
 
 namespace {
     constexpr int GUI_WIDTH{1200};
@@ -168,14 +169,6 @@ void MainWindow::setCore(NotesAppCore* core) {
 
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_addTab), true);
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_browseTab), true);
-}
-
-void MainWindow::showNoti(const QString &message, UiConst::MessageType type) {
-    if (type == UiConst::MessageType::info) {
-        QMessageBox::information(this, tr("Information"), message);
-    } else if (type == UiConst::MessageType::error) {
-        QMessageBox::critical(this, tr("Error"), message);
-    }
 }
 
 // NOLINTNEXTLINE
@@ -313,8 +306,8 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_browseTab, &BrowseTabWidget::searchRequested, m_appController,
                      &AppController::handleSearchRequest);
 
-    QObject::connect(m_appController, &AppController::mainWindowNotify, this,
-                     &MainWindow::showNoti);
+    // QObject::connect(m_appController, &AppController::mainWindowNotify, this,
+    //                  &MainWindow::showNoti);
 
     QObject::connect(m_appController, &AppController::searchFinishedFromController, m_browseTab,
                      &BrowseTabWidget::handleResultsSearchRequested);
@@ -455,6 +448,24 @@ void MainWindow::onAbout() {
     if (msgLabel != nullptr) { msgLabel->setStyleSheet("padding: 10px 30px 30px 10px;"); }
 
     msgBox.setStandardButtons(QMessageBox::Ok);
+
+    msgBox.ensurePolished();
+    msgBox.adjustSize();
+
+    QWidget* root = window();
+    if (root == nullptr) {
+        msgBox.exec();
+        return;
+    }
+
+    const QRect dialogFrame = msgBox.frameGeometry();
+    const QRect parentFrame = root->frameGeometry();
+
+    const int x = parentFrame.center().x() - (dialogFrame.width() / 2);
+    const int y = parentFrame.center().y() - (dialogFrame.height() / 2);
+
+    msgBox.move(x, y);
+
     msgBox.exec();
 }
 
@@ -468,20 +479,19 @@ void MainWindow::onUpdateAvailable(const UpdateInfoSummary &infoSummary) {
         return;
     }
 
-    const auto reply = QMessageBox::question(
+    const auto reply = DialogUtils::showQuestion(
         this, tr("Update available"),
         tr("Version %1 is available.\nDo you want to download it?").arg(infoSummary.releaseName));
 
-    const auto accepted = (reply == QMessageBox::Yes);
-    emit updateDecision(accepted, infoSummary);
+    emit updateDecision(reply == QMessageBox::Yes, infoSummary);
 }
 
 void MainWindow::onNoUpdateAvailable() {
-    QMessageBox::information(this, tr("No update"), tr("You are using the latest version."));
+    DialogUtils::showInfo(this, tr("No update"), tr("You are using the latest version."));
 }
 
 void MainWindow::onUpdateCheckFailed(const QString &error) {
-    QMessageBox::warning(this, tr("Update check failed"), error);
+    DialogUtils::showWarning(this, tr("Update check failed"), error);
 }
 
 void MainWindow::onDownloadStarted() {
@@ -494,6 +504,21 @@ void MainWindow::onDownloadStarted() {
     }
     m_progressDialog->setValue(0);
     m_progressDialog->show();
+
+    QTimer::singleShot(0, this, [this] {
+        if (!m_progressDialog) { return; }
+
+        QWidget* root = this->window();
+        if (!root) { return; }
+
+        const QRect parentFrame = root->frameGeometry();
+        const QRect dlgFrame = m_progressDialog->frameGeometry();
+
+        const int x = parentFrame.center().x() - (dlgFrame.width() / 2);
+        const int y = parentFrame.center().y() - (dlgFrame.height() / 2);
+
+        m_progressDialog->move(x, y);
+    });
 }
 
 void MainWindow::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
@@ -538,12 +563,12 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
         return;
     }
 
-    QMessageBox::information(this, tr("Download complete"),
-                             tr("The update package has been downloaded:\n%1").arg(filePath));
+    DialogUtils::showInfo(this, tr("Download complete"),
+                          tr("The update package has been downloaded:\n%1").arg(filePath));
 }
 
 void MainWindow::onDownloadFailed(const QString &errorString) {
-    QMessageBox::warning(this, tr("Download failed"), errorString);
+    DialogUtils::showWarning(this, tr("Download failed"), errorString);
 }
 
 void MainWindow::updateStatus(const QString &message, int timeout) {

@@ -16,7 +16,6 @@
 #include "tag_repository.hpp"
 #include "file_service.hpp"
 #include "resource_service.hpp"
-#include "UiConstants.hpp"
 
 class AppInitializer final : public QObject {
         Q_OBJECT
@@ -34,9 +33,6 @@ class AppInitializer final : public QObject {
 
     signals:
         void coreReady(NotesAppCore* core);
-
-        void errorOccurred(const QString &message, UiConst::MessageType type);
-        void infoMessage(const QString &message, UiConst::MessageType type);
 
     public slots:
         void initializeCore();

@@ -4,7 +4,6 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QString>
-#include <QMessageBox>
 #include <QTranslator>
 #include <QApplication>
 #include <QStyleFactory>
@@ -17,6 +16,7 @@
 #include "NotesAppCore.hpp"
 #include "ResourceSearchWorker.hpp"
 #include "UpdateInfoSummary.hpp"
+#include "DialogUtils.hpp"
 
 AppController::AppController(QObject* parent) : QObject(parent) {}
 
@@ -34,7 +34,7 @@ void AppController::loadSettings() {
     if (!m_settings->load(configPath)) {
         if (!m_settings->save(configPath)) {
             emit settingsLoaded(m_settings->toUiSettings());
-            QMessageBox::critical(nullptr, tr("Error"), tr("Can not save config file"));
+            DialogUtils::showError(m_mainWindow, tr("Error"), tr("Can not save config file"));
         }
     }
 
@@ -46,7 +46,7 @@ void AppController::saveSettings() {
         std::filesystem::path(QCoreApplication::applicationDirPath().toStdString()) / "config.ini";
     if (m_settings) {
         if (!m_settings->save(configPath)) {
-            QMessageBox::critical(nullptr, tr("Error"), tr("Can not save config file"));
+            DialogUtils::showError(m_mainWindow, tr("Error"), tr("Can not save config file"));
         }
     }
 }
@@ -214,7 +214,7 @@ void AppController::handleDefaultSettingsRequest() {
 void AppController::handleApplySettingsRequest(const SettingsData &data) {
     auto* settings = m_settings.get();
     if (settings == nullptr) {
-        emit mainWindowNotify(tr("Core is not initialized."), UiConst::MessageType::error);
+        DialogUtils::showError(m_mainWindow, tr("Error"), tr("Core is not initialized."));
         return;
     }
 
@@ -317,12 +317,13 @@ void AppController::addTagsToResource(sqlite3_int64 resourceId, const QStringLis
 
 void AppController::handleSearchRequest(const QString &keyword, const QString &mode) {
     if (m_core == nullptr) {
-        emit mainWindowNotify(tr("Database not initialized."), UiConst::MessageType::error);
+        DialogUtils::showError(m_mainWindow, tr("Error"), tr("Database not initialized."));
         return;
     }
 
     if (keyword.isEmpty()) {
-        emit mainWindowNotify(tr("Please enter a keyword to search."), UiConst::MessageType::info);
+        DialogUtils::showInfo(m_mainWindow, tr("Information"),
+                              tr("Please enter a keyword to search."));
         return;
     }
 
@@ -363,7 +364,7 @@ void AppController::handleCheckUpdateRequested() {
 
 void AppController::onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo) {
     if (!accepted) {
-        emit mainWindowNotify(tr("Missing update info"), UiConst::MessageType::info);
+        DialogUtils::showInfo(m_mainWindow, tr("Information"), tr("Missing update info"));
         return;
     }
 

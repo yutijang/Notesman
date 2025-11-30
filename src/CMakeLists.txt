@@ -65,6 +65,7 @@ set(HELPER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResultsTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/helper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/DialogUtils.cpp
 )
 
 # =========================================================

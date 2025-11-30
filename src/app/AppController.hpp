@@ -100,8 +100,6 @@ class AppController final : public QObject {
 
         void searchFinishedFromController(const std::vector<FullResource> &results);
 
-        void mainWindowNotify(const QString &message, UiConst::MessageType type);
-
         void gmailUnlinked();
 
         void gmailLinkedForView(const QString &htmlTextEmail);

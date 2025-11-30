@@ -16,6 +16,7 @@
 #include "SettingsTabWidget.hpp"
 #include "UiConstants.hpp"
 #include "SettingsData.hpp"
+#include "DialogUtils.hpp"
 
 namespace {
     constexpr int LAYOUT_MINWIDTH{370};
@@ -136,10 +137,10 @@ void SettingsTabWidget::onApplyBtnClicked() {
 }
 
 void SettingsTabWidget::onDefaultBtnClicked() {
-    const auto reply = QMessageBox::question(this, tr("Restore Defaults"),
-                                             tr("Do you want to restore default settings?\nChanges "
-                                                "will not be saved until you click Apply."),
-                                             QMessageBox::Yes | QMessageBox::No);
+    const auto reply =
+        DialogUtils::showQuestion(this, tr("Restore Defaults"),
+                                  tr("Do you want to restore default settings?\nChanges will not "
+                                     "be saved until you click Apply."));
 
     if (reply == QMessageBox::Yes) { emit defaultSettingsRequested(); }
 }
@@ -437,7 +438,7 @@ void SettingsTabWidget::handleLoginFailed(const QString &error) {
     showNotification(error);
 }
 
-void SettingsTabWidget::handleUploadDBRequested(bool isDisable) {
+void SettingsTabWidget::handleUploadDBRequested(bool isDisable, const QString &message) {
     if (m_uploadDBBtn != nullptr) {
         if (isDisable) {
             m_uploadDBBtn->setMaximumWidth(100); // NOLINT(readability-magic-numbers)
@@ -448,12 +449,12 @@ void SettingsTabWidget::handleUploadDBRequested(bool isDisable) {
             m_uploadDBBtn->setEnabled(true);
             m_uploadDBBtn->setText(tr("Upload"));
 
-            showNotification(tr("Upload completed"));
+            showNotification(message);
         }
     }
 }
 
-void SettingsTabWidget::handleDownloadDBRequested(bool isDisable) {
+void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, const QString &message) {
     if (m_downloadDBBtn != nullptr) {
         if (isDisable) {
             m_downloadDBBtn->setMaximumWidth(120); // NOLINT(readability-magic-numbers)
@@ -464,27 +465,25 @@ void SettingsTabWidget::handleDownloadDBRequested(bool isDisable) {
             m_downloadDBBtn->setEnabled(true);
             m_downloadDBBtn->setText(tr("Download"));
 
-            showNotification(tr("Download completed"));
+            showNotification(message);
         }
     }
 }
 
 void SettingsTabWidget::onUploadButtonClicked() {
-    const auto reply = QMessageBox::question(
+    const auto reply = DialogUtils::showQuestion(
         this, tr("Upload database to Google Drive"),
         tr("Do you want to upload data.db to the linked Google Drive?\nThis will overwrite the "
-           "existing data.db file on Google Drive if it already exists."),
-        QMessageBox::Yes | QMessageBox::No);
+           "existing data.db file on Google Drive if it already exists."));
 
     if (reply == QMessageBox::Yes) { emit requestUpload(); }
 }
 
 void SettingsTabWidget::onDownloadButtonClicked() {
-    const auto reply = QMessageBox::question(
+    const auto reply = DialogUtils::showQuestion(
         this, tr("Download database from Google Drive"),
         tr("Do you want to download the file data.db from the linked Google Drive?\nThis will "
-           "overwrite the data.db file currently used by this application."),
-        QMessageBox::Yes | QMessageBox::No);
+           "overwrite the data.db file currently used by this application."));
 
     if (reply == QMessageBox::Yes) { emit requestDownload(); }
 }

@@ -1,6 +1,5 @@
 #include <QToolButton>
 #include <QMenu>
-#include <QMessageBox>
 #include <QWidget>
 #include <QFont>
 #include <QPoint>

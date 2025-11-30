@@ -128,7 +128,7 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
 
     auto* reply = m_networkManager.get(req);
 
-    QObject::connect(reply, &QNetworkReply::finished, this, [this, reply, done]() {
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         if (reply->error() != QNetworkReply::NoError) {
             qWarning() << "Download failed:" << reply->errorString();
             reply->deleteLater();
@@ -148,24 +148,19 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
         file.close();
         reply->deleteLater();
         if (done) { done(true); }
-
-        emit onDownloadDBBtnRequest(false);
     });
 }
 
 void GoogleDriveService::uploadDbAuto() {
     emit onUploadDBBtnRequest(true);
 
-    auto finalDoneCallback = [this](bool ok) {
-        qDebug() << "Upload/Update completed. Success:" << ok;
-        emit onUploadDBBtnRequest(false); // Bật lại nút
-    };
-
-    findDatabaseFile([this, finalDoneCallback](const QString &id) {
+    findDatabaseFile([this](const QString &id) {
         if (id.isEmpty()) {
-            uploadDatabase(finalDoneCallback);
+            uploadDatabase([](bool ok) { qDebug() << "Upload new:" << ok; });
+            emit onUploadDBBtnRequest(false, tr("Uploaded new"));
         } else {
-            updateDatabase(id, finalDoneCallback);
+            updateDatabase(id, [](bool ok) { qDebug() << "Update:" << ok; });
+            emit onUploadDBBtnRequest(false, tr("Update completed"));
         }
     });
 }
@@ -174,11 +169,12 @@ void GoogleDriveService::downloadDbAuto() {
     emit onDownloadDBBtnRequest(true);
 
     findDatabaseFile([this](const QString &id) {
-        if (id.isEmpty()) {
-            qWarning() << "No data.db on Drive";
-            return;
+        if (!id.isEmpty()) {
+            downloadDatabase(id, [](bool ok) { qDebug() << "Download:" << ok; });
+            emit onDownloadDBBtnRequest(false, tr("Download completed"));
+        } else {
+            emit onDownloadDBBtnRequest(false, tr("No data.db on Drive"));
         }
-        downloadDatabase(id, [](bool ok) { qDebug() << "Download:" << ok; });
     });
 }
 

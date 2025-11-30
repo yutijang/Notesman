@@ -34,8 +34,8 @@ class SettingsTabWidget final : public QWidget {
         void handleAfterLinkAccount(const QString &htmlTextEmail);
         void handleAfterUnlinkAccount();
 
-        void handleDownloadDBRequested(bool isDisable);
-        void handleUploadDBRequested(bool isDisable);
+        void handleDownloadDBRequested(bool isDisable, const QString &message = QString{});
+        void handleUploadDBRequested(bool isDisable, const QString &message = QString{});
 
         void handleLoginFailed(const QString &error = QString{});
 

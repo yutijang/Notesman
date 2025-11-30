@@ -26,7 +26,7 @@
 #include "resource_service.hpp"
 #include "NotesAppCore.hpp"
 #include "database_checker.hpp"
-#include "UiConstants.hpp"
+#include "DialogUtils.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -118,10 +118,9 @@ void AppInitializer::initializeCore() {
     const std::filesystem::path dbPath = dbFullPath.toStdString();
 
     if (!std::filesystem::exists(dbPath)) {
-        const auto reply = QMessageBox::question(
-            nullptr, QObject::tr("Database Missing"),
-            QObject::tr("No database found. Would you like to create a new one?"),
-            QMessageBox::Yes | QMessageBox::No);
+        const auto reply =
+            DialogUtils::showQuestion(m_mainWindow.get(), tr("Database Missing"),
+                                      tr("No database found. Would you like to create a new one?"));
 
         if (reply == QMessageBox::Yes) {
             createDatabase();
@@ -135,8 +134,8 @@ void AppInitializer::initializeCore() {
 
     std::ifstream dbFile(dbPath, std::ios::binary);
     if (!dbFile.is_open()) {
-        emit errorOccurred(QObject::tr("Failed to open database file."),
-                           UiConst::MessageType::error);
+        DialogUtils::showError(m_mainWindow.get(), tr("Error"),
+                               tr("Failed to open database file."));
         return;
     }
 
@@ -144,20 +143,19 @@ void AppInitializer::initializeCore() {
     std::array<char, len> header{};
     dbFile.read(header.data(), header.size());
     if (!dbFile || dbFile.gcount() != len) {
-        emit errorOccurred(QObject::tr("Failed to read database header."),
-                           UiConst::MessageType::error);
+        DialogUtils::showError(m_mainWindow.get(), tr("Error"),
+                               tr("Failed to read database header."));
         return;
     }
 
     std::string_view headerView(header.data(), header.size());
     if (!headerView.starts_with("SQLite format 3")) { // C++20+
-        emit errorOccurred(QObject::tr("Invalid database file."), UiConst::MessageType::error);
+        DialogUtils::showError(m_mainWindow.get(), tr("Error"), tr("Invalid database file."));
 
         const auto reply =
-            QMessageBox::question(nullptr, QObject::tr("Invalid Database"),
-                                  QObject::tr("The existing file is not a valid SQLite database.\n"
-                                              "Would you like to recreate it?"),
-                                  QMessageBox::Yes | QMessageBox::No);
+            DialogUtils::showQuestion(m_mainWindow.get(), tr("Invalid Database"),
+                                      tr("The existing file is not a valid SQLite database.\n"
+                                         "Would you like to recreate it?"));
 
         if (reply == QMessageBox::Yes) {
             createDatabase();
@@ -192,7 +190,7 @@ void AppInitializer::initializeCore() {
         emit coreReady(m_core.get());
 
     } catch (const std::exception &ex) {
-        emit errorOccurred(QString::fromStdString(ex.what()), UiConst::MessageType::error);
+        DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(ex.what()));
     }
 }
 
@@ -203,8 +201,8 @@ void AppInitializer::createDatabase() {
     // Đọc nội dung file .sql
     QFile schemaFile(schemaResourcePath);
     if (!schemaFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        emit errorOccurred(tr("Schema resource not found: %1").arg(schemaResourcePath),
-                           UiConst::MessageType::error);
+        DialogUtils::showError(m_mainWindow.get(), tr("Error"),
+                               tr("Schema resource not found: %1").arg(schemaResourcePath));
 
         return;
     }
@@ -222,7 +220,8 @@ void AppInitializer::createDatabase() {
         const QString msg = tr("Cannot create database: %1")
                                 .arg((dbPtr != nullptr) ? sqlite3_errmsg(dbPtr) : tr("unknown"));
         if (dbPtr != nullptr) { sqlite3_close_v2(dbPtr); }
-        emit errorOccurred(msg, UiConst::MessageType::error);
+
+        DialogUtils::showError(m_mainWindow.get(), tr("Error"), msg);
 
         return;
     }
@@ -235,14 +234,16 @@ void AppInitializer::createDatabase() {
             tr("Failed to execute schema: %1").arg((errMsg != nullptr) ? errMsg : tr("unknown"));
         sqlite3_free(errMsg);
         sqlite3_close_v2(dbPtr);
-        emit errorOccurred(msg, UiConst::MessageType::error);
+
+        DialogUtils::showError(m_mainWindow.get(), tr("Error"), msg);
 
         return;
     }
 
     sqlite3_close_v2(dbPtr);
-    emit infoMessage(tr("Database created successfully at %1").arg(dbPath),
-                     UiConst::MessageType::info);
+
+    DialogUtils::showInfo(m_mainWindow.get(), tr("Information"),
+                          tr("Database created successfully at %1").arg(dbPath));
 
     initializeCore();
 }
@@ -256,7 +257,7 @@ void AppInitializer::verifyDatabase() {
         QString msg = tr("Database integrity check failed:\n");
         for (const auto &e : issues) { msg += QString::fromStdString(e) + "\n"; }
 
-        QMessageBox::critical(nullptr, tr("Database Corruption"), msg);
+        DialogUtils::showError(m_mainWindow.get(), tr("Database Corruption"), msg);
     }
 }
 
@@ -267,11 +268,5 @@ void AppInitializer::setupInitializerConnections() {
 
     // B. Initializer báo cáo Core đã sẵn sàng -> Window nhận
     QObject::connect(this, &AppInitializer::coreReady, m_mainWindow.get(), &MainWindow::setCore,
-                     Qt::UniqueConnection);
-
-    // C. Initializer báo cáo lỗi/thông tin -> Window nhận
-    QObject::connect(this, &AppInitializer::errorOccurred, m_mainWindow.get(),
-                     &MainWindow::showNoti, Qt::UniqueConnection);
-    QObject::connect(this, &AppInitializer::infoMessage, m_mainWindow.get(), &MainWindow::showNoti,
                      Qt::UniqueConnection);
 }

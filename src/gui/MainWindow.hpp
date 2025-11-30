@@ -67,15 +67,15 @@ class MainWindow : public QMainWindow {
 
         void updateColumnWidthsRequest();
 
-        void startDownloadDBForward(bool isDisable);
-        void startUploadDBForward(bool isDisable);
+        void startDownloadDBForward(bool isDisable, const QString &message = QString{});
+        void startUploadDBForward(bool isDisable, const QString &message = QString{});
 
         void loginFailedForward(const QString &error = QString{});
 
     public slots:
         void setCore(NotesAppCore* core);
 
-        void showNoti(const QString &message, UiConst::MessageType type);
+        // void showNoti(const QString &message, UiConst::MessageType type);
 
         void onCheckUpdateClicked();
 

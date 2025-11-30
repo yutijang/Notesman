@@ -9,5 +9,5 @@ namespace UiConst {
     inline constexpr int BUTTON_NEXT_INPUT_WIDTH{40};
     // NOLINTNEXTLINE(readability-identifier-naming)
     enum class SettingsMessageState : std::uint8_t { None, Updated, Default };
-    enum class MessageType : std::uint8_t { info, error };
+    // enum class MessageType : std::uint8_t { info, error };
 } // namespace UiConst
