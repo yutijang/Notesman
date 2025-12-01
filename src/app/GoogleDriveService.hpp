@@ -14,7 +14,7 @@ class GoogleDriveService final : public QObject {
         explicit GoogleDriveService(OAuthManager* oauth, QObject* parent = nullptr);
         ~GoogleDriveService() override = default;
 
-    public slots:
+    public slots: // NOLINT(readability-redundant-access-specifiers)
         void uploadDbAuto();
         void downloadDbAuto();
 

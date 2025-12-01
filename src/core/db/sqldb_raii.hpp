@@ -28,7 +28,8 @@ class SQLiteDB {
             m_filename = filename;
 
             int rc = sqlite3_open_v2(filename.c_str(), &dbPtr,
-                                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI, nullptr);
+                                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI,
+                                     nullptr);
             if (rc != SQLITE_OK) {
                 std::string errorMSG = (dbPtr != nullptr) ? sqlite3_errmsg(dbPtr) : "unknown";
                 if (dbPtr != nullptr) { sqlite3_close_v2(dbPtr); }

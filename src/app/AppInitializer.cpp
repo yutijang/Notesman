@@ -27,6 +27,7 @@
 #include "NotesAppCore.hpp"
 #include "database_checker.hpp"
 #include "DialogUtils.hpp"
+#include "database_creator.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -210,37 +211,15 @@ void AppInitializer::createDatabase() {
     const QByteArray schemaData = schemaFile.readAll();
     schemaFile.close();
 
-    // Đảm bảo thư mục tồn tại
-    QDir().mkpath(QFileInfo(dbPath).absolutePath());
+    const std::string schemaSql = schemaData.toStdString();
+    const std::string dbPathStd = dbPath.toStdString();
 
-    sqlite3* dbPtr = nullptr;
-    int rc = sqlite3_open_v2(dbPath.toStdString().c_str(), &dbPtr,
-                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
-    if (rc != SQLITE_OK) {
-        const QString msg = tr("Cannot create database: %1")
-                                .arg((dbPtr != nullptr) ? sqlite3_errmsg(dbPtr) : tr("unknown"));
-        if (dbPtr != nullptr) { sqlite3_close_v2(dbPtr); }
+    std::string error;
 
-        DialogUtils::showError(m_mainWindow.get(), tr("Error"), msg);
-
+    if (!DatabaseCreator::create(dbPathStd, schemaSql, error)) {
+        DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(error));
         return;
     }
-
-    // Thực thi schema
-    char* errMsg = nullptr;
-    rc = sqlite3_exec(dbPtr, schemaData.constData(), nullptr, nullptr, &errMsg);
-    if (rc != SQLITE_OK) {
-        QString msg =
-            tr("Failed to execute schema: %1").arg((errMsg != nullptr) ? errMsg : tr("unknown"));
-        sqlite3_free(errMsg);
-        sqlite3_close_v2(dbPtr);
-
-        DialogUtils::showError(m_mainWindow.get(), tr("Error"), msg);
-
-        return;
-    }
-
-    sqlite3_close_v2(dbPtr);
 
     DialogUtils::showInfo(m_mainWindow.get(), tr("Information"),
                           tr("Database created successfully at %1").arg(dbPath));

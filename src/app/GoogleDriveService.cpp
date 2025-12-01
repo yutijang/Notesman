@@ -13,6 +13,7 @@
 
 #include "GoogleDriveService.hpp"
 #include "OAuthManager.hpp"
+#include "database_maintenance.hpp"
 
 GoogleDriveService::GoogleDriveService(OAuthManager* oauth, QObject* parent)
     : QObject(parent), m_oauth(oauth) {
@@ -158,6 +159,11 @@ void GoogleDriveService::uploadDbAuto() {
 
 void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
     if (!isUpload) { return; }
+
+    try {
+        const QString filePath = QCoreApplication::applicationDirPath() + "/data.db";
+        DatabaseMaintenance::compact(filePath.toStdString());
+    } catch (const std::runtime_error &ex) { qDebug() << "Compact error: " << ex.what(); }
 
     findDatabaseFile([this](const QString &id) {
         if (id.isEmpty()) {

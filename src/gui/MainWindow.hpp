@@ -122,6 +122,10 @@ class MainWindow : public QMainWindow {
 
         InfoCornerWidget* m_infoWidget{};
 
+        UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::None};
+
+        QProgressDialog* m_progressDialog{};
+
         // Build UI internal
         void buildUi();
         void setupBrowseTab();
@@ -139,8 +143,5 @@ class MainWindow : public QMainWindow {
 
         static void removeSelectedRowsFromTable(ResultsTable* table,
                                                 const QModelIndexList &selectedRows);
-
-        UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::None};
-
-        QProgressDialog* m_progressDialog = nullptr;
+        static sqlite3_int64 extractIdFromRow(ResultsTable* resultTable, int row);
 };

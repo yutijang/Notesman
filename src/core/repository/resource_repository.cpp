@@ -194,15 +194,18 @@ void ResourceRepository::removeBatch(const std::vector<sqlite3_int64> &resourceI
     SQLiteStmt stmt(m_db.get(), "DELETE FROM resources WHERE id = ?;");
 
     bool success = true;
-    for (const auto id : resourceIds) {
-        sqlite3_bind_int64(stmt.get(), 1, id);
+    {
+        for (const auto id : resourceIds) {
+            sqlite3_bind_int64(stmt.get(), 1, id);
 
-        if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-            success = false;
-            break;
+            if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
+                success = false;
+                break;
+            }
+
+            sqlite3_reset(stmt.get());
+            sqlite3_clear_bindings(stmt.get());
         }
-
-        sqlite3_reset(stmt.get());
     }
 
     const char* endSql = success ? "COMMIT;" : "ROLLBACK;";

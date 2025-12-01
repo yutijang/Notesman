@@ -20,6 +20,7 @@
 #include <QVBoxLayout>
 #include <QDir>
 #include <QModelIndexList>
+#include <sqlite3.h>
 
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
@@ -657,10 +658,8 @@ void MainWindow::handleContextMenuDeleteAction(ResultsTable* resultTable) {
     }
 
     for (const QModelIndex &idx : selectedRows) {
-        const QString strId = resultTable->item(idx.row(), 0)->text();
-        bool ok = false;
-        const sqlite3_int64 resId = strId.toLongLong(&ok);
-        if (ok) { idsToDelete.push_back(resId); }
+        const sqlite3_int64 id = extractIdFromRow(resultTable, idx.row());
+        if (id > 0) { idsToDelete.push_back(id); }
     }
 
     removeSelectedRowsFromTable(resultTable, selectedRows);
@@ -674,6 +673,12 @@ void MainWindow::handleContextMenuDeleteAction(ResultsTable* resultTable) {
     } else {
         updateStatus(tr("Deleted resource"), UiConst::NOTI_TIMEOUT);
     }
+}
+
+sqlite3_int64 MainWindow::extractIdFromRow(ResultsTable* resultTable, int row) {
+    auto* item = resultTable->item(row, 1);
+    if (item == nullptr) { return -1; }
+    return item->data(Qt::UserRole).toLongLong();
 }
 
 void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
