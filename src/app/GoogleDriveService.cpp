@@ -152,28 +152,48 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
 }
 
 void GoogleDriveService::uploadDbAuto() {
+    emit closeConnectDBRequest(true);
     emit onUploadDBBtnRequest(true);
+}
+
+void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
+    if (!isUpload) { return; }
 
     findDatabaseFile([this](const QString &id) {
         if (id.isEmpty()) {
-            uploadDatabase([](bool ok) { qDebug() << "Upload new:" << ok; });
-            emit onUploadDBBtnRequest(false, tr("Uploaded new"));
+            uploadDatabase([this](bool ok) {
+                qDebug() << "Upload finished: " << ok;
+                emit onUploadDBBtnRequest(false, tr("Uploaded new"));
+                emit reconnectDBRequest();
+            });
         } else {
-            updateDatabase(id, [](bool ok) { qDebug() << "Update:" << ok; });
-            emit onUploadDBBtnRequest(false, tr("Update completed"));
+            updateDatabase(id, [this](bool ok) {
+                qDebug() << "Update:" << ok;
+                emit onUploadDBBtnRequest(false, tr("Update completed"));
+                emit reconnectDBRequest();
+            });
         }
     });
 }
 
 void GoogleDriveService::downloadDbAuto() {
+    emit closeConnectDBRequest(false);
     emit onDownloadDBBtnRequest(true);
+}
+
+void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
+    if (isUpload) { return; }
 
     findDatabaseFile([this](const QString &id) {
         if (!id.isEmpty()) {
-            downloadDatabase(id, [](bool ok) { qDebug() << "Download:" << ok; });
-            emit onDownloadDBBtnRequest(false, tr("Download completed"));
+            downloadDatabase(id, [this](bool ok) {
+                qDebug() << "Download finished: " << ok;
+                emit onDownloadDBBtnRequest(false, tr("Download completed"));
+                emit reconnectDBRequest();
+            });
         } else {
             emit onDownloadDBBtnRequest(false, tr("No data.db on Drive"));
+            emit reconnectDBRequest();
         }
     });
 }

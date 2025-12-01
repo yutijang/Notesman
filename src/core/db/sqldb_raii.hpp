@@ -15,8 +15,17 @@ class SQLiteDB {
 
         using unique_sqlite_db_ptr = std::unique_ptr<sqlite3, SqliteDBDeleter>;
 
-        explicit SQLiteDB(const std::string &filename) {
+        explicit SQLiteDB(const std::string &filename) { open(filename); }
+
+        [[nodiscard]] sqlite3* get() const noexcept { return m_db.get(); }
+
+        void close() noexcept { m_db.reset(); }
+
+        void open(const std::string &filename) {
+            if (m_db) { close(); }
+
             sqlite3* dbPtr = nullptr;
+            m_filename = filename;
 
             int rc = sqlite3_open_v2(filename.c_str(), &dbPtr,
                                      SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI, nullptr);
@@ -43,10 +52,11 @@ class SQLiteDB {
             m_db = unique_sqlite_db_ptr(dbPtr);
         }
 
-        [[nodiscard]] sqlite3* get() const noexcept { return m_db.get(); }
+        [[nodiscard]] const std::string &getFilename() const noexcept { return m_filename; }
 
     private:
         unique_sqlite_db_ptr m_db;
+        std::string m_filename;
 };
 
 // RAII wrapper cho sqlite3_stmt*

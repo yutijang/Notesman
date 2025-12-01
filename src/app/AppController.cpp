@@ -188,6 +188,16 @@ void AppController::oauthManager() {
             QObject::connect(this, &AppController::cancelLoginRequestedForward,
                              m_oauthManager.get(), &OAuthManager::cancelCurrentLogin);
 
+            QObject::connect(m_GDService.get(), &GoogleDriveService::closeConnectDBRequest, this,
+                             &AppController::closeConnectDBRequestForward);
+            QObject::connect(m_GDService.get(), &GoogleDriveService::reconnectDBRequest, this,
+                             &AppController::reconnectDBRequestForward);
+
+            QObject::connect(this, &AppController::dbClosedForward, m_GDService.get(),
+                             &GoogleDriveService::onConnectClosedForUpload);
+            QObject::connect(this, &AppController::dbClosedForward, m_GDService.get(),
+                             &GoogleDriveService::onConnectClosedForDownload);
+
             m_oauthManager->tryAutoLogin();
         }
     }

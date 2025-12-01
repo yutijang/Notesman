@@ -2,6 +2,7 @@
 #include <QtCore>
 #include <QPoint>
 #include <QSize>
+#include <QStyle>
 #include <QMessageBox>
 
 #include "DialogUtils.hpp"

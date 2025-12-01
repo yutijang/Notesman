@@ -98,7 +98,7 @@ set(CMAKE_AUTORCC ON)
 
 # if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release" AND DEFINED ENV{CI})
     # message(STATUS "Windows CI build detected → disabling precompiled headers")
-    # set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
+    set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
 # endif()
 
 # Thêm subdirectory app

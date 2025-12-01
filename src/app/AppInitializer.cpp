@@ -269,4 +269,36 @@ void AppInitializer::setupInitializerConnections() {
     // B. Initializer báo cáo Core đã sẵn sàng -> Window nhận
     QObject::connect(this, &AppInitializer::coreReady, m_mainWindow.get(), &MainWindow::setCore,
                      Qt::UniqueConnection);
+
+    QObject::connect(m_controller.get(), &AppController::closeConnectDBRequestForward, this,
+                     &AppInitializer::closeDatabaseConnection);
+    QObject::connect(m_controller.get(), &AppController::reconnectDBRequestForward, this,
+                     &AppInitializer::reinitializeDatabaseConnection);
+
+    QObject::connect(this, &AppInitializer::dbClosed, m_controller.get(),
+                     &AppController::dbClosedForward);
+}
+
+void AppInitializer::closeDatabaseConnection(bool isUpload) {
+    if (m_db) {
+        m_db->close();
+        qDebug() << "connect to DB closed";
+
+        emit dbClosed(isUpload);
+    }
+}
+
+void AppInitializer::reinitializeDatabaseConnection() {
+    if (!m_db) { return; }
+
+    try {
+        const std::string filename = m_db->getFilename();
+        m_db->open(filename);
+
+        verifyDatabase();
+
+        qDebug() << "connect to DB opened";
+
+        emit dbOpened();
+    } catch (const std::exception &ex) { qDebug() << "Fatal error: " << ex.what(); }
 }

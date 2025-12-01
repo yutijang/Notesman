@@ -31,8 +31,14 @@ class AppInitializer final : public QObject {
 
         void verifyDatabase();
 
+        void closeDatabaseConnection(bool isUpload);
+        void reinitializeDatabaseConnection();
+
     signals:
         void coreReady(NotesAppCore* core);
+
+        void dbClosed(bool isUpload); // true = for upload, false = for download
+        void dbOpened();
 
     public slots:
         void initializeCore();

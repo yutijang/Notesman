@@ -14,12 +14,19 @@ class GoogleDriveService final : public QObject {
         explicit GoogleDriveService(OAuthManager* oauth, QObject* parent = nullptr);
         ~GoogleDriveService() override = default;
 
+    public slots:
         void uploadDbAuto();
         void downloadDbAuto();
+
+        void onConnectClosedForUpload(bool isUpload);
+        void onConnectClosedForDownload(bool isUpload);
 
     signals:
         void onDownloadDBBtnRequest(bool isDisable, const QString &message = QString{});
         void onUploadDBBtnRequest(bool isDisable, const QString &message = QString{});
+
+        void closeConnectDBRequest(bool isUpload);
+        void reconnectDBRequest();
 
     private:
         void uploadDatabase(const std::function<void(bool)> &done);

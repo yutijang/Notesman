@@ -106,6 +106,11 @@ class AppController final : public QObject {
 
         void cancelLoginRequestedForward();
 
+        void closeConnectDBRequestForward(bool isUpload);
+        void reconnectDBRequestForward();
+        void dbClosedForward(bool isUpload);
+        void dbOpenedForward();
+
     private:
         std::unique_ptr<AppSettings> m_settings;
         std::unique_ptr<QTranslator> m_translator;
