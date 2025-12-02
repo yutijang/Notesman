@@ -41,6 +41,17 @@ class AddTabWidget final : public QWidget {
         void updateAddAndClearButtons();
 
     private: // NOLINT(readability-redundant-access-specifiers)
+        void setupUi();
+        void setupConnections();
+        void clearFields();
+
+        QVBoxLayout* setupTitleGroup();
+        QWidget* setupResouceGroup();
+        QVBoxLayout* setupTagGroup();
+        QWidget* setupFilePathGroup();
+        PlainTextEdit* setupTextEditor();
+        QHBoxLayout* setupButtonGroup();
+
         QLabel* m_titleLbl{};
         QLineEdit* m_titleInp{};
         QLabel* m_resTypeLbl{};
@@ -56,15 +67,4 @@ class AddTabWidget final : public QWidget {
         TagInput* m_tagInp{};
         QLabel* m_notiLbl{};
         QLabel* m_notiFilepathLbl{};
-
-        void setupUi();
-        void setupConnections();
-        void clearFields();
-
-        QVBoxLayout* setupTitleGroup();
-        QWidget* setupResouceGroup();
-        QVBoxLayout* setupTagGroup();
-        QWidget* setupFilePathGroup();
-        PlainTextEdit* setupTextEditor();
-        QHBoxLayout* setupButtonGroup();
 };

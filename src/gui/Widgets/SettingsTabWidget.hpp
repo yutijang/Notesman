@@ -24,31 +24,22 @@ class SettingsTabWidget final : public QWidget {
 
     public slots: // NOLINT(readability-redundant-access-specifiers)
         void showNotification(const QString &message);
-
         void handleInitialSettingsLoad(const SettingsData &settings) const;
-
         void handleSettingsStateChange(const SettingsData &settings) const;
-
         void handleUiRefreshRequest(const SettingsData &settings) const;
-
         void handleAfterLinkAccount(const QString &htmlTextEmail);
         void handleAfterUnlinkAccount();
-
         void handleDownloadDBRequested(bool isDisable, const QString &message = QString{});
         void handleUploadDBRequested(bool isDisable, const QString &message = QString{});
-
         void handleLoginFailed(const QString &error = QString{});
 
     signals:
         void applySettingsRequested(const SettingsData &data);
         void defaultSettingsRequested();
-
         void requestGoogleLogin();
         void requestGoogleUnlink();
-
         void requestUpload();
         void requestDownload();
-
         void cancelLoginRequested();
 
     private slots:
@@ -56,15 +47,16 @@ class SettingsTabWidget final : public QWidget {
         void onDefaultBtnClicked();
         void onBrowseBtnClicked();
         void loadSettingsToUi(const SettingsData &settings) const;
-
         void onLinkBtnClicked();
-
         void onUploadButtonClicked();
         void onDownloadButtonClicked();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupUi();
         void setupConnections();
+        void updateCountdownDisplay();
+        void hideLoginStatus();
+        void showLoginStatus();
 
         [[nodiscard]] QHBoxLayout* setupLanguageGroup();
         [[nodiscard]] QHBoxLayout* setupThemeGroup();
@@ -72,12 +64,7 @@ class SettingsTabWidget final : public QWidget {
         [[nodiscard]] QHBoxLayout* setupResourceManagerTypeGroup();
         [[nodiscard]] QHBoxLayout* setupButtonGroup();
         [[nodiscard]] QVBoxLayout* setupAccountLinkGroup();
-
         [[nodiscard]] QWidget* setupLoginStatusGroup();
-
-        void updateCountdownDisplay();
-        void hideLoginStatus();
-        void showLoginStatus();
 
         QRadioButton* m_langEnRad{};
         QRadioButton* m_langViRad{};

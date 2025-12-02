@@ -19,13 +19,13 @@ class CodeEditorLineHighlighter final : public QObject {
         bool eventFilter(QObject* obj, QEvent* event) override;
 
     private slots:
-        void highlightCurrentLine();             // Cập nhật highlight khi con trỏ thay đổi
+        void highlightCurrentLine(); // Cập nhật highlight khi con trỏ thay đổi
 
-    private:                                     // NOLINT(readability-redundant-access-specifiers)
-        PlainTextEdit* m_editor;
-        QColor m_background = QColor("#dBdBdB"); // Màu nền dòng khi CÓ focus
-        QColor m_blurBackground = QColor("#efefef"); // Màu nền dòng khi MẤT focus
-
+    private:                         // NOLINT(readability-redundant-access-specifiers)
         // Phương thức xử lý thay đổi focus và bật/tắt highlight
         void updateHighlighting(bool hasFocus);
+
+        PlainTextEdit* m_editor;
+        QColor m_background = QColor("#dBdBdB");     // Màu nền dòng khi CÓ focus
+        QColor m_blurBackground = QColor("#efefef"); // Màu nền dòng khi MẤT focus
 };

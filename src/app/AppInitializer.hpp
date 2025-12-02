@@ -26,17 +26,13 @@ class AppInitializer final : public QObject {
 
         bool ensureSingleInstance();
         void run();
-
         void createDatabase();
-
         void verifyDatabase();
-
         void closeDatabaseConnection(bool isUpload);
         void reinitializeDatabaseConnection();
 
     signals:
         void coreReady(NotesAppCore* core);
-
         void dbClosed(bool isUpload); // true = for upload, false = for download
         void dbOpened();
 

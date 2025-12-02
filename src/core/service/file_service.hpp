@@ -33,10 +33,10 @@ class FileService {
         void refreshFileHash(sqlite3_int64 resourceId);
 
     private:
+        // Helper: copy file vào storage (nếu isManaged = true)
+        static std::string copyToStorage(const std::string &srcPath, const std::string &hash);
+
         SQLiteDB &m_db;
         FileRepository &m_fileRepo;
         ResourceRepository &m_resRepo;
-
-        // Helper: copy file vào storage (nếu isManaged = true)
-        static std::string copyToStorage(const std::string &srcPath, const std::string &hash);
 };

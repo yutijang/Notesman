@@ -23,10 +23,10 @@ class PlainTextEdit final : public QPlainTextEdit {
         void insertFromMimeData(const QMimeData* source) override;
 
     private:
-        QWidget* m_lineNumberArea;
-
         void updateLineNumberAreaWidth();
         void updateLineNumberArea(const QRect &rect, int dy);
+
+        QWidget* m_lineNumberArea;
 };
 
 class LineNumberArea final : public QWidget {

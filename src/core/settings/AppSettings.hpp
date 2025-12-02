@@ -24,11 +24,8 @@ class AppSettings {
 
         // Setter
         void setTheme(Theme theme) noexcept;
-
         void setLanguage(Language language) noexcept;
-
         void setResourceDir(std::filesystem::path path) noexcept;
-
         void setManagedResources(bool managed) noexcept;
 
         // =====================

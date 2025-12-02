@@ -18,21 +18,17 @@ class OAuthManager final : public QObject {
 
     public:
         void tryAutoLogin();
-
         QString accessToken();
 
     signals:
         void gmailLinked(const QString &email);
         void gmailUnlinked();
-
         void loginFailed(const QString &error = QString{});
-
         void loginCancelled();
 
     public slots:
         void handleUnlinkGMRequested();
         void handleLoginGMRequested();
-
         void cancelCurrentLogin();
 
     private slots:
@@ -64,6 +60,5 @@ class OAuthManager final : public QObject {
         QString m_accessToken;
         QDateTime m_accessTokenExpiry;
         bool m_isLogin{};
-
         QTimer* m_currentLoginTimer{};
 };

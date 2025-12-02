@@ -28,6 +28,6 @@ class DownloadManager final : public QObject {
 
     private: // NOLINT(readability-redundant-access-specifiers)
         QNetworkAccessManager m_networkManager;
-        QNetworkReply* m_currentReply{nullptr};
+        QNetworkReply* m_currentReply{};
         QFile m_outputFile;
 };

@@ -45,12 +45,12 @@ class UpdateManager final : public QObject {
         void onVersionReplyFinished(QNetworkReply* reply);
 
     private: // NOLINT(readability-redundant-access-specifiers)
-        QNetworkAccessManager m_networkManager;
-
         static std::optional<UpdateInfo> findAssetInfo(const QJsonDocument &qJDoc);
         static QString normalizeVersionQt(const QString &version);
         static int compareVersionsQt(const QString &vLocal, const QString &vRemote);
         static QString extractHash(const QString &digest);
 
         static UpdateInfoSummary updateInfoToSummary(const UpdateInfo &updateInfo);
+
+        QNetworkAccessManager m_networkManager;
 };

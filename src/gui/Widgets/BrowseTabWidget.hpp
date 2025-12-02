@@ -34,17 +34,27 @@ class BrowseTabWidget final : public QWidget {
         void contextMenuRequested(const QPoint &pos, int id, const QString &title,
                                   const QString &path);
         void statusUpdate(const QString &msg, int timeout);
-
         void getAllDataRequested();
 
     private slots:
         void onClearButtonClicked();
-
         void onGetAllButtonClicked();
-
         void onSearchButtonClicked();
 
     private: // NOLINT(readability-redundant-access-specifiers)
+        struct RowData {
+                int id;
+                QString title;
+                QString path;
+        };
+
+        [[nodiscard]] std::optional<RowData> rowData(int row) const;
+
+        void setupUI();
+        void setupConnections();
+        void onCellDoubleClicked(int row);
+        void onCustomContextMenuRequested(const QPoint &pos);
+
         QLineEdit* m_searchInp{};
         QPushButton* m_searchBtn{};
         QLabel* m_searchByLbl{};
@@ -56,17 +66,4 @@ class BrowseTabWidget final : public QWidget {
         // Group
         QPushButton* m_clearTableBtn{};
         QPushButton* m_getAllBtn{};
-
-        void setupUI();
-        void setupConnections();
-        void onCellDoubleClicked(int row);
-        void onCustomContextMenuRequested(const QPoint &pos);
-
-        struct RowData {
-                int id;
-                QString title;
-                QString path;
-        };
-
-        [[nodiscard]] std::optional<RowData> rowData(int row) const;
 };

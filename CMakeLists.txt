@@ -13,7 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # --- Global metadata ----------------------------------------
 set(PROJECT_AUTHOR "yutijang")
-set(PROJECT_WEBSITE "https://github.com/yutijang/Notesman")
+set(PROJECT_WEBSITE "https://notesman-oauth.netlify.app")
 # ------------------------------------------------------------
 
 # --- generate app_version.hpp for source code and clangd ----
