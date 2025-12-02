@@ -167,18 +167,20 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
     } catch (const std::runtime_error &ex) { qDebug() << "Compact error: " << ex.what(); }
 
     findDatabaseFile([this](const QString &id) {
-        if (id.isEmpty()) {
-            uploadDatabase([this](bool ok) {
-                qDebug() << "Upload finished: " << ok;
+        auto finish = [this](bool success) {
+            if (success) {
                 emit onUploadDBBtnRequest(false, tr("Compacted and uploaded new file"));
-                emit reconnectDBRequest();
-            });
+            } else {
+                emit onUploadDBBtnRequest(
+                    false, tr("Failed to save to Drive (permission, storage, or network)"));
+            }
+            emit reconnectDBRequest();
+        };
+
+        if (id.isEmpty()) {
+            uploadDatabase(finish);
         } else {
-            updateDatabase(id, [this](bool ok) {
-                qDebug() << "Update:" << ok;
-                emit onUploadDBBtnRequest(false, tr("Compacted and updated successfully"));
-                emit reconnectDBRequest();
-            });
+            updateDatabase(id, finish);
         }
     });
 }
@@ -192,16 +194,19 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
     if (isUpload) { return; }
 
     findDatabaseFile([this](const QString &id) {
-        if (!id.isEmpty()) {
-            downloadDatabase(id, [this](bool ok) {
-                qDebug() << "Download finished: " << ok;
-                emit onDownloadDBBtnRequest(false, tr("Download completed"));
-                emit reconnectDBRequest();
-            });
+        if (id.isEmpty()) {
+            emit onDownloadDBBtnRequest(false, tr("No database found or access denied"));
         } else {
-            emit onDownloadDBBtnRequest(false, tr("No data.db on Drive"));
-            emit reconnectDBRequest();
+            downloadDatabase(id, [this](bool ok) {
+                if (ok) {
+                    emit onDownloadDBBtnRequest(false, tr("Database downloaded successfully"));
+                } else {
+                    emit onDownloadDBBtnRequest(
+                        false, tr("Failed to download database. Please try again"));
+                }
+            });
         }
+        emit reconnectDBRequest();
     });
 }
 

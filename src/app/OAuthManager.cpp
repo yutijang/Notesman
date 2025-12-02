@@ -312,6 +312,9 @@ void OAuthManager::handleLoginGMRequested() {
 }
 
 void OAuthManager::handleUnlinkGMRequested() {
+    const QString refreshTokenToRevoke = loadRefreshToken();
+    revokeRefreshToken(refreshTokenToRevoke);
+
     cleanupAuthServer();
 
     m_codeVerifier.clear();
@@ -445,4 +448,29 @@ void OAuthManager::cancelCurrentLogin() {
         m_currentLoginTimer = nullptr;
     }
     cleanupAuthServer();
+}
+
+void OAuthManager::revokeRefreshToken(const QString &refreshTokenToRevoke) {
+    if (refreshTokenToRevoke.isEmpty()) {
+        qWarning() << "Revocation skipped: Token is empty.";
+        return;
+    }
+
+    QUrl url("https://oauth2.googleapis.com/revoke");
+    QUrlQuery body;
+    body.addQueryItem("token", refreshTokenToRevoke);
+
+    QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    auto* reply = m_networkManager.post(req, body.toString(QUrl::FullyEncoded).toUtf8());
+
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            qDebug() << "Token successfully revoked on Google server.";
+        } else {
+            qWarning() << "Token revocation failed:" << reply->errorString();
+        }
+        reply->deleteLater();
+    });
 }
