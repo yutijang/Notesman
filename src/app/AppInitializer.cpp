@@ -28,6 +28,7 @@
 #include "database_checker.hpp"
 #include "DialogUtils.hpp"
 #include "database_creator.hpp"
+#include "core_paths.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -115,7 +116,7 @@ void AppInitializer::run() {
 }
 
 void AppInitializer::initializeCore() {
-    const QString dbFullPath = QCoreApplication::applicationDirPath() + "/data.db";
+    const QString dbFullPath = CorePaths::databaseFile();
     const std::filesystem::path dbPath = dbFullPath.toStdString();
 
     if (!std::filesystem::exists(dbPath)) {
@@ -196,7 +197,7 @@ void AppInitializer::initializeCore() {
 }
 
 void AppInitializer::createDatabase() {
-    const QString dbPath = QCoreApplication::applicationDirPath() + "/data.db";
+    const QString dbPath = CorePaths::databaseFile();
     const QString schemaResourcePath = ":/schema/notes_manager_schema.sql";
 
     // Đọc nội dung file .sql
@@ -208,15 +209,12 @@ void AppInitializer::createDatabase() {
         return;
     }
 
-    const QByteArray schemaData = schemaFile.readAll();
-    schemaFile.close();
-
-    const std::string schemaSql = schemaData.toStdString();
-    const std::string dbPathStd = dbPath.toStdString();
+    const std::string schemaSql = schemaFile.readAll().toStdString();
+    const std::string dbPathUtf8 = dbPath.toUtf8().constData();
 
     std::string error;
 
-    if (!DatabaseCreator::create(dbPathStd, schemaSql, error)) {
+    if (!DatabaseCreator::create(dbPathUtf8, schemaSql, error)) {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(error));
         return;
     }

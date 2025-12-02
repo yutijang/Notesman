@@ -473,8 +473,8 @@ void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, const QString 
 void SettingsTabWidget::onUploadButtonClicked() {
     const auto reply = DialogUtils::showQuestion(
         this, tr("Upload database to Google Drive"),
-        tr("Do you want to upload data.db to the linked Google Drive?\nThis will overwrite the "
-           "existing data.db file on Google Drive if it already exists."));
+        tr("Do you want to upload data.db to Google Drive?\n\nThe file will be compacted locally "
+           "and will replace the existing one on Drive."));
 
     if (reply == QMessageBox::Yes) { emit requestUpload(); }
 }
@@ -482,7 +482,7 @@ void SettingsTabWidget::onUploadButtonClicked() {
 void SettingsTabWidget::onDownloadButtonClicked() {
     const auto reply = DialogUtils::showQuestion(
         this, tr("Download database from Google Drive"),
-        tr("Do you want to download the file data.db from the linked Google Drive?\nThis will "
+        tr("Do you want to download the file data.db from the linked Google Drive?\n\nThis will "
            "overwrite the data.db file currently used by this application."));
 
     if (reply == QMessageBox::Yes) { emit requestDownload(); }

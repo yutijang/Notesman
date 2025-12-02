@@ -14,6 +14,7 @@
 #include "GoogleDriveService.hpp"
 #include "OAuthManager.hpp"
 #include "database_maintenance.hpp"
+#include "core_paths.hpp"
 
 GoogleDriveService::GoogleDriveService(OAuthManager* oauth, QObject* parent)
     : QObject(parent), m_oauth(oauth) {
@@ -23,7 +24,7 @@ GoogleDriveService::GoogleDriveService(OAuthManager* oauth, QObject* parent)
 // --- BEGIN Upload/download database ---
 
 void GoogleDriveService::uploadDatabase(const std::function<void(bool)> &done) {
-    const QString filePath = QCoreApplication::applicationDirPath() + "/data.db";
+    const QString filePath = CorePaths::databaseFile();
     auto* file = new QFile(filePath);
     if (!file->open(QIODevice::ReadOnly)) {
         qWarning() << "Cannot open data.db";
@@ -93,7 +94,7 @@ void GoogleDriveService::findDatabaseFile(const std::function<void(QString)> &do
 
 void GoogleDriveService::updateDatabase(const QString &fileId,
                                         const std::function<void(bool)> &done) {
-    const QString filePath = QCoreApplication::applicationDirPath() + "/data.db";
+    const QString filePath = CorePaths::databaseFile();
     auto* file = new QFile(filePath);
     if (!file->open(QIODevice::ReadOnly)) {
         if (done) { done(false); }
@@ -137,7 +138,7 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
             return;
         }
 
-        const QString filePath = QCoreApplication::applicationDirPath() + "/data.db";
+        const QString filePath = CorePaths::databaseFile();
         QFile file(filePath);
         if (!file.open(QIODevice::WriteOnly)) {
             reply->deleteLater();
@@ -161,7 +162,7 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
     if (!isUpload) { return; }
 
     try {
-        const QString filePath = QCoreApplication::applicationDirPath() + "/data.db";
+        const QString filePath = CorePaths::databaseFile();
         DatabaseMaintenance::compact(filePath.toStdString());
     } catch (const std::runtime_error &ex) { qDebug() << "Compact error: " << ex.what(); }
 
@@ -169,13 +170,13 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
         if (id.isEmpty()) {
             uploadDatabase([this](bool ok) {
                 qDebug() << "Upload finished: " << ok;
-                emit onUploadDBBtnRequest(false, tr("Uploaded new"));
+                emit onUploadDBBtnRequest(false, tr("Compacted and uploaded new file"));
                 emit reconnectDBRequest();
             });
         } else {
             updateDatabase(id, [this](bool ok) {
                 qDebug() << "Update:" << ok;
-                emit onUploadDBBtnRequest(false, tr("Update completed"));
+                emit onUploadDBBtnRequest(false, tr("Compacted and updated successfully"));
                 emit reconnectDBRequest();
             });
         }
