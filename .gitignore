@@ -27,8 +27,6 @@
 # Logs
 *.log
 
-CMakePresets8.json
-
 .clangd
 .clang-format
 

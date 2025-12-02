@@ -14,7 +14,7 @@
 #include "GoogleDriveService.hpp"
 #include "OAuthManager.hpp"
 #include "database_maintenance.hpp"
-#include "core_paths.hpp"
+#include "CorePaths.hpp"
 
 GoogleDriveService::GoogleDriveService(OAuthManager* oauth, QObject* parent)
     : QObject(parent), m_oauth(oauth) {

@@ -15,14 +15,33 @@ QWidget {
 }
 
 QPushButton {
-    background-color: #3c3c3c;
     border-radius: 4px;
+
+    border-left: 1px solid #555555;
+    border-top: 1px solid #555555;
+    border-right: 1px solid #555555;
+    border-bottom: 1px solid #505050;
+
     padding: 4px 8px;
-    border: 1px solid #4a4a4a;
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, 
+                                stop: 0 #3c3c3c,
+                                stop: 1 #2d2d2d);
+    color: white;    
 }
 
 QPushButton:hover {
-    background-color: #505050;
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, 
+                                    stop: 0 #4c4c4c, 
+                                    stop: 1 #3d3d3d); 
+    
+    border-left: 1px solid #4AB7F9; 
+    border-top: 1px solid #4AB7F9;
+    border-right: 1px solid #1085CC; 
+    border-bottom: 1px solid #1085CC; 
+    
+    color: white;
+    border-radius: 4px;
+    padding: 4px 8px;
 }
 
 QPushButton:pressed {
@@ -31,25 +50,35 @@ QPushButton:pressed {
 
 QPushButton:disabled {
     background-color: #353535;
-    border: 1px solid #494949;
+    border: 1px solid #454545;
     color: #7a7a7a;
+    border-radius: 4px;
 }
 
 PlainTextEdit, QTextEdit {
     background-color: #1f1f1f;
 }
 
-QLineEdit {
-    border: 1px solid #505050;
-    padding: 4px 4px;
+QLineEdit, #tagLineEdit {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, 
+                                stop: 0 #2d2d2d,
+                                stop: 1 #3c3c3c);
+    
     border-radius: 4px;
+    
+    border-left: 1px solid #202020; 
+    border-top: 1px solid #202020;
+    
+    border-right: 1px solid #4a4a4a;
+    border-bottom: 1px solid #4a4a4a; 
+    
+    color: white;
+    padding: 2px 4px;
 }
 
-#tagLineEdit {
-    background-color: #2b2b2b;
-    border: 1px solid #505050;
-    padding: 4px 4px;
-    border-radius: 4px;
+QLineEdit:focus, #tagLineEdit:focus {
+    border: 1px solid #4AB7F9; 
+    background-color: #333333; 
 }
 
 QRadioButton::indicator {

@@ -28,7 +28,7 @@
 #include "database_checker.hpp"
 #include "DialogUtils.hpp"
 #include "database_creator.hpp"
-#include "core_paths.hpp"
+#include "CorePaths.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
