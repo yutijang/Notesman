@@ -63,6 +63,17 @@ jobs:
           "PATH=C:\ProgramData\chocolatey\bin;C:\Program Files\ccache;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
           "CCACHE_BASEDIR=${{ github.workspace }}" | Out-File -FilePath $env:GITHUB_ENV -Append
 
+      - name: Prepare vcpkg manifest for CI (remove qtbase)
+        shell: pwsh
+        run: |
+          if (!(Test-Path "vcpkg.json")) {
+            Write-Host "No vcpkg.json in repo root — aborting"
+            exit 1
+          }
+          $json = Get-Content vcpkg.json | ConvertFrom-Json
+          $json.dependencies = $json.dependencies | Where-Object { $_.name -ne "qtbase" }
+          $json | ConvertTo-Json -Depth 10 | Out-File vcpkg.json -Encoding utf8
+          
       - name: Setup vcpkg (bootstrap)
         uses: lukka/run-vcpkg@v11
         with:
@@ -77,17 +88,6 @@ jobs:
           path: ${{ env.VCPKG_ROOT }}/archives
           key: ${{ runner.os }}-vcpkg-bin-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
           restore-keys: ${{ runner.os }}-vcpkg-bin-
-
-      - name: Prepare vcpkg manifest for CI (remove qtbase)
-        shell: pwsh
-        run: |
-          if (!(Test-Path "vcpkg.json")) {
-            Write-Host "No vcpkg.json in repo root — aborting"
-            exit 1
-          }
-          $json = Get-Content vcpkg.json | ConvertFrom-Json
-          $json.dependencies = $json.dependencies | Where-Object { $_.name -ne "qtbase" }
-          $json | ConvertTo-Json -Depth 10 | Out-File vcpkg.json -Encoding utf8
 
       - name: Install Qt6 (from action marketplace)
         uses: jurplel/install-qt-action@v4
