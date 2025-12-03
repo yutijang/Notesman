@@ -312,8 +312,10 @@ void OAuthManager::handleLoginGMRequested() {
 }
 
 void OAuthManager::handleUnlinkGMRequested() {
-    const QString refreshTokenToRevoke = loadRefreshToken();
-    revokeRefreshToken(refreshTokenToRevoke);
+    if (qEnvironmentVariable("WSL_DISTRO_NAME").isEmpty()) {
+        const QString refreshTokenToRevoke = loadRefreshToken();
+        revokeRefreshToken(refreshTokenToRevoke);
+    }
 
     cleanupAuthServer();
 
