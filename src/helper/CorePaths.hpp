@@ -1,25 +1,21 @@
 #pragma once
 
 #include <QString>
-#include <QDir>
 #include <QCoreApplication>
 
-namespace CorePaths {
-    inline QString appRootDir() {
-        return QCoreApplication::applicationDirPath();
-    }
+class CorePaths {
+    public:
+        static QString appDataDir() {
+#ifdef Q_OS_WIN
+            return QCoreApplication::applicationDirPath();
+#else
+            const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+            QDir{}.mkpath(dir);
+            return dir;
+#endif
+        }
 
-    inline QString databaseFile() {
-        return appRootDir() + "/data.db";
-    }
+        static QString databaseFile() { return appDataDir() + "/data.db"; }
 
-    inline QString logsDir() {
-        const QString dir = appRootDir() + "/logs";
-        QDir{}.mkpath(dir);
-        return dir;
-    }
-
-    inline QString mainLogFile() {
-        return logsDir() + "/app.log";
-    }
-} // namespace CorePaths
+        static QString configFile() { return appDataDir() + "/config.ini"; }
+};

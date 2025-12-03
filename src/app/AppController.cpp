@@ -17,12 +17,13 @@
 #include "ResourceSearchWorker.hpp"
 #include "UpdateInfoSummary.hpp"
 #include "DialogUtils.hpp"
+#include "CorePaths.hpp"
 
 AppController::AppController(QObject* parent) : QObject(parent) {}
 
 void AppController::loadSettings() {
     const std::filesystem::path configPath =
-        std::filesystem::path(QCoreApplication::applicationDirPath().toStdString()) / "config.ini";
+        std::filesystem::path(CorePaths::configFile().toStdString());
 
     m_settings = std::make_unique<AppSettings>();
 
@@ -43,7 +44,7 @@ void AppController::loadSettings() {
 
 void AppController::saveSettings() {
     const std::filesystem::path configPath =
-        std::filesystem::path(QCoreApplication::applicationDirPath().toStdString()) / "config.ini";
+        std::filesystem::path(CorePaths::configFile().toStdString());
     if (m_settings) {
         if (!m_settings->save(configPath)) {
             DialogUtils::showError(m_mainWindow, tr("Error"), tr("Can not save config file"));
