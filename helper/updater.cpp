@@ -201,17 +201,29 @@ int main(int argc, char** argv) {
         } catch (...) {}
 
         // 8) Start the application
-        std::string exeToStart = (targetDir / appExeName).string();
+        fs::path exePath = targetDir / appExeName;
+        std::string exeToStart = exePath.string();
         log("Starting application: " + exeToStart);
+
+        // Command line: "path\to\app.exe" --update-done
+        std::string cmdLineStr = "\"" + exeToStart + "\" --update-done";
+        std::vector<char> cmdLineVec(cmdLineStr.begin(), cmdLineStr.end());
+        cmdLineVec.push_back('\0'); // null-terminate
 
         STARTUPINFOA si{};
         PROCESS_INFORMATION pi{};
         si.cb = sizeof(si);
-        std::string cmdLine = "--update-done";
-        if (CreateProcessA(exeToStart.c_str(), cmdLine.data(), nullptr, nullptr, FALSE, 0, nullptr,
-                           targetDir.string().c_str(), &si, &pi) == 0) {
+
+        if (CreateProcessA(nullptr,                    // lpApplicationName
+                           cmdLineVec.data(),          // lpCommandLine
+                           nullptr, nullptr,           // process/thread security
+                           FALSE,                      // inherit handles
+                           CREATE_NO_WINDOW,           // avoid console window
+                           nullptr,                    // environment
+                           targetDir.string().c_str(), // current directory
+                           &si, &pi) == 0) {
             log("Error: CreateProcess failed, code=" + std::to_string(GetLastError()));
-            return 7; // NOLINT(readability-magic-numbers)
+            return 7;
         }
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
