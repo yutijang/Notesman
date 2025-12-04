@@ -29,6 +29,7 @@
 #include "DialogUtils.hpp"
 #include "database_creator.hpp"
 #include "CorePaths.hpp"
+#include "app_version.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -113,6 +114,8 @@ void AppInitializer::run() {
     m_mainWindow->show();
 
     QTimer::singleShot(0, [this]() { m_controller->oauthManager(); });
+
+    checkUpdateFlag();
 }
 
 void AppInitializer::initializeCore() {
@@ -278,4 +281,16 @@ void AppInitializer::reinitializeDatabaseConnection() {
 
         emit dbOpened();
     } catch (const std::exception &ex) { qDebug() << "Fatal error: " << ex.what(); }
+}
+
+void AppInitializer::checkUpdateFlag() {
+    const QStringList args = QApplication::arguments();
+
+    if (args.contains("--update-done")) {
+        DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
+                              tr("Application has been updated successfully.\n\n"
+                                 "Version: v%1\n"
+                                 "Changelog (reserved): %2")
+                                  .arg(app::meta::VERSION, app::meta::WEBSITE));
+    }
 }

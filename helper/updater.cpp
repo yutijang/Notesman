@@ -11,10 +11,15 @@
 #include <thread>
 #include <cstdlib>
 
+namespace {
+    inline constexpr int INTERVAL_DELAY{500};
+    inline constexpr int WAIT_APP_TIMEOUT{30};
+} // namespace
+
 namespace fs = std::filesystem;
 
 static void log(const std::string &s) {
-    std::cerr << s << std::endl;
+    std::cerr << s << '\n';
 }
 
 static int runCommandBlocking(const std::string &cmd) {
@@ -42,15 +47,16 @@ static bool waitForFileBeFree(const fs::path &file, int timeoutSeconds) {
             return true;
         }
         // cannot rename -> probably locked; wait and retry
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(INTERVAL_DELAY));
     }
     return false;
 }
 
+// NOLINTNEXTLINE
 static void copyRecursive(const fs::path &from, const fs::path &to) {
     std::error_code ec;
     if (!fs::exists(to)) { fs::create_directories(to, ec); }
-    for (auto &p : fs::recursive_directory_iterator(from)) {
+    for (const auto &p : fs::recursive_directory_iterator(from)) {
         const auto rel = fs::relative(p.path(), from, ec);
         if (ec) { throw std::runtime_error("relative failed: " + ec.message()); }
         const fs::path dest = to / rel;
@@ -64,13 +70,14 @@ static void copyRecursive(const fs::path &from, const fs::path &to) {
     }
 }
 
+/*
 static void removeAllExcept(const fs::path &dir, const std::vector<std::string> &keepNames) {
     std::error_code ec;
-    for (auto &p : fs::directory_iterator(dir, ec)) {
+    for (const auto &p : fs::directory_iterator(dir, ec)) {
         if (ec) { throw std::runtime_error("directory_iterator failed: " + ec.message()); }
         const auto name = p.path().filename().string();
         bool keep = false;
-        for (auto &k : keepNames) {
+        for (const auto &k : keepNames) {
             if (_stricmp(k.c_str(), name.c_str()) == 0) {
                 keep = true;
                 break;
@@ -81,16 +88,18 @@ static void removeAllExcept(const fs::path &dir, const std::vector<std::string> 
         if (ec) { throw std::runtime_error("remove_all failed: " + ec.message()); }
     }
 }
+*/
 
 int main(int argc, char** argv) {
     if (argc < 4) {
         log("Usage: updater.exe <targetDir> <zipPath> <appExeName>");
         return 1;
     }
-
-    const fs::path targetDir = fs::u8path(argv[1]);
-    const fs::path zipPath = fs::u8path(argv[2]);
-    const std::string appExeName = argv[3];
+    // NOLINTBEGIN clang-analyzer-cplusplus.UnsafeBufferUsage
+    const fs::path targetDir{std::string_view(argv[1])};
+    const fs::path zipPath{std::string_view(argv[2])};
+    const std::string appExeName{std::string_view(argv[3])};
+    // NOLINTEND
 
     log("Updater started");
     log("Target dir: " + targetDir.string());
@@ -111,7 +120,7 @@ int main(int argc, char** argv) {
 
         // 1) Wait for exe to be free (app terminated)
         log("Waiting for application to exit...");
-        bool free = waitForFileBeFree(appExe, 30); // wait up to 30s
+        bool free = waitForFileBeFree(appExe, WAIT_APP_TIMEOUT); // wait up to 30s
         if (!free) {
             log("Error: timeout waiting for application to exit or file lock persists.");
             return 4;
@@ -140,7 +149,7 @@ int main(int argc, char** argv) {
             try {
                 fs::remove_all(tempExtract);
             } catch (...) {}
-            return 5;
+            return 5; // NOLINT(readability-magic-numbers)
         }
 
         // 4) Backup current dir (rename) to .bak
@@ -153,7 +162,7 @@ int main(int argc, char** argv) {
         // So we will individually move content.
         // Instead, create backupDir and move files.
         fs::create_directories(backupDir);
-        for (auto &p : fs::directory_iterator(targetDir)) {
+        for (const auto &p : fs::directory_iterator(targetDir)) {
             const auto name = p.path().filename().string();
             if (name == "_update_tmp" || name == "updater.exe") {
                 continue; // skip temp and updater
@@ -167,7 +176,7 @@ int main(int argc, char** argv) {
 
         // 6) Keep user files from backup (data.db, config.ini)
         std::vector<std::string> keep = {"data.db", "config.ini", "updater.exe"};
-        for (auto &k : keep) {
+        for (const auto &k : keep) {
             fs::path src = backupDir / k;
             if (fs::exists(src)) {
                 fs::path dest = targetDir / k;
@@ -198,10 +207,11 @@ int main(int argc, char** argv) {
         STARTUPINFOA si{};
         PROCESS_INFORMATION pi{};
         si.cb = sizeof(si);
-        if (!CreateProcessA(exeToStart.c_str(), nullptr, nullptr, nullptr, FALSE, 0, nullptr,
-                            targetDir.string().c_str(), &si, &pi)) {
+        std::string cmdLine = "--update-done";
+        if (CreateProcessA(exeToStart.c_str(), cmdLine.data(), nullptr, nullptr, FALSE, 0, nullptr,
+                           targetDir.string().c_str(), &si, &pi) == 0) {
             log("Error: CreateProcess failed, code=" + std::to_string(GetLastError()));
-            return 7;
+            return 7; // NOLINT(readability-magic-numbers)
         }
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
@@ -210,6 +220,6 @@ int main(int argc, char** argv) {
         return 0;
     } catch (const std::exception &ex) {
         log(std::string("Exception: ") + ex.what());
-        return 99;
+        return 99; // NOLINT(readability-magic-numbers)
     }
 }

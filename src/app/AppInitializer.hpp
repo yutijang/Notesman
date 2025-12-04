@@ -44,6 +44,7 @@ class AppInitializer final : public QObject {
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupInitializerConnections();
+        void checkUpdateFlag();
 
         std::unique_ptr<SQLiteDB> m_db;
         std::unique_ptr<ResourceRepository> m_resRepo;

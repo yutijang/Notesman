@@ -110,5 +110,5 @@ add_subdirectory(tests)
 
 # updater
 if (WIN32)
-    add_subdirectory(helper)    
-endif
+    add_subdirectory(helper)
+endif()

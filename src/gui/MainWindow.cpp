@@ -561,8 +561,28 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
         return;
     }
 
-    DialogUtils::showInfo(this, tr("Download complete"),
-                          tr("The update package has been downloaded:\n%1").arg(filePath));
+    const auto reply = DialogUtils::showQuestion(
+        this, tr("Download complete"),
+        tr("The update package has been downloaded:\n%1\n\nDo you want update?").arg(filePath));
+    if (reply == QMessageBox::Yes) {
+#ifdef _WIN32
+        const QString targetDir = QCoreApplication::applicationDirPath();
+        const QString appExeName = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
+
+        QStringList args;
+        args << targetDir;
+        args << filePath;
+        args << appExeName;
+
+        const QString updaterPath = QCoreApplication::applicationDirPath() + "/updater.exe";
+
+        QProcess::startDetached(updaterPath, args);
+
+        qApp->quit();
+#else
+        DialogUtils::showInfo(this, tr("Information"), tr("You need update yourself!"));
+#endif
+    }
 }
 
 void MainWindow::onDownloadFailed(const QString &errorString) {
