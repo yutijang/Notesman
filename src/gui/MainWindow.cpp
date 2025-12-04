@@ -564,25 +564,61 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
     const auto reply = DialogUtils::showQuestion(
         this, tr("Download complete"),
         tr("The update package has been downloaded:\n%1\n\nDo you want update?").arg(filePath));
-    if (reply == QMessageBox::Yes) {
-#ifdef _WIN32
-        const QString targetDir = QCoreApplication::applicationDirPath();
-        const QString appExeName = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
+    if (reply == QMessageBox::Yes) { runUpdate(filePath); }
+}
 
-        QStringList args;
-        args << targetDir;
-        args << filePath;
-        args << appExeName;
+void MainWindow::runUpdate(const QString &filePath) {
+#ifdef Q_OS_WIN
+    const QString targetDir = QCoreApplication::applicationDirPath();
+    const QString updaterPath = targetDir + "/updater.exe";
 
-        const QString updaterPath = QCoreApplication::applicationDirPath() + "/updater.exe";
-
-        QProcess::startDetached(updaterPath, args);
-
-        qApp->quit();
-#else
-        DialogUtils::showInfo(this, tr("Information"), tr("You need update yourself!"));
-#endif
+    if (!QFile::exists(updaterPath)) {
+        DialogUtils::showError(this, tr("Error"), tr("Missing updater.exe. Update failed!"));
+        return;
     }
+
+    const QString appExeName = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
+
+    QStringList args;
+    args << targetDir;
+    args << filePath;
+    args << appExeName;
+
+    QProcess::startDetached(updaterPath, args);
+
+    qApp->quit();
+#else
+    const QString appImagePath = QCoreApplication::applicationFilePath();
+    const QString scriptPath = "/tmp/notesman-updater.sh";
+
+    QFile script(scriptPath);
+    if (!script.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        DialogUtils::showError(this, "Error", "Cannot create update script.");
+        return;
+    }
+
+    QTextStream ts(&script);
+    ts << "#!/usr/bin/env bash\n";
+    ts << "sleep 1\n";
+
+    ts << "new_path=\"${appImagePath}.new\"\n";
+    ts << "cp \"" << filePath << "\" \"$new_path\"\n";
+    ts << "chmod +x \"$new_path\"\n";
+
+    ts << "mv -f \"$new_path\" \"" << appImagePath << "\"\n";
+    ts << "sync\n";
+    ts << "sleep 0.5\n";
+
+    ts << "rm \"" << scriptPath << "\"\n";
+    ts << "\"" << appImagePath << "\" --update-done\n";
+    script.close();
+
+    QFile::setPermissions(scriptPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+
+    QProcess::startDetached("/bin/bash", {scriptPath});
+
+    qApp->quit();
+#endif
 }
 
 void MainWindow::onDownloadFailed(const QString &errorString) {

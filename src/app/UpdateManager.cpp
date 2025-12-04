@@ -92,16 +92,12 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
 
 std::optional<UpdateManager::UpdateInfo> UpdateManager::findAssetInfo(const QJsonDocument &qJDoc) {
 #if defined(Q_OS_WIN)
-    // constexpr auto platformKey = "windows";
     constexpr auto preferredExt = "zip";
 #elif defined(Q_OS_LINUX)
-    // constexpr auto platformKey = "linux";
     constexpr auto preferredExt = "AppImage";
 #elif defined(Q_OS_MAC)
-    // constexpr auto platformKey = "macos";
     constexpr auto preferredExt = "dmg";
 #else
-    // constexpr auto platformKey = "unknown";
     constexpr auto preferredExt = "";
 #endif
 
