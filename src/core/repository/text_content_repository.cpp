@@ -46,7 +46,7 @@ void TextContentRepository::updateText(sqlite3_int64 resourceId, std::string_vie
     SQLiteStmt stmt(m_db.get(), "UPDATE text_content SET content = ? WHERE resource_id = ?;");
 
     sqlite3_bind_text(stmt.get(), 1, newText.data(), static_cast<int>(newText.size()),
-                      SQLITE_TRANSIENT); // NOLINT
+                      SQLITE_TRANSIENT);
 
     sqlite3_bind_int64(stmt.get(), 2, resourceId);
 

@@ -107,3 +107,8 @@ add_subdirectory(src)
 
 enable_testing()
 add_subdirectory(tests)
+
+# updater
+if (WIN32)
+    add_subdirectory(helper)    
+endif

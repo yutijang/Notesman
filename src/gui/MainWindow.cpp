@@ -307,9 +307,6 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_browseTab, &BrowseTabWidget::searchRequested, m_appController,
                      &AppController::handleSearchRequest);
 
-    // QObject::connect(m_appController, &AppController::mainWindowNotify, this,
-    //                  &MainWindow::showNoti);
-
     QObject::connect(m_appController, &AppController::searchFinishedFromController, m_browseTab,
                      &BrowseTabWidget::handleResultsSearchRequested);
 
