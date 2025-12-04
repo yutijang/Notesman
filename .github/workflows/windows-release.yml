@@ -140,6 +140,7 @@ jobs:
           $releaseDir = "release"
           New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
           Copy-Item "bin\Notesman.exe" $releaseDir\ -Force
+          Copy-Item "bin\updater.exe" $releaseDir\ -Force
           $qtBin = "${{ steps.find_qt.outputs.qt_dir }}\bin"
           & "$qtBin\windeployqt.exe" --release --dir $releaseDir "$releaseDir\Notesman.exe"
           if (-not (Test-Path "$releaseDir\Qt6Core.dll")) {
