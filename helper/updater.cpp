@@ -258,7 +258,7 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         STARTUPINFOW si{};
         si.cb = sizeof(si);
         si.dwFlags = STARTF_USESHOWWINDOW;
-        si.wShowWindow = SW_HIDE;
+        si.wShowWindow = SW_SHOWNORMAL;
 
         PROCESS_INFORMATION pi{};
 

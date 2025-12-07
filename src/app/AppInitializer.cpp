@@ -321,13 +321,13 @@ void AppInitializer::handleUpdateCleanup(const QStringList &args) {
     if (std::filesystem::exists(zipPath)) { std::filesystem::remove(zipPath, ec); }
 
     // defer dialog until UI is ready
-    // QTimer::singleShot(0, m_mainWindow.get(), [this]() {
-    DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
-                          tr("Application has been updated successfully.\n\n"
-                             "Version: v%1\n"
-                             "Changelog (reserved): %2")
-                              .arg(app::meta::VERSION, app::meta::WEBSITE));
-    // });
+    QTimer::singleShot(0, m_mainWindow.get(), [this]() {
+        DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
+                              tr("Application has been updated successfully.\n\n"
+                                 "Version: v%1\n"
+                                 "Changelog (reserved): %2")
+                                  .arg(app::meta::VERSION, app::meta::WEBSITE));
+    });
 }
 
 #ifdef Q_OS_WIN
