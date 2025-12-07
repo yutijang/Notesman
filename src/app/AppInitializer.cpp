@@ -285,55 +285,72 @@ void AppInitializer::reinitializeDatabaseConnection() {
 }
 
 void AppInitializer::checkUpdateFlag() {
-    // arguments received from stage 2
-    // argv[1] = --update-done
-    // argv[2] = PID stage2 (process called: temp_update/updater.exxe)
-    // argv[3] = temp_update dir path
-    // argv[4] = zip path
-
     const QStringList args = QApplication::arguments();
 
     if (args.size() >= 5 && args[1] == "--update-done") { // NOLINT(readability-magic-numbers)
 #ifdef Q_OS_WIN
+        // arguments received from stage 2
+        // argv[1] = --update-done
+        // argv[2] = PID stage2 (process called: temp_update/updater.exxe)
+        // argv[3] = temp_update dir path
+        // argv[4] = zip path
+
         const auto updaterPID = static_cast<DWORD>(args[2].toULongLong());
-        waitForProcessExit(updaterPID);
-
-        std::filesystem::path tempDirPath(args[3].toStdWString());
-        if (std::filesystem::exists(tempDirPath)) {
-            std::error_code ec;
-            std::filesystem::remove_all(tempDirPath, ec);
-            if (ec) {
-                DialogUtils::showError(m_mainWindow.get(), tr("Error"),
-                                       tr("Failed to remove temp_update: %1")
-                                           .arg(QString::fromStdString(ec.message())));
-            }
-        }
-
-        std::filesystem::path zipPath(args[4].toStdWString());
-        if (std::filesystem::exists(zipPath)) { std::filesystem::remove(zipPath); }
-
-        // defer dialog until UI is ready
-        QTimer::singleShot(0, this, [this]() {
-            DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
-                                  tr("Application has been updated successfully.\n\n"
-                                     "Version: v%1\n"
-                                     "Changelog (reserved): %2")
-                                      .arg(app::meta::VERSION, app::meta::WEBSITE));
-        });
+        waitForProcessExitAsync(updaterPID, [this, args]() { handleUpdateCleanup(args); });
 #else
         // waiting write for non-windows
 #endif
     }
 }
 
+void AppInitializer::handleUpdateCleanup(const QStringList &args) {
+    std::filesystem::path tempDirPath(args[3].toStdWString());
+    std::error_code ec;
+
+    if (std::filesystem::exists(tempDirPath)) {
+        std::filesystem::remove_all(tempDirPath, ec);
+        if (ec) {
+            DialogUtils::showError(
+                m_mainWindow.get(), tr("Error"),
+                tr("Failed to remove temp_update: %1").arg(QString::fromStdString(ec.message())));
+            return;
+        }
+    }
+
+    std::filesystem::path zipPath(args[4].toStdWString());
+    if (std::filesystem::exists(zipPath)) { std::filesystem::remove(zipPath, ec); }
+
+    // defer dialog until UI is ready
+    QTimer::singleShot(0, m_mainWindow.get(), [this]() {
+        DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
+                              tr("Application has been updated successfully.\n\n"
+                                 "Version: v%1\n"
+                                 "Changelog (reserved): %2")
+                                  .arg(app::meta::VERSION, app::meta::WEBSITE));
+    });
+}
+
 #ifdef Q_OS_WIN
-bool AppInitializer::waitForProcessExit(DWORD pid) {
+void AppInitializer::waitForProcessExitAsync(DWORD pid, const std::function<void()> &onExited) {
     HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, pid);
-    if (h == nullptr) { return false; }
+    if (h == nullptr) {
+        onExited();
+        return;
+    }
 
-    DWORD result = WaitForSingleObject(h, INFINITE);
-    CloseHandle(h);
+    auto* timer = new QTimer(this);
+    timer->setInterval(100);                      // NOLINT(readability-magic-numbers)
 
-    return result == WAIT_OBJECT_0;
+    connect(timer, &QTimer::timeout, this, [timer, h, onExited]() {
+        DWORD result = WaitForSingleObject(h, 0); // non-blocking
+        if (result == WAIT_OBJECT_0) {
+            timer->stop();
+            timer->deleteLater();
+            CloseHandle(h);
+            onExited();
+        }
+    });
+
+    timer->start();
 }
 #endif
