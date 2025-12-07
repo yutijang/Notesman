@@ -49,7 +49,10 @@ class AppInitializer final : public QObject {
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupInitializerConnections();
         void checkUpdateFlag();
+
+#ifdef Q_OS_WIN
         static bool waitForProcessExit(DWORD pid);
+#endif
 
         std::unique_ptr<SQLiteDB> m_db;
         std::unique_ptr<ResourceRepository> m_resRepo;

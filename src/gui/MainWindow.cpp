@@ -20,6 +20,7 @@
 #include <QVBoxLayout>
 #include <QDir>
 #include <QModelIndexList>
+#include <QProcess>
 #include <sqlite3.h>
 
 #include "UiConstants.hpp"

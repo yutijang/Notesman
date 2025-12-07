@@ -1,4 +1,4 @@
-#ifdef _WIN32
+#ifdef Q_OS_WIN
 #    include <windows.h>
 #endif
 
@@ -293,6 +293,7 @@ void AppInitializer::checkUpdateFlag() {
     const QStringList args = QApplication::arguments();
 
     if (args.size() >= 4 && args[1] == "--update-done") {
+#ifdef Q_OS_WIN
         const auto updaterPID = static_cast<DWORD>(args[2].toULong());
         waitForProcessExit(updaterPID);
 
@@ -312,9 +313,13 @@ void AppInitializer::checkUpdateFlag() {
                                  "Version: v%1\n"
                                  "Changelog (reserved): %2")
                                   .arg(app::meta::VERSION, app::meta::WEBSITE));
+#else
+        // waiting
+#endif
     }
 }
 
+#ifdef Q_OS_WIN
 bool AppInitializer::waitForProcessExit(DWORD pid) {
     HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, pid);
     if (h == nullptr) { return false; }
@@ -324,3 +329,4 @@ bool AppInitializer::waitForProcessExit(DWORD pid) {
 
     return result == WAIT_OBJECT_0;
 }
+#endif

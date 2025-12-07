@@ -1,6 +1,6 @@
 add_executable(updater updater.cpp)
 
-# target_link_options(updater PRIVATE "/SUBSYSTEM:WINDOWS" "/ENTRY:mainCRTStartup")
+target_link_options(updater PRIVATE "/SUBSYSTEM:CONSOLE")
 
 target_link_libraries(updater PRIVATE miniz::miniz)
 
