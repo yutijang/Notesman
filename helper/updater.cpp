@@ -163,9 +163,9 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         const auto appPID = std::stoul(argv[2]);
         waitForProcessExit(appPID);
 
-        const std::wstring zipPath(argv[4]);
         const std::wstring appDir(argv[3]);
         const std::wstring tempDir = appDir + L"\\temp_update";
+        const std::wstring zipPath(argv[4]);
         unzipToFolder(zipPath, tempDir, false);
 
         // prepare arguments send to stage 2
@@ -177,7 +177,7 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         const std::wstring exePath = tempDir + L"\\updater.exe";
         const std::wstring entryForStage2{L"--stage2"};
         const std::wstring currentPID = std::to_wstring(getCurrentProcessId());
-        const std::wstring appName(argv[4]);
+        const std::wstring appName(argv[5]);
 
         const std::wstring cmdLine = L"\"" + exePath + L"\" " + entryForStage2 + L" " + currentPID +
                                      L" \"" + appDir + L"\" \"" + appName + L"\"";

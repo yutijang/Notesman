@@ -108,6 +108,7 @@ target_link_libraries(notes-app-lib-core
 #===
 add_library(notes-app-lib-qtkeychain STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/app/OAuthManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/free_port.cpp
 )
 
 target_include_directories(notes-app-lib-qtkeychain

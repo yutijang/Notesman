@@ -19,8 +19,18 @@
 
 #include "OAuthManager.hpp"
 #include "google_oauth_config.hpp"
+#include "free_port.hpp"
 
 namespace {
+    unsigned short oauthPort() {
+        static const unsigned short port = findFreePort();
+        return port;
+    }
+
+    QString redirectUri() {
+        return QStringLiteral("http://localhost:%1").arg(oauthPort());
+    }
+
     constexpr auto GOOGLE_OAUTH2_AUTH_URL =
         QLatin1StringView("https://accounts.google.com/o/oauth2/v2/auth");
     constexpr auto GOOGLE_OAUTH2_TOKEN_URL =
@@ -29,7 +39,6 @@ namespace {
         QLatin1StringView("openid email https://www.googleapis.com/auth/drive.file");
     constexpr auto CLIENT_ID = QLatin1StringView(OAuthConfig::CLIENT_ID);
     constexpr auto CLIENT_SECRET = QLatin1StringView(OAuthConfig::CLIENT_SECRET);
-    constexpr auto REDIRECT_URI = QLatin1StringView("http://localhost:8080");
     constexpr auto SETTINGS_ORG = "Notesman";
     constexpr auto SETTINGS_APP = "configs";
     constexpr auto KEY_ACCESS_TOKEN = "google/access_token";
@@ -190,7 +199,7 @@ void OAuthManager::exchangeAuthCodeForTokens(const QString &authCode) {
     body.addQueryItem("client_secret", CLIENT_SECRET);
     body.addQueryItem("code", authCode);
     body.addQueryItem("code_verifier", m_codeVerifier);
-    body.addQueryItem("redirect_uri", REDIRECT_URI);
+    body.addQueryItem("redirect_uri", redirectUri());
     body.addQueryItem("grant_type", "authorization_code");
 
     const QByteArray bodyData = body.toString(QUrl::FullyEncoded).toUtf8();
@@ -272,15 +281,14 @@ void OAuthManager::handleLoginGMRequested() {
     QString codeChallenge = sha256Base64Url(m_codeVerifier);
 
     // Khởi tạo server local
-    constexpr int port{8080};
     m_oauthServer = new QTcpServer(this);
     QObject::connect(m_oauthServer, &QTcpServer::newConnection, this,
                      &OAuthManager::handleOAuthRedirect);
 
-    if (!m_oauthServer->listen(QHostAddress::LocalHost, port)) {
+    if (!m_oauthServer->listen(QHostAddress::LocalHost, oauthPort())) {
         qWarning() << "Cannot start local OAuth server";
         emit loginFailed(
-            tr("Port %1 is in use. Please close other apps using this port.").arg(port));
+            tr("Port %1 is in use. Please close other apps using this port.").arg(oauthPort()));
         return;
     }
 
@@ -288,7 +296,7 @@ void OAuthManager::handleLoginGMRequested() {
     QUrl authUrl(GOOGLE_OAUTH2_AUTH_URL);
     QUrlQuery query;
     query.addQueryItem("client_id", CLIENT_ID);
-    query.addQueryItem("redirect_uri", REDIRECT_URI);
+    query.addQueryItem("redirect_uri", redirectUri());
     query.addQueryItem("response_type", "code");
     query.addQueryItem("scope", GOOGLE_OAUTH2_SCOPE_DRIVE);
     query.addQueryItem("code_challenge", codeChallenge);

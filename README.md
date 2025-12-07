@@ -1,4 +1,4 @@
-## [Notesman]
+## Notesman
 
 <details>
 <summary>IMPORTANT NOTICE</summary>
