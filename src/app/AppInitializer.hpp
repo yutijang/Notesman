@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef _WIN32
+#    include <windows.h>
+#endif
+
 #include <memory>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -45,6 +49,7 @@ class AppInitializer final : public QObject {
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupInitializerConnections();
         void checkUpdateFlag();
+        static bool waitForProcessExit(DWORD pid);
 
         std::unique_ptr<SQLiteDB> m_db;
         std::unique_ptr<ResourceRepository> m_resRepo;

@@ -82,6 +82,23 @@ class MainWindow : public QMainWindow {
         void handleContextMenuDeleteAction(ResultsTable* resultTable);
 
     private: // NOLINT(readability-redundant-access-specifiers)
+        // Build UI internal
+        void buildUi();
+        void setupBrowseTab();
+        void setupAddTab();
+        void setupSettingsTab();
+        void setupIconInfo();
+        void viewResource(int id, const QString &title, const QString &path);
+        void showContextMenu(const QPoint &pos, int id, const QString &title, const QString &path);
+        void loadResourceContent(int id, const QString &path, PlainTextEdit* viewSourceTextEdit);
+        static PlainTextEdit* createResourceTextEdit(QWidget* parent);
+        void setupHighlighter(PlainTextEdit* viewSourceTextEdit);
+        static void removeSelectedRowsFromTable(ResultsTable* table,
+                                                const QModelIndexList &selectedRows);
+        static sqlite3_int64 extractIdFromRow(ResultsTable* resultTable, int row);
+        void runUpdate(const QString &filePath);
+        static qint64 getCurrentPid();
+
         NotesAppCore* m_core{};
         AppController* m_appController{};
 
@@ -104,20 +121,4 @@ class MainWindow : public QMainWindow {
         UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::None};
 
         QProgressDialog* m_progressDialog{};
-
-        // Build UI internal
-        void buildUi();
-        void setupBrowseTab();
-        void setupAddTab();
-        void setupSettingsTab();
-        void setupIconInfo();
-        void viewResource(int id, const QString &title, const QString &path);
-        void showContextMenu(const QPoint &pos, int id, const QString &title, const QString &path);
-        void loadResourceContent(int id, const QString &path, PlainTextEdit* viewSourceTextEdit);
-        static PlainTextEdit* createResourceTextEdit(QWidget* parent);
-        void setupHighlighter(PlainTextEdit* viewSourceTextEdit);
-        static void removeSelectedRowsFromTable(ResultsTable* table,
-                                                const QModelIndexList &selectedRows);
-        static sqlite3_int64 extractIdFromRow(ResultsTable* resultTable, int row);
-        void runUpdate(const QString &filePath);
 };

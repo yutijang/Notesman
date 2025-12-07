@@ -15,6 +15,9 @@
         },
         {
             "name": "catch2"
+        },
+        {
+            "name": "miniz"
         }
     ],
     "overrides": [

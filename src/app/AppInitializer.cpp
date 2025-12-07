@@ -5,6 +5,7 @@
 #include <memory>
 #include <fstream>
 #include <ios>
+#include <filesystem>
 #include <QApplication>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -284,13 +285,42 @@ void AppInitializer::reinitializeDatabaseConnection() {
 }
 
 void AppInitializer::checkUpdateFlag() {
+    // arguments received from stage 2
+    // argv[1] = --update-done
+    // argv[2] = PID stage2 (process called: temp_update/updater.exxe)
+    // argv[3] = temp_update dir path
+
     const QStringList args = QApplication::arguments();
 
-    if (args.contains("--update-done")) {
+    if (args.size() >= 4 && args[1] == "--update-done") {
+        const auto updaterPID = static_cast<DWORD>(args[2].toULong());
+        waitForProcessExit(updaterPID);
+
+        std::filesystem::path tempDirPath(args[3].toStdWString());
+        if (std::filesystem::exists(tempDirPath)) {
+            std::error_code ec;
+            std::filesystem::remove_all(tempDirPath, ec);
+            if (ec) {
+                DialogUtils::showError(m_mainWindow.get(), tr("Error"),
+                                       tr("Failed to remove temp_update: %1")
+                                           .arg(QString::fromStdString(ec.message())));
+            }
+        }
+
         DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
                               tr("Application has been updated successfully.\n\n"
                                  "Version: v%1\n"
                                  "Changelog (reserved): %2")
                                   .arg(app::meta::VERSION, app::meta::WEBSITE));
     }
+}
+
+bool AppInitializer::waitForProcessExit(DWORD pid) {
+    HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, pid);
+    if (h == nullptr) { return false; }
+
+    DWORD result = WaitForSingleObject(h, INFINITE);
+    CloseHandle(h);
+
+    return result == WAIT_OBJECT_0;
 }

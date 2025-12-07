@@ -186,6 +186,16 @@ jobs:
             }
           }
 
+      - name: Copy miniz DLL
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          $minizPath = Join-Path $vcpkgRoot "installed\$arch\bin\miniz.dll"
+
+          if (Test-Path $minizPath) { Copy-Item $minizPath "release\" -Force }
+          else { Write-Error "miniz.dll not found in $minizPath"; exit 1 }          
+
       - name: Create ZIP package
         shell: pwsh
         run: |

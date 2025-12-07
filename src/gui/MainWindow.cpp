@@ -578,8 +578,11 @@ void MainWindow::runUpdate(const QString &filePath) {
     }
 
     const QString appExeName = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
+    const QString currentPID = QString::number(getCurrentPid());
 
     QStringList args;
+    args << "--stage1";
+    args << currentPID;
     args << targetDir;
     args << filePath;
     args << appExeName;
@@ -753,3 +756,7 @@ void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
 }
 
 // --- END showContextMenu helper ---
+
+qint64 MainWindow::getCurrentPid() {
+    return QCoreApplication::applicationPid();
+}
