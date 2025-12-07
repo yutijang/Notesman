@@ -173,6 +173,7 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         // argv[2] = PID stage1 (current process: updater.exxe)
         // argv[3] = app dir
         // argv[4] = app name
+        // argv[5] = zip path
 
         const std::wstring exePath = tempDir + L"\\updater.exe";
         const std::wstring entryForStage2{L"--stage2"};
@@ -180,7 +181,8 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         const std::wstring appName(argv[5]);
 
         const std::wstring cmdLine = L"\"" + exePath + L"\" " + entryForStage2 + L" " + currentPID +
-                                     L" \"" + appDir + L"\" \"" + appName + L"\"";
+                                     L" \"" + appDir + L"\" \"" + appName + L"\" \"" + zipPath +
+                                     L"\"";
 
         // CreateProcessW needs mutable buffer for cmdline
         std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
@@ -206,7 +208,7 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
             CloseHandle(pi.hThread);
         }
     } else if (entry == "--stage2") {
-        if (argc < 5) {
+        if (argc < 6) {
             std::cerr << "Arguments not enough\n";
             return 1;
         }
@@ -216,6 +218,7 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         // argv[2] = PID stage1 (current process: updater.exxe)
         // argv[3] = app dir
         // argv[4] = app name
+        // argv[5] = zip path
 
         const auto stage1PID = std::stoul(argv[2]);
         waitForProcessExit(stage1PID);
@@ -231,14 +234,16 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         // argv[1] = --update-done
         // argv[2] = PID stage2 (current process: updater.exxe)
         // argv[3] = temp_update dir path for delete
+        // argv[4] = zip path
 
         const std::wstring entryForUpdateDone{L"--update-done"};
         const std::wstring currentPID = std::to_wstring(getCurrentProcessId());
         const std::wstring appName(argv[4]);
+        const std::wstring zipPath(argv[5]);
 
         const std::wstring exePath = appDir + L"\\" + appName;
         const std::wstring cmdLine = L"\"" + exePath + L"\" " + entryForUpdateDone + L" " +
-                                     currentPID + L" \"" + tempDir + L"\"";
+                                     currentPID + L" \"" + tempDir + L" \"" + zipPath + L"\"";
 
         std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
         cmdBuf.push_back(0);

@@ -308,6 +308,9 @@ void AppInitializer::checkUpdateFlag() {
             }
         }
 
+        std::filesystem::path zipPath = args[4].toStdString();
+        std::filesystem::remove(zipPath);
+
         DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
                               tr("Application has been updated successfully.\n\n"
                                  "Version: v%1\n"
