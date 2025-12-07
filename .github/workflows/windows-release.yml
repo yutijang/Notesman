@@ -186,20 +186,22 @@ jobs:
             }
           }
 
-      - name: Copy miniz DLL
+      - name: Find miniz DLL
         shell: pwsh
         run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
           $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $buildType = "${{ env.BUILD_TYPE }}"
-          $buildVcpkgBin = Join-Path "build\$buildType\vcpkg_installed\$arch\bin" "miniz.dll"
 
-          if (Test-Path $buildVcpkgBin) {
-            Copy-Item $buildVcpkgBin "release\" -Force
-            Write-Host "Copied miniz.dll from $buildVcpkgBin"
+          Write-Host "Searching for miniz.dll under $vcpkgRoot ..."
+
+          $minizFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter "miniz.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+          if ($null -ne $minizFile) {
+              Write-Host "Found miniz.dll at: $($minizFile.FullName)"
           } else {
-            Write-Error "miniz.dll not found in $buildVcpkgBin"
-            exit 1
-          }       
+              Write-Host "miniz.dll not found under $vcpkgRoot"
+              exit 1
+          }
 
       - name: Create ZIP package
         shell: pwsh
