@@ -180,10 +180,13 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         const std::wstring currentPID = std::to_wstring(getCurrentProcessId());
         const std::wstring appName(argv[5]);
 
-        const std::wstring cmdLine = L"\"" + exePath + L"\" " + entryForStage2 + L" " + currentPID +
-                                     L" \"" + appDir + L"\" \"" + appName + L"\" \"" + zipPath +
-                                     L"\"";
-
+        const std::wstring cmdLine = L"\"" + exePath + L"\" " // "C:\...\temp_update\updater.exe"
+                                   + entryForStage2 + L" "    // --stage2
+                                   + currentPID + L" "        // 1234
+                                   + L"\"" + appDir + L"\" "  // "C:\Apps\Notesman"
+                                   + L"\"" + appName + L"\" " // "Notesman.exe"
+                                   + L"\"" + zipPath + L"\""; // "C:\Apps\update.zip"
+                                                              //
         // CreateProcessW needs mutable buffer for cmdline
         std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
         cmdBuf.push_back(0);
@@ -242,8 +245,12 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
         const std::wstring zipPath(argv[5]);
 
         const std::wstring exePath = appDir + L"\\" + appName;
-        const std::wstring cmdLine = L"\"" + exePath + L"\" " + entryForUpdateDone + L" " +
-                                     currentPID + L" \"" + tempDir + L" \"" + zipPath + L"\"";
+
+        const std::wstring cmdLine = L"\"" + exePath + L"\" "  // "C:\Apps\Notesman.exe"
+                                   + entryForUpdateDone + L" " // --update-done
+                                   + currentPID + L" "         // 5678
+                                   + L"\"" + tempDir + L"\" "  // "C:\Apps\temp_update"
+                                   + L"\"" + zipPath + L"\"";  // "C:\Apps\update.zip"
 
         std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
         cmdBuf.push_back(0);

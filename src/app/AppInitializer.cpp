@@ -289,12 +289,13 @@ void AppInitializer::checkUpdateFlag() {
     // argv[1] = --update-done
     // argv[2] = PID stage2 (process called: temp_update/updater.exxe)
     // argv[3] = temp_update dir path
+    // argv[4] = zip path
 
     const QStringList args = QApplication::arguments();
 
-    if (args.size() >= 4 && args[1] == "--update-done") {
+    if (args.size() >= 5 && args[1] == "--update-done") { // NOLINT(readability-magic-numbers)
 #ifdef Q_OS_WIN
-        const auto updaterPID = static_cast<DWORD>(args[2].toULong());
+        const auto updaterPID = static_cast<DWORD>(args[2].toULongLong());
         waitForProcessExit(updaterPID);
 
         std::filesystem::path tempDirPath(args[3].toStdWString());
@@ -308,16 +309,19 @@ void AppInitializer::checkUpdateFlag() {
             }
         }
 
-        std::filesystem::path zipPath = args[4].toStdString();
-        std::filesystem::remove(zipPath);
+        std::filesystem::path zipPath(args[4].toStdWString());
+        if (std::filesystem::exists(zipPath)) { std::filesystem::remove(zipPath); }
 
-        DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
-                              tr("Application has been updated successfully.\n\n"
-                                 "Version: v%1\n"
-                                 "Changelog (reserved): %2")
-                                  .arg(app::meta::VERSION, app::meta::WEBSITE));
+        // defer dialog until UI is ready
+        QTimer::singleShot(0, this, [this]() {
+            DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
+                                  tr("Application has been updated successfully.\n\n"
+                                     "Version: v%1\n"
+                                     "Changelog (reserved): %2")
+                                      .arg(app::meta::VERSION, app::meta::WEBSITE));
+        });
 #else
-        // waiting
+        // waiting write for non-windows
 #endif
     }
 }
