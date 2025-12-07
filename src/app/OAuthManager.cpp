@@ -28,7 +28,7 @@ namespace {
     }
 
     QString redirectUri() {
-        return QStringLiteral("http://localhost:%1").arg(oauthPort());
+        return QStringLiteral("http://localhost:%1").arg("8080");
     }
 
     constexpr auto GOOGLE_OAUTH2_AUTH_URL =
@@ -285,10 +285,10 @@ void OAuthManager::handleLoginGMRequested() {
     QObject::connect(m_oauthServer, &QTcpServer::newConnection, this,
                      &OAuthManager::handleOAuthRedirect);
 
-    if (!m_oauthServer->listen(QHostAddress::LocalHost, oauthPort())) {
+    if (!m_oauthServer->listen(QHostAddress::LocalHost, 8080)) {
         qWarning() << "Cannot start local OAuth server";
         emit loginFailed(
-            tr("Port %1 is in use. Please close other apps using this port.").arg(oauthPort()));
+            tr("Port %1 is in use. Please close other apps using this port.").arg(8080));
         return;
     }
 
