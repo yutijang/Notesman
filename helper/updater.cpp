@@ -136,23 +136,7 @@ namespace {
         return ::GetCurrentProcessId();
     }
 
-} // namespace
-
-int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
-    if (argc < 2) {
-        std::wcerr << "Arguments not enough\n";
-        return 1;
-    }
-
-    const std::wstring argvWs(argv[1]);
-    const std::string entry(argvWs.begin(), argvWs.end());
-
-    if (entry == "--stage1") {
-        if (argc < 6) {
-            std::cerr << "Arguments not enough\n";
-            return 1;
-        }
-
+    void handleStage1(wchar_t* argv[]) {
         // arguments received from main app
         // argv[1] = --stage1
         // argv[2] = app PID
@@ -210,13 +194,9 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
         }
-    } else if (entry == "--stage2") {
-        if (argc < 6) {
-            std::cerr << "Arguments not enough\n";
-            return 1;
-        }
+    }
 
-        // arguments received from stage 1
+    void handleStage2(wchar_t* argv[]) { // arguments received from stage 1
         // argv[1] = --stage2
         // argv[2] = PID stage1 (current process: updater.exxe)
         // argv[3] = app dir
@@ -274,6 +254,32 @@ int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
         }
+    }
+
+} // namespace
+
+int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
+    if (argc < 2) {
+        std::wcerr << "Arguments not enough\n";
+        return 1;
+    }
+
+    const std::wstring entry(argv[1]);
+
+    if (entry == L"--stage1") {
+        if (argc < 6) { // NOLINT(readability-magic-numbers)
+            std::cerr << "Arguments not enough\n";
+            return 1;
+        }
+
+        handleStage1(argv);
+    } else if (entry == L"--stage2") {
+        if (argc < 6) { // NOLINT(readability-magic-numbers)
+            std::cerr << "Arguments not enough\n";
+            return 1;
+        }
+
+        handleStage2(argv);
     } else {
         std::cerr << "Invalid entry\n";
         return 1;
