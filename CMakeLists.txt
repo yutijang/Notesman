@@ -63,7 +63,10 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 find_package(OpenSSL REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network REQUIRED)
-find_package(miniz CONFIG REQUIRED)
+
+if (WIN32)
+    find_package(miniz CONFIG REQUIRED)
+endif()
 
 # --- QtKeychain ---------------------------------------------
 include(FetchContent)

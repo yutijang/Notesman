@@ -105,6 +105,13 @@ target_link_libraries(notes-app-lib-core
     Qt6::Network
 )
 
+target_compile_definitions(notes-app-lib-core
+  PRIVATE
+    $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
+    $<$<CONFIG:Release>:QT_NO_DEBUG_WARNING_OUTPUT>
+    $<$<CONFIG:Release>:QT_NO_DEBUG_FATAL_WARNINGS>
+)
+
 #===
 add_library(notes-app-lib-qtkeychain STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/app/OAuthManager.cpp
