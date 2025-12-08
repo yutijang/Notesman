@@ -635,8 +635,8 @@ void MainWindow::runUpdate(const QString &filePath) {
                                tr("Cannot start updater process. Update failed!"));
         return;
     }
-
-    qApp->quit();
+    qDebug() << "Detached updater STARTED, waiting 200ms before quit";
+    QTimer::singleShot(1000, qApp, &QCoreApplication::quit);
 #endif
 }
 
