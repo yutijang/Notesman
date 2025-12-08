@@ -23,6 +23,10 @@
 #include <QProcess>
 #include <sqlite3.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstring>
+#include <cerrno>
 
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
@@ -627,20 +631,52 @@ void MainWindow::runUpdate(const QString &filePath) {
     }
 
     if (pid == 0) {
-        // child
+        // CHILD: detach, set working dir, safe argv, then exec
+        ::setsid(); // detach from controlling terminal
+
+        // chdir to safe work dir
         ::chdir(workDir.toLocal8Bit().constData());
 
-        QByteArray up = updaterTmpPath.toLocal8Bit();
-        QByteArray a0 = currentAppImage.toLocal8Bit();
-        QByteArray a1 = downloadedAppImage.toLocal8Bit();
+        // Prepare stable C strings for exec
+        QByteArray upBA = updaterTmpPath.toLocal8Bit();
+        QByteArray a0BA = currentAppImage.toLocal8Bit();
+        QByteArray a1BA = downloadedAppImage.toLocal8Bit();
 
-        char* argsExec[] = {up.data(), a0.data(), a1.data(), nullptr};
+        // strdup so pointers still valid even if Qt objects go away (not necessary after fork, but
+        // harmless)
+        char* up_c = strdup(upBA.constData());
+        char* a0_c = strdup(a0BA.constData());
+        char* a1_c = strdup(a1BA.constData());
 
-        execv(up.data(), argsExec);
-        _exit(1); // exec failed
+        char* argv_exec[] = {up_c, a0_c, a1_c, nullptr};
+
+        // Optional: close inherited fds except stdin/out/err (helps avoid fd leaks)
+        for (int fd = 3; fd < 1024; ++fd) { ::close(fd); }
+
+        // Exec: if returns, it failed — write errno to logfile for debug
+        ::execv(up_c, argv_exec);
+
+        // exec failed -> log and exit
+        int err = errno;
+        int fd = ::open("/tmp/notesman-updater.err", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd != -1) {
+            const char* msg = "execv failed: ";
+            ::write(fd, msg, strlen(msg));
+            const char* estr = strerror(err);
+            ::write(fd, estr, strlen(estr));
+            ::write(fd, "\n", 1);
+            ::close(fd);
+        }
+        // free strdup'd memory (not necessary right before _exit, but tidy)
+        free(up_c);
+        free(a0_c);
+        free(a1_c);
+
+        _exit(127);
     }
 
-    QTimer::singleShot(100, qApp, &QCoreApplication::quit);
+    // PARENT: schedule quit shortly so child can proceed
+    QTimer::singleShot(200, qApp, &QCoreApplication::quit);
 #endif
 }
 
