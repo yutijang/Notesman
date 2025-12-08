@@ -619,15 +619,28 @@ void MainWindow::runUpdate(const QString &filePath) {
     QStringList args{currentAppImage, downloadedAppImage};
     const QString workDir = QDir::tempPath();
 
-    bool ok = QProcess::startDetached(updaterTmpPath, args, workDir);
-
-    if (!ok) {
+    pid_t pid = fork();
+    if (pid == -1) {
         DialogUtils::showError(this, tr("Error"),
                                tr("Cannot start updater process. Update failed!"));
         return;
     }
 
-    QTimer::singleShot(1000, qApp, &QCoreApplication::quit);
+    if (pid == 0) {
+        // child
+        ::chdir(workDir.toLocal8Bit().constData());
+
+        QByteArray up = updaterTmpPath.toLocal8Bit();
+        QByteArray a0 = currentAppImage.toLocal8Bit();
+        QByteArray a1 = downloadedAppImage.toLocal8Bit();
+
+        char* argsExec[] = {up.data(), a0.data(), a1.data(), nullptr};
+
+        execv(up.data(), argsExec);
+        _exit(1); // exec failed
+    }
+
+    QTimer::singleShot(100, qApp, &QCoreApplication::quit);
 #endif
 }
 
