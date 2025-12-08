@@ -599,8 +599,8 @@ void MainWindow::runUpdate(const QString &filePath) {
 #elif defined(Q_OS_LINUX)
     const QString currentAppImage = QCoreApplication::applicationFilePath();
     const QString &downloadedAppImage = filePath;
-    const QString updaterTmpPath = "/tmp/notesman-updater";
 
+    const QString updaterTmpPath = "/tmp/notesman-updater";
     QFile::remove(updaterTmpPath);
 
     if (!AppImageExtractor::extractUpdater(downloadedAppImage, updaterTmpPath) ||
@@ -610,33 +610,20 @@ void MainWindow::runUpdate(const QString &filePath) {
         return;
     }
 
-    // set executable
-    QFile::setPermissions(updaterTmpPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+    ::chmod(updaterTmpPath.toUtf8().constData(), 0700);
 
-    QStringList args;
-    args << currentAppImage;
-    args << downloadedAppImage;
-
-    // BẮT BUỘC: đặt working directory ổn định
+    QStringList args{currentAppImage, downloadedAppImage};
     const QString workDir = QDir::tempPath();
 
-    // BẮT BUỘC: giữ lại toàn bộ môi trường hiện tại
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-
-    QProcess proc;
-    proc.setProcessEnvironment(env);
-    proc.setWorkingDirectory(workDir);
-
-    // startDetached dạng instance → reliable hơn static
-    bool ok = proc.startDetached(updaterTmpPath, args, workDir);
+    bool ok = QProcess::startDetached(updaterTmpPath, args, workDir);
 
     if (!ok) {
         DialogUtils::showError(this, tr("Error"),
                                tr("Cannot start updater process. Update failed!"));
         return;
     }
-    qDebug() << "Detached updater STARTED, waiting 200ms before quit";
-    QTimer::singleShot(1000, qApp, &QCoreApplication::quit);
+
+    QTimer::singleShot(150, qApp, &QCoreApplication::quit);
 #endif
 }
 
