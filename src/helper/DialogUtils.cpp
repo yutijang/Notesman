@@ -4,6 +4,7 @@
 #include <QSize>
 #include <QStyle>
 #include <QMessageBox>
+#include <QLabel>
 
 #include "DialogUtils.hpp"
 

@@ -42,6 +42,10 @@
 #include "UpdateInfoSummary.hpp"
 #include "DialogUtils.hpp"
 
+#if defined(Q_OS_LINUX)
+#    include "AppImageExtractor.hpp"
+#endif
+
 namespace {
     constexpr int GUI_WIDTH{1200};
     constexpr int GUI_HEIGHT{800};
@@ -592,55 +596,32 @@ void MainWindow::runUpdate(const QString &filePath) {
 
     qApp->quit();
 #elif defined(Q_OS_LINUX)
-    const QString appImagePath = QCoreApplication::applicationFilePath();
-    const QString scriptPath = "/tmp/notesman-updater.sh";
+    const QString currentAppImage = QCoreApplication::applicationFilePath();
+    const QString &downloadedAppImage = filePath;
 
-    QFile script(scriptPath);
-    if (!script.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        DialogUtils::showError(this, "Error", "Cannot create update script.");
+    const QString updaterTmpPath = "/tmp/notesman-updater";
+    QFile::remove(updaterTmpPath);
+
+    const bool ok = AppImageExtractor::extractUpdater(downloadedAppImage, updaterTmpPath);
+
+    if (!ok || !QFile::exists(updaterTmpPath)) {
+        DialogUtils::showError(this, tr("Error"),
+                               tr("Cannot extract updater from AppImage. Update failed!"));
         return;
     }
 
-    QTextStream ts(&script);
-    ts << "#!/usr/bin/env bash\n";
-    ts << "set -e\n";
-    ts << "set -o pipefail\n";
+    QFile::setPermissions(updaterTmpPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
 
-    // 1) Khai báo biến
-    ts << "old_app=\"" << appImagePath << "\"\n"; // AppImage hiện tại đang chạy
-    ts << "pkg=\"" << filePath << "\"\n";         // File AppImage mới tải về
-    ts << "new_app=\"${old_app}.new\"\n";         // File trung gian
+    QStringList args;
+    args << currentAppImage;
+    args << downloadedAppImage;
 
-    // 2) Chờ tiến trình cũ thoát hẳn
-    ts << "sleep 0.5\n";
+    if (!QProcess::startDetached(updaterTmpPath, args)) {
+        DialogUtils::showError(this, tr("Error"),
+                               tr("Cannot start updater process. Update failed!"));
+        return;
+    }
 
-    // 3) Copy AppImage mới
-    ts << "cp \"$pkg\" \"$new_app\"\n";
-    ts << "chmod +x \"$new_app\"\n";
-    ts << "sync\n";
-
-    // 4) Kill tiến trình cũ (nếu còn)
-    ts << "old_pid=" << getCurrentPid() << "\n";
-    ts << "kill \"$old_pid\" 2>/dev/null || true\n";
-    ts << "sleep 0.3\n";
-
-    // 5) Replace file (atomic)
-    ts << "mv -f \"$new_app\" \"$old_app\"\n";
-    ts << "sync\n";
-
-    // 6) Cleanup:
-    //    - Xóa file tải về (.AppImage cũ)
-    //    - Xóa chính script
-    ts << "rm -f \"$pkg\"\n";
-    ts << "rm -f \"" << scriptPath << "\"\n";
-
-    // 7) Restart app (đúng 1 tham số)
-    ts << "\"$old_app\" --update-done\n";
-
-    script.close();
-    QFile::setPermissions(scriptPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
-
-    QProcess::startDetached("/bin/bash", {scriptPath});
     qApp->quit();
 #endif
 }

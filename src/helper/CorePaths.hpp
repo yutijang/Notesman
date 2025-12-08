@@ -2,6 +2,8 @@
 
 #include <QString>
 #include <QCoreApplication>
+#include <QDir>
+#include <QStandardPaths>
 
 class CorePaths {
     public:
