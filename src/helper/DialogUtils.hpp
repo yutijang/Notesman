@@ -10,16 +10,17 @@ class DialogUtils final {
         DialogUtils() = delete;
 
         static QMessageBox::StandardButton showInfo(QWidget* parent, const QString &title,
-                                                    const QString &text);
+                                                    const QString &text, bool isRich = false);
         static QMessageBox::StandardButton showWarning(QWidget* parent, const QString &title,
-                                                       const QString &text);
+                                                       const QString &text, bool isRich = false);
         static QMessageBox::StandardButton showError(QWidget* parent, const QString &title,
-                                                     const QString &text);
+                                                     const QString &text, bool isRich = false);
         static QMessageBox::StandardButton showQuestion(QWidget* parent, const QString &title,
-                                                        const QString &text);
+                                                        const QString &text, bool isRich = false);
         static QMessageBox::StandardButton showCustom(QWidget* parent, QMessageBox::Icon icon,
                                                       const QString &title, const QString &text,
-                                                      QMessageBox::StandardButtons buttons);
+                                                      QMessageBox::StandardButtons buttons,
+                                                      bool isRich = false);
 
     private:
         static void centerDialog(QWidget* parent, QMessageBox &box);

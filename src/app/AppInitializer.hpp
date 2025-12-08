@@ -54,6 +54,7 @@ class AppInitializer final : public QObject {
         void waitForProcessExitAsync(DWORD pid, const std::function<void()> &onExited);
 #endif
         void handleUpdateCleanup(const QStringList &args);
+        void displayNotiUpdateComplete();
 
         std::unique_ptr<SQLiteDB> m_db;
         std::unique_ptr<ResourceRepository> m_resRepo;

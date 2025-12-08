@@ -569,7 +569,7 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
 }
 
 void MainWindow::runUpdate(const QString &filePath) {
-#ifdef Q_OS_WIN
+#if defined(Q_OS_WIN)
     const QString targetDir = QCoreApplication::applicationDirPath();
     const QString updaterPath = targetDir + "/updater.exe";
 
@@ -591,7 +591,7 @@ void MainWindow::runUpdate(const QString &filePath) {
     QProcess::startDetached(updaterPath, args);
 
     qApp->quit();
-#else
+#elif defined(Q_OS_LINUX)
     const QString appImagePath = QCoreApplication::applicationFilePath();
     const QString scriptPath = "/tmp/notesman-updater.sh";
 
@@ -603,24 +603,44 @@ void MainWindow::runUpdate(const QString &filePath) {
 
     QTextStream ts(&script);
     ts << "#!/usr/bin/env bash\n";
-    ts << "sleep 1\n";
+    ts << "set -e\n";
+    ts << "set -o pipefail\n";
 
-    ts << "new_path=\"${appImagePath}.new\"\n";
-    ts << "cp \"" << filePath << "\" \"$new_path\"\n";
-    ts << "chmod +x \"$new_path\"\n";
+    // 1) Khai báo biến
+    ts << "old_app=\"" << appImagePath << "\"\n"; // AppImage hiện tại đang chạy
+    ts << "pkg=\"" << filePath << "\"\n";         // File AppImage mới tải về
+    ts << "new_app=\"${old_app}.new\"\n";         // File trung gian
 
-    ts << "mv -f \"$new_path\" \"" << appImagePath << "\"\n";
-    ts << "sync\n";
+    // 2) Chờ tiến trình cũ thoát hẳn
     ts << "sleep 0.5\n";
 
-    ts << "rm \"" << scriptPath << "\"\n";
-    ts << "\"" << appImagePath << "\" --update-done\n";
-    script.close();
+    // 3) Copy AppImage mới
+    ts << "cp \"$pkg\" \"$new_app\"\n";
+    ts << "chmod +x \"$new_app\"\n";
+    ts << "sync\n";
 
+    // 4) Kill tiến trình cũ (nếu còn)
+    ts << "old_pid=" << getCurrentPid() << "\n";
+    ts << "kill \"$old_pid\" 2>/dev/null || true\n";
+    ts << "sleep 0.3\n";
+
+    // 5) Replace file (atomic)
+    ts << "mv -f \"$new_app\" \"$old_app\"\n";
+    ts << "sync\n";
+
+    // 6) Cleanup:
+    //    - Xóa file tải về (.AppImage cũ)
+    //    - Xóa chính script
+    ts << "rm -f \"$pkg\"\n";
+    ts << "rm -f \"" << scriptPath << "\"\n";
+
+    // 7) Restart app (đúng 1 tham số)
+    ts << "\"$old_app\" --update-done\n";
+
+    script.close();
     QFile::setPermissions(scriptPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
 
     QProcess::startDetached("/bin/bash", {scriptPath});
-
     qApp->quit();
 #endif
 }

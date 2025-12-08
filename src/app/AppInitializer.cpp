@@ -287,8 +287,9 @@ void AppInitializer::reinitializeDatabaseConnection() {
 void AppInitializer::checkUpdateFlag() {
     const QStringList args = QApplication::arguments();
 
+#if defined(Q_OS_WIN)
     if (args.size() >= 5 && args[1] == "--update-done") { // NOLINT(readability-magic-numbers)
-#ifdef Q_OS_WIN
+
         // arguments received from stage 2
         // argv[1] = --update-done
         // argv[2] = PID stage2 (process called: temp_update/updater.exxe)
@@ -297,10 +298,10 @@ void AppInitializer::checkUpdateFlag() {
 
         const auto updaterPID = static_cast<DWORD>(args[2].toULongLong());
         waitForProcessExitAsync(updaterPID, [this, args]() { handleUpdateCleanup(args); });
-#else
-        // waiting write for non-windows
-#endif
     }
+#elif defined(Q_OS_LINUX)
+    if (args.size() >= 2 && args[1] == "--update-done") { displayNotiUpdateComplete(); }
+#endif
 }
 
 void AppInitializer::handleUpdateCleanup(const QStringList &args) {
@@ -321,12 +322,21 @@ void AppInitializer::handleUpdateCleanup(const QStringList &args) {
     if (std::filesystem::exists(zipPath)) { std::filesystem::remove(zipPath, ec); }
 
     // defer dialog until UI is ready
+    displayNotiUpdateComplete();
+}
+
+void AppInitializer::displayNotiUpdateComplete() {
     QTimer::singleShot(0, m_mainWindow.get(), [this]() {
+        const QString kLinkColor = (m_controller->isDarkTheme()) ? "#4FC3F7" : "#0000EE";
         DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
-                              tr("Application has been updated successfully.\n\n"
-                                 "Version: v%1\n"
-                                 "Changelog (reserved): %2")
-                                  .arg(app::meta::VERSION, app::meta::WEBSITE));
+                              tr("Application has been updated successfully.<br>"
+                                 "Version: v%1<br>"
+                                 "Changelog: <a href=\"%2\" style=\"color: %3; "
+                                 "text-decoration: underline;\">%2</a>")
+                                  .arg(app::meta::VERSION)
+                                  .arg(app::meta::WEBSITE)
+                                  .arg(kLinkColor),
+                              true);
     });
 }
 
