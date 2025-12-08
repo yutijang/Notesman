@@ -258,7 +258,7 @@ namespace {
 
 } // namespace
 
-int wmain([[maybe_unused]] int argc, [[maybe_unused]] wchar_t* argv[]) {
+int wmain(int argc, wchar_t* argv[]) {
     if (argc < 2) {
         std::wcerr << "Arguments not enough\n";
         return 1;

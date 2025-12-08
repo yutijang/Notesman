@@ -17,7 +17,8 @@
             "name": "catch2"
         },
         {
-            "name": "miniz"
+            "name": "miniz",
+            "platform": "windows"
         }
     ],
     "overrides": [
