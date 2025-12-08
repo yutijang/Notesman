@@ -17,9 +17,10 @@ int main(int argc, char** argv) {
     const fs::path currentApp = argv[1];
     const fs::path newApp = argv[2];
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(300)); // NOLINT(readability-magic-numbers)
 
-    ::chmod(newApp.c_str(), 0755);
+    ::chmod(newApp.c_str(), 0755);       // NOLINT(readability-magic-numbers)
 
     try {
         fs::rename(newApp, currentApp);
