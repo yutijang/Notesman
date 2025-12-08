@@ -610,7 +610,11 @@ void MainWindow::runUpdate(const QString &filePath) {
         return;
     }
 
-    ::chmod(updaterTmpPath.toUtf8().constData(), 0700);
+    {
+        const QByteArray pathUtf8 = updaterTmpPath.toLocal8Bit();
+        ::chmod(pathUtf8.constData(),
+                S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH); // 0755
+    }
 
     QStringList args{currentAppImage, downloadedAppImage};
     const QString workDir = QDir::tempPath();
@@ -623,7 +627,7 @@ void MainWindow::runUpdate(const QString &filePath) {
         return;
     }
 
-    QTimer::singleShot(150, qApp, &QCoreApplication::quit);
+    QTimer::singleShot(1000, qApp, &QCoreApplication::quit);
 #endif
 }
 
