@@ -91,9 +91,6 @@ jobs:
         with:
           path:
             ${{ env.VCPKG_ROOT }}/archives
-            ${{ env.VCPKG_ROOT }}/buildtrees
-            ${{ env.VCPKG_ROOT }}/packages
-            ${{ env.VCPKG_ROOT }}/installed
           key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
           restore-keys: ${{ runner.os }}-vcpkg-asset-
 
