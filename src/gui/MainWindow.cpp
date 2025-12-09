@@ -623,6 +623,10 @@ void MainWindow::runUpdate(const QString &filePath) {
     QStringList args{currentAppImage, downloadedAppImage};
     const QString workDir = QDir::tempPath();
 
+    qDebug() << "[UPDATE] currentAppImage =" << currentAppImage;
+    qDebug() << "[UPDATE] downloadedAppImage =" << downloadedAppImage;
+    qDebug() << "[UPDATE] updaterTmpPath =" << updaterTmpPath;
+
     pid_t pid = fork();
     if (pid == -1) {
         DialogUtils::showError(this, tr("Error"),

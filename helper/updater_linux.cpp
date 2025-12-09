@@ -5,6 +5,7 @@
 #include <chrono>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <fstream>
 
 namespace fs = std::filesystem;
 
@@ -13,6 +14,13 @@ int main(int argc, char** argv) {
         std::cerr << "usage: updater_linux <current-app> <new-app>\n";
         return 1;
     }
+
+    std::ofstream f("/tmp/updater_run.log", std::ios::app);
+    f << "argv0=" << argv[0] << "\n";
+    f << "argv1=" << argv[1] << "\n";
+    f << "argv2=" << argv[2] << "\n";
+    f << "exists(argv1)=" << (access(argv[1], F_OK) == 0) << "\n";
+    f << "exists(argv2)=" << (access(argv[2], F_OK) == 0) << "\n";
 
     const fs::path currentApp = argv[1];
     const fs::path newApp = argv[2];
