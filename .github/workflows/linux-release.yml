@@ -117,21 +117,24 @@ jobs:
           ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
           echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
-          
+
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
           echo "Using VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}"
-
           cmake -B build -S . \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
             -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" \
-            -DCMAKE_C_COMPILER=clang \
-            -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_LINKER=lld \
+            -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+        env:
+          CC: /usr/bin/clang
+          CXX: /usr/bin/clang++
+          CCACHE_DIR: ${{ env.CCACHE_DIR }}
+          CCACHE_CONFIGPATH: ${{ env.CCACHE_DIR }}/ccache.conf
           
       - name: Build (parallel)
         run: cmake --build build --config ${BUILD_TYPE} --parallel
