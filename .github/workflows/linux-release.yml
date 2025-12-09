@@ -72,6 +72,9 @@ jobs:
 
       - name: Setup vcpkg (bootstrap)
         uses: lukka/run-vcpkg@v11
+        env:
+          CC: /usr/bin/clang
+          CXX: /usr/bin/clang++        
         with:
           vcpkgDirectory: ${{ env.VCPKG_ROOT }}
           vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
