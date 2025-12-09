@@ -58,40 +58,9 @@ jobs:
             "sloppiness = include_file_mtime" \
             "base_dir = ${GITHUB_WORKSPACE}" \
             > "${CCACHE_DIR}/ccache.conf"
-
+            
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
-
-      - name: Prepare vcpkg manifest (remove qtbase directly)
-        run: |
-          if [ ! -f vcpkg.json ]; then
-            echo "No vcpkg.json in repo root — aborting"
-            exit 1
-          fi
-          tmp=$(mktemp)
-          jq 'del(.dependencies[] | select(.name == "qtbase"))' vcpkg.json > "$tmp" && mv "$tmp" vcpkg.json
-
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.VCPKG_ROOT }}/archives
-          key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
-          restore-keys: ${{ runner.os }}-vcpkg-asset-
-
-      - name: Setup vcpkg binary cache path
-        run: |
-          mkdir -p "${VCPKG_ROOT}/archives"
-          ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
-          echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
-          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
-
-      - name: Setup vcpkg (bootstrap)
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
-          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-          runVcpkgInstall: false
 
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4
@@ -120,6 +89,36 @@ jobs:
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
 
+      - name: Setup vcpkg (bootstrap)
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
+          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+          runVcpkgInstall: false
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_ROOT }}/archives
+          key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
+          restore-keys: ${{ runner.os }}-vcpkg-asset-
+
+      - name: Setup vcpkg binary cache path
+        run: |
+          ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
+          echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
+          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV          
+
+      - name: Prepare vcpkg manifest (remove qtbase directly)
+        run: |
+          if [ ! -f vcpkg.json ]; then
+            echo "No vcpkg.json in repo root — aborting"
+            exit 1
+          fi
+          tmp=$(mktemp)
+          jq 'del(.dependencies[] | select(.name == "qtbase"))' vcpkg.json > "$tmp" && mv "$tmp" vcpkg.json
+
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
           echo "Using VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}"
@@ -127,7 +126,6 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
-            -DVCPKG_INSTALL_OPTIONS="--debug" \
             -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" \
             -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
