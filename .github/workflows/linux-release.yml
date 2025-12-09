@@ -80,6 +80,7 @@ jobs:
 
       - name: Setup vcpkg binary cache path
         run: |
+          mkdir -p "${VCPKG_ROOT}/archives"
           ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
           echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
