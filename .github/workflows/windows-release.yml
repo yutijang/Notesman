@@ -1,9 +1,9 @@
 name: Build & Release (Windows)
 
 on:
-  workflow_run:
-    workflows: ["Build & Release (Linux)"]
-    types: [completed]
+  # workflow_run:
+  #   workflows: ["Build & Release (Linux)"]
+  #   types: [completed]
   workflow_dispatch:
 
 permissions:
