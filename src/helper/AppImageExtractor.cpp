@@ -1,15 +1,14 @@
-#include "AppImageExtractor.hpp"
 #include <QProcess>
 #include <QFile>
 #include <QDir>
 #include <QDirIterator>
-#include <QStandardPaths>
-#include <QFileInfo>
 #include <QDateTime>
-#include <QDebug>
 #include <sys/stat.h>
 #include <unistd.h> // for ::chmod
 
+#include "AppImageExtractor.hpp"
+
+// NOLINTNEXTLINE
 bool AppImageExtractor::extractUpdater(const QString &appImagePath, const QString &outputPath) {
     if (!QFile::exists(appImagePath)) { return false; }
 
@@ -17,13 +16,13 @@ bool AppImageExtractor::extractUpdater(const QString &appImagePath, const QStrin
         QDir::tempPath() + "/nm_extract_" + QString::number(QDateTime::currentMSecsSinceEpoch());
     if (!QDir().mkpath(workDir)) { return false; }
 
-    ::chmod(appImagePath.toLocal8Bit().constData(), 0755);
+    ::chmod(appImagePath.toLocal8Bit().constData(), 0755); // NOLINT(readability-magic-numbers)
 
     QProcess p;
     p.setWorkingDirectory(workDir);
     p.start(appImagePath, {"--appimage-extract"});
-    if (!p.waitForStarted(5000)) { return false; }
-    if (!p.waitForFinished(30000)) { return false; }
+    if (!p.waitForStarted(5000)) { return false; }   // NOLINT(readability-magic-numbers)
+    if (!p.waitForFinished(30000)) { return false; } // NOLINT(readability-magic-numbers)
 
     const QString root = workDir + "/squashfs-root";
     if (!QDir(root).exists()) { return false; }

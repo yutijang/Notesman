@@ -66,8 +66,13 @@ set(HELPER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/helper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/DialogUtils.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper/AppImageExtractor.cpp
 )
+
+if(UNIX)
+  list(APPEND HELPER_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/AppImageExtractor.cpp
+  )
+endif()
 
 # =========================================================
 # notes-app-lib (App + GUI)
