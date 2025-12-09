@@ -51,13 +51,14 @@ jobs:
       - name: Configure ccache (safe + CI optimized)
         run: |
           mkdir -p "${CCACHE_DIR}"
-          cat > "${CCACHE_DIR}/ccache.conf" <<EOF
-          max_size = ${CCACHE_MAXSIZE}
-          compression = true
-          compression_level = 5
-          sloppiness = include_file_mtime
-          base_dir = ${GITHUB_WORKSPACE}
-          EOF
+          printf '%s\n' \
+            "max_size = ${CCACHE_MAXSIZE}" \
+            "compression = true" \
+            "compression_level = 5" \
+            "sloppiness = include_file_mtime" \
+            "base_dir = ${GITHUB_WORKSPACE}" \
+            > "${CCACHE_DIR}/ccache.conf"
+            
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
 
@@ -70,23 +71,26 @@ jobs:
           tmp=$(mktemp)
           jq 'del(.dependencies[] | select(.name == "qtbase"))' vcpkg.json > "$tmp" && mv "$tmp" vcpkg.json
 
-      - name: Setup vcpkg (bootstrap)
-        uses: lukka/run-vcpkg@v11
-        env:
-          CC: /usr/bin/clang
-          CXX: /usr/bin/clang++        
-        with:
-          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
-          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-          runVcpkgInstall: false
-
       - name: Cache vcpkg artifacts
         uses: actions/cache@v4
         with:
           path: ${{ env.VCPKG_ROOT }}/archives
           key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
           restore-keys: ${{ runner.os }}-vcpkg-asset-
+
+      - name: Setup vcpkg binary cache path
+        run: |
+          ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
+          echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
+          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
+
+      - name: Setup vcpkg (bootstrap)
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
+          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+          runVcpkgInstall: false
 
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4
@@ -115,12 +119,6 @@ jobs:
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
 
-      - name: Setup vcpkg binary cache path
-        run: |
-          ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
-          echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
-          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
-
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
           echo "Using VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}"
@@ -140,7 +138,7 @@ jobs:
           CCACHE_CONFIGPATH: ${{ env.CCACHE_DIR }}/ccache.conf
           
       - name: Build (parallel)
-        run: cmake --build build --config ${BUILD_TYPE} --parallel
+        run: cmake --build build --parallel
 
       - name: Prepare AppDir for linuxdeployqt
         run: |
@@ -150,8 +148,6 @@ jobs:
           mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib"
           if [ -f ./bin/Notesman ]; then
             cp ./bin/Notesman "$APPDIR/usr/bin/Notesman"
-          elif [ -f build/Notesman ]; then
-            cp build/Notesman "$APPDIR/usr/bin/Notesman"
           else
             echo "Built binary not found in ./bin or build/ - adjust paths"
             ls -la ./bin || true
