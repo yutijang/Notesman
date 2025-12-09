@@ -112,6 +112,12 @@ jobs:
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
 
+      - name: Setup vcpkg binary cache path
+        run: |
+          ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
+          echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
+          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
+          
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
           echo "Using VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}"
