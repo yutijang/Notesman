@@ -91,9 +91,13 @@ jobs:
       - name: Cache vcpkg artifacts
         uses: actions/cache@v4
         with:
-          path: ${{ env.VCPKG_ROOT }}/archives
-          key: ${{ runner.os }}-vcpkg-bin-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
-          restore-keys: ${{ runner.os }}-vcpkg-bin-
+          path:
+            ${{ env.VCPKG_ROOT }}/archives
+            ${{ env.VCPKG_ROOT }}/buildtrees
+            ${{ env.VCPKG_ROOT }}/packages
+            ${{ env.VCPKG_ROOT }}/installed
+          key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
+          restore-keys: ${{ runner.os }}-vcpkg-asset-
 
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4

@@ -300,7 +300,12 @@ void AppInitializer::checkUpdateFlag() {
         waitForProcessExitAsync(updaterPID, [this, args]() { handleUpdateCleanup(args); });
     }
 #elif defined(Q_OS_LINUX)
-    if (args.size() >= 2 && args[1] == "--update-done") { displayNotiUpdateComplete(); }
+    if (args.size() >= 2 && args[1] == "--update-done") {
+        std::filesystem::path binPath("/tmp/notesman-updater");
+        if (std::filesystem::exists(binPath)) { std::filesystem::remove(binPath); }
+
+        displayNotiUpdateComplete();
+    }
 #endif
 }
 
