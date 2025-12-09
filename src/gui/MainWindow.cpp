@@ -22,9 +22,6 @@
 #include <QModelIndexList>
 #include <QProcess>
 #include <sqlite3.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <cstring>
 #include <cerrno>
 
@@ -48,6 +45,10 @@
 #include "DialogUtils.hpp"
 
 #if defined(Q_OS_LINUX)
+#    include <sys/stat.h>
+#    include <fcntl.h>
+#    include <unistd.h>
+
 #    include "AppImageExtractor.hpp"
 #endif
 
@@ -623,10 +624,6 @@ void MainWindow::runUpdate(const QString &filePath) {
     QStringList args{currentAppImage, downloadedAppImage};
     const QString workDir = QDir::tempPath();
 
-    qDebug() << "[UPDATE] currentAppImage =" << currentAppImage;
-    qDebug() << "[UPDATE] downloadedAppImage =" << downloadedAppImage;
-    qDebug() << "[UPDATE] updaterTmpPath =" << updaterTmpPath;
-
     pid_t pid = fork();
     if (pid == -1) {
         DialogUtils::showError(this, tr("Error"),
@@ -648,21 +645,22 @@ void MainWindow::runUpdate(const QString &filePath) {
 
         // strdup so pointers still valid even if Qt objects go away (not necessary after fork, but
         // harmless)
-        char* up_c = strdup(upBA.constData());
-        char* a0_c = strdup(a0BA.constData());
-        char* a1_c = strdup(a1BA.constData());
+        char* upC = strdup(upBA.constData());
+        char* a0C = strdup(a0BA.constData());
+        char* a1C = strdup(a1BA.constData());
 
-        char* argv_exec[] = {up_c, a0_c, a1_c, nullptr};
+        char* argvExec[] = {upC, a0C, a1C, nullptr};
 
         // Optional: close inherited fds except stdin/out/err (helps avoid fd leaks)
-        for (int fd = 3; fd < 1024; ++fd) { ::close(fd); }
+        for (int fd = 3; fd < 1024; ++fd) { ::close(fd); } // NOLINT(readability-magic-numbers)
 
         // Exec: if returns, it failed — write errno to logfile for debug
-        ::execv(up_c, argv_exec);
+        ::execv(upC, argvExec);
 
         // exec failed -> log and exit
         int err = errno;
-        int fd = ::open("/tmp/notesman-updater.err", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        int fd = ::open("/tmp/notesman-updater.err", O_WRONLY | O_CREAT | O_TRUNC,
+                        0644); // NOLINT(readability-magic-numbers)
         if (fd != -1) {
             const char* msg = "execv failed: ";
             ::write(fd, msg, strlen(msg));
@@ -671,16 +669,15 @@ void MainWindow::runUpdate(const QString &filePath) {
             ::write(fd, "\n", 1);
             ::close(fd);
         }
-        // free strdup'd memory (not necessary right before _exit, but tidy)
-        free(up_c);
-        free(a0_c);
-        free(a1_c);
 
-        _exit(127);
+        free(upC);
+        free(a0C);
+        free(a1C);
+
+        _exit(127);                                         // NOLINT(readability-magic-numbers)
     }
 
-    // PARENT: schedule quit shortly so child can proceed
-    QTimer::singleShot(200, qApp, &QCoreApplication::quit);
+    QTimer::singleShot(200, qApp, &QCoreApplication::quit); // NOLINT(readability-magic-numbers)
 #endif
 }
 
