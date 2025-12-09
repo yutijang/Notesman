@@ -79,8 +79,6 @@ jobs:
       - name: Setup vcpkg (bootstrap)
         uses: lukka/run-vcpkg@v11
         env:
-          CC: /usr/bin/clang
-          CXX: /usr/bin/clang++
           CCACHE_DIR: ${{ env.CCACHE_DIR }}        
         with:
           vcpkgDirectory: ${{ env.VCPKG_ROOT }}
