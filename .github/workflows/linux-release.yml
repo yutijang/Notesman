@@ -69,6 +69,12 @@ jobs:
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' 
+          cache: 'pip'
+
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4
         with:
