@@ -80,7 +80,6 @@ jobs:
 
       - name: Setup vcpkg binary cache path
         run: |
-          mkdir -p "${VCPKG_ROOT}/archives"
           ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
           echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
@@ -127,6 +126,7 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_INSTALL_OPTIONS="--debug" \
             -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" \
             -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
@@ -137,7 +137,6 @@ jobs:
           CXX: /usr/bin/clang++
           CCACHE_DIR: ${{ env.CCACHE_DIR }}
           CCACHE_CONFIGPATH: ${{ env.CCACHE_DIR }}/ccache.conf
-          VCPKG_DEBUG: 1
           
       - name: Build (parallel)
         run: cmake --build build --parallel
