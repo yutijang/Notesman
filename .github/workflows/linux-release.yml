@@ -37,9 +37,15 @@ jobs:
 
           sudo apt-get update -y && \
           sudo apt-get install -y --no-install-recommends \
-            build-essential clang lld cmake ninja-build pkg-config \
+            build-essential clang-21 lld-21 cmake ninja-build pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
             libsecret-1-dev
+
+      - name: Lock compiler version
+        run: |
+          echo "CC=/usr/bin/clang-21" >> $GITHUB_ENV
+          echo "CXX=/usr/bin/clang++-21" >> $GITHUB_ENV
+          echo "VCPKG_FORCE_SYSTEM_BINARIES=1" >> $GITHUB_ENV
 
       - name: Setup ccache cache
         uses: actions/cache@v4

@@ -601,7 +601,7 @@ void MainWindow::runUpdate(const QString &filePath) {
 
     qApp->quit();
 #elif defined(Q_OS_LINUX)
-    const QString currentAppImage = QCoreApplication::applicationFilePath();
+    const QString currentAppImage = QCoreApplication::arguments().first();
     const QString &downloadedAppImage = filePath;
 
     const QString updaterTmpPath = "/tmp/notesman-updater";
