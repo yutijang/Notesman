@@ -37,15 +37,9 @@ jobs:
 
           sudo apt-get update -y && \
           sudo apt-get install -y --no-install-recommends \
-            build-essential clang-20 lld-20 llvm-20 cmake ninja-build pkg-config \
+            build-essential clang lld cmake ninja-build pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
             libsecret-1-dev
-
-      - name: Lock compiler version
-        run: |
-          echo "CC=/usr/bin/clang-20" >> $GITHUB_ENV
-          echo "CXX=/usr/bin/clang++-20" >> $GITHUB_ENV
-          echo "VCPKG_FORCE_SYSTEM_BINARIES=1" >> $GITHUB_ENV
 
       - name: Setup ccache cache
         uses: actions/cache@v4
@@ -78,8 +72,6 @@ jobs:
 
       - name: Setup vcpkg (bootstrap)
         uses: lukka/run-vcpkg@v11
-        env:
-          CCACHE_DIR: ${{ env.CCACHE_DIR }}
         with:
           vcpkgDirectory: ${{ env.VCPKG_ROOT }}
           vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
@@ -89,8 +81,7 @@ jobs:
       - name: Cache vcpkg artifacts
         uses: actions/cache@v4
         with:
-          path:
-            ${{ env.VCPKG_ROOT }}/archives
+          path: ${{ env.VCPKG_ROOT }}/archives
           key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
           restore-keys: ${{ runner.os }}-vcpkg-asset-
 
@@ -121,12 +112,6 @@ jobs:
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
 
-      - name: Setup vcpkg binary cache path
-        run: |
-          ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
-          echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
-          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
-
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
           echo "Using VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}"
@@ -136,17 +121,11 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
             -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" \
-            -DCMAKE_C_COMPILER=/usr/bin/clang-20 \
-            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 \
-            -DCMAKE_AR=/usr/bin/llvm-ar-20 \
-            -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-20 \
-            -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
-            -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_LINKER=lld \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-        env:
-          CCACHE_DIR: ${{ env.CCACHE_DIR }}
-          CCACHE_CONFIGPATH: ${{ env.CCACHE_DIR }}/ccache.conf
           
       - name: Build (parallel)
         run: cmake --build build --config ${BUILD_TYPE} --parallel
