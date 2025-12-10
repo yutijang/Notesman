@@ -266,7 +266,7 @@ jobs:
       - name: Read version from version.txt
         id: get_version
         run: |
-          VERSION=$(tr -d ' \n\r' < version.txt 2>/dev/null || true)
+          VERSION=$(tr -d '\r\n[:space:]' < version.txt 2>/dev/null || true)
           if [ -z "$VERSION" ]; then
             VERSION="0.0.0"
           fi
@@ -278,6 +278,9 @@ jobs:
           echo "GITHUB REF NAME = $GITHUB_REF_NAME"
           echo "TAG FROM VERSION.TXT = v${{ steps.get_version.outputs.version }}"
           ls -l release || true
+          echo "RAW VERSION:"
+          hexdump -C version.txt
+          echo "PARSED VERSION: '${{ steps.get_version.outputs.version }}'"          
 
       - name: Create GitHub Release (manual version)
         uses: softprops/action-gh-release@v2
