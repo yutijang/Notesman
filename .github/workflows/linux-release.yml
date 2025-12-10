@@ -280,3 +280,5 @@ jobs:
           body: "Automated release for Notesman v${{ steps.get_version.outputs.version }}."
           files: release/*.AppImage
           token: ${{ secrets.RELEASE_AUTHOR_PAT }}
+          draft: false
+          prerelease: false
