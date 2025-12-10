@@ -15,7 +15,7 @@ env:
   CCACHE_DIR: ${{ github.workspace }}/.ccache
   CCACHE_MAXSIZE: 500M
   VCPKG_KEEP_ENV_VARS: "CCACHE_DIR;CCACHE_BASEDIR;CCACHE_CONFIGPATH"
-  VCPKG_FEATURE_FLAGS: "manifests;compilertracking;binarycaching"  
+  VCPKG_FEATURE_FLAGS: "manifests;compilertracking;binarycaching"
   VCPKG_MAX_CONCURRENCY: 8
   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
@@ -97,17 +97,22 @@ jobs:
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
           runVcpkgInstall: false
 
-      - name: Cache vcpkg artifacts (manual key)
+      - name: Cache vcpkg artifacts
         uses: actions/cache@v4
         with:
-          path: ${{ env.VCPKG_ROOT }}/archives
-          key: fixed-vcpkg-cache-v1
+          path: |
+            ${{ env.VCPKG_ROOT }}/archives
+            ${{ env.VCPKG_ROOT }}/packages
+          key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json') }}
+          restore-keys: ${{ runner.os }}-vcpkg-asset-
 
       - name: Setup vcpkg binary cache path
         run: |
           ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
+          ABS_PACKAGES=$(realpath "${VCPKG_ROOT}/packages")
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
-          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV          
+          echo "ABS_PACKAGES=${ABS_PACKAGES}" >> $GITHUB_ENV
+          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite;files,${ABS_PACKAGES},readwrite" >> $GITHUB_ENV
 
       - name: Prepare vcpkg manifest (remove qtbase directly)
         run: |
