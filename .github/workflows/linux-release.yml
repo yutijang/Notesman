@@ -50,8 +50,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-ccache-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
-          restore-keys: ${{ runner.os }}-ccache-
+          key: Linux-ccache-fixed-v1
 
       - name: Configure ccache (safe + CI optimized)
         run: |
