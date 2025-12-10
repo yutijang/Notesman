@@ -27,11 +27,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0
-          fetch-tags: true          
 
       - name: Install apt packages (build tools)
         run: |
@@ -273,23 +271,6 @@ jobs:
             VERSION="0.0.0"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Debug info
-        run: |
-          echo "GITHUB REF = $GITHUB_REF"
-          echo "GITHUB REF NAME = $GITHUB_REF_NAME"
-          echo "TAG FROM VERSION.TXT = v${{ steps.get_version.outputs.version }}"
-          ls -l release || true
-          echo "RAW VERSION:"
-          hexdump -C version.txt
-          echo "PARSED VERSION: '${{ steps.get_version.outputs.version }}'"          
-
-      - name: Test PAT permissions
-        run: |
-          curl -i -H "Authorization: token ${{ secrets.RELEASE_AUTHOR_PAT }}" \
-            https://api.github.com/repos/${{ github.repository }}/releases \
-            -X POST \
-            -d '{"tag_name": "test-pat-perm"}'
 
       - name: Create GitHub Release (manual version)
         uses: softprops/action-gh-release@v2
