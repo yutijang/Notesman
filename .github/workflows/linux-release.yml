@@ -107,8 +107,7 @@ jobs:
           path: |
             ${{ env.VCPKG_ROOT }}/archives
             ${{ env.VCPKG_ROOT }}/packages
-          key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json') }}
-          restore-keys: ${{ runner.os }}-vcpkg-asset-
+          key: Linux-vcpkg-asset-fixed-v1
 
       - name: Setup vcpkg binary cache path
         run: |
