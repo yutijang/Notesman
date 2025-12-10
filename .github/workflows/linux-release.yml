@@ -97,12 +97,11 @@ jobs:
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
           runVcpkgInstall: false
 
-      - name: Cache vcpkg artifacts
+      - name: Cache vcpkg artifacts (manual key)
         uses: actions/cache@v4
         with:
           path: ${{ env.VCPKG_ROOT }}/archives
-          key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json') }}
-          restore-keys: ${{ runner.os }}-vcpkg-asset-
+          key: fixed-vcpkg-cache-v1
 
       - name: Setup vcpkg binary cache path
         run: |
