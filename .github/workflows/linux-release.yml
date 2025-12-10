@@ -15,7 +15,7 @@ env:
   CCACHE_DIR: ${{ github.workspace }}/.ccache
   CCACHE_MAXSIZE: 500M
   VCPKG_KEEP_ENV_VARS: "CCACHE_DIR;CCACHE_BASEDIR;CCACHE_CONFIGPATH"
-  VCPKG_FEATURE_FLAGS: "manifests;binarycaching"
+  VCPKG_FEATURE_FLAGS: "manifests;compilertracking;binarycaching"
   VCPKG_MAX_CONCURRENCY: 8
   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
@@ -50,8 +50,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: Linux-ccache-fixed-v1
-          enableCrossOsArchive: true
+          key: ${{ runner.os }}-ccache-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
+          restore-keys: ${{ runner.os }}-ccache-
 
       - name: Configure ccache (safe + CI optimized)
         run: |
@@ -66,6 +66,31 @@ jobs:
             
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+
+      - name: Prepare vcpkg manifest (remove qtbase directly)
+        run: |
+          if [ ! -f vcpkg.json ]; then
+            echo "No vcpkg.json in repo root — aborting"
+            exit 1
+          fi
+          tmp=$(mktemp)
+          jq 'del(.dependencies[] | select(.name == "qtbase"))' vcpkg.json > "$tmp" && mv "$tmp" vcpkg.json
+
+      - name: Setup vcpkg (bootstrap)
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
+          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+          runVcpkgInstall: false
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_ROOT }}/archives
+          key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json') }}
+          restore-keys: ${{ runner.os }}-vcpkg-asset-
 
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4
@@ -94,55 +119,28 @@ jobs:
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
 
-      - name: Setup vcpkg (bootstrap)
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
-          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-          runVcpkgInstall: false
-
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.VCPKG_ROOT }}/archives
-            ${{ env.VCPKG_ROOT }}/packages
-          key: Linux-vcpkg-asset-fixed-v1
-          enableCrossOsArchive: true
-
       - name: Setup vcpkg binary cache path
         run: |
           ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
-          ABS_PACKAGES=$(realpath "${VCPKG_ROOT}/packages")
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
-          echo "ABS_PACKAGES=${ABS_PACKAGES}" >> $GITHUB_ENV
-          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite;files,${ABS_PACKAGES},readwrite" >> $GITHUB_ENV
-
-      - name: Prepare vcpkg manifest (remove qtbase directly)
-        run: |
-          if [ ! -f vcpkg.json ]; then
-            echo "No vcpkg.json in repo root — aborting"
-            exit 1
-          fi
-          tmp=$(mktemp)
-          jq 'del(.dependencies[] | select(.name == "qtbase"))' vcpkg.json > "$tmp" && mv "$tmp" vcpkg.json
+          echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
 
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
           echo "Using VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}"
+
           cmake -B build -S . \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
             -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         env:
-          CC: /usr/bin/clang
-          CXX: /usr/bin/clang++
           CCACHE_DIR: ${{ env.CCACHE_DIR }}
           CCACHE_CONFIGPATH: ${{ env.CCACHE_DIR }}/ccache.conf
           
