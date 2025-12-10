@@ -282,6 +282,13 @@ jobs:
           hexdump -C version.txt
           echo "PARSED VERSION: '${{ steps.get_version.outputs.version }}'"          
 
+      - name: Test PAT permissions
+        run: |
+          curl -i -H "Authorization: token ${{ secrets.RELEASE_AUTHOR_PAT }}" \
+            https://api.github.com/repos/${{ github.repository }}/releases \
+            -X POST \
+            -d '{"tag_name": "test-pat-perm"}'
+
       - name: Create GitHub Release (manual version)
         uses: softprops/action-gh-release@v2
         with:
