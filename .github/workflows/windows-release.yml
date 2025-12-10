@@ -19,7 +19,7 @@ env:
   VCPKG_FEATURE_FLAGS: "manifests;compilertracking;binarycaching"
   VCPKG_MAX_CONCURRENCY: 8
   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}  
+  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
 jobs:
   build-and-release:
@@ -31,6 +31,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Install build tools
         shell: pwsh
