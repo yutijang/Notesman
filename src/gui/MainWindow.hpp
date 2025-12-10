@@ -99,6 +99,12 @@ class MainWindow : public QMainWindow {
         void runUpdate(const QString &filePath);
         static qint64 getCurrentPid();
 
+#if defined(Q_OS_WIN)
+        void handleWindowsUpdate(const QString &filePath);
+#elif defined(Q_OS_LINUX)
+        void handleLinuxUpdate(const QString &filePath);
+#endif
+
         NotesAppCore* m_core{};
         AppController* m_appController{};
 

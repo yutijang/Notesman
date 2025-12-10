@@ -578,8 +578,8 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
     if (reply == QMessageBox::Yes) { runUpdate(filePath); }
 }
 
-void MainWindow::runUpdate(const QString &filePath) {
 #if defined(Q_OS_WIN)
+void MainWindow::handleWindowsUpdate(const QString &filePath) {
     const QString targetDir = QCoreApplication::applicationDirPath();
     const QString updaterPath = targetDir + "/updater.exe";
 
@@ -601,7 +601,9 @@ void MainWindow::runUpdate(const QString &filePath) {
     QProcess::startDetached(updaterPath, args);
 
     qApp->quit();
+}
 #elif defined(Q_OS_LINUX)
+void MainWindow::handleLinuxUpdate(const QString &filePath) {
     const QString currentAppImage = QCoreApplication::arguments().first();
     const QString &downloadedAppImage = filePath;
 
@@ -678,6 +680,14 @@ void MainWindow::runUpdate(const QString &filePath) {
     }
 
     QTimer::singleShot(200, qApp, &QCoreApplication::quit); // NOLINT(readability-magic-numbers)
+}
+#endif
+
+void MainWindow::runUpdate(const QString &filePath) {
+#if defined(Q_OS_WIN)
+    handleWindowsUpdate(filePath);
+#elif defined(Q_OS_LINUX)
+    handleLinuxUpdate(filePath);
 #endif
 }
 
