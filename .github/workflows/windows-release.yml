@@ -56,7 +56,7 @@ jobs:
           max_size = ${env:CCACHE_MAXSIZE}
           compression = true
           compression_level = 5
-          sloppiness = include_file_mtime
+          sloppiness = include_file_mtime,time_macros
           base_dir = ${env:GITHUB_WORKSPACE}
           "@ | Out-File -Encoding ascii -FilePath $ccacheConfPath -Force
           "CCACHE_CONFIGPATH=$ccacheConfPath" | Out-File -FilePath $env:GITHUB_ENV -Append

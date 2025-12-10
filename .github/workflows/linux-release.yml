@@ -55,7 +55,7 @@ jobs:
             "max_size = ${CCACHE_MAXSIZE}" \
             "compression = true" \
             "compression_level = 5" \
-            "sloppiness = include_file_mtime" \
+            "sloppiness = include_file_mtime,time_macros" \
             "base_dir = ${GITHUB_WORKSPACE}" \
             > "${CCACHE_DIR}/ccache.conf"
             
