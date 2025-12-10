@@ -277,8 +277,8 @@ jobs:
       - name: Create GitHub Release (manual version)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ steps.get_version.outputs.version != '' && format('Notesman v{0}', steps.get_version.outputs.version) || github.ref_name }}
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: "Notesman v${{ steps.get_version.outputs.version }} (Linux AppImage)"
           body: "Automated release for Notesman v${{ steps.get_version.outputs.version }}."
           files: release/*.AppImage
           token: ${{ secrets.RELEASE_AUTHOR_PAT }}
