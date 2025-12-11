@@ -246,20 +246,18 @@ jobs:
 
       - name: Download AppImage runtime with retry
         run: |
+          mkdir -p runtime-cache
+
           for i in 1 2 3; do
-            wget -O runtime-x86_64 \
+            wget -O runtime-cache/runtime-x86_64 \
               https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64 \
               && break || sleep 5
           done
+        env:
+          APPIMAGE_RUNTIME: runtime-cache/runtime-x86_64
 
       - name: Package cleaned AppDir into AppImage
-        run: |
-          ./linuxdeploy-x86_64.AppImage \
-            --appdir AppDir \
-            --output appimage \
-            --plugin appimage \
-            -- \
-            --runtime-file runtime-x86_64
+        run: ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
 
       - name: Cleanup tools after packaging
         run: rm -f linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage || true
