@@ -22,8 +22,6 @@
 #include <QModelIndexList>
 #include <QProcess>
 #include <sqlite3.h>
-#include <cstring>
-#include <cerrno>
 
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
@@ -586,7 +584,8 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
 
 void MainWindow::onDownloadCanceled() {
     if (m_progressDialog != nullptr) {
-        m_progressDialog->close();
+        m_progressDialog->hide();
+        m_progressDialog->deleteLater();
         m_progressDialog = nullptr;
     }
 
