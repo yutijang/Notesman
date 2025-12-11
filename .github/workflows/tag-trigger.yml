@@ -8,32 +8,14 @@ on:
 jobs:
   trigger:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
-          fetch-depth: 0
-          fetch-tags: true
-              
-    steps:
-      - name: Read version from version.txt
-        id: get_version
-        run: |
-          VERSION=$(tr -d '\r\n[:space:]' < version.txt 2>/dev/null || true)
-          if [ -z "$VERSION" ]; then
-            VERSION="0.0.0"
-          fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Create dummy release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.get_version.outputs.version }}
-          name: "Notesman v${{ steps.get_version.outputs.version }}"
+          tag_name: ${{ github.ref_name }}
+          name: "Notesman ${{ github.ref_name }}"
           body: |
-            **Notesman ${{ steps.get_version.outputs.version }}**
+            **Notesman ${{ github.ref_name }}**
 
             This release includes builds for:
 
