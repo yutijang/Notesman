@@ -2,7 +2,7 @@ name: Build & Release (Windows)
 
 on:
   workflow_run:
-    workflows: ["Build & Release (Linux)"]
+    workflows: ["Tag trigger"]
     types: [completed]
   workflow_dispatch:
 
@@ -237,27 +237,49 @@ jobs:
           }
           echo "version=$ver" >> $env:GITHUB_OUTPUT
 
-      - name: Upload to existing GitHub Release
+      - name: Get existing release body
+        id: get_release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.RELEASE_AUTHOR_PAT }}
+          script: |
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: '${{ steps.get_version.outputs.version }}'
+            });
+            return release.data.body;
+
+      - name: Update Windows section in release body
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.RELEASE_AUTHOR_PAT }}
+          script: |
+            let body = `${{ steps.get_release.outputs.result }}`;
+            if (!body) body = "**Notesman v${{ steps.get_version.outputs.version }}**\n\n"; 
+            body = body.replace(/<!-- WINDOWS_SECTION_START -->[\s\S]*?<!-- WINDOWS_SECTION_END -->/, '');
+            body += `
+            <!-- WINDOWS_SECTION_START -->
+            **Windows Build**
+            - Windows ZIP/executable included
+            <!-- WINDOWS_SECTION_END -->
+            `;
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: '${{ steps.get_version.outputs.version }}'
+            });
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              body: body
+            });
+
+      - name: Upload Windows assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
           files: Notesman-x64.zip
           token: ${{ secrets.RELEASE_AUTHOR_PAT }}
           fail_on_unmatched_files: false
-
-      - name: Update GitHub Release title and body
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.get_version.outputs.version }}
-          name: "Notesman v${{ steps.get_version.outputs.version }} (Linux + Windows)"
-          body: |
-            **Notesman v${{ steps.get_version.outputs.version }}**
-            
-            This release includes builds for both **Linux** and **Windows**.
-
-            **Included assets:**
-            - Linux AppImage build
-            - Windows ZIP/executable build
-
-            ---
-            _Generated automatically by GitHub Actions._
