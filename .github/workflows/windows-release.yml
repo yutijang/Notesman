@@ -2,7 +2,7 @@ name: Build & Release (Windows)
 
 on:
   workflow_run:
-    workflows: ["Tag trigger"]
+    workflows: ["Build & Release (Linux)"]
     types: [completed]
   workflow_dispatch:
 
@@ -243,12 +243,16 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASE_AUTHOR_PAT }}
           script: |
-            const release = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: 'v${{ steps.get_version.outputs.version }}'
-            });
-            return release.data.body;
+            try {
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: 'v${{ steps.get_version.outputs.version }}'
+              });
+              return release.data.body;
+            } catch (e) {
+              core.setFailed(`Cannot get release: ${e}`);
+            }
 
       - name: Update Windows section in release body
         uses: actions/github-script@v7
@@ -256,19 +260,22 @@ jobs:
           github-token: ${{ secrets.RELEASE_AUTHOR_PAT }}
           script: |
             let body = `${{ steps.get_release.outputs.result }}`;
-            if (!body) body = "**Notesman v${{ steps.get_version.outputs.version }}**\n\n"; 
-            body = body.replace(/<!-- WINDOWS_SECTION_START -->[\s\S]*?<!-- WINDOWS_SECTION_END -->/, '');
-            body += `
+            if (!body) body = "**Notesman v${{ steps.get_version.outputs.version }}**\n\n";
+
+            // Replace Windows section
+            body = body.replace(/<!-- WINDOWS_SECTION_START -->[\s\S]*?<!-- WINDOWS_SECTION_END -->/, `
             <!-- WINDOWS_SECTION_START -->
             **Windows Build**
             - Windows ZIP/executable included
             <!-- WINDOWS_SECTION_END -->
-            `;
+            `);
+
             const release = await github.rest.repos.getReleaseByTag({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag: '${{ steps.get_version.outputs.version }}'
+              tag: 'v${{ steps.get_version.outputs.version }}'
             });
+
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -283,3 +290,4 @@ jobs:
           files: Notesman-x64.zip
           token: ${{ secrets.RELEASE_AUTHOR_PAT }}
           fail_on_unmatched_files: false
+          
