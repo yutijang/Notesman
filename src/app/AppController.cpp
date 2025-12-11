@@ -151,6 +151,9 @@ DownloadManager* AppController::downloadManager() {
                              m_mainWindow, &MainWindow::onDownloadFinished);
             QObject::connect(m_downloadManager.get(), &DownloadManager::downloadFailed,
                              m_mainWindow, &MainWindow::onDownloadFailed);
+
+            QObject::connect(this, &AppController::downloadCanceledForward, m_downloadManager.get(),
+                             &DownloadManager::handleDownloadCanceledRequest);
         }
     }
 
@@ -374,10 +377,7 @@ void AppController::handleCheckUpdateRequested() {
 }
 
 void AppController::onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo) {
-    if (!accepted) {
-        DialogUtils::showInfo(m_mainWindow, tr("Information"), tr("Missing update info"));
-        return;
-    }
+    if (!accepted) { return; }
 
     const QUrl kdownloadUrl(updateInfo.assetDownloadURL);
     const QString koutputPath = QDir::temp().filePath(updateInfo.assetName);

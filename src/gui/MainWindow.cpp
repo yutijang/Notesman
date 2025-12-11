@@ -354,6 +354,9 @@ void MainWindow::setAppController(AppController* controller) {
 
     QObject::connect(m_settingsTab, &SettingsTabWidget::cancelLoginRequested, m_appController,
                      &AppController::cancelLoginRequestedForward);
+
+    QObject::connect(this, &MainWindow::downloadCanceled, m_appController,
+                     &AppController::downloadCanceledForward);
 }
 
 void MainWindow::changeEvent(QEvent* event) {
@@ -510,6 +513,9 @@ void MainWindow::onDownloadStarted() {
         m_progressDialog->setWindowModality(Qt::WindowModal);
         m_progressDialog->setAutoClose(true);
         m_progressDialog->setAutoReset(true);
+
+        QObject::connect(m_progressDialog, &QProgressDialog::canceled, this,
+                         &MainWindow::onDownloadCanceled);
     }
     m_progressDialog->setValue(0);
     m_progressDialog->show();
@@ -576,6 +582,17 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
         this, tr("Download complete"),
         tr("The update package has been downloaded:\n%1\n\nDo you want update?").arg(filePath));
     if (reply == QMessageBox::Yes) { runUpdate(filePath); }
+}
+
+void MainWindow::onDownloadCanceled() {
+    if (m_progressDialog != nullptr) {
+        m_progressDialog->close();
+        m_progressDialog = nullptr;
+    }
+
+    DialogUtils::showInfo(this, tr("Information"), tr("Download canceld!"));
+
+    emit downloadCanceled();
 }
 
 #if defined(Q_OS_WIN)

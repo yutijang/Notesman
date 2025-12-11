@@ -65,3 +65,14 @@ void DownloadManager::onDownloadError(QNetworkReply::NetworkError /*unused*/) {
     m_currentReply->deleteLater();
     m_currentReply = nullptr;
 }
+
+void DownloadManager::handleDownloadCanceledRequest() {
+    if (m_currentReply != nullptr) {
+        m_currentReply->abort(); // dừng download ngay
+        m_currentReply->deleteLater();
+        m_currentReply = nullptr;
+    }
+
+    if (m_outputFile.isOpen()) { m_outputFile.close(); }
+    m_outputFile.remove(); // xoá file tạm
+}

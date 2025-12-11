@@ -14,6 +14,7 @@ class DownloadManager final : public QObject {
 
         // Bắt đầu tải từ URL, lưu ra đường dẫn local
         void startDownload(const QUrl &url, const QString &outputFilePath);
+        void handleDownloadCanceledRequest();
 
     signals:
         void downloadStarted();
