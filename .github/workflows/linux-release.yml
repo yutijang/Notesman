@@ -254,13 +254,15 @@ jobs:
               && break || sleep 5
           done
 
-      - name: Package cleaned AppDir into AppImage
+      - name: Download appimagetool
         run: |
-          ./linuxdeploy-x86_64.AppImage \
-            --appdir AppDir \
-            --output appimage \
-            -- \
-            --runtime-file runtime-cache/runtime-x86_64
+          wget -O appimagetool-x86_64.AppImage \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+      - name: Package cleaned AppDir into AppImage (use appimagetool)
+        run: |
+          ./appimagetool-x86_64.AppImage --runtime-file runtime-cache/runtime-x86_64 AppDir Notesman-x86_64.AppImage
 
       - name: Cleanup tools after packaging
         run: rm -f linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage || true
