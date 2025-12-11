@@ -246,7 +246,7 @@ jobs:
             const release = await github.rest.repos.getReleaseByTag({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag: '${{ steps.get_version.outputs.version }}'
+              tag: 'v${{ steps.get_version.outputs.version }}'
             });
             return release.data.body;
 

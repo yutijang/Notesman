@@ -8,6 +8,15 @@ on:
 jobs:
   trigger:
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          fetch-tags: true
+              
     steps:
       - name: Read version from version.txt
         id: get_version
