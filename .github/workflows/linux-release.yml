@@ -1,9 +1,10 @@
 name: Build & Release (Linux)
 
 on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_run:
+    workflows: ["Tag trigger"]
+    types: [completed]
+  workflow_dispatch:
 
 permissions:
   contents: write
