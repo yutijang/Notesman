@@ -2,7 +2,7 @@ name: Build & Release (Windows)
 
 on:
   workflow_run:
-    workflows: ["Build & Release (Linux)"]
+    workflows: ["Tag trigger"]
     types: [completed]
   workflow_dispatch:
 
@@ -262,7 +262,8 @@ jobs:
             let body = `${{ steps.get_release.outputs.result }}`;
             if (!body) body = "**Notesman v${{ steps.get_version.outputs.version }}**\n\n";
 
-            // Replace Windows section
+            body = body.replace(/^"+|"+$/g, '');
+
             body = body.replace(/<!-- WINDOWS_SECTION_START -->[\s\S]*?<!-- WINDOWS_SECTION_END -->/, `
             <!-- WINDOWS_SECTION_START -->
             **Windows Build**
@@ -290,4 +291,3 @@ jobs:
           files: Notesman-x64.zip
           token: ${{ secrets.RELEASE_AUTHOR_PAT }}
           fail_on_unmatched_files: false
-          

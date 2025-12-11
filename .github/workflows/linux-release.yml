@@ -300,7 +300,8 @@ jobs:
             let body = `${{ steps.get_release.outputs.result }}`;
             if (!body) body = "**Notesman v${{ steps.get_version.outputs.version }}**\n\n";
 
-            // Replace Linux section
+            body = body.replace(/^"+|"+$/g, '');
+            
             body = body.replace(/<!-- LINUX_SECTION_START -->[\s\S]*?<!-- LINUX_SECTION_END -->/, `
             <!-- LINUX_SECTION_START -->
             **Linux Build**
@@ -327,4 +328,3 @@ jobs:
           tag_name: v${{ steps.get_version.outputs.version }}
           files: release/*.AppImage
           token: ${{ secrets.RELEASE_AUTHOR_PAT }}
-          

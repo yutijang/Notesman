@@ -20,11 +20,9 @@ jobs:
             This release includes builds for:
 
             <!-- LINUX_SECTION_START -->
-            *Placeholder for Linux build*
             <!-- LINUX_SECTION_END -->
 
             <!-- WINDOWS_SECTION_START -->
-            *Placeholder for Windows build*
             <!-- WINDOWS_SECTION_END -->
 
             ---
