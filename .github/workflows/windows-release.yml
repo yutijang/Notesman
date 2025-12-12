@@ -294,6 +294,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
-          files: Notesman-x64.zip
+          files: ${{ steps.zip.outputs.zip_name }}
           token: ${{ secrets.RELEASE_AUTHOR_PAT }}
           fail_on_unmatched_files: false
