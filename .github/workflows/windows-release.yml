@@ -218,17 +218,6 @@ jobs:
               }
           }
 
-      - name: Create ZIP package
-        shell: pwsh
-        run: |
-          Compress-Archive -Path ${{ env.RELEASE_DIR }} -DestinationPath "Notesman-x64.zip" -Force
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: notesman-windows-zip
-          path: Notesman-x64.zip
-
       - name: Extract project version
         id: get_version
         shell: pwsh
@@ -239,6 +228,20 @@ jobs:
             $ver = "0.0.0"
           }
           echo "version=$ver" >> $env:GITHUB_OUTPUT
+
+      - name: Create ZIP package
+        id: zip
+        shell: pwsh
+        run: |
+          $zipName = "Notesman-x64-v${{ steps.get_version.outputs.version }}.zip"
+          Compress-Archive -Path ${{ env.RELEASE_DIR }} -DestinationPath $zipName -Force
+          echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notesman-windows-zip
+          path: ${{ steps.zip.outputs.zip_name }}
 
       - name: Get existing release body
         id: get_release

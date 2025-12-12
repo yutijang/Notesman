@@ -260,29 +260,6 @@ jobs:
             https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
 
-      - name: Package cleaned AppDir into AppImage (use appimagetool)
-        run: |
-          ./appimagetool-x86_64.AppImage --runtime-file runtime-cache/runtime-x86_64 AppDir Notesman-x86_64.AppImage
-
-      - name: Cleanup tools after packaging
-        run: rm -f linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage || true
-
-      - name: Show resulting AppImage
-        run: |
-          mkdir -p release
-          mv Notesman*.AppImage release/ || true
-          if [ -z "$(ls release/*.AppImage 2>/dev/null || true)" ]; then
-            echo "No AppImage found in release/, listing directory:"
-            ls -la
-            exit 1
-          fi
-          
-      - name: Upload AppImage as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: notesman-linux-appimage
-          path: release/*.AppImage
-
       - name: Read version from version.txt
         id: get_version
         run: |
@@ -291,6 +268,32 @@ jobs:
             VERSION="0.0.0"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Package cleaned AppDir into AppImage (use appimagetool)
+        run: |
+          appName = "Notesman-x86_64-v${{ steps.get_version.outputs.version }}.AppImage"
+          ./appimagetool-x86_64.AppImage --runtime-file runtime-cache/runtime-x86_64 AppDir "${appName}"
+
+      - name: Cleanup tools after packaging
+        run: rm -f linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage || true
+
+      - name: Show resulting AppImage
+        run: |
+          mkdir -p release
+          shopt -s nullglob
+          appimages=(Notesman*.AppImage)
+          if [ ${#appimages[@]} -eq 0 ]; then
+            echo "No AppImage found, listing directory:"
+            ls -la
+            exit 1
+          fi
+          mv "${appimages[@]}" release/
+          
+      - name: Upload AppImage as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notesman-linux-appimage
+          path: release/*.AppImage
 
       - name: Get existing release body
         id: get_release

@@ -60,15 +60,21 @@ namespace {
         }
     }
 
-    bool unzipToFolder(const std::wstring &zipPath, const fs::path &destFolder, bool overwrite) {
+    bool unzipToFolder(const std::wstring &zipPath, const std::wstring &folderInZip,
+                       const fs::path &destFolder, bool overwrite) {
         if (!fs::exists(zipPath)) { return false; }
         fs::create_directories(destFolder);
 
         std::string zipPathUtf8 = wstringToUtf8(zipPath);
-
         mz_zip_archive zip{};
         mz_zip_zero_struct(&zip);
         if (mz_zip_reader_init_file(&zip, zipPathUtf8.c_str(), 0) == 0) { return false; }
+
+        std::string folderUtf8;
+        if (!folderInZip.empty()) {
+            folderUtf8 = wstringToUtf8(folderInZip);
+            if (folderUtf8.back() != '/') { folderUtf8 += '/'; }
+        }
 
         const mz_uint num = mz_zip_reader_get_num_files(&zip);
         for (mz_uint i = 0; i < num; ++i) {
@@ -77,7 +83,16 @@ namespace {
                 mz_zip_reader_end(&zip);
                 return false;
             }
-            fs::path outPath = destFolder / st.m_filename;
+
+            std::string filename = st.m_filename;
+
+            if (!folderUtf8.empty()) {
+                if (!filename.starts_with(folderUtf8)) { continue; }
+                filename = filename.substr(folderUtf8.size());
+                if (filename.empty()) { continue; }
+            }
+
+            fs::path outPath = destFolder / filename;
             if (st.m_is_directory != 0) {
                 fs::create_directories(outPath);
             } else {
@@ -150,7 +165,7 @@ namespace {
         const std::wstring appDir(argv[3]);
         const std::wstring tempDir = appDir + L"\\temp_update";
         const std::wstring zipPath(argv[4]);
-        unzipToFolder(zipPath, tempDir, false);
+        unzipToFolder(zipPath, L"Notesman-x64", tempDir, false);
 
         // prepare arguments send to stage 2
         // argv[1] = --stage2
