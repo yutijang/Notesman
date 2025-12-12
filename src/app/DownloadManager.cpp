@@ -4,7 +4,7 @@
 #include "DownloadManager.hpp"
 
 DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
-    m_timeoutTimer.setInterval(300); // NOLINT(readability-magic-numbers)
+    m_timeoutTimer.setInterval(30'000); // NOLINT(readability-magic-numbers)
     m_timeoutTimer.setSingleShot(true);
 
     QObject::connect(&m_timeoutTimer, &QTimer::timeout, this, [this] {
