@@ -88,7 +88,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.VCPKG_ROOT }}/archives
-          key: ${{ runner.os }}-vcpkg-bin-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
+          key: ${{ runner.os }}-vcpkg-bin-${{ hashFiles('vcpkg.json') }}
           restore-keys: ${{ runner.os }}-vcpkg-bin-
 
       - name: Install Qt6 (from action marketplace)
@@ -136,28 +136,32 @@ jobs:
         shell: pwsh
         run: cmake --build build --parallel
 
+      - name: Set RELEASE_DIR
+        shell: pwsh
+        run: |
+          echo "RELEASE_DIR=release\Notesman-x64" >> $env:GITHUB_ENV
+
       - name: Prepare release folder
         shell: pwsh
         run: |
-          $releaseDir = "release"
-          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-          Copy-Item "bin\Notesman.exe" $releaseDir\ -Force
-          Copy-Item "bin\updater.exe" $releaseDir\ -Force
+          New-Item -ItemType Directory -Force -Path ${{ env.RELEASE_DIR }} | Out-Null
+          Copy-Item "bin\Notesman.exe" ${{ env.RELEASE_DIR }}\ -Force
+          Copy-Item "bin\updater.exe" ${{ env.RELEASE_DIR }}\ -Force
           $qtBin = "${{ steps.find_qt.outputs.qt_dir }}\bin"
-          & "$qtBin\windeployqt.exe" --release --dir $releaseDir "$releaseDir\Notesman.exe"
-          if (-not (Test-Path "$releaseDir\Qt6Core.dll")) {
+          & "$qtBin\windeployqt.exe" --release --dir ${{ env.RELEASE_DIR }} "${{ env.RELEASE_DIR }}\Notesman.exe"
+          if (-not (Test-Path "${{ env.RELEASE_DIR }}\Qt6Core.dll")) {
             Write-Error "Qt6 DLLs not found in release folder after windeployqt"
           }
 
-          Remove-Item "$releaseDir\iconengines" -Recurse
-          Remove-Item "$releaseDir\translations" -Recurse
-          Remove-Item "$releaseDir\generic" -Recurse
-          Remove-Item "$releaseDir\styles" -Recurse
-          Remove-Item "$releaseDir\opengl32sw.dll" -ErrorAction SilentlyContinue
-          Remove-Item "$releaseDir\Qt6Svg.dll" -ErrorAction SilentlyContinue
-          Remove-Item "$releaseDir\D3Dcompiler_47.dll" -ErrorAction SilentlyContinue
+          Remove-Item "${{ env.RELEASE_DIR }}\iconengines" -Recurse
+          Remove-Item "${{ env.RELEASE_DIR }}\translations" -Recurse
+          Remove-Item "${{ env.RELEASE_DIR }}\generic" -Recurse
+          Remove-Item "${{ env.RELEASE_DIR }}\styles" -Recurse
+          Remove-Item "${{ env.RELEASE_DIR }}\opengl32sw.dll" -ErrorAction SilentlyContinue
+          Remove-Item "${{ env.RELEASE_DIR }}\Qt6Svg.dll" -ErrorAction SilentlyContinue
+          Remove-Item "${{ env.RELEASE_DIR }}\D3Dcompiler_47.dll" -ErrorAction SilentlyContinue
 
-          $allImagePlugins = Get-ChildItem "$releaseDir\imageformats\" -Filter "*.dll" -ErrorAction SilentlyContinue
+          $allImagePlugins = Get-ChildItem "${{ env.RELEASE_DIR }}\imageformats\" -Filter "*.dll" -ErrorAction SilentlyContinue
           $essentialImagePlugins = @("qico.dll")
 
           foreach ($plugin in $allImagePlugins) {
@@ -180,7 +184,7 @@ jobs:
           foreach ($dll in $dlls) {
             $sourceFile = Join-Path $opensslPackageBin $dll
             if (Test-Path $sourceFile) {
-              Copy-Item $sourceFile "release\" -Force
+              Copy-Item $sourceFile ${{ env.RELEASE_DIR }}\ -Force
               Write-Host "Copied $dll from official Vcpkg package location: $opensslPackageBin"
             } else {
               Write-Error "CRITICAL: Required $dll not found in $opensslPackageBin."
@@ -193,22 +197,21 @@ jobs:
         run: |
           $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
           $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $releaseDir = "release"
 
           $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\miniz.dll"
 
           if (Test-Path $preferredPath) {
               Write-Host "Found miniz.dll at preferred location: $preferredPath"
-              Copy-Item $preferredPath $releaseDir -Force
-              Write-Host "Copied miniz.dll to $releaseDir"
+              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
+              Write-Host "Copied miniz.dll to ${{ env.RELEASE_DIR }}"
           } else {
               Write-Host "Preferred location not found, searching recursively under $vcpkgRoot ..."
               $minizFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter "miniz.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
 
               if ($null -ne $minizFile) {
                   Write-Host "Found miniz.dll at: $($minizFile.FullName)"
-                  Copy-Item $minizFile.FullName $releaseDir -Force
-                  Write-Host "Copied miniz.dll to $releaseDir"
+                  Copy-Item $minizFile.FullName ${{ env.RELEASE_DIR }} -Force
+                  Write-Host "Copied miniz.dll to ${{ env.RELEASE_DIR }}"
               } else {
                   Write-Error "miniz.dll not found under $vcpkgRoot"
                   exit 1
@@ -218,7 +221,7 @@ jobs:
       - name: Create ZIP package
         shell: pwsh
         run: |
-          Compress-Archive -Path release\* -DestinationPath "Notesman-x64.zip" -Force
+          Compress-Archive -Path ${{ env.RELEASE_DIR }} -DestinationPath "Notesman-x64.zip" -Force
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
