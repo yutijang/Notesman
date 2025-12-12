@@ -86,7 +86,6 @@ class AppController final : public QObject {
         void reconnectDBRequestForward();
         void dbClosedForward(bool isUpload);
         void dbOpenedForward();
-        void downloadCanceledForward();
 
     private:
         void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;

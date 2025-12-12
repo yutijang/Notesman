@@ -352,9 +352,6 @@ void MainWindow::setAppController(AppController* controller) {
 
     QObject::connect(m_settingsTab, &SettingsTabWidget::cancelLoginRequested, m_appController,
                      &AppController::cancelLoginRequestedForward);
-
-    QObject::connect(this, &MainWindow::downloadCanceled, m_appController,
-                     &AppController::downloadCanceledForward);
 }
 
 void MainWindow::changeEvent(QEvent* event) {
@@ -507,13 +504,11 @@ void MainWindow::onUpdateCheckFailed(const QString &error) {
 void MainWindow::onDownloadStarted() {
     if (m_progressDialog == nullptr) {
         m_progressDialog =
-            new QProgressDialog(tr("Downloading update..."), tr("Cancel"), 0, DL_MAX_PERCENT, this);
+            new QProgressDialog(tr("Downloading update..."), QString(), 0, DL_MAX_PERCENT, this);
         m_progressDialog->setWindowModality(Qt::WindowModal);
         m_progressDialog->setAutoClose(true);
         m_progressDialog->setAutoReset(true);
-
-        QObject::connect(m_progressDialog, &QProgressDialog::canceled, this,
-                         &MainWindow::onDownloadCanceled);
+        m_progressDialog->setFixedWidth(350); // NOLINT(readability-magic-numbers)
     }
     m_progressDialog->setValue(0);
     m_progressDialog->show();
@@ -582,16 +577,11 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
     if (reply == QMessageBox::Yes) { runUpdate(filePath); }
 }
 
-void MainWindow::onDownloadCanceled() {
+void MainWindow::handleDownloadFailCauseTimeout() {
     if (m_progressDialog != nullptr) {
-        m_progressDialog->hide();
-        m_progressDialog->deleteLater();
+        m_progressDialog->close();
         m_progressDialog = nullptr;
     }
-
-    DialogUtils::showInfo(this, tr("Information"), tr("Download canceld!"));
-
-    emit downloadCanceled();
 }
 
 #if defined(Q_OS_WIN)

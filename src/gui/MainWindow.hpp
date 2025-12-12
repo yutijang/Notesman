@@ -59,7 +59,6 @@ class MainWindow : public QMainWindow {
         void startDownloadDBForward(bool isDisable, const QString &message = QString{});
         void startUploadDBForward(bool isDisable, const QString &message = QString{});
         void loginFailedForward(const QString &error = QString{});
-        void downloadCanceled();
 
     public slots:
         void setCore(NotesAppCore* core);
@@ -70,6 +69,7 @@ class MainWindow : public QMainWindow {
         void onDownloadFailed(const QString &errorString);
         void updateStatus(const QString &message,
                           int timeout = 5000); // NOLINT(readability-magic-numbers)
+        void handleDownloadFailCauseTimeout();
 
     protected:
         void showEvent(QShowEvent* event) override;
@@ -81,7 +81,6 @@ class MainWindow : public QMainWindow {
         void onAbout();
         void handleSettingsStateChange(UiConst::SettingsMessageState state);
         void handleContextMenuDeleteAction(ResultsTable* resultTable);
-        void onDownloadCanceled();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         // Build UI internal

@@ -3,7 +3,27 @@
 
 #include "DownloadManager.hpp"
 
-DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {}
+DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
+    m_timeoutTimer.setInterval(30'000); // NOLINT(readability-magic-numbers)
+    m_timeoutTimer.setSingleShot(true);
+
+    QObject::connect(&m_timeoutTimer, &QTimer::timeout, this, [this] {
+        if (m_currentReply != nullptr) {
+            m_currentReply->disconnect(this);
+            m_currentReply->abort();
+            m_currentReply->deleteLater();
+            m_currentReply = nullptr;
+        }
+
+        if (m_outputFile.isOpen()) { m_outputFile.close(); }
+        if (!m_outputFile.fileName().isEmpty()) { m_outputFile.remove(); }
+
+        m_timeoutTimer.stop();
+
+        emit downloadFailCauseTimeoutRequest();
+        emit downloadFailed(tr("Download timeout"));
+    });
+}
 
 DownloadManager::~DownloadManager() {
     if (m_currentReply != nullptr) {
@@ -31,6 +51,7 @@ void DownloadManager::startDownload(const QUrl &url, const QString &outputFilePa
     }
 
     emit downloadStarted();
+    m_timeoutTimer.start();
 
     QObject::connect(m_currentReply, &QNetworkReply::downloadProgress, this,
                      &DownloadManager::onDownloadProgress);
@@ -42,6 +63,7 @@ void DownloadManager::startDownload(const QUrl &url, const QString &outputFilePa
 
 void DownloadManager::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     emit downloadProgress(bytesReceived, bytesTotal);
+    m_timeoutTimer.start();
 }
 
 void DownloadManager::onDownloadFinished() {
@@ -55,6 +77,8 @@ void DownloadManager::onDownloadFinished() {
 
     m_currentReply->deleteLater();
     m_currentReply = nullptr;
+
+    m_timeoutTimer.stop();
 }
 
 void DownloadManager::onDownloadError(QNetworkReply::NetworkError /*unused*/) {
@@ -64,19 +88,6 @@ void DownloadManager::onDownloadError(QNetworkReply::NetworkError /*unused*/) {
     m_outputFile.remove(); // xoá file lỗi
     m_currentReply->deleteLater();
     m_currentReply = nullptr;
-}
 
-void DownloadManager::handleDownloadCanceledRequest() {
-    if (m_currentReply != nullptr) {
-        // Ngắt toàn bộ kết nối để không có slot nào đụng lại vào reply nữa
-        m_currentReply->disconnect(this);
-
-        m_currentReply->abort();
-        m_currentReply->deleteLater();
-    }
-
-    m_currentReply = nullptr;
-
-    if (m_outputFile.isOpen()) { m_outputFile.close(); }
-    m_outputFile.remove();
+    m_timeoutTimer.stop();
 }

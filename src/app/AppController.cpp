@@ -151,9 +151,9 @@ DownloadManager* AppController::downloadManager() {
                              m_mainWindow, &MainWindow::onDownloadFinished);
             QObject::connect(m_downloadManager.get(), &DownloadManager::downloadFailed,
                              m_mainWindow, &MainWindow::onDownloadFailed);
-
-            QObject::connect(this, &AppController::downloadCanceledForward, m_downloadManager.get(),
-                             &DownloadManager::handleDownloadCanceledRequest);
+            QObject::connect(m_downloadManager.get(),
+                             &DownloadManager::downloadFailCauseTimeoutRequest, m_mainWindow,
+                             &MainWindow::handleDownloadFailCauseTimeout);
         }
     }
 
