@@ -505,6 +505,13 @@ void MainWindow::onDownloadStarted() {
     if (m_progressDialog == nullptr) {
         m_progressDialog =
             new QProgressDialog(tr("Downloading update..."), QString(), 0, DL_MAX_PERCENT, this);
+
+        Qt::WindowFlags flags = Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint;
+#ifdef Q_OS_WIN
+        flags |= Qt::MSWindowsFixedSizeDialogHint;
+#endif
+        m_progressDialog->setWindowFlags(flags);
+
         m_progressDialog->setWindowModality(Qt::WindowModal);
         m_progressDialog->setAutoClose(true);
         m_progressDialog->setAutoReset(true);
