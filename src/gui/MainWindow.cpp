@@ -486,9 +486,12 @@ void MainWindow::onUpdateAvailable(const UpdateInfoSummary &infoSummary) {
         return;
     }
 
-    const auto reply = DialogUtils::showQuestion(
-        this, tr("Update available"),
-        tr("Version %1 is available.\nDo you want to download it?").arg(infoSummary.releaseName));
+    const auto reply =
+        DialogUtils::showQuestion(this, tr("Update available"),
+                                  tr("A new version is available.\n\nCurrent version: %1\nNew "
+                                     "version: %2\n\nDo you want to download it?")
+                                      .arg(app::meta::VERSION)
+                                      .arg(infoSummary.releaseName));
 
     emit updateDecision(reply == QMessageBox::Yes, infoSummary);
 }
