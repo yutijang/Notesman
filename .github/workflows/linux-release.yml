@@ -179,21 +179,21 @@ jobs:
           mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
           cp -v resources/icons/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
 
-      - name: Add updater_linux into AppDir
+      - name: Add updater into AppDir
         run: |
           set -e
           APPDIR=AppDir
 
-          if [ ! -f bin/updater_linux ]; then
-            echo "updater_linux not found! Listing bin directory..."
+          if [ ! -f bin/updater ]; then
+            echo "updater not found! Listing bin directory..."
             ls -la bin
             exit 1
           fi
 
           mkdir -p "$APPDIR/usr/bin"
-          cp bin/updater_linux "$APPDIR/usr/bin/updater_linux"
+          cp bin/updater "$APPDIR/usr/bin/updater"
 
-          chmod +x "$APPDIR/usr/bin/updater_linux"
+          chmod +x "$APPDIR/usr/bin/updater"
 
       - name: Download linuxdeploy and plugin-qt
         run: |

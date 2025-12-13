@@ -10,25 +10,31 @@ namespace fs = std::filesystem;
 int main(int argc, char** argv) {
     if (argc < 3) { return 1; }
 
-    const fs::path currentApp = argv[1];
-    const fs::path newApp = argv[2];
+    const fs::path currentApp = fs::weakly_canonical(argv[1]);
+    const fs::path newApp = fs::weakly_canonical(argv[2]);
 
     std::this_thread::sleep_for(
-        std::chrono::milliseconds(300)); // NOLINT(readability-magic-numbers)
+        std::chrono::milliseconds(500)); // NOLINT(readability-magic-numbers)
 
-    ::chmod(newApp.c_str(), 0755);       // NOLINT(readability-magic-numbers)
+    if (!fs::exists(newApp)) { return 2; }
+
+    const fs::path targetApp = currentApp.parent_path() / newApp.filename();
 
     try {
-        fs::rename(newApp, currentApp);
-    } catch (const std::exception &e) { return 2; }
+        fs::copy_file(newApp, targetApp, fs::copy_options::overwrite_existing);
+    } catch (...) { return 3; }
 
-    const std::string app = currentApp.string();
+    if (::chmod(targetApp.c_str(), 0755) != 0) { return 4; } // NOLINT(readability-magic-numbers)
+
+    const std::string app = targetApp.string();
+    const std::string oldAppStr = currentApp.string();
+
     char* const args[] = {const_cast<char*>(app.c_str()), const_cast<char*>("--update-done"),
-                          nullptr};
+                          const_cast<char*>(oldAppStr.c_str()), nullptr};
 
     ::execv(app.c_str(), args);
 
     perror("execv failed");
 
-    return 3;
+    return 5; // NOLINT(readability-magic-numbers)
 }
