@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <string>
+#include <vector>
 #include <thread>
 #include <chrono>
 #include <unistd.h>
@@ -10,21 +11,20 @@ namespace fs = std::filesystem;
 int main(int argc, char** argv) {
     if (argc < 3) { return 1; }
 
-    const fs::path currentApp = fs::weakly_canonical(argv[1]);
-    const fs::path newApp = fs::weakly_canonical(argv[2]);
+    std::error_code ec;
+    const fs::path currentApp = fs::weakly_canonical(argv[1], ec);
+    const fs::path newApp = fs::weakly_canonical(argv[2], ec);
+    if (ec || !fs::exists(currentApp) || !fs::exists(newApp)) { return 2; }
 
     std::this_thread::sleep_for(
         std::chrono::milliseconds(500)); // NOLINT(readability-magic-numbers)
 
-    if (!fs::exists(newApp)) { return 2; }
-
     const fs::path targetApp = currentApp.parent_path() / newApp.filename();
 
-    try {
-        fs::copy_file(newApp, targetApp, fs::copy_options::overwrite_existing);
-    } catch (...) { return 3; }
+    bool copySuccess = fs::copy_file(newApp, targetApp, fs::copy_options::overwrite_existing, ec);
+    if (!copySuccess) { return 4; }
 
-    if (::chmod(targetApp.c_str(), 0755) != 0) { return 4; } // NOLINT(readability-magic-numbers)
+    if (::chmod(targetApp.c_str(), 0755) != 0) { return 5; } // NOLINT(readability-magic-numbers)
 
     // prepare args for execv
     // argv[0] = targetApp
@@ -38,13 +38,18 @@ int main(int argc, char** argv) {
     const fs::path selfPath = fs::read_symlink("/proc/self/exe");
     const std::string updaterStr = selfPath.string();
 
-    char* const args[] = {const_cast<char*>(app.c_str()), const_cast<char*>("--update-done"),
-                          const_cast<char*>(oldAppStr.c_str()),
-                          const_cast<char*>(updaterStr.c_str()), nullptr};
+    std::vector<std::string> argsStr{app, "--update-done", oldAppStr, updaterStr};
 
-    ::execv(app.c_str(), args);
+    std::vector<char*> args;
+    args.reserve(argsStr.size());
+    for (auto &s : argsStr) {
+        args.push_back(s.data()); // C++17+: writable buffer
+    }
+    args.push_back(nullptr);
+
+    ::execv(args[0], args.data());
 
     perror("execv failed");
 
-    return 5; // NOLINT(readability-magic-numbers)
+    return 6; // NOLINT(readability-magic-numbers)
 }
