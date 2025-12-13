@@ -117,7 +117,17 @@ void OAuthManager::openBrowser(const QUrl &url) {
 QString OAuthManager::htmlResponde(const QString &title, const QString &header,
                                    const QString &message) noexcept {
     return QStringLiteral(
-               R"html(<!doctypehtml><meta charset=UTF-8><title>%1</title><style>body{font-family:Arial,sans-serif;text-align:center;margin-top:50px;background-color:#f0f2f5}h1{color:#1a73e8}</style><h1>%2</h1><p>%3</p>)html")
+               R"html(<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>%1</title>
+<style>
+    body {font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f0f2f5;}
+    h1 {color: #1a73e8;}
+    img.icon {margin-bottom: 20px;}
+</style>
+<img src="https://notesman-oauth.netlify.app/images/favicon.png" alt="Success icon" width="64" height="64" class="icon">
+<h1>%2</h1>
+<p>%3</p>)html")
         .arg(title, header, message);
 }
 
