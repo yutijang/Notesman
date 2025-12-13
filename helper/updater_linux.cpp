@@ -26,11 +26,21 @@ int main(int argc, char** argv) {
 
     if (::chmod(targetApp.c_str(), 0755) != 0) { return 4; } // NOLINT(readability-magic-numbers)
 
+    // prepare args for execv
+    // argv[0] = targetApp
+    // argv[1] = --update-done
+    // argv[2] = oldApp (currentApp)
+    // argv[3] = updater path (selfPath)
+
     const std::string app = targetApp.string();
     const std::string oldAppStr = currentApp.string();
 
+    const fs::path selfPath = fs::read_symlink("/proc/self/exe");
+    const std::string updaterStr = selfPath.string();
+
     char* const args[] = {const_cast<char*>(app.c_str()), const_cast<char*>("--update-done"),
-                          const_cast<char*>(oldAppStr.c_str()), nullptr};
+                          const_cast<char*>(oldAppStr.c_str()),
+                          const_cast<char*>(updaterStr.c_str()), nullptr};
 
     ::execv(app.c_str(), args);
 

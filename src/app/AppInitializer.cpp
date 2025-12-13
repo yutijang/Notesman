@@ -300,13 +300,20 @@ void AppInitializer::checkUpdateFlag() {
         waitForProcessExitAsync(updaterPID, [this, args]() { handleUpdateCleanup(args); });
     }
 #elif defined(Q_OS_LINUX)
-    if (args.size() >= 3 && args[1] == "--update-done") {
-        std::filesystem::path binPath("/tmp/notesman-updater");
-        if (std::filesystem::exists(binPath)) { std::filesystem::remove(binPath); }
+    if (args.size() >= 4 && args[1] == "--update-done") {
+        namespace fs = std::filesystem;
 
-        std::filesystem::path oldAppPath(QString::fromUtf8(args[2]).toStdString());
-        fs::path selfPath   = fs::read_symlink("/proc/self/exe");
-        if (fs::exists(oldAppPath) && oldAppPath != selfPath) { std::filesystem::remove(oldAppPath); }
+        const fs::path oldAppPath(args[2].toStdString());
+        const fs::path selfPath = fs::read_symlink("/proc/self/exe");
+
+        std::error_code ec;
+        if (fs::exists(oldAppPath) &&
+            fs::weakly_canonical(oldAppPath, ec) != fs::weakly_canonical(selfPath, ec)) {
+            fs::remove(oldAppPath);
+        }
+
+        const fs::path binPath(args[3].toStdString());
+        if (fs::exists(binPath)) { fs::remove(binPath); }
 
         displayNotiUpdateComplete();
     }
