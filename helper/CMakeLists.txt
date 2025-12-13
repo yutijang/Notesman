@@ -1,5 +1,5 @@
 if (WIN32)
-  add_executable(updater updater.cpp)
+  add_executable(updater updater_windows.cpp)
 
   target_link_options(updater PRIVATE "/SUBSYSTEM:CONSOLE")
 
@@ -7,11 +7,11 @@ if (WIN32)
 
   set_target_properties(updater PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-  )
+)
 elseif(UNIX)
-  add_executable(updater_linux updater_linux.cpp)
+  add_executable(updater updater_linux.cpp)
 
-  set_target_properties(updater_linux PROPERTIES
+  set_target_properties(updater PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-  )  
+)
 endif()
