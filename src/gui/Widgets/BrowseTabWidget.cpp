@@ -170,24 +170,6 @@ void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
     m_resultsTbl->setUpdatesEnabled(false);
     m_resultsTbl->setSortingEnabled(false);
 
-    // for (const auto &res : results) {
-    //     const int row = m_resultsTbl->rowCount();
-    //     m_resultsTbl->insertRow(row);
-
-    //     auto* idItem = new QTableWidgetItem(QString::number(res.resource.id));
-    //     idItem->setTextAlignment(Qt::AlignCenter);
-    //     idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
-    //     m_resultsTbl->setItem(row, 0, idItem);
-
-    //     m_resultsTbl->setItem(row, 1,
-    //                           new QTableWidgetItem(QString::fromStdString(res.resource.title)));
-
-    //     if (res.filepath.has_value()) {
-    //         m_resultsTbl->setItem(row, 2,
-    //                               new QTableWidgetItem(QString::fromStdString(*res.filepath)));
-    //     }
-    // }
-
     for (std::size_t i = 0; i < results.size(); ++i) {
         const auto &res = results[i];
         const int row = m_resultsTbl->rowCount();
@@ -201,7 +183,11 @@ void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
         auto* titleItem = new QTableWidgetItem(QString::fromStdString(res.resource.title));
         titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
 
-        titleItem->setData(Qt::UserRole, res.resource.id);
+        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceId),
+                           QVariant::fromValue<qlonglong>(res.resource.id));
+
+        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceType),
+                           static_cast<int>(res.resource.type));
 
         m_resultsTbl->setItem(row, 1, titleItem);
 
@@ -220,20 +206,21 @@ void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
 }
 
 void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
-    const QModelIndex &index = m_resultsTbl->indexAt(pos);
+    const QModelIndex index = m_resultsTbl->indexAt(pos);
     if (!index.isValid()) { return; }
 
-    const int &row = index.row();
+    const int row = index.row();
 
     auto* titleItem = m_resultsTbl->item(row, 1);
     if (titleItem == nullptr) { return; }
 
-    QVariant idData = titleItem->data(Qt::UserRole);
+    QVariant idData =
+        titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
     if (!idData.isValid()) { return; }
-    const int &idItem = idData.toInt();
+    const int idItem = idData.toInt();
 
     auto* pathItem = m_resultsTbl->item(row, 2);
-    const QString &path = (pathItem != nullptr) ? pathItem->text() : QString{};
+    const QString path = (pathItem != nullptr) ? pathItem->text() : QString{};
 
     emit contextMenuRequested(pos, idItem, titleItem->text(), path);
 }
@@ -244,7 +231,8 @@ std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const 
     auto* titleItem = m_resultsTbl->item(row, 1);
     if (titleItem == nullptr) { return std::nullopt; }
 
-    QVariant idData = titleItem->data(Qt::UserRole);
+    QVariant idData =
+        titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
     if (!idData.isValid()) { return std::nullopt; }
 
     auto* pathItem = m_resultsTbl->item(row, 2);

@@ -228,6 +228,23 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, const QString &title
         return;
     }
 
+    // debug
+    const QModelIndex index = resultsTbl->indexAt(pos);
+    if (!index.isValid()) {
+        qWarning() << "Invalid index at context menu position";
+        return;
+    }
+
+    const int row = index.row();
+
+    if (auto typeOpt = extractTypeFromRow(resultsTbl, row)) {
+        qDebug() << "Selected ResourceType:" << resourceTypeToString(*typeOpt)
+                 << "(enum value =" << static_cast<int>(*typeOpt) << ')';
+    } else {
+        qWarning() << "Failed to extract ResourceType from row" << row;
+    }
+    //
+
     QMenu menu(this);
 
     QAction* viewAction{};
@@ -817,7 +834,19 @@ void MainWindow::handleContextMenuDeleteAction(ResultsTable* resultTable) {
 sqlite3_int64 MainWindow::extractIdFromRow(ResultsTable* resultTable, int row) {
     auto* item = resultTable->item(row, 1);
     if (item == nullptr) { return -1; }
-    return item->data(Qt::UserRole).toLongLong();
+    return item->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
+}
+
+std::optional<ResourceType> MainWindow::extractTypeFromRow(ResultsTable* resultTable, int row) {
+    auto* item = resultTable->item(row, 1);
+    if (item == nullptr) { return std::nullopt; }
+
+    const QVariant varResType = item->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
+    bool ok{};
+    const int raw = varResType.toInt(&ok);
+    if (!ok) { return std::nullopt; }
+
+    return static_cast<ResourceType>(raw);
 }
 
 void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,

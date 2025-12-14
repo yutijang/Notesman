@@ -68,12 +68,12 @@ enum class ResourceType : std::uint8_t { text, cpp, pdf, epub };
 }
 
 struct Resource {
-        sqlite3_int64 id{};     // id của resource
-        std::string title;      // tiêu đề
-        ResourceType type;      // loại: text, cpp, pdf, epub
-        std::string file_hash;  // hash file (có thể rỗng nếu là text)
-        std::string created_at; // timestamp tạo
-        std::string updated_at; // timestamp cập nhật
+        sqlite3_int64 id{};     //> id của resource
+        std::string title;      //> tiêu đề của tài nguyên
+        ResourceType type;      //> loại: text, cpp, pdf, epub, html
+        std::string file_hash;  //> hash file (có thể rỗng nếu là text)
+        std::string created_at; //> timestamp tạo
+        std::string updated_at; //> timestamp cập nhật
 };
 
 struct FullResource {

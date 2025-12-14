@@ -97,6 +97,7 @@ class MainWindow : public QMainWindow {
         static void removeSelectedRowsFromTable(ResultsTable* table,
                                                 const QModelIndexList &selectedRows);
         static sqlite3_int64 extractIdFromRow(ResultsTable* resultTable, int row);
+        static std::optional<ResourceType> extractTypeFromRow(ResultsTable* resultTable, int row);
         void runUpdate(const QString &filePath);
         static qint64 getCurrentPid();
 

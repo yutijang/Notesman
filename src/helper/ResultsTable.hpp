@@ -16,6 +16,10 @@ class ResultsTable final : public QTableWidget {
     public:
         explicit ResultsTable(QWidget* parent = nullptr);
 
+        // ItemRole base type must be int to match Qt ItemDataRole API
+        // NOLINTNEXTLINE(performance-enum-size)
+        enum class ItemRole : int { resourceId = Qt::UserRole + 1, resourceType };
+
     protected:
         void mousePressEvent(QMouseEvent* event) override;
         void focusOutEvent(QFocusEvent* event) override;
