@@ -1,12 +1,13 @@
 #include "free_port.hpp"
 
-#include <stdexcept>
 #include <system_error>
 
 // ---------------- Platform includes ----------------
 #if defined(_WIN32)
 #    include <winsock2.h>
 #    include <ws2tcpip.h>
+#    include <stdexcept>
+
 #    pragma comment(lib, "ws2_32.lib")
 
 using SockHandle = SOCKET;
@@ -21,7 +22,6 @@ static constexpr SockHandle INVALID_SOCK = INVALID_SOCKET;
 
 using SockHandle = int;
 static constexpr SockHandle INVALID_SOCK = -1;
-
 #endif
 
 // ---------------- RAII: Socket ----------------
@@ -79,7 +79,7 @@ class WSA {
 #endif
 
 // ---------------- Main function ----------------
-uint16_t findFreePort() {
+std::uint16_t findFreePort() {
 #if defined(_WIN32)
     WSA wsaGuard; // RAII init for Windows
 #endif

@@ -2,4 +2,4 @@
 
 #include <cstdint>
 
-uint16_t findFreePort();
+std::uint16_t findFreePort();

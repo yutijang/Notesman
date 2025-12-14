@@ -114,7 +114,7 @@ void GoogleDriveService::updateDatabase(const QString &fileId,
     auto* reply = m_networkManager.sendCustomRequest(req, "PATCH", dbBytes);
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
-        bool ok = (reply->error() == QNetworkReply::NoError);
+        const bool ok = (reply->error() == QNetworkReply::NoError);
         if (!ok) { qWarning() << "Update failed:" << reply->errorString(); }
         reply->deleteLater();
         if (done) { done(ok); }

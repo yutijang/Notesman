@@ -222,7 +222,7 @@ void AppController::handleGetAllDataRequest() {
 }
 
 void AppController::handleDefaultSettingsRequest() {
-    emit settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::Default);
+    emit settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::notChange);
 }
 
 void AppController::handleApplySettingsRequest(const SettingsData &data) {
@@ -257,10 +257,10 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
 
         emit requestSyntaxHighlightingUpdate(data.theme);
 
-        emit settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::Updated);
+        emit settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::updated);
     } else {
         emit settingsUpdateStatus(tr("Nothing changed, settings not save"),
-                                  UiConst::SettingsMessageState::None);
+                                  UiConst::SettingsMessageState::none);
     }
 }
 

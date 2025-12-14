@@ -125,7 +125,7 @@ void MainWindow::setupIconInfo() {
 void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) {
     m_settingsMessageState = state;
 
-    if (state == UiConst::SettingsMessageState::Default) {
+    if (state == UiConst::SettingsMessageState::notChange) {
         emit settingsStateChangeRequest(AppController::defaultUiSettings());
     }
 }
@@ -387,15 +387,15 @@ void MainWindow::retranslateUi() {
 #pragma clang diagnostic ignored "-Wswitch-default"
     // Dịch lại thông báo đang hiển thị (nếu còn hiệu lực)
     switch (m_settingsMessageState) {
-        case UiConst::SettingsMessageState::Updated:
+        case UiConst::SettingsMessageState::updated:
             // m_settingsTab->notificationLabel()->setText(tr("Settings updated!"));
             emit settingsTabShowNotification(tr("Settings updated!"));
             break;
-        case UiConst::SettingsMessageState::Default:
+        case UiConst::SettingsMessageState::notChange:
             // m_settingsTab->notificationLabel()->setText(tr("Settings default!"));
             emit settingsTabShowNotification(tr("Settings default!"));
             break;
-        case UiConst::SettingsMessageState::None: break;
+        case UiConst::SettingsMessageState::none: break;
     }
 #pragma clang diagnostic pop
     // =================================

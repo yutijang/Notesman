@@ -125,7 +125,7 @@ class MainWindow : public QMainWindow {
 
         InfoCornerWidget* m_infoWidget{};
 
-        UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::None};
+        UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::none};
 
         QProgressDialog* m_progressDialog{};
 };
