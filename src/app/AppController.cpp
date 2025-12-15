@@ -269,7 +269,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
                                          bool isTextMode) {
     ResourceType type{};
     if (isTextMode) {
-        type = ResourceType::text;
+        type = ResourceType::plainText;
     } else {
         if (filePath.isEmpty()) {
             emit addTabNotiRequest(tr("File path is empty."));

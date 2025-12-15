@@ -7,28 +7,28 @@
 
 TEST_CASE("resourceTypeToString - Standard Mappings", "[Model][Utils][ResourceType]") {
     SECTION("Mapping text") {
-        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::text), "text") == 0);
+        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::plainText), "text") == 0);
     }
 
     SECTION("Mapping cpp") {
-        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::cpp), "cpp") == 0);
+        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::cCppCode), "cpp") == 0);
     }
 
     SECTION("Mapping pdf") {
-        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::pdf), "pdf") == 0);
+        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::pdfDoc), "pdf") == 0);
     }
 
     SECTION("Mapping epub") {
-        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::epub), "epub") == 0);
+        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::epubDoc), "epub") == 0);
     }
 }
 
 TEST_CASE("resourceTypeFromString - Valid and Invalid Inputs", "[Model][Utils][ResourceType]") {
     SECTION("Valid String Conversions") {
-        REQUIRE(resourceTypeFromString("text") == ResourceType::text);
-        REQUIRE(resourceTypeFromString("cpp") == ResourceType::cpp);
-        REQUIRE(resourceTypeFromString("pdf") == ResourceType::pdf);
-        REQUIRE(resourceTypeFromString("epub") == ResourceType::epub);
+        REQUIRE(resourceTypeFromString("text") == ResourceType::plainText);
+        REQUIRE(resourceTypeFromString("cpp") == ResourceType::cCppCode);
+        REQUIRE(resourceTypeFromString("pdf") == ResourceType::pdfDoc);
+        REQUIRE(resourceTypeFromString("epub") == ResourceType::epubDoc);
     }
 
     SECTION("Invalid String Should Throw std::runtime_error") {
@@ -41,11 +41,11 @@ TEST_CASE("resourceTypeFromString - Valid and Invalid Inputs", "[Model][Utils][R
 
 TEST_CASE("resourceTypeFromExtension", "[Model][Utils][ResourceType]") {
     SECTION("Mapping valid resource type") {
-        REQUIRE(resourceTypeFromExtension("txt") == ResourceType::text);
-        REQUIRE(resourceTypeFromExtension("cpp") == ResourceType::cpp);
-        REQUIRE(resourceTypeFromExtension("h") == ResourceType::cpp);
-        REQUIRE(resourceTypeFromExtension("pdf") == ResourceType::pdf);
-        REQUIRE(resourceTypeFromExtension("epub") == ResourceType::epub);
+        REQUIRE(resourceTypeFromExtension("txt") == ResourceType::plainText);
+        REQUIRE(resourceTypeFromExtension("cpp") == ResourceType::cCppCode);
+        REQUIRE(resourceTypeFromExtension("h") == ResourceType::cCppCode);
+        REQUIRE(resourceTypeFromExtension("pdf") == ResourceType::pdfDoc);
+        REQUIRE(resourceTypeFromExtension("epub") == ResourceType::epubDoc);
     }
 
     SECTION("Return nullopt check") {
@@ -58,10 +58,10 @@ TEST_CASE("resourceTypeFromExtension", "[Model][Utils][ResourceType]") {
 
 TEST_CASE("resourceTypeFromFile", "[Model][Utils]") {
     SECTION("Check valid string file path") {
-        REQUIRE(resourceTypeFromFile("/mnt/Path/resource.txt") == ResourceType::text);
-        REQUIRE(resourceTypeFromFile(R"(C:\res\exam.h)") == ResourceType::cpp);
-        REQUIRE(resourceTypeFromFile("/mnt/MountPoint/path/res.pdf") == ResourceType::pdf);
-        REQUIRE(resourceTypeFromFile("D:\\cpp ebook\\learn.epub") == ResourceType::epub);
+        REQUIRE(resourceTypeFromFile("/mnt/Path/resource.txt") == ResourceType::plainText);
+        REQUIRE(resourceTypeFromFile(R"(C:\res\exam.h)") == ResourceType::cCppCode);
+        REQUIRE(resourceTypeFromFile("/mnt/MountPoint/path/res.pdf") == ResourceType::pdfDoc);
+        REQUIRE(resourceTypeFromFile("D:\\cpp ebook\\learn.epub") == ResourceType::epubDoc);
     }
 
     SECTION("Check invalid string file path") {
@@ -83,7 +83,7 @@ TEST_CASE("resourceTypeFromFile", "[Model][Utils]") {
         // "archive.tar.pdf")
 
         // Giả sử tên file là "report.v1.pdf" -> ext là "pdf"
-        REQUIRE(resourceTypeFromFile("/archive/report.v1.pdf") == ResourceType::pdf);
+        REQUIRE(resourceTypeFromFile("/archive/report.v1.pdf") == ResourceType::pdfDoc);
 
         // Giả sử tên file là "archive.zip" -> ext là "zip" -> nullopt
         REQUIRE(resourceTypeFromFile(R"(C:\Data\archive.zip)") == std::nullopt);

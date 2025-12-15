@@ -14,16 +14,23 @@
 
 #include "helper.hpp"
 
-enum class ResourceType : std::uint8_t { text, cpp, pdf, epub };
+enum class ResourceType : std::uint8_t {
+    plainText, //> ghi chú text thường (QTextEdit, không highlight)
+    cCppCode,  //> snippet / mã nguồn C/C++ (QTextEdit + highlight)
+    htmlDoc,   //> .html (WebView)
+    pdfDoc,    //> .pdf (PDF viewer)
+    epubDoc    //> .epub (Epub viewer)
+};
 
 [[nodiscard]] inline const char* resourceTypeToString(ResourceType type) noexcept {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wswitch-default"
     switch (type) {
-        case ResourceType::text: return "text";
-        case ResourceType::cpp : return "cpp";
-        case ResourceType::pdf : return "pdf";
-        case ResourceType::epub: return "epub";
+        case ResourceType::plainText: return "text";
+        case ResourceType::cCppCode : return "cpp";
+        case ResourceType::htmlDoc  : return "html";
+        case ResourceType::pdfDoc   : return "pdf";
+        case ResourceType::epubDoc  : return "epub";
     }
 #pragma clang diagnostic pop
     std::unreachable(); // compiler hiểu: chỗ này không bao giờ tới
@@ -37,21 +44,27 @@ enum class ResourceType : std::uint8_t { text, cpp, pdf, epub };
 }
 
 [[nodiscard]] inline ResourceType resourceTypeFromString(std::string_view str) {
-    if (str == "text") { return ResourceType::text; }
-    if (str == "cpp") { return ResourceType::cpp; }
-    if (str == "pdf") { return ResourceType::pdf; }
-    if (str == "epub") { return ResourceType::epub; }
+    if (str == "text") { return ResourceType::plainText; }
+    if (str == "cpp") { return ResourceType::cCppCode; }
+    if (str == "html") { return ResourceType::htmlDoc; }
+    if (str == "pdf") { return ResourceType::pdfDoc; }
+    if (str == "epub") { return ResourceType::epubDoc; }
     throw std::runtime_error(std::format("Unknown ResourceType string: {}", str));
 }
 
 [[nodiscard]] inline std::optional<ResourceType> resourceTypeFromExtension(std::string_view ext) {
     const auto &extMap = []() -> const std::unordered_map<std::string_view, ResourceType> & {
         static const auto* map = new std::unordered_map<std::string_view, ResourceType>{
-            { "txt", ResourceType::text},
-            { "cpp",  ResourceType::cpp},
-            {   "h",  ResourceType::cpp},
-            { "pdf",  ResourceType::pdf},
-            {"epub", ResourceType::epub}
+            { "txt", ResourceType::plainText},
+            {   "c",  ResourceType::cCppCode},
+            { "cpp",  ResourceType::cCppCode},
+            {   "h",  ResourceType::cCppCode},
+            { "hpp",  ResourceType::cCppCode},
+            { "cxx",  ResourceType::cCppCode},
+            { "hxx",  ResourceType::cCppCode},
+            {"html",   ResourceType::htmlDoc},
+            { "pdf",    ResourceType::pdfDoc},
+            {"epub",   ResourceType::epubDoc}
         };
         return *map;
     }();
@@ -68,10 +81,10 @@ enum class ResourceType : std::uint8_t { text, cpp, pdf, epub };
 }
 
 struct Resource {
-        sqlite3_int64 id{};     //> id của resource
-        std::string title;      //> tiêu đề của tài nguyên
-        ResourceType type;      //> loại: text, cpp, pdf, epub, html
-        std::string file_hash;  //> hash file (có thể rỗng nếu là text)
+        sqlite3_int64 id{};    //> id của resource
+        std::string title;     //> tiêu đề của tài nguyên
+        ResourceType type;     //> plainText, cCppCode, htmlDoc, pdfDoc, epubDoc for viewer/behavior
+        std::string file_hash; //> hash file (có thể rỗng nếu là text)
         std::string created_at; //> timestamp tạo
         std::string updated_at; //> timestamp cập nhật
 };

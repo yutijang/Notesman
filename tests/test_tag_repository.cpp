@@ -44,7 +44,7 @@ namespace {
         return db;
     }
 
-    Resource makeResource(const std::string &title, ResourceType type = ResourceType::text) {
+    Resource makeResource(const std::string &title, ResourceType type = ResourceType::plainText) {
         Resource r{};
         r.title = title;
         r.type = type;

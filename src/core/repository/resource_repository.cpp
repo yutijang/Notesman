@@ -14,7 +14,7 @@ sqlite3_int64 ResourceRepository::insert(const Resource &res) {
     const char* typeStr = resourceTypeToString(res.type);
     sqlite3_bind_text(stmt.get(), 2, typeStr, -1, SQLITE_TRANSIENT);
 
-    if (res.type == ResourceType::text || res.file_hash.empty()) {
+    if (res.type == ResourceType::plainText || res.file_hash.empty()) {
         sqlite3_bind_null(stmt.get(), 3);
     } else {
         sqlite3_bind_text(stmt.get(), 3, res.file_hash.c_str(), -1, SQLITE_TRANSIENT);

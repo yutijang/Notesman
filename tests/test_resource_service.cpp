@@ -83,13 +83,13 @@ TEST_CASE("ResourceService addTextResource basic behavior", "[ResourceService]")
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService);
 
-    SECTION("throws if not ResourceType::text") {
-        REQUIRE_THROWS_AS(service.addTextResource("Doc", "Body", ResourceType::pdf),
+    SECTION("throws if not ResourceType::plainText") {
+        REQUIRE_THROWS_AS(service.addTextResource("Doc", "Body", ResourceType::pdfDoc),
                           std::runtime_error);
     }
 
     SECTION("calls insert on repos when type is text") {
-        auto id = service.addTextResource("Doc", "Body", ResourceType::text);
+        auto id = service.addTextResource("Doc", "Body", ResourceType::plainText);
         auto res = resRepo.getById(id);
         REQUIRE(res.has_value());
         CHECK(res->title == "Doc");
@@ -115,7 +115,7 @@ TEST_CASE("ResourceService addFileResource delegates correctly", "[ResourceServi
     std::filesystem::path tmp = std::filesystem::temp_directory_path() / "rs_test.txt";
     std::ofstream(tmp) << "temp";
 
-    auto id = service.addFileResource(tmp.string(), "File1", ResourceType::pdf, true);
+    auto id = service.addFileResource(tmp.string(), "File1", ResourceType::pdfDoc, true);
     auto file = fileRepo.getFileById(id);
     REQUIRE(file.has_value());
     CHECK(file->is_managed);
@@ -223,7 +223,7 @@ TEST_CASE("ResourceService isExistTitle delegates correctly", "[ResourceService]
     FileService fileService(db, fileRepo, resRepo);
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService);
-    CHECK(service.isExistTitle("abc", ResourceType::pdf));
+    CHECK(service.isExistTitle("abc", ResourceType::pdfDoc));
 }
 
 TEST_CASE("ResourceService searchByTitleFull aggregates results", "[ResourceService]") {

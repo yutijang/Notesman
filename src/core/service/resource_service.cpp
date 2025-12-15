@@ -15,8 +15,8 @@
 // NOLINTNEXTLINE
 sqlite3_int64 ResourceService::addTextResource(const std::string &title, const std::string &content,
                                                ResourceType type) {
-    if (type != ResourceType::text) {
-        throw std::runtime_error("addTextResource only supports ResourceType::text");
+    if (type != ResourceType::plainText) {
+        throw std::runtime_error("addTextResource only supports ResourceType::plainText");
     }
 
     // Insert vào resources (file_hash để trống)
@@ -51,7 +51,7 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
     fres.tags = std::move(tagNames);
 
     // Nếu tài nguyên là text
-    if (fres.resource.type == ResourceType::text) {
+    if (fres.resource.type == ResourceType::plainText) {
         fres.content = m_textRepo.getTextById(resourceId);
         fres.filepath = std::nullopt;
 

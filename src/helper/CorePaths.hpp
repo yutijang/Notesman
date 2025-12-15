@@ -7,7 +7,7 @@
 
 class CorePaths {
     public:
-        static QString appDataDir() {
+        static QString appDataDir() noexcept {
 #ifdef Q_OS_WIN
             return QCoreApplication::applicationDirPath();
 #else
@@ -17,7 +17,7 @@ class CorePaths {
 #endif
         }
 
-        static QString databaseFile() { return appDataDir() + "/data.db"; }
+        static QString databaseFile() noexcept { return appDataDir() + "/data.db"; }
 
-        static QString configFile() { return appDataDir() + "/config.ini"; }
+        static QString configFile() noexcept { return appDataDir() + "/config.ini"; }
 };

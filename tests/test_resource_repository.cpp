@@ -71,17 +71,17 @@ TEST_CASE("ResourceRepository basic CRUD", "[ResourceRepository]") {
     ResourceRepository repo(db);
 
     SECTION("insert and getById") {
-        Resource res = makeResource("Doc1", ResourceType::cpp, "hash123");
+        Resource res = makeResource("Doc1", ResourceType::cCppCode, "hash123");
         auto id = repo.insert(res);
 
         auto resOpt = repo.getById(id);
         REQUIRE(resOpt.has_value());
         REQUIRE(resOpt->title == "Doc1");
-        REQUIRE(resOpt->type == ResourceType::cpp);
+        REQUIRE(resOpt->type == ResourceType::cCppCode);
     }
 
     SECTION("update resource title") {
-        Resource res = makeResource("OldTitle", ResourceType::text);
+        Resource res = makeResource("OldTitle", ResourceType::plainText);
         auto id = repo.insert(res);
 
         res.id = id;
@@ -94,7 +94,7 @@ TEST_CASE("ResourceRepository basic CRUD", "[ResourceRepository]") {
     }
 
     SECTION("remove deletes resource") {
-        Resource res = makeResource("Doc2", ResourceType::text);
+        Resource res = makeResource("Doc2", ResourceType::plainText);
         auto id = repo.insert(res);
         repo.remove(id);
 
@@ -107,14 +107,14 @@ TEST_CASE("ResourceRepository utility functions", "[ResourceRepository]") {
     auto db = createInMemoryDB();
     ResourceRepository repo(db);
 
-    Resource a = makeResource("A", ResourceType::text);
-    Resource b = makeResource("B", ResourceType::pdf, "hashString");
+    Resource a = makeResource("A", ResourceType::plainText);
+    Resource b = makeResource("B", ResourceType::pdfDoc, "hashString");
     repo.insert(a);
     repo.insert(b);
 
     SECTION("existsTitle returns true if exists") {
-        REQUIRE(repo.existsTitle("A", ResourceType::text));
-        REQUIRE_FALSE(repo.existsTitle("NonExistTitle", ResourceType::text));
+        REQUIRE(repo.existsTitle("A", ResourceType::plainText));
+        REQUIRE_FALSE(repo.existsTitle("NonExistTitle", ResourceType::plainText));
     }
 
     SECTION("getByFileHash returns correct resource") {
