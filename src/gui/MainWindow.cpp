@@ -182,7 +182,8 @@ void MainWindow::setCore(NotesAppCore* core) {
 }
 
 // NOLINTNEXTLINE
-void MainWindow::viewResource(int id, const QString &title, const QString &path) {
+void MainWindow::viewResource(int id, ResourceType type, const QString &title,
+                              const QString &path) {
     auto* dialog = new QDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose); // Tự giải phóng khi đóng
     dialog->setWindowTitle(QString(tr("View detail resource: %1")).arg(title));
@@ -198,9 +199,7 @@ void MainWindow::viewResource(int id, const QString &title, const QString &path)
     auto* viewSourceTextEdit = createResourceTextEdit(this);
     viewSourceTextEdit->setMinimumWidth(editorW);
 
-    loadResourceContent(id, path, viewSourceTextEdit);
-
-    setupHighlighter(viewSourceTextEdit);
+    loadResourceContent(id, type, path, viewSourceTextEdit);
 
     auto* layout = new QVBoxLayout(dialog);
     layout->addWidget(viewSourceTextEdit);
@@ -215,7 +214,7 @@ void MainWindow::viewResource(int id, const QString &title, const QString &path)
     });
 }
 
-void MainWindow::showContextMenu(const QPoint &pos, int id, const QString &title,
+void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
                                  const QString &path) {
     if (m_browseTab == nullptr) {
         qWarning() << "BrowseTabWidget not initialized!";
@@ -228,32 +227,17 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, const QString &title
         return;
     }
 
-    // debug
-    const QModelIndex index = resultsTbl->indexAt(pos);
-    if (!index.isValid()) {
-        qWarning() << "Invalid index at context menu position";
-        return;
-    }
-
-    const int row = index.row();
-
-    if (auto typeOpt = extractTypeFromRow(resultsTbl, row)) {
-        qDebug() << "Selected ResourceType:" << resourceTypeToString(*typeOpt)
-                 << "(enum value =" << static_cast<int>(*typeOpt) << ')';
-    } else {
-        qWarning() << "Failed to extract ResourceType from row" << row;
-    }
-    //
-
     QMenu menu(this);
 
     QAction* viewAction{};
-    // if (path.isEmpty()) {
     viewAction = menu.addAction(tr("View Resource"));
     viewAction->setIcon(QIcon(":/icons/view.ico"));
-    QObject::connect(viewAction, &QAction::triggered, this,
-                     [this, id, title, path]() { viewResource(id, title, path); });
-    // }
+    if (type == ResourceType::cCppCode || type == ResourceType::plainText) {
+        QObject::connect(viewAction, &QAction::triggered, this,
+                         [this, id, type, title, path]() { viewResource(id, type, title, path); });
+    } else {
+        viewAction->setDisabled(true);
+    }
 
     QAction* openAction = menu.addAction(tr("Open path"));
     QObject::connect(openAction, &QAction::triggered, this, [path]() {
@@ -739,14 +723,16 @@ void MainWindow::handleSyntaxHighlightingUpdate(Theme theme) {
 // --- BEGIN viewResource helper ---
 
 // NOLINTNEXTLINE
-void MainWindow::loadResourceContent(int id, const QString &path,
+void MainWindow::loadResourceContent(int id, ResourceType type, const QString &path,
                                      PlainTextEdit* viewSourceTextEdit) {
-    if (path.isEmpty()) {
+    if (type == ResourceType::plainText) {
         auto resId = static_cast<sqlite3_int64>(id);
         auto resFullOpt = m_core->getFullResource(resId);
 
         if (resFullOpt && resFullOpt->content) {
-            viewSourceTextEdit->setPlainText(QString::fromStdString(*resFullOpt->content));
+            const auto resContent = *resFullOpt->content;
+            viewSourceTextEdit->setPlainText(QString::fromStdString(resContent));
+            if (Utils::looksLikeCppCode(resContent)) { setupHighlighter(viewSourceTextEdit); }
         } else {
             viewSourceTextEdit->setPlainText(tr("No content available."));
         }
@@ -841,9 +827,9 @@ std::optional<ResourceType> MainWindow::extractTypeFromRow(ResultsTable* resultT
     auto* item = resultTable->item(row, 1);
     if (item == nullptr) { return std::nullopt; }
 
-    const QVariant varResType = item->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
+    const QVariant vRes = item->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
     bool ok{};
-    const int raw = varResType.toInt(&ok);
+    const int raw = vRes.toInt(&ok);
     if (!ok) { return std::nullopt; }
 
     return static_cast<ResourceType>(raw);

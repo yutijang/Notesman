@@ -93,17 +93,17 @@ TEST_CASE("FileService::addFileResource inserts and reuses existing resource", "
 
     // file đầu tiên → thêm mới
     auto file1 = createTempFile("file1.txt", "abc");
-    auto id1 = service.addFileResource(file1.string(), "Doc1", ResourceType::pdf, false);
+    auto id1 = service.addFileResource(file1.string(), "Doc1", ResourceType::pdfDoc, false);
     CHECK(id1 == 1);
 
     // file khác nhưng cùng nội dung → cùng hash → tái sử dụng
     auto file2 = createTempFile("file2.txt", "abc");
-    auto id2 = service.addFileResource(file2.string(), "Doc2", ResourceType::pdf, false);
+    auto id2 = service.addFileResource(file2.string(), "Doc2", ResourceType::pdfDoc, false);
     CHECK(id2 == id1);
 
     // file khác nội dung → hash khác → tạo mới
     auto file3 = createTempFile("file3.txt", "xyz");
-    auto id3 = service.addFileResource(file3.string(), "Doc3", ResourceType::pdf, false);
+    auto id3 = service.addFileResource(file3.string(), "Doc3", ResourceType::pdfDoc, false);
     CHECK(id3 != id1);
 
     std::filesystem::remove(file1);

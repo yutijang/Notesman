@@ -50,7 +50,7 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
     fres.resource = *resOpt;
     fres.tags = std::move(tagNames);
 
-    // Nếu tài nguyên là text
+    // Nếu tài nguyên là text thuần
     if (fres.resource.type == ResourceType::plainText) {
         fres.content = m_textRepo.getTextById(resourceId);
         fres.filepath = std::nullopt;

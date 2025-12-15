@@ -29,4 +29,20 @@ namespace Utils {
     }
 
     [[nodiscard]] std::string getExtensionFromDownloadUrl(const std::string &url);
+
+    [[nodiscard]] inline bool looksLikeCppCode(std::string_view text) noexcept {
+        if (text.size() < 20) { return false; } // NOLINT(readability-magic-numbers)
+
+        int score = 0;
+
+        if (text.find("#include") != std::string_view::npos) { ++score; }
+        if (text.find("std::") != std::string_view::npos) { ++score; }
+        if (text.find("->") != std::string_view::npos) { ++score; }
+        if (text.find("::") != std::string_view::npos) { ++score; }
+        if (text.find(';') != std::string_view::npos) { ++score; }
+        if (text.find('{') != std::string_view::npos) { ++score; }
+        if (text.find('}') != std::string_view::npos) { ++score; }
+
+        return score >= 2;
+    }
 } // namespace Utils

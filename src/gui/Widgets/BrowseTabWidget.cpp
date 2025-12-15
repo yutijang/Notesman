@@ -159,7 +159,7 @@ void BrowseTabWidget::onCellDoubleClicked(int row) {
 
     const auto &data = *rowDataOpt;
 
-    emit resourceDoubleClicked(data.id, data.title, data.path);
+    emit resourceDoubleClicked(data.id, data.type, data.title, data.path);
 }
 
 void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
@@ -214,15 +214,22 @@ void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
     auto* titleItem = m_resultsTbl->item(row, 1);
     if (titleItem == nullptr) { return; }
 
-    QVariant idData =
+    const QVariant vId =
         titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
-    if (!idData.isValid()) { return; }
-    const int idItem = idData.toInt();
+    if (!vId.isValid()) { return; }
+    const int idItem = vId.toInt();
 
     auto* pathItem = m_resultsTbl->item(row, 2);
     const QString path = (pathItem != nullptr) ? pathItem->text() : QString{};
 
-    emit contextMenuRequested(pos, idItem, titleItem->text(), path);
+    const QVariant vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
+    bool ok{};
+    const int raw = vRes.toInt(&ok);
+    if (!ok) { return; }
+
+    const auto type = static_cast<ResourceType>(raw);
+
+    emit contextMenuRequested(pos, idItem, type, titleItem->text(), path);
 }
 
 std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const {
@@ -231,13 +238,21 @@ std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const 
     auto* titleItem = m_resultsTbl->item(row, 1);
     if (titleItem == nullptr) { return std::nullopt; }
 
-    QVariant idData =
+    const QVariant idData =
         titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
     if (!idData.isValid()) { return std::nullopt; }
 
     auto* pathItem = m_resultsTbl->item(row, 2);
 
+    const QVariant vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
+    bool ok{};
+    const int raw = vRes.toInt(&ok);
+    if (!ok) { return std::nullopt; }
+
+    const auto type = static_cast<ResourceType>(raw);
+
     RowData r{.id = idData.toInt(),
+              .type = type,
               .title = titleItem->text(),
               .path = (pathItem != nullptr) ? pathItem->text() : QString{}};
 

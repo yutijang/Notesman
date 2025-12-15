@@ -89,9 +89,11 @@ class MainWindow : public QMainWindow {
         void setupAddTab();
         void setupSettingsTab();
         void setupIconInfo();
-        void viewResource(int id, const QString &title, const QString &path);
-        void showContextMenu(const QPoint &pos, int id, const QString &title, const QString &path);
-        void loadResourceContent(int id, const QString &path, PlainTextEdit* viewSourceTextEdit);
+        void viewResource(int id, ResourceType type, const QString &title, const QString &path);
+        void showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
+                             const QString &path);
+        void loadResourceContent(int id, ResourceType type, const QString &path,
+                                 PlainTextEdit* viewSourceTextEdit);
         static PlainTextEdit* createResourceTextEdit(QWidget* parent);
         void setupHighlighter(PlainTextEdit* viewSourceTextEdit);
         static void removeSelectedRowsFromTable(ResultsTable* table,

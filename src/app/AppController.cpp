@@ -264,24 +264,24 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
     }
 }
 
+// NOLINTNEXTLINE
 void AppController::handleAddNoteRequest(const QString &title, const QString &textContent,
                                          const QString &filePath, const QStringList &tags,
                                          bool isTextMode) {
-    ResourceType type{};
-    if (isTextMode) {
-        type = ResourceType::plainText;
-    } else {
+    ResourceType type = ResourceType::plainText;
+    const auto filePathStd = filePath.toStdString();
+    if (!isTextMode) {
         if (filePath.isEmpty()) {
             emit addTabNotiRequest(tr("File path is empty."));
             return;
         }
 
-        if (m_core->isFileIndexed(filePath.toStdString())) {
+        if (m_core->isFileIndexed(filePathStd)) {
             emit addTabNotiRequest(tr("File exists in storage! Not add more."));
             return;
         }
 
-        const auto typeOpt = resourceTypeFromFile(filePath.toStdString());
+        const auto typeOpt = resourceTypeFromFile(filePathStd);
         if (!typeOpt.has_value()) {
             emit addTabNotiRequest(tr("File extension not support!"));
             return;
@@ -290,32 +290,30 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
         type = *typeOpt;
     }
 
-    if (m_core->isExistTitle(title.toStdString(), type)) {
+    const auto titleStd = title.toStdString();
+    if (m_core->isExistTitle(titleStd, type)) {
         emit addTabNotiRequest(tr("Title exists! Please choose another title"));
         return;
     }
 
+    if (isTextMode && textContent.isEmpty()) {
+        emit addTabNotiRequest(tr("Content cannot be empty!"));
+        return;
+    }
+
+    sqlite_int64 resId{};
     if (isTextMode) {
-        if (textContent.isEmpty()) {
-            emit addTabNotiRequest(tr("Content cannot be empty!"));
-            return;
-        }
-
-        const auto resId =
-            m_core->addTextNote(title.toStdString(), textContent.toUtf8().toStdString(), type);
-
-        addTagsToResource(resId, tags);
+        resId = m_core->addTextNote(titleStd, textContent.toUtf8().toStdString(), type);
 
         emit addTabNotiRequest(tr("Note added successfully!"));
     } else {
-        const auto resId = m_core->addFileNote(filePath.toStdString(), title.toStdString(), type,
-                                               m_settings->isManagedResources());
-
-        addTagsToResource(resId, tags);
+        resId = m_core->addFileNote(filePath.toStdString(), titleStd, type,
+                                    m_settings->isManagedResources());
 
         emit addTabNotiRequest(tr("File added successfully!"));
     }
 
+    addTagsToResource(resId, tags);
     emit resetAddTabInputsRequest();
 }
 
