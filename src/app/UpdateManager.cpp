@@ -9,10 +9,7 @@
 
 #include "UpdateManager.hpp"
 #include "app_version.hpp"
-
-namespace {
-    constexpr int TIMEOUT{5000};
-} // namespace
+#include "UiConstants.hpp"
 
 UpdateManager::UpdateManager(QObject* parent) : QObject(parent) {}
 
@@ -26,14 +23,14 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
 
     QUrl url(versionCheckUrl);
     QNetworkRequest request(url);
-    request.setTransferTimeout(TIMEOUT);
+    request.setTransferTimeout(UiConst::NOTI_TIMEOUT5);
     request.setRawHeader("User-Agent", "Notesman-Updater/1.0");
 
     QNetworkReply* reply = m_networkManager.get(request);
 
     auto* timeoutTimer = new QTimer(reply);
     timeoutTimer->setSingleShot(true);
-    timeoutTimer->setInterval(TIMEOUT);
+    timeoutTimer->setInterval(UiConst::NOTI_TIMEOUT5);
     QObject::connect(timeoutTimer, &QTimer::timeout, reply, [this, reply]() {
         if (reply->isRunning()) {
             reply->abort();

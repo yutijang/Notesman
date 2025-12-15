@@ -38,7 +38,7 @@ void SettingsTabWidget::setupUi() {
     contentWidget->setMinimumWidth(LAYOUT_MINWIDTH);
 
     // Nhãn thông báo cập nhật Settings
-    m_notiSettingsChangedLbl = new QLabel("");
+    m_notiSettingsChangedLbl = new QLabel();
     m_notiSettingsChangedLbl->setAlignment(Qt::AlignCenter);
     m_notiSettingsChangedLbl->setVisible(false);
 
@@ -250,7 +250,7 @@ QVBoxLayout* SettingsTabWidget::setupAccountLinkGroup() {
     auto* accountLinkLayout = new QHBoxLayout();
     m_linkGDBtn = new QPushButton(tr("Link Gmail for backup database to Google Drive"));
     m_linkGDBtn->setMaximumWidth(340); // NOLINT(readability-magic-numbers)
-    m_addressUserGMLoginLbl = new QLabel("");
+    m_addressUserGMLoginLbl = new QLabel();
 
     accountLinkLayout->addWidget(m_linkGDBtn);
     accountLinkLayout->addStretch(1);

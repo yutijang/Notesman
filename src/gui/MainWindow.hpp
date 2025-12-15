@@ -67,8 +67,7 @@ class MainWindow : public QMainWindow {
         void onDownloadStarted();
         void onDownloadFinished(const QString &filePath);
         void onDownloadFailed(const QString &errorString);
-        void updateStatus(const QString &message,
-                          int timeout = 5000); // NOLINT(readability-magic-numbers)
+        void updateStatus(const QString &message, int timeout = UiConst::NOTI_TIMEOUT5);
         void handleDownloadFailCauseTimeout();
 
     protected:

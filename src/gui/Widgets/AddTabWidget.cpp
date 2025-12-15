@@ -31,9 +31,9 @@ void AddTabWidget::setupUi() {
     auto* controlPanel = new QWidget(this);
     auto* controlLayout = new QVBoxLayout(controlPanel);
 
-    m_notiLbl = new QLabel("");
+    m_notiLbl = new QLabel();
     m_notiLbl->setAlignment(Qt::AlignCenter);
-    // m_notiLbl->setVisible(false);
+    m_notiLbl->setVisible(false);
 
     // Add to layout
     controlLayout->addLayout(setupTitleGroup());
@@ -124,7 +124,7 @@ void AddTabWidget::onBrowseFile() {
             m_notiFilepathLbl->setText(tr("File extension not support!"));
             m_notiFilepathLbl->setVisible(true);
 
-            QTimer::singleShot(5000, this, [this]() { // NOLINT(readability-magic-numbers)
+            QTimer::singleShot(UiConst::NOTI_TIMEOUT5, this, [this]() {
                 m_notiFilepathLbl->clear();
                 m_notiFilepathLbl->setVisible(false);
             });

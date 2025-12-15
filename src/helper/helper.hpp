@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <string>
+#include <string_view>
 
 namespace Utils {
     // Lấy phần mở rộng của đường dẫn (vd: "file.txt" -> "txt")
@@ -31,18 +32,18 @@ namespace Utils {
     [[nodiscard]] std::string getExtensionFromDownloadUrl(const std::string &url);
 
     [[nodiscard]] inline bool looksLikeCppCode(std::string_view text) noexcept {
-        if (text.size() < 20) { return false; } // NOLINT(readability-magic-numbers)
+        if (text.size() < 30) { return false; } // NOLINT(readability-magic-numbers)
 
-        int score = 0;
+        int score{};
 
-        if (text.find("#include") != std::string_view::npos) { ++score; }
-        if (text.find("std::") != std::string_view::npos) { ++score; }
-        if (text.find("->") != std::string_view::npos) { ++score; }
-        if (text.find("::") != std::string_view::npos) { ++score; }
-        if (text.find(';') != std::string_view::npos) { ++score; }
-        if (text.find('{') != std::string_view::npos) { ++score; }
-        if (text.find('}') != std::string_view::npos) { ++score; }
+        if (text.contains("#include <") || text.contains("#include \"")) { score += 3; }
+        if (text.contains("class ") || text.contains("struct ") || text.contains("namespace ")) {
+            score += 3;
+        }
+        if (text.contains("::")) { score += 2; }
+        if (text.contains("std::")) { score += 2; }
+        if (text.contains("->")) { score += 1; }
 
-        return score >= 2;
+        return score >= 5; // NOLINT(readability-magic-numbers)
     }
 } // namespace Utils

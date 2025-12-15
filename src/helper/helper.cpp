@@ -22,6 +22,6 @@ namespace Utils {
             return filenamePart.substr(extPos + 1);
         }
 
-        return "";
+        return {};
     }
 } // namespace Utils

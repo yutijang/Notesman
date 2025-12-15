@@ -229,24 +229,24 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
 
     QMenu menu(this);
 
-    QAction* viewAction{};
-    viewAction = menu.addAction(tr("View Resource"));
-    viewAction->setIcon(QIcon(":/icons/view.ico"));
     if (type == ResourceType::cCppCode || type == ResourceType::plainText) {
+        QAction* viewAction{};
+        viewAction = menu.addAction(tr("View Resource"));
+        viewAction->setIcon(QIcon(":/icons/view.ico"));
         QObject::connect(viewAction, &QAction::triggered, this,
                          [this, id, type, title, path]() { viewResource(id, type, title, path); });
-    } else {
-        viewAction->setDisabled(true);
     }
 
-    QAction* openAction = menu.addAction(tr("Open path"));
-    QObject::connect(openAction, &QAction::triggered, this, [path]() {
-        if (path.isEmpty()) {
-            qDebug() << "No path to open.";
-            return;
-        }
-        QDesktopServices::openUrl(QUrl::fromLocalFile(path));
-    });
+    if (!(type == ResourceType::plainText)) {
+        QAction* openAction = menu.addAction(tr("Open path"));
+        QObject::connect(openAction, &QAction::triggered, this, [path]() {
+            if (path.isEmpty()) {
+                qDebug() << "No path to open.";
+                return;
+            }
+            QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+        });
+    }
 
     menu.addSeparator();
 
