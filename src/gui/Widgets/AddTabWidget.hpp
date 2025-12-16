@@ -12,6 +12,7 @@ class QPushButton;
 class PlainTextEdit;
 class QVBoxLayout;
 class QHBoxLayout;
+class QCheckBox;
 
 class AddTabWidget final : public QWidget {
         Q_OBJECT
@@ -49,7 +50,7 @@ class AddTabWidget final : public QWidget {
         QWidget* setupResouceGroup();
         QVBoxLayout* setupTagGroup();
         QWidget* setupFilePathGroup();
-        PlainTextEdit* setupTextEditor();
+        QWidget* setupTextEditorGroup();
         QHBoxLayout* setupButtonGroup();
 
         QLabel* m_titleLbl{};
@@ -67,4 +68,6 @@ class AddTabWidget final : public QWidget {
         TagInput* m_tagInp{};
         QLabel* m_notiLbl{};
         QLabel* m_notiFilepathLbl{};
+        QWidget* m_textEditorContainer{};
+        QCheckBox* m_toggleCodeHighlighterChkb{};
 };

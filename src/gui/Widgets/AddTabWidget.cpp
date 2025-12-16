@@ -46,7 +46,7 @@ void AddTabWidget::setupUi() {
     controlLayout->addLayout(setupButtonGroup());
 
     mainLayout->addWidget(controlPanel, 4);
-    mainLayout->addWidget(setupTextEditor(), 6); // NOLINT(readability-magic-numbers)
+    mainLayout->addWidget(setupTextEditorGroup(), 6); // NOLINT(readability-magic-numbers)
 
     onTextRadioToggled(true);
     updateAddAndClearButtons();
@@ -95,10 +95,10 @@ void AddTabWidget::clearFields() {
 void AddTabWidget::onTextRadioToggled(bool checked) {
     if (checked) {
         m_fileContainer->hide();
-        m_textEdt->show();
+        m_textEditorContainer->show();
     } else {
         m_fileContainer->show();
-        m_textEdt->hide();
+        m_textEditorContainer->hide();
     }
 }
 
@@ -253,13 +253,29 @@ QWidget* AddTabWidget::setupFilePathGroup() {
 }
 
 // Text editor
-PlainTextEdit* AddTabWidget::setupTextEditor() {
+QWidget* AddTabWidget::setupTextEditorGroup() {
+    m_textEditorContainer = new QWidget(this);
+    auto* textLayout = new QVBoxLayout(m_textEditorContainer);
+    textLayout->setContentsMargins(0, 0, 0, 0);
+
+    // Toolbar
+    auto* toolbar = new QWidget(m_textEditorContainer);
+    auto* toolbarLayout = new QHBoxLayout(toolbar);
+    toolbarLayout->setContentsMargins(0, 0, 0, 3);
+
+    m_toggleCodeHighlighterChkb = new QCheckBox("Toggle syntax highlight", toolbar);
+    toolbarLayout->addStretch(1);
+    toolbarLayout->addWidget(m_toggleCodeHighlighterChkb);
+
     m_textEdt = new PlainTextEdit(this);
     m_textEdt->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard |
                                        Qt::TextEditable);
     m_textEdt->setFont(QFont("JetBrains Mono", UiConst::FONT_SIZE));
 
-    return m_textEdt;
+    textLayout->addWidget(toolbar);
+    textLayout->addWidget(m_textEdt, 1);
+
+    return m_textEditorContainer;
 }
 
 // Buttons
