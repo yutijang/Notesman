@@ -31,19 +31,31 @@ namespace Utils {
 
     [[nodiscard]] std::string getExtensionFromDownloadUrl(const std::string &url);
 
+    // NOLINTBEGIN (readability-magic-numbers)
     [[nodiscard]] inline bool looksLikeCppCode(std::string_view text) noexcept {
-        if (text.size() < 30) { return false; } // NOLINT(readability-magic-numbers)
+        if (text.size() < 30) { return false; }
 
         int score{};
 
-        if (text.contains("#include <") || text.contains("#include \"")) { score += 3; }
-        if (text.contains("class ") || text.contains("struct ") || text.contains("namespace ")) {
+        if (text.contains("#include <") || text.contains("#include \"")) {
             score += 3;
+            if (score >= 5) { return true; }
         }
-        if (text.contains("::")) { score += 2; }
-        if (text.contains("std::")) { score += 2; }
-        if (text.contains("->")) { score += 1; }
+        if (text.contains("namespace ") || text.contains("class ") || text.contains("struct ")) {
+            score += 3;
+            if (score >= 5) { return true; }
+        }
+        if (text.contains("::")) {
+            score += 2;
+            if (score >= 5) { return true; }
+        }
+        if (text.contains("->")) {
+            score += 1;
+            if (score >= 5) { return true; }
+        }
 
-        return score >= 5; // NOLINT(readability-magic-numbers)
+        return score >= 5;
     }
+
+    // NOLINTEND
 } // namespace Utils

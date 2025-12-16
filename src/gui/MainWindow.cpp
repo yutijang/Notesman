@@ -197,6 +197,7 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
     dialog->resize(editorW, mainH - frameH + offset);
 
     auto* viewSourceTextEdit = createResourceTextEdit(this);
+
     viewSourceTextEdit->setMinimumWidth(editorW);
 
     loadResourceContent(id, type, path, viewSourceTextEdit);
@@ -731,8 +732,8 @@ void MainWindow::loadResourceContent(int id, ResourceType type, const QString &p
 
         if (resFullOpt && resFullOpt->content) {
             const auto resContent = *resFullOpt->content;
-            viewSourceTextEdit->setPlainText(QString::fromStdString(resContent));
             if (Utils::looksLikeCppCode(resContent)) { setupHighlighter(viewSourceTextEdit); }
+            viewSourceTextEdit->setPlainText(QString::fromStdString(resContent));
         } else {
             viewSourceTextEdit->setPlainText(tr("No content available."));
         }
