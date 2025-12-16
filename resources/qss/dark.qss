@@ -93,15 +93,15 @@ QLineEdit:focus, #tagLineEdit:focus {
     background-color: #333333; 
 }
 
-QRadioButton::indicator {
+QRadioButton::indicator, QCheckBox::indicator {
     width: 16px;
     height: 16px;
-    image: url(:/icons/unchecked.png);    
-    background: transparent;
+    image: url(:/icons/unchecked.png);     
+    background: transparent; 
     border: none;
 }
 
-QRadioButton::indicator:checked {
+QRadioButton::indicator:checked, QCheckBox::indicator::checked {
     image: url(:/icons/checked.png); 
 }
 

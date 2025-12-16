@@ -306,6 +306,9 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_appController, &AppController::requestSyntaxHighlightingUpdate, this,
                      &MainWindow::handleSyntaxHighlightingUpdate);
 
+    QObject::connect(m_addTab, &AddTabWidget::applySyntaxHighlighterRequest, this,
+                     &MainWindow::handleSyntaxHighlightingFromAddTabRequested);
+
     QObject::connect(m_appController, &AppController::addTabNotiRequest, m_addTab,
                      &AddTabWidget::showNotification);
 
@@ -719,6 +722,28 @@ void MainWindow::updateStatus(const QString &message, int timeout) {
 
 void MainWindow::handleSyntaxHighlightingUpdate(Theme theme) {
     applySyntaxHighlightingTheme(theme);
+}
+
+void MainWindow::handleSyntaxHighlightingFromAddTabRequested(bool checked) {
+    if (checked) {
+        bool isDarkTheme = m_appController->isDarkTheme();
+        if (isDarkTheme) {
+            applySyntaxHighlightingTheme(Theme::dark);
+        } else {
+            applySyntaxHighlightingTheme(Theme::light);
+        }
+    } else {
+        disableSyntaxHighlightingTheme();
+    }
+}
+
+void MainWindow::disableSyntaxHighlightingTheme() {
+    if (m_addTab->textEdit() == nullptr) { return; }
+
+    if (m_cppHighlighter != nullptr) { m_cppHighlighter->stopGradualRehighlight(); }
+
+    delete m_cppHighlighter;
+    m_cppHighlighter = nullptr;
 }
 
 // --- BEGIN viewResource helper ---

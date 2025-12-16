@@ -56,6 +56,8 @@ void AddTabWidget::setupConnections() {
     QObject::connect(m_addBtn, &QPushButton::clicked, this, &AddTabWidget::onAddButtonClicked);
     QObject::connect(m_clearBtn, &QPushButton::clicked, this, &AddTabWidget::onClearButtonClicked);
     QObject::connect(m_textRad, &QRadioButton::toggled, this, &AddTabWidget::onTextRadioToggled);
+    QObject::connect(m_toggleCodeHighlighterChkb, &QCheckBox::toggled, this,
+                     &AddTabWidget::onToggleCodeHighlighter);
 
     QObject::connect(m_titleInp, &QLineEdit::textChanged, this,
                      &AddTabWidget::updateAddAndClearButtons);
@@ -264,6 +266,7 @@ QWidget* AddTabWidget::setupTextEditorGroup() {
     toolbarLayout->setContentsMargins(0, 0, 0, 3);
 
     m_toggleCodeHighlighterChkb = new QCheckBox("Toggle syntax highlight", toolbar);
+    m_toggleCodeHighlighterChkb->setChecked(true);
     toolbarLayout->addStretch(1);
     toolbarLayout->addWidget(m_toggleCodeHighlighterChkb);
 
@@ -316,4 +319,8 @@ void AddTabWidget::resetAddTabInputs() const {
     m_filepathInp->clear();
 
     m_titleInp->setFocus();
+}
+
+void AddTabWidget::onToggleCodeHighlighter(bool checked) {
+    emit applySyntaxHighlighterRequest(checked);
 }

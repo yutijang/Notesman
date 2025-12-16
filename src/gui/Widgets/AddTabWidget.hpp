@@ -29,6 +29,7 @@ class AddTabWidget final : public QWidget {
     signals:
         void addNoteRequested(QString title, QString textContent, QString filePath,
                               QStringList tags, bool isTextMode);
+        void applySyntaxHighlighterRequest(bool checked);
 
     public slots:
         void showNotification(const QString &message) const;
@@ -45,6 +46,7 @@ class AddTabWidget final : public QWidget {
         void setupUi();
         void setupConnections();
         void clearFields();
+        void onToggleCodeHighlighter(bool checked);
 
         QVBoxLayout* setupTitleGroup();
         QWidget* setupResouceGroup();

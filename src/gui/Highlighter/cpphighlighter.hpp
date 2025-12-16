@@ -61,8 +61,8 @@ class CppHighlighter final : public QSyntaxHighlighter {
         CppHighlighterTheme m_theme;
 
         // gradual rehighlight state
-        QTimer* m_gradualTimer{nullptr};
+        QTimer* m_gradualTimer{};
         QPointer<QTextDocument> m_targetDoc; // doc rehighlighting
-        int m_currentBlockIndex{0};
+        int m_currentBlockIndex{};
         int m_batchSize{10};                 // NOLINT(readability-magic-numbers)
 };

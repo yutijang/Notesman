@@ -77,6 +77,7 @@ class MainWindow : public QMainWindow {
 
     private slots:
         void handleSyntaxHighlightingUpdate(Theme theme);
+        void handleSyntaxHighlightingFromAddTabRequested(bool checked);
         void onAbout();
         void handleSettingsStateChange(UiConst::SettingsMessageState state);
         void handleContextMenuDeleteAction(ResultsTable* resultTable);
@@ -101,6 +102,7 @@ class MainWindow : public QMainWindow {
         static std::optional<ResourceType> extractTypeFromRow(ResultsTable* resultTable, int row);
         void runUpdate(const QString &filePath);
         static qint64 getCurrentPid();
+        void disableSyntaxHighlightingTheme();
 
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(const QString &filePath);
