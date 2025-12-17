@@ -6,6 +6,8 @@
 #include <QDialog>
 #include <QToolBar>
 #include <QTimer>
+#include <QStyle>
+#include <QVBoxLayout>
 
 #include "ResourceViewerDialog.hpp"
 #include "PlainTextEdit.hpp"

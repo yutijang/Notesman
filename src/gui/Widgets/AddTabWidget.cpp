@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QTimer>
+#include <QCheckBox>
 
 #include "PlainTextEdit.hpp"
 #include "TagInput.hpp"
