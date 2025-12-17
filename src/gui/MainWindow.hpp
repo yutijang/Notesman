@@ -8,7 +8,7 @@
 #include "Theme.hpp"
 #include "SettingsData.hpp"
 #include "UpdateInfoSummary.hpp"
-#include "PlainTextEdit.hpp"
+#include <ResourceViewService.hpp>
 
 // ----------------------------------------------------
 // Forward Declarations cho các Widgets con (Best Practice)
@@ -89,13 +89,9 @@ class MainWindow : public QMainWindow {
         void setupAddTab();
         void setupSettingsTab();
         void setupIconInfo();
-        void viewResource(int id, ResourceType type, const QString &title, const QString &path);
+        void viewPlaintextResource(int id, ResourceType type, const QString &title);
         void showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
                              const QString &path);
-        void loadResourceContent(int id, ResourceType type, const QString &path,
-                                 PlainTextEdit* viewSourceTextEdit);
-        static PlainTextEdit* createResourceTextEdit(QWidget* parent);
-        void setupHighlighter(PlainTextEdit* viewSourceTextEdit);
         static void removeSelectedRowsFromTable(ResultsTable* table,
                                                 const QModelIndexList &selectedRows);
         static sqlite3_int64 extractIdFromRow(ResultsTable* resultTable, int row);
@@ -132,4 +128,6 @@ class MainWindow : public QMainWindow {
         UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::none};
 
         QProgressDialog* m_progressDialog{};
+
+        ResourceViewService* m_resourceViewService{};
 };

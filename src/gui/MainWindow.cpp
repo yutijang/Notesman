@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QMenu>
 #include <QPoint>
+#include <ResourceViewerDialog.hpp>
 #include <ranges>
 #include <QTimer>
 #include <QApplication>
@@ -41,13 +42,14 @@
 #include "ResourceSearchWorker.hpp"
 #include "UpdateInfoSummary.hpp"
 #include "DialogUtils.hpp"
+#include "ResourceViewService.hpp"
 
 #if defined(Q_OS_LINUX)
-#    include <sys/stat.h>
-#    include <fcntl.h>
-#    include <unistd.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
 
-#    include "AppImageExtractor.hpp"
+    #include "AppImageExtractor.hpp"
 #endif
 
 namespace {
@@ -81,7 +83,7 @@ void MainWindow::setupBrowseTab() {
     m_browseTab = new BrowseTabWidget(this);
 
     QObject::connect(m_browseTab, &BrowseTabWidget::resourceDoubleClicked, this,
-                     &MainWindow::viewResource);
+                     &MainWindow::viewPlaintextResource);
 
     QObject::connect(m_browseTab, &BrowseTabWidget::contextMenuRequested, this,
                      &MainWindow::showContextMenu);
@@ -181,40 +183,17 @@ void MainWindow::setCore(NotesAppCore* core) {
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_browseTab), true);
 }
 
-// NOLINTNEXTLINE
-void MainWindow::viewResource(int id, ResourceType type, const QString &title,
-                              const QString &path) {
-    auto* dialog = new QDialog(this);
-    dialog->setAttribute(Qt::WA_DeleteOnClose); // Tự giải phóng khi đóng
-    dialog->setWindowTitle(QString(tr("View detail resource: %1")).arg(title));
+void MainWindow::viewPlaintextResource(int id, ResourceType type, const QString &title) {
+    m_resourceViewService = new ResourceViewService(*m_core);
 
-    static constexpr int editorW{640};
-    static constexpr int offset{30};
-    const int mainH = this->height();
-    dialog->setMinimumWidth(editorW + offset);
-    const int frameH = dialog->style()->pixelMetric(QStyle::PM_TitleBarHeight) +
-                       (dialog->style()->pixelMetric(QStyle::PM_DefaultFrameWidth) * 2);
-    dialog->resize(editorW, mainH - frameH + offset);
+    const Theme theme = m_appController->currentTheme();
 
-    auto* viewSourceTextEdit = createResourceTextEdit(this);
-
-    viewSourceTextEdit->setMinimumWidth(editorW);
-
-    loadResourceContent(id, type, path, viewSourceTextEdit);
-
-    auto* layout = new QVBoxLayout(dialog);
-    layout->addWidget(viewSourceTextEdit);
-    dialog->setLayout(layout);
-
-    dialog->show();
-
-    QTimer::singleShot(0, this, [this]() {
-        m_browseTab->resultsTable()->clearSelection();
-        m_browseTab->resultsTable()->setCurrentItem(nullptr);
-        m_browseTab->resultsTable()->clearFocus();
-    });
+    auto* dlg = new ResourceViewerDialog{static_cast<sqlite3_int64>(id), title, type, theme,
+                                         *m_resourceViewService,         this};
+    dlg->exec();
 }
 
+// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
                                  const QString &path) {
     if (m_browseTab == nullptr) {
@@ -235,7 +214,7 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
         viewAction = menu.addAction(tr("View Resource"));
         viewAction->setIcon(QIcon(":/icons/view.ico"));
         QObject::connect(viewAction, &QAction::triggered, this,
-                         [this, id, type, title, path]() { viewResource(id, type, title, path); });
+                         [this, id, type, title]() { viewPlaintextResource(id, type, title); });
     }
 
     if (!(type == ResourceType::plainText)) {
@@ -726,12 +705,8 @@ void MainWindow::handleSyntaxHighlightingUpdate(Theme theme) {
 
 void MainWindow::handleSyntaxHighlightingFromAddTabRequested(bool checked) {
     if (checked) {
-        bool isDarkTheme = m_appController->isDarkTheme();
-        if (isDarkTheme) {
-            applySyntaxHighlightingTheme(Theme::dark);
-        } else {
-            applySyntaxHighlightingTheme(Theme::light);
-        }
+        const Theme curTheme = m_appController->currentTheme();
+        applySyntaxHighlightingTheme(curTheme);
     } else {
         disableSyntaxHighlightingTheme();
     }
@@ -745,65 +720,6 @@ void MainWindow::disableSyntaxHighlightingTheme() {
     delete m_cppHighlighter;
     m_cppHighlighter = nullptr;
 }
-
-// --- BEGIN viewResource helper ---
-
-// NOLINTNEXTLINE
-void MainWindow::loadResourceContent(int id, ResourceType type, const QString &path,
-                                     PlainTextEdit* viewSourceTextEdit) {
-    if (type == ResourceType::plainText) {
-        auto resId = static_cast<sqlite3_int64>(id);
-        auto resFullOpt = m_core->getFullResource(resId);
-
-        if (resFullOpt && resFullOpt->content) {
-            const auto resContent = *resFullOpt->content;
-            if (Utils::looksLikeCppCode(resContent)) { setupHighlighter(viewSourceTextEdit); }
-            viewSourceTextEdit->setPlainText(QString::fromStdString(resContent));
-        } else {
-            viewSourceTextEdit->setPlainText(tr("No content available."));
-        }
-
-        return;
-    }
-
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "Error: Cannot open file" << path;
-        viewSourceTextEdit->setPlainText(tr("Error: Cannot load file '%1'").arg(path));
-        return;
-    }
-
-    QTextStream in(&file);
-    viewSourceTextEdit->setPlainText(in.readAll());
-}
-
-PlainTextEdit* MainWindow::createResourceTextEdit(QWidget* parent) {
-    auto* textEdit = new PlainTextEdit(parent);
-    textEdit->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard |
-                                      Qt::TextEditable);
-    textEdit->setFont(QFont("JetBrains Mono", UiConst::FONT_SIZE));
-    textEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    return textEdit;
-}
-
-void MainWindow::setupHighlighter(PlainTextEdit* viewSourceTextEdit) {
-    bool isDarkTheme = m_appController->isDarkTheme();
-    const CppHighlighterTheme hlTheme = (isDarkTheme) ? createDarkTheme() : createLightTheme();
-    auto* cppHighlighter = new CppHighlighter(viewSourceTextEdit->document(), hlTheme);
-    cppHighlighter->rehighlightGradually(viewSourceTextEdit->document(),
-                                         20, // NOLINT(readability-magic-numbers)
-                                         4);
-
-    auto* viewLineHL = new CodeEditorLineHighlighter(viewSourceTextEdit);
-    if (isDarkTheme) {
-        viewLineHL->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
-    } else {
-        viewLineHL->setColors(QColor("#dBdBdB"), QColor("#efefef"));
-    }
-}
-
-// --- END viewResource helper ---
 
 // --- BEGIN showContextMenu helper ---
 

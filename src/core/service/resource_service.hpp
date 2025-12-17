@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <string_view>
 #include <sqlite3.h>
 
 #include "model.hpp"
@@ -28,6 +29,8 @@ class ResourceService {
                                       ResourceType type, bool isManaged);
         std::optional<FullResource> getFullResource(sqlite3_int64 resourceId);
         std::vector<FullResource> getAllFull();
+
+        void updateText(sqlite3_int64 resourceId, std::string_view newText);
 
         void deleteResource(sqlite3_int64 resourceId);
         void deleteResources(const std::vector<sqlite3_int64> &resourceIds);

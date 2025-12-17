@@ -43,10 +43,11 @@ set(APP_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/app/NotesAppCore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/AppController.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/AppInitializer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/UpdateManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/DownloadManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/workers/ResourceSearchWorker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/GoogleDriveService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/UpdateManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/DownloadManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/GoogleDriveService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/ResourceViewService.cpp
 )
 
 set(GUI_SOURCES
@@ -66,6 +67,8 @@ set(HELPER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/helper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/DialogUtils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceViewerDialog.cpp
+
 )
 
 if(UNIX)
@@ -89,11 +92,12 @@ target_include_directories(notes-app-lib-core
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/app
     ${CMAKE_CURRENT_SOURCE_DIR}/app/workers
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/services
     ${CMAKE_CURRENT_SOURCE_DIR}/gui
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper         
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper
     ${GENERATED_DIR}
 )
 
@@ -120,7 +124,7 @@ target_compile_definitions(notes-app-lib-core
 
 #===
 add_library(notes-app-lib-qtkeychain STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/OAuthManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/OAuthManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/free_port.cpp
 )
 

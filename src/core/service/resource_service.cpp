@@ -1,4 +1,5 @@
 #include <string>
+#include <string_view>
 #include <stdexcept>
 #include <optional>
 #include <filesystem>
@@ -226,4 +227,8 @@ std::vector<FullResource> ResourceService::getAllFull() {
     }
 
     return out;
+}
+
+void ResourceService::updateText(sqlite3_int64 resourceId, std::string_view newText) {
+    m_textRepo.updateText(resourceId, newText);
 }

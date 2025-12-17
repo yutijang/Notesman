@@ -35,6 +35,8 @@ class AppController final : public QObject {
             return m_settings->theme() == Theme::dark;
         }
 
+        [[nodiscard]] Theme currentTheme() const noexcept { return m_settings->theme(); }
+
         [[nodiscard]] QString lastUpdateInfoAssetHash() const noexcept {
             return m_lastUpdateInfoSummary.assetHash;
         }

@@ -4,21 +4,21 @@
 
 // ---------------- Platform includes ----------------
 #if defined(_WIN32)
-#    include <winsock2.h>
-#    include <ws2tcpip.h>
-#    include <stdexcept>
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #include <stdexcept>
 
-#    pragma comment(lib, "ws2_32.lib")
+    #pragma comment(lib, "ws2_32.lib")
 
 using SockHandle = SOCKET;
 static constexpr SockHandle INVALID_SOCK = INVALID_SOCKET;
 
 #else
-#    include <sys/types.h>
-#    include <sys/socket.h>
-#    include <netinet/in.h>
-#    include <arpa/inet.h>
-#    include <unistd.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <unistd.h>
 
 using SockHandle = int;
 static constexpr SockHandle INVALID_SOCK = -1;

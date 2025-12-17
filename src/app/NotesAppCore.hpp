@@ -34,6 +34,8 @@ class NotesAppCore {
         [[nodiscard]] std::optional<FullResource> getFullResource(sqlite3_int64 resourceId) const;
         [[nodiscard]] std::vector<FullResource> getAllFull() const;
 
+        void updateText(sqlite3_int64 resourceId, std::string_view newText);
+
         void deleteResource(sqlite3_int64 resourceId);
         void deleteResources(const std::vector<sqlite3_int64> &resourceIds);
 

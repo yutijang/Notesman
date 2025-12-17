@@ -28,6 +28,10 @@ std::vector<FullResource> NotesAppCore::getAllFull() const {
     return m_resService.getAllFull();
 }
 
+void NotesAppCore::updateText(sqlite3_int64 resourceId, std::string_view newText) {
+    m_textRepo.updateText(resourceId, newText);
+}
+
 void NotesAppCore::deleteResource(sqlite3_int64 resourceId) {
     m_resService.deleteResource(resourceId);
 }
