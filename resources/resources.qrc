@@ -25,6 +25,9 @@
         <file>icons/checked.png</file>
         <file>icons/hover_unchecked.png</file>
         <file>icons/unchecked.png</file>
+        <file>icons/save.ico</file>
+        <file>icons/load.ico</file>
+        <file>icons/syntax.ico</file>
     </qresource>
 
     <qresource prefix="/">

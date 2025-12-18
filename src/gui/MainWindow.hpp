@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <QMainWindow>
 #include <QModelIndexList>
 #include <sqlite3.h>
@@ -129,5 +130,6 @@ class MainWindow : public QMainWindow {
 
         QProgressDialog* m_progressDialog{};
 
-        ResourceViewService* m_resourceViewService{};
+        // ResourceViewService* m_resourceViewService{};
+        std::unique_ptr<ResourceViewService> m_resourceViewService;
 };

@@ -8,6 +8,8 @@
 #include <QTimer>
 #include <QStyle>
 #include <QVBoxLayout>
+#include <QIcon>
+#include <QPixmap>
 
 #include "ResourceViewerDialog.hpp"
 #include "PlainTextEdit.hpp"
@@ -26,6 +28,7 @@ ResourceViewerDialog::ResourceViewerDialog(sqlite3_int64 id, const QString &titl
                                            ResourceViewService &viewService, QWidget* parent)
     : QDialog(parent), m_resourceId(id), m_type(type), m_viewService(viewService),
       m_currentTheme(theme) {
+    setAttribute(Qt::WA_DeleteOnClose);
     setupUi(title);
     loadContent();
     setupActions();
@@ -47,6 +50,17 @@ void ResourceViewerDialog::closeEvent(QCloseEvent* event) {
     QDialog::closeEvent(event);
 }
 
+void ResourceViewerDialog::applyLineHighlighter() {
+    if (m_lineHighlighter != nullptr) { return; }
+
+    m_lineHighlighter = new CodeEditorLineHighlighter(m_editor);
+    if (m_currentTheme == Theme::light) {
+        m_lineHighlighter->setColors(QColor("#dBdBdB"), QColor("#efefef"));
+    } else {
+        m_lineHighlighter->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
+    }
+}
+
 void ResourceViewerDialog::setupHighlighter() {
     if (m_editor == nullptr) { return; }
 
@@ -65,18 +79,6 @@ void ResourceViewerDialog::setupHighlighter() {
     m_cppHighlighter->rehighlightGradually(doc,
                                            20, // NOLINT(readability-magic-numbers)
                                            4);
-
-    if (m_lineHighlighter != nullptr) {
-        delete m_lineHighlighter;
-        m_lineHighlighter = nullptr;
-    }
-
-    m_lineHighlighter = new CodeEditorLineHighlighter(m_editor);
-    if (m_currentTheme == Theme::light) {
-        m_lineHighlighter->setColors(QColor("#dBdBdB"), QColor("#efefef"));
-    } else {
-        m_lineHighlighter->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
-    }
 }
 
 void ResourceViewerDialog::setupUi(const QString &title) {
@@ -118,6 +120,8 @@ void ResourceViewerDialog::loadContent() {
         m_isAppliedSH = true;
     }
 
+    applyLineHighlighter();
+
     m_editor->setPlainText(m_originalContent);
 
     m_editor->setUpdatesEnabled(true);
@@ -127,15 +131,20 @@ void ResourceViewerDialog::loadContent() {
 void ResourceViewerDialog::setupActions() {
     auto* toolbar = new QToolBar(this);
     toolbar->setMovable(false);
-    toolbar->setContentsMargins(0, 0, 0, 0);
+
+    auto* leftSpacer = new QWidget(toolbar);
+    leftSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    toolbar->addWidget(leftSpacer);
 
     auto* actionSave = toolbar->addAction(tr("Save"));
+    actionSave->setIcon(QIcon(":/icons/save.ico"));
     QObject::connect(actionSave, &QAction::triggered, this, [this]() {
         m_originalContent = m_editor->toPlainText();
         m_viewService.saveTextResource(m_resourceId, m_originalContent);
     });
 
     auto* actionReload = toolbar->addAction(tr("Reload"));
+    actionReload->setIcon(QIcon(":/icons/load.ico"));
     QObject::connect(actionReload, &QAction::triggered, this, [this]() {
         const auto text = m_viewService.loadTextResource(m_resourceId);
         if (!text) { return; }
@@ -147,14 +156,31 @@ void ResourceViewerDialog::setupActions() {
     auto* actionToggleSH = toolbar->addAction(tr("Toggle"));
     actionToggleSH->setCheckable(true);
     actionToggleSH->setChecked(m_isAppliedSH);
-    QObject::connect(actionToggleSH, &QAction::triggered, this, [this](bool checked) {
+
+    QIcon toggleIcon;
+    const QPixmap pixmap(":/icons/syntax.ico");
+    toggleIcon.addPixmap(pixmap, QIcon::Normal, QIcon::On);
+    toggleIcon.addPixmap(toggleIcon.pixmap(pixmap.size(), QIcon::Disabled), QIcon::Normal,
+                         QIcon::Off);
+    actionToggleSH->setIcon(toggleIcon);
+
+    QObject::connect(actionToggleSH, &QAction::toggled, this, [this, actionToggleSH](bool checked) {
         m_isAppliedSH = checked;
+        actionToggleSH->setToolTip(checked ? tr("Disable syntax highlighting")
+                                           : tr("Enable syntax highlighting"));
+
         if (checked) {
             applySyntaxHighlightingTheme();
         } else {
             disableSyntaxHighlightingTheme();
         }
     });
+
+    emit actionToggleSH->toggled(m_isAppliedSH);
+
+    auto* rightSpacer = new QWidget(toolbar);
+    rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    toolbar->addWidget(rightSpacer);
 
     // NOLINTNEXTLINE (-Wswitch-default)
     switch (m_type) {
@@ -201,19 +227,6 @@ void ResourceViewerDialog::applySyntaxHighlightingTheme() {
     m_cppHighlighter->rehighlightGradually(doc,
                                            20, // NOLINT(readability-magic-numbers)
                                            4);
-
-    // Cập nhật dòng caret highlight
-    if (m_lineHighlighter != nullptr) {
-        delete m_lineHighlighter;
-        m_lineHighlighter = nullptr;
-    }
-
-    m_lineHighlighter = new CodeEditorLineHighlighter(m_editor);
-    if (m_currentTheme == Theme::light) {
-        m_lineHighlighter->setColors(QColor("#dBdBdB"), QColor("#efefef"));
-    } else {
-        m_lineHighlighter->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
-    }
 }
 
 void ResourceViewerDialog::disableSyntaxHighlightingTheme() {

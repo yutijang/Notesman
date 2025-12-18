@@ -30,6 +30,7 @@ class ResourceViewerDialog final : public QDialog {
         void setupUi(const QString &title);
         void loadContent();
         void setupActions();
+        void applyLineHighlighter();
         void setupHighlighter();
         void applySyntaxHighlightingTheme();
         void disableSyntaxHighlightingTheme();

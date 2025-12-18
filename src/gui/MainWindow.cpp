@@ -1,3 +1,6 @@
+#include <memory>
+#include <ranges>
+#include <sqlite3.h>
 #include <QMainWindow>
 #include <QTabWidget>
 #include <QWidget>
@@ -10,8 +13,6 @@
 #include <QDebug>
 #include <QMenu>
 #include <QPoint>
-#include <ResourceViewerDialog.hpp>
-#include <ranges>
 #include <QTimer>
 #include <QApplication>
 #include <QDesktopServices>
@@ -22,7 +23,6 @@
 #include <QDir>
 #include <QModelIndexList>
 #include <QProcess>
-#include <sqlite3.h>
 
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
@@ -43,6 +43,7 @@
 #include "UpdateInfoSummary.hpp"
 #include "DialogUtils.hpp"
 #include "ResourceViewService.hpp"
+#include "ResourceViewerDialog.hpp"
 
 #if defined(Q_OS_LINUX)
     #include <sys/stat.h>
@@ -179,13 +180,13 @@ void MainWindow::setCore(NotesAppCore* core) {
     m_core = core;
     // showInfo(tr("Database initialized successfully."));
 
+    m_resourceViewService = std::make_unique<ResourceViewService>(*m_core);
+
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_addTab), true);
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_browseTab), true);
 }
 
 void MainWindow::viewPlaintextResource(int id, ResourceType type, const QString &title) {
-    m_resourceViewService = new ResourceViewService(*m_core);
-
     const Theme theme = m_appController->currentTheme();
 
     auto* dlg = new ResourceViewerDialog{static_cast<sqlite3_int64>(id), title, type, theme,

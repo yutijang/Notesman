@@ -212,3 +212,28 @@ QToolButton::menu-indicator {
 #checkFilePath {
     color: #FAE1AF;
 }
+
+QToolButton {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+QToolButton:hover {
+    background-color: rgba(128, 128, 128, 15%);
+    border: 1px solid #4AB7F9;
+}
+
+QToolButton:pressed {
+    padding-left: 3px;
+    padding-top: 3px;
+}
+
+QToolButton:checked {
+    background-color: rgba(0, 120, 215, 30%);
+    border: 1px solid rgba(0, 120, 215, 50%);
+}
+
+QToolButton:checked:hover {
+    background-color: rgba(0, 120, 215, 50%);
+}
