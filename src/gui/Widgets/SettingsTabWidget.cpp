@@ -129,7 +129,7 @@ void SettingsTabWidget::onApplyBtnClicked() {
     }
 
     auto path = m_resDirInp->text().trimmed();
-    if (!path.isEmpty()) { data.resourceDir = path.toStdString(); }
+    if (!path.isEmpty()) { data.resourceDir = std::filesystem::path(path.toStdWString()); }
 
     data.isManagedResource = m_resManCom->currentData().toBool();
 

@@ -471,12 +471,17 @@ void MainWindow::onUpdateAvailable(const UpdateInfoSummary &infoSummary) {
         return;
     }
 
+    const auto &relName = infoSummary.releaseName;
+    const auto vPos = relName.indexOf('v');
+    const auto newVer =
+        (vPos >= 0 && vPos + 1 < relName.size()) ? relName.mid(vPos + 1) : QString{};
+
     const auto reply =
         DialogUtils::showQuestion(this, tr("Update available"),
-                                  tr("A new version is available.\n\nCurrent version: %1\nNew "
+                                  tr("A new version is available.\n\nCurrent version: %1\nNewer "
                                      "version: %2\n\nDo you want to download it?")
                                       .arg(app::meta::VERSION)
-                                      .arg(infoSummary.releaseName));
+                                      .arg(newVer));
 
     emit updateDecision(reply == QMessageBox::Yes, infoSummary);
 }
@@ -592,12 +597,17 @@ void MainWindow::handleWindowsUpdate(const QString &filePath) {
     const QString appExeName = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
     const QString currentPID = QString::number(getCurrentPid());
 
+    const auto resDirStd = Utils::getDirectoryOrFileName(m_appController->resourceDir());
+    const QString resourceDirName =
+        resDirStd.empty() ? "NULL_OR_ROOT" : QString::fromStdString(resDirStd);
+
     QStringList args;
     args << "--stage1";
     args << currentPID;
     args << targetDir;
     args << filePath;
     args << appExeName;
+    args << resourceDirName;
 
     QProcess::startDetached(updaterPath, args);
 

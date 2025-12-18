@@ -14,9 +14,13 @@ namespace Utils {
         return ext;
     }
 
-    // Lấy tên file (vd: "/a/b/file.txt" -> "file.txt")
-    [[nodiscard]] inline std::string getFileName(const std::filesystem::path &path) {
-        return path.filename().string();
+    // Lấy tên file hoặc tên thư mục
+    // trả về rỗng nếu path là thư mục gốc
+    // (vd: "/a/b/file.txt" -> "file.txt")
+    [[nodiscard]] inline std::string getDirectoryOrFileName(const std::filesystem::path &path) {
+        if (path.has_filename()) { return path.filename().string(); }
+        // Nếu kết thúc bằng '/', lấy filename của thư mục cha
+        return path.parent_path().filename().string();
     }
 
     // Lấy đường dẫn tuyệt đối

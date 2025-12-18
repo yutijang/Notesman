@@ -27,7 +27,11 @@ bool AppSettings::load(const std::filesystem::path &path) {
     if (kv.contains("language")) {
         m_language = (kv["language"] == "vi") ? Language::vietnamese : Language::english;
     }
-    if (kv.contains("resource_dir")) { m_resourceDir = kv["resource_dir"]; }
+    if (kv.contains("resource_dir")) {
+        // Ép kiểu dữ liệu về chuỗi UTF-8 trước khi đưa vào path
+        std::string rawValue = kv["resource_dir"];
+        m_resourceDir = std::filesystem::path(std::u8string(rawValue.begin(), rawValue.end()));
+    }
     if (kv.contains("is_managed")) {
         m_isManagedResource = (kv["is_managed"] == "true" || kv["is_managed"] == "1");
     }

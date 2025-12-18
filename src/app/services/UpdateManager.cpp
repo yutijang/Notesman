@@ -34,7 +34,7 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
     QObject::connect(timeoutTimer, &QTimer::timeout, reply, [this, reply]() {
         if (reply->isRunning()) {
             reply->abort();
-            emit updateCheckFailed(tr("Network connection too slow (timeout 5s)."));
+            emit updateCheckFailed(tr("Network connection too slow (timeout exceeded 5 seconds)."));
         }
     });
     timeoutTimer->start();

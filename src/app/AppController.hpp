@@ -44,6 +44,10 @@ class AppController final : public QObject {
         [[nodiscard]] SettingsData currentUiSettings() const;
         [[nodiscard]] static SettingsData defaultUiSettings();
 
+        [[nodiscard]] std::filesystem::path resourceDir() const noexcept {
+            return m_settings->resourceDir();
+        }
+
         void applyLanguage(Language lang);
         void applyTheme(Theme theme);
         void setMainWindow(MainWindow* window);
