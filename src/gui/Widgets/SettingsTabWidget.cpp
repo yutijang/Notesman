@@ -214,7 +214,7 @@ QHBoxLayout* SettingsTabWidget::setupResourceDirGroup() {
     auto* resDirLayout = new QHBoxLayout();
     m_resDirLbl = new QLabel(tr("Resource storage directory"));
     m_resDirInp = new QLineEdit();
-    m_resDirInp->setText(QStringLiteral("resources/"));
+    m_resDirInp->setText(QStringLiteral("resources"));
     m_resDirInp->setMaximumWidth(400); // NOLINT(readability-magic-numbers)
     m_resDirBtn = new QPushButton("...");
     m_resDirBtn->setMaximumWidth(UiConst::BUTTON_NEXT_INPUT_WIDTH);
