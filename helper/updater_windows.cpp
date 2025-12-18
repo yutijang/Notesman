@@ -21,8 +21,9 @@ namespace {
 
     // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
     void clearFolder(const std::wstring &targetFolder, const std::wstring &resDirName) {
-        const std::unordered_set<std::wstring> keepFiles{L"temp_update", L"data.db", L"config.ini",
-                                                         resDirName};
+        std::unordered_set<std::wstring> keepFiles{L"temp_update", L"data.db", L"config.ini"};
+
+        if (!resDirName.empty() && resDirName != L"NULL_OR_ROOT") { keepFiles.insert(resDirName); }
 
         fs::path dirPath(targetFolder);
         std::error_code ec;
