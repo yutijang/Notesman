@@ -89,7 +89,8 @@ void MainWindow::setupBrowseTab() {
     QObject::connect(m_browseTab, &BrowseTabWidget::contextMenuRequested, this,
                      &MainWindow::showContextMenu);
 
-    QObject::connect(m_browseTab, &BrowseTabWidget::statusUpdate, this, &MainWindow::updateStatus);
+    QObject::connect(m_browseTab, &BrowseTabWidget::statusUpdateRequest, this,
+                     &MainWindow::updateStatus);
 
     QObject::connect(this, &MainWindow::updateColumnWidthsRequest, m_browseTab,
                      &BrowseTabWidget::updateColumnWidths);
@@ -111,6 +112,9 @@ void MainWindow::setupSettingsTab() {
 
     QObject::connect(this, &MainWindow::settingsStateChangeRequest, m_settingsTab,
                      &SettingsTabWidget::handleSettingsStateChange);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::statusUpdateRequest, this,
+                     &MainWindow::updateStatus);
 
     m_tabWidget->addTab(m_settingsTab, QIcon(":/icons/settings_tab.ico"), tr("Settings"));
 }
@@ -270,7 +274,8 @@ void MainWindow::setAppController(AppController* controller) {
                      &AppController::handleDefaultSettingsRequest);
 
     QObject::connect(m_appController, &AppController::settingsUpdateStatus, this,
-                     [this](const QString &, UiConst::SettingsMessageState state) {
+                     [this](const QString &, UiConst::SettingsMessageState state,
+                            UiConst::SettingsTabNotiLevel /*unused*/) {
                          this->handleSettingsStateChange(state);
                      });
 

@@ -81,7 +81,8 @@ void SettingsTabWidget::setupConnections() {
         m_countdownTimer.stop();
         hideLoginStatus();
         m_linkGDBtn->setEnabled(true);
-        showNotification(tr("Login was canceled"));
+        showNotification(tr("Login was canceled"), UiConst::SettingsMessageState::none,
+                         UiConst::SettingsTabNotiLevel::caution);
         emit cancelLoginRequested();
     });
 
@@ -130,6 +131,7 @@ void SettingsTabWidget::onApplyBtnClicked() {
 
     auto path = m_resDirInp->text().trimmed();
     if (!path.isEmpty()) { data.resourceDir = std::filesystem::path(path.toStdWString()); }
+    validateResourceDir(data.resourceDir);
 
     data.isManagedResource = m_resManCom->currentData().toBool();
 
@@ -339,11 +341,41 @@ QHBoxLayout* SettingsTabWidget::setupButtonGroup() {
     return buttonLayout;
 }
 
-void SettingsTabWidget::showNotification(const QString &message) {
+void SettingsTabWidget::showNotification(const QString &message,
+                                         UiConst::SettingsMessageState /*unused*/,
+                                         UiConst::SettingsTabNotiLevel notiType) {
     if (m_notiSettingsChangedLbl == nullptr) { return; }
 
     m_notiSettingsChangedLbl->setText(message);
     m_notiSettingsChangedLbl->setVisible(true);
+
+    if (notiType != UiConst::SettingsTabNotiLevel::normal) {
+        QString notiTextColor{};
+        switch (notiType) {
+            case UiConst::SettingsTabNotiLevel::good: {
+                notiTextColor = "#2ECC71";
+                break;
+            }
+            case UiConst::SettingsTabNotiLevel::normal : break;
+            case UiConst::SettingsTabNotiLevel::caution: {
+                notiTextColor = "#D97706";
+                break;
+            }
+            case UiConst::SettingsTabNotiLevel::warning: {
+                notiTextColor = "#E74C3C";
+                break;
+            }
+            default: break; // NOLINT (-Wcovered-switch-default)
+        }
+
+        QString objName = m_notiSettingsChangedLbl->objectName();
+        if (objName.isEmpty()) {
+            objName = "settingsTabNotiLbl";
+            m_notiSettingsChangedLbl->setObjectName(objName);
+        }
+        m_notiSettingsChangedLbl->setStyleSheet(
+            QString("#%1 { color: %2; }").arg(objName).arg(notiTextColor));
+    }
 
     QTimer::singleShot(UiConst::NOTI_TIMEOUT, this, [this]() {
         m_notiSettingsChangedLbl->clear();
@@ -369,7 +401,9 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     // Thư mục tài nguyên
     // m_resDirInp->setText(
     // QString::fromUtf8(reinterpret_cast<const char*>(settings.resourceDir.u8string().c_str())));
-    m_resDirInp->setText(QString::fromStdU16String(settings.resourceDir.u16string()));
+    const auto resDirPath = settings.resourceDir;
+    m_resDirInp->setText(QString::fromStdU16String(resDirPath.u16string()));
+    validateResourceDir(resDirPath);
 
     // Kiểu quản lý tài nguyên
     if (settings.isManagedResource) {
@@ -377,6 +411,13 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     } else {
         m_resManCom->setCurrentIndex(1); // "Save path only"
     }
+}
+
+void SettingsTabWidget::validateResourceDir(const std::filesystem::path &resDirPath) const {
+    const bool valid =
+        std::filesystem::exists(resDirPath) && std::filesystem::is_directory(resDirPath);
+
+    m_resDirInp->setStyleSheet(valid ? "" : R"(QLineEdit { border: 1px solid #e20c53; })");
 }
 
 void SettingsTabWidget::handleInitialSettingsLoad(const SettingsData &settings) const {
@@ -435,10 +476,12 @@ void SettingsTabWidget::handleLoginFailed(const QString &error) {
 
     m_linkGDBtn->setEnabled(true);
 
-    showNotification(error);
+    showNotification(error, UiConst::SettingsMessageState::none,
+                     UiConst::SettingsTabNotiLevel::warning);
 }
 
-void SettingsTabWidget::handleUploadDBRequested(bool isDisable, const QString &message) {
+void SettingsTabWidget::handleUploadDBRequested(bool isDisable, const QString &message,
+                                                UiConst::SettingsTabNotiLevel notiType) {
     if (m_uploadDBBtn != nullptr) {
         if (isDisable) {
             m_uploadDBBtn->setMaximumWidth(100); // NOLINT(readability-magic-numbers)
@@ -449,12 +492,13 @@ void SettingsTabWidget::handleUploadDBRequested(bool isDisable, const QString &m
             m_uploadDBBtn->setEnabled(true);
             m_uploadDBBtn->setText(tr("Upload"));
 
-            showNotification(message);
+            showNotification(message, UiConst::SettingsMessageState::none, notiType);
         }
     }
 }
 
-void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, const QString &message) {
+void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, const QString &message,
+                                                  UiConst::SettingsTabNotiLevel notiType) {
     if (m_downloadDBBtn != nullptr) {
         if (isDisable) {
             m_downloadDBBtn->setMaximumWidth(120); // NOLINT(readability-magic-numbers)
@@ -465,7 +509,7 @@ void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, const QString 
             m_downloadDBBtn->setEnabled(true);
             m_downloadDBBtn->setText(tr("Download"));
 
-            showNotification(message);
+            showNotification(message, UiConst::SettingsMessageState::none, notiType);
         }
     }
 }

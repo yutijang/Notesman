@@ -222,7 +222,8 @@ void AppController::handleGetAllDataRequest() {
 }
 
 void AppController::handleDefaultSettingsRequest() {
-    emit settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::notChange);
+    emit settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::notChange,
+                              UiConst::SettingsTabNotiLevel::caution);
 }
 
 void AppController::handleApplySettingsRequest(const SettingsData &data) {
@@ -257,7 +258,8 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
 
         emit requestSyntaxHighlightingUpdate(data.theme);
 
-        emit settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::updated);
+        emit settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::updated,
+                                  UiConst::SettingsTabNotiLevel::good);
     } else {
         emit settingsUpdateStatus(tr("Nothing changed, settings not save"),
                                   UiConst::SettingsMessageState::none);
@@ -269,21 +271,37 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
                                          const QString &filePath, const QStringList &tags,
                                          bool isTextMode) {
     ResourceType type = ResourceType::plainText;
-    const auto filePathStd = filePath.toStdString();
+    const auto filePathUtf8 = filePath.toUtf8().toStdString();
+
+    if (!isTextMode && m_settings->isManagedResources()) {
+        const auto &resDir = m_settings->resourceDir();
+
+        if (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir)) {
+            emit addTabNotiRequest(tr("Resource directory does not exist. "
+                                      "Please fix it in Settings before adding resources."),
+                                   UiConst::SettingsTabNotiLevel::warning);
+
+            return;
+        }
+    }
+
     if (!isTextMode) {
         if (filePath.isEmpty()) {
-            emit addTabNotiRequest(tr("File path is empty."));
+            emit addTabNotiRequest(tr("File path is empty."),
+                                   UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
-        if (m_core->isFileIndexed(filePathStd)) {
-            emit addTabNotiRequest(tr("File exists in storage! Not add more."));
+        if (m_core->isFileIndexed(filePathUtf8)) {
+            emit addTabNotiRequest(tr("File exists in storage! Not add more."),
+                                   UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
-        const auto typeOpt = resourceTypeFromFile(filePathStd);
+        const auto typeOpt = resourceTypeFromFile(filePathUtf8);
         if (!typeOpt.has_value()) {
-            emit addTabNotiRequest(tr("File extension not support!"));
+            emit addTabNotiRequest(tr("File extension not support!"),
+                                   UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
@@ -292,12 +310,14 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
 
     const auto titleStd = title.toStdString();
     if (m_core->isExistTitle(titleStd, type)) {
-        emit addTabNotiRequest(tr("Title exists! Please choose another title"));
+        emit addTabNotiRequest(tr("Title exists! Please choose another title"),
+                               UiConst::SettingsTabNotiLevel::warning);
         return;
     }
 
     if (isTextMode && textContent.isEmpty()) {
-        emit addTabNotiRequest(tr("Content cannot be empty!"));
+        emit addTabNotiRequest(tr("Content cannot be empty!"),
+                               UiConst::SettingsTabNotiLevel::warning);
         return;
     }
 
@@ -305,12 +325,12 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
     if (isTextMode) {
         resId = m_core->addTextNote(titleStd, textContent.toUtf8().toStdString(), type);
 
-        emit addTabNotiRequest(tr("Note added successfully!"));
+        emit addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::good);
     } else {
         resId = m_core->addFileNote(filePath.toStdString(), titleStd, type,
                                     m_settings->isManagedResources());
 
-        emit addTabNotiRequest(tr("File added successfully!"));
+        emit addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::good);
     }
 
     addTagsToResource(resId, tags);

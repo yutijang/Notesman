@@ -201,8 +201,8 @@ void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
     m_resultsTbl->setUpdatesEnabled(true);
     m_resultsTbl->setSortingEnabled(true);
 
-    emit statusUpdate(tr("Found %1 results").arg(QString::number(results.size())),
-                      UiConst::NOTI_TIMEOUT);
+    emit statusUpdateRequest(tr("Found %1 results").arg(QString::number(results.size())),
+                             UiConst::NOTI_TIMEOUT);
 }
 
 void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {

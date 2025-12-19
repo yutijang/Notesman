@@ -34,7 +34,7 @@ class BrowseTabWidget final : public QWidget {
                                    const QString &path);
         void contextMenuRequested(const QPoint &pos, int id, ResourceType type,
                                   const QString &title, const QString &path);
-        void statusUpdate(const QString &msg, int timeout);
+        void statusUpdateRequest(const QString &msg, int timeout);
         void getAllDataRequested();
 
     private slots:

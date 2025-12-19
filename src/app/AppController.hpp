@@ -79,10 +79,13 @@ class AppController final : public QObject {
 
         void settingsLoaded(const SettingsData &settings);
         void displayResultForGetAll(const std::vector<FullResource> &results);
-        void settingsUpdateStatus(const QString &message, UiConst::SettingsMessageState state);
+        void settingsUpdateStatus(
+            const QString &message, UiConst::SettingsMessageState state,
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
         void initialSettingsLoaded(const SettingsData &settings);
         void requestSyntaxHighlightingUpdate(Theme theme);
-        void addTabNotiRequest(const QString &message);
+        void addTabNotiRequest(const QString &message, UiConst::SettingsTabNotiLevel notiType =
+                                                           UiConst::SettingsTabNotiLevel::normal);
         void resetAddTabInputsRequest();
         void searchFinishedFromController(const std::vector<FullResource> &results);
         void gmailUnlinked();

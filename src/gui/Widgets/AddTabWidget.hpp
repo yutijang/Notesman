@@ -3,6 +3,8 @@
 #include <QWidget>
 #include <QStringList>
 
+#include "UiConstants.hpp"
+
 class TagInput;
 class QLabel;
 class QLineEdit;
@@ -32,7 +34,9 @@ class AddTabWidget final : public QWidget {
         void applySyntaxHighlighterRequest(bool checked);
 
     public slots:
-        void showNotification(const QString &message) const;
+        void showNotification(
+            const QString &message,
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal) const;
         void resetAddTabInputs() const;
 
     private slots:

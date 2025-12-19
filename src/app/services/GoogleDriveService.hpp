@@ -5,6 +5,8 @@
 #include <QString>
 #include <QNetworkAccessManager>
 
+#include "UiConstants.hpp"
+
 class OAuthManager;
 
 class GoogleDriveService final : public QObject {
@@ -22,8 +24,12 @@ class GoogleDriveService final : public QObject {
         void onConnectClosedForDownload(bool isUpload);
 
     signals:
-        void onDownloadDBBtnRequest(bool isDisable, const QString &message = QString{});
-        void onUploadDBBtnRequest(bool isDisable, const QString &message = QString{});
+        void onDownloadDBBtnRequest(
+            bool isDisable, const QString &message = QString{},
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+        void onUploadDBBtnRequest(
+            bool isDisable, const QString &message = QString{},
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
 
         void closeConnectDBRequest(bool isUpload);
         void reconnectDBRequest();

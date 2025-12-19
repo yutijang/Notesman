@@ -51,14 +51,21 @@ class MainWindow : public QMainWindow {
         void requestDatabaseInit(); // Gửi tín hiệu cho AppController/AppInitializer
         void requestDatabaseCreation();
         void requestUpdateCheck();
-        void settingsTabShowNotification(const QString &message);
+        void settingsTabShowNotification(
+            const QString &message,
+            UiConst::SettingsMessageState state = UiConst::SettingsMessageState::none,
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
         void settingsStateChangeRequest(const SettingsData &settings);
         void checkUpdateRequest();
         void updateDecision(bool accepted, const UpdateInfoSummary &infoSummary);
         void settingsUiRefreshRequest(const SettingsData &settings);
         void updateColumnWidthsRequest();
-        void startDownloadDBForward(bool isDisable, const QString &message = QString{});
-        void startUploadDBForward(bool isDisable, const QString &message = QString{});
+        void startDownloadDBForward(
+            bool isDisable, const QString &message = QString{},
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+        void startUploadDBForward(
+            bool isDisable, const QString &message = QString{},
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
         void loginFailedForward(const QString &error = QString{});
 
     public slots:

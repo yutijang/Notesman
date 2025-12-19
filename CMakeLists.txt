@@ -113,4 +113,4 @@ enable_testing()
 add_subdirectory(tests)
 
 # updater
-add_subdirectory(helper)
+add_subdirectory(updater)

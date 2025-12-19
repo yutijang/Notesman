@@ -84,6 +84,14 @@ jobs:
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
           runVcpkgInstall: false
 
+      - name: Prepare vcpkg cache directories
+        shell: pwsh
+        run: |
+          $cacheDir = "${{ env.VCPKG_ROOT }}/archives"
+          if (!(Test-Path $cacheDir)) {
+            New-Item -Path $cacheDir -ItemType Directory -Force
+          }
+
       - name: Cache vcpkg binary artifacts
         uses: actions/cache@v4
         with:

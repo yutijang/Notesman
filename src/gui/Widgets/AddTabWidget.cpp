@@ -303,9 +303,37 @@ QHBoxLayout* AddTabWidget::setupButtonGroup() {
     return buttonLayout;
 }
 
-void AddTabWidget::showNotification(const QString &message) const {
+void AddTabWidget::showNotification(const QString &message,
+                                    UiConst::SettingsTabNotiLevel notiType) const {
     m_notiLbl->setText(message);
     m_notiLbl->setVisible(true);
+
+    if (notiType != UiConst::SettingsTabNotiLevel::normal) {
+        QString notiTextColor{};
+        switch (notiType) {
+            case UiConst::SettingsTabNotiLevel::good: {
+                notiTextColor = "#2ECC71";
+                break;
+            }
+            case UiConst::SettingsTabNotiLevel::normal : break;
+            case UiConst::SettingsTabNotiLevel::caution: {
+                notiTextColor = "#D97706";
+                break;
+            }
+            case UiConst::SettingsTabNotiLevel::warning: {
+                notiTextColor = "#E74C3C";
+                break;
+            }
+            default: break; // NOLINT (-Wcovered-switch-default)
+        }
+
+        QString objName = m_notiLbl->objectName();
+        if (objName.isEmpty()) {
+            objName = "addTabNotiLbl";
+            m_notiLbl->setObjectName(objName);
+        }
+        m_notiLbl->setStyleSheet(QString("#%1 { color: %2; }").arg(objName).arg(notiTextColor));
+    }
 
     QTimer::singleShot(UiConst::NOTI_TIMEOUT, this, [this]() {
         m_notiLbl->clear();

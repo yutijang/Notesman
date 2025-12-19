@@ -169,10 +169,12 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
     findDatabaseFile([this](const QString &id) {
         auto finish = [this](bool success) {
             if (success) {
-                emit onUploadDBBtnRequest(false, tr("Compacted and uploaded new file"));
+                emit onUploadDBBtnRequest(false, tr("Compacted and uploaded new file"),
+                                          UiConst::SettingsTabNotiLevel::good);
             } else {
                 emit onUploadDBBtnRequest(
-                    false, tr("Failed to save to Drive (permission, storage, or network)"));
+                    false, tr("Failed to save to Drive (permission, storage, or network)"),
+                    UiConst::SettingsTabNotiLevel::caution);
             }
             emit reconnectDBRequest();
         };
@@ -195,14 +197,17 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
 
     findDatabaseFile([this](const QString &id) {
         if (id.isEmpty()) {
-            emit onDownloadDBBtnRequest(false, tr("No database found or access denied"));
+            emit onDownloadDBBtnRequest(false, tr("No database found or access denied"),
+                                        UiConst::SettingsTabNotiLevel::caution);
         } else {
             downloadDatabase(id, [this](bool ok) {
                 if (ok) {
-                    emit onDownloadDBBtnRequest(false, tr("Database downloaded successfully"));
+                    emit onDownloadDBBtnRequest(false, tr("Database downloaded successfully"),
+                                                UiConst::SettingsTabNotiLevel::good);
                 } else {
-                    emit onDownloadDBBtnRequest(
-                        false, tr("Failed to download database. Please try again"));
+                    emit onDownloadDBBtnRequest(false,
+                                                tr("Failed to download database. Please try again"),
+                                                UiConst::SettingsTabNotiLevel::caution);
                 }
             });
         }
