@@ -22,6 +22,10 @@ class AppSettings {
 
         [[nodiscard]] bool isManagedResources() const noexcept { return m_isManagedResource; }
 
+        [[nodiscard]] bool isDefaultResourceDir() const noexcept {
+            return m_resourceDir == std::filesystem::path{K_DEFAULT_RESOURCE_DIR};
+        }
+
         // Setter
         void setTheme(Theme theme) noexcept;
         void setLanguage(Language language) noexcept;
@@ -38,10 +42,13 @@ class AppSettings {
         static SettingsData defaultUiSettings();
 
     private:
+        static constexpr const char* K_DEFAULT_RESOURCE_DIR = "resources";
+
         Theme m_theme{Theme::light};
         Language m_language{Language::english};
-        std::filesystem::path m_resourceDir{"resources"};
+        std::filesystem::path m_resourceDir{K_DEFAULT_RESOURCE_DIR};
         bool m_isManagedResource{true};
+        bool m_isResourceDirCustomized{};
 
         bool m_dirty{}; // trạng thái thay đổi kể từ lần load/save cuối
 };

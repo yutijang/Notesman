@@ -66,7 +66,7 @@ class SettingsTabWidget final : public QWidget {
         void updateCountdownDisplay();
         void hideLoginStatus();
         void showLoginStatus();
-        void validateResourceDir(const std::filesystem::path &resDirPath) const;
+        void validateResourceDir(const SettingsData &settings) const;
 
         [[nodiscard]] QHBoxLayout* setupLanguageGroup();
         [[nodiscard]] QHBoxLayout* setupThemeGroup();

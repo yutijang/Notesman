@@ -127,11 +127,15 @@ void SettingsTabWidget::onApplyBtnClicked() {
         data.theme = Theme::dark;
     }
 
-    auto path = m_resDirInp->text().trimmed();
-    if (!path.isEmpty()) { data.resourceDir = std::filesystem::path(path.toStdWString()); }
-    validateResourceDir(data.resourceDir);
-
     data.isManagedResource = m_resManCom->currentData().toBool();
+
+    const auto path = m_resDirInp->text().trimmed();
+    if (!path.isEmpty()) {
+        data.resourceDir = std::filesystem::path(path.toStdWString());
+        data.isResourceDirCustomized = true;
+    }
+
+    validateResourceDir(data);
 
     emit applySettingsRequested(data);
 }
@@ -401,7 +405,7 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     // QString::fromUtf8(reinterpret_cast<const char*>(settings.resourceDir.u8string().c_str())));
     const auto resDirPath = settings.resourceDir;
     m_resDirInp->setText(QString::fromStdU16String(resDirPath.u16string()));
-    validateResourceDir(resDirPath);
+    validateResourceDir(settings);
 
     // Kiểu quản lý tài nguyên
     if (settings.isManagedResource) {
@@ -411,9 +415,14 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     }
 }
 
-void SettingsTabWidget::validateResourceDir(const std::filesystem::path &resDirPath) const {
-    const bool valid =
-        std::filesystem::exists(resDirPath) && std::filesystem::is_directory(resDirPath);
+void SettingsTabWidget::validateResourceDir(const SettingsData &settings) const {
+    if (!settings.isManagedResource || settings.isResourceDirCustomized) {
+        m_resDirInp->setStyleSheet("");
+        return;
+    }
+
+    const bool valid = std::filesystem::exists(settings.resourceDir) &&
+                       std::filesystem::is_directory(settings.resourceDir);
 
     m_resDirInp->setStyleSheet(valid ? "" : R"(QLineEdit { border: 1px solid #e20c53; })");
 }

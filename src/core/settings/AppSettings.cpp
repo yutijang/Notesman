@@ -35,6 +35,10 @@ bool AppSettings::load(const std::filesystem::path &path) {
     if (kv.contains("is_managed")) {
         m_isManagedResource = (kv["is_managed"] == "true" || kv["is_managed"] == "1");
     }
+    if (kv.contains("resource_dir_is_default")) {
+        m_isResourceDirCustomized =
+            (kv["resource_dir_is_default"] == "true" || kv["resource_dir_is_default"] == "1");
+    }
 
     m_dirty = false;
 
@@ -51,6 +55,7 @@ bool AppSettings::save(const std::filesystem::path &path) const {
     file << "language=" << (m_language == Language::english ? "en" : "vi") << "\n";
     file << "resource_dir=" << m_resourceDir.string() << "\n";
     file << "is_managed=" << (m_isManagedResource ? "true" : "false") << "\n";
+    file << "resource_dir_is_default=" << (m_isResourceDirCustomized ? "true" : "false") << "\n";
 
     return true;
 }
@@ -87,7 +92,8 @@ SettingsData AppSettings::toUiSettings() const {
     return {.theme = m_theme,
             .language = m_language,
             .resourceDir = m_resourceDir,
-            .isManagedResource = m_isManagedResource};
+            .isManagedResource = m_isManagedResource,
+            .isResourceDirCustomized = m_isResourceDirCustomized};
 }
 
 SettingsData AppSettings::defaultUiSettings() {

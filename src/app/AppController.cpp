@@ -275,13 +275,16 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
 
     if (!isTextMode && m_settings->isManagedResources()) {
         const auto &resDir = m_settings->resourceDir();
+        const bool needStrictCheck = !m_settings->isDefaultResourceDir();
 
-        if (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir)) {
-            emit addTabNotiRequest(tr("Resource directory does not exist. "
-                                      "Please fix it in Settings before adding resources."),
-                                   UiConst::SettingsTabNotiLevel::warning);
+        if (needStrictCheck) {
+            if (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir)) {
+                emit addTabNotiRequest(tr("Resource directory does not exist. "
+                                          "Please fix it in Settings before adding resources."),
+                                       UiConst::SettingsTabNotiLevel::warning);
 
-            return;
+                return;
+            }
         }
     }
 
