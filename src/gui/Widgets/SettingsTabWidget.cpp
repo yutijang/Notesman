@@ -416,7 +416,7 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
 }
 
 void SettingsTabWidget::validateResourceDir(const SettingsData &settings) const {
-    if (!settings.isManagedResource || settings.isResourceDirCustomized) {
+    if (!settings.isManagedResource || !settings.isResourceDirCustomized) {
         m_resDirInp->setStyleSheet("");
         return;
     }

@@ -239,6 +239,7 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
     if (!data.resourceDir.empty()) { settings->setResourceDir(data.resourceDir); }
 
     settings->setManagedResources(data.isManagedResource);
+    settings->setResourceDirCustomized(data.isResourceDirCustomized);
 
     if (settings->isDirty()) {
         applyLanguage(data.language);

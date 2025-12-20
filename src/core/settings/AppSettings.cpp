@@ -88,6 +88,13 @@ void AppSettings::setManagedResources(bool managed) noexcept {
     }
 }
 
+void AppSettings::setResourceDirCustomized(bool customized) noexcept {
+    if (m_isResourceDirCustomized != customized) {
+        m_isResourceDirCustomized = customized;
+        m_dirty = true;
+    }
+}
+
 SettingsData AppSettings::toUiSettings() const {
     return {.theme = m_theme,
             .language = m_language,

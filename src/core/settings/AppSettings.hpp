@@ -26,11 +26,16 @@ class AppSettings {
             return m_resourceDir == std::filesystem::path{K_DEFAULT_RESOURCE_DIR};
         }
 
+        [[nodiscard]] bool isResourceDirCustomized() const noexcept {
+            return m_isResourceDirCustomized;
+        }
+
         // Setter
         void setTheme(Theme theme) noexcept;
         void setLanguage(Language language) noexcept;
         void setResourceDir(std::filesystem::path path) noexcept;
         void setManagedResources(bool managed) noexcept;
+        void setResourceDirCustomized(bool customized) noexcept;
 
         // =====================
 
