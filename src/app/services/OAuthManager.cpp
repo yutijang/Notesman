@@ -20,6 +20,7 @@
 #include "OAuthManager.hpp"
 #include "google_oauth_config.hpp"
 #include "free_port.hpp"
+#include "UiConstants.hpp"
 
 namespace {
     unsigned short oauthPort() {
@@ -39,8 +40,6 @@ namespace {
         QLatin1StringView("openid email https://www.googleapis.com/auth/drive.file");
     constexpr auto CLIENT_ID = QLatin1StringView(OAuthConfig::CLIENT_ID);
     constexpr auto CLIENT_SECRET = QLatin1StringView(OAuthConfig::CLIENT_SECRET);
-    constexpr auto SETTINGS_ORG = "Notesman";
-    constexpr auto SETTINGS_APP = "configs";
     constexpr auto KEY_ACCESS_TOKEN = "google/access_token";
     constexpr auto KEY_TOKEN_EXPIRY = "google/access_token_expiry";
     constexpr auto KEY_REFRESH_TOKEN = "Notesman_google_refresh_token";
@@ -89,7 +88,7 @@ void OAuthManager::processTokenJson(const QJsonObject &json) {
     if (!refresh.isEmpty()) { saveRefreshToken(refresh); }
 
     // Lưu vào Settings
-    QSettings settings(SETTINGS_ORG, SETTINGS_APP);
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
     settings.setValue(KEY_ACCESS_TOKEN, m_accessToken);
     settings.setValue(KEY_TOKEN_EXPIRY, m_accessTokenExpiry.toSecsSinceEpoch());
 }
@@ -353,7 +352,7 @@ void OAuthManager::handleUnlinkGMRequested() {
 
     job->start();
 
-    QSettings settings(SETTINGS_ORG, SETTINGS_APP);
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
     settings.remove(KEY_ACCESS_TOKEN);
     settings.remove(KEY_TOKEN_EXPIRY);
 
@@ -447,7 +446,7 @@ QString OAuthManager::accessToken() {
 void OAuthManager::tryAutoLogin() {
     if (m_isLogin) { return; }
 
-    QSettings settings(SETTINGS_ORG, SETTINGS_APP);
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
     m_accessToken = settings.value(KEY_ACCESS_TOKEN).toString();
     qint64 expirySecs = settings.value(KEY_TOKEN_EXPIRY).toLongLong();
     m_accessTokenExpiry = QDateTime::fromSecsSinceEpoch(expirySecs, QTimeZone::utc());

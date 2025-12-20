@@ -24,7 +24,17 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
     QUrl url(versionCheckUrl);
     QNetworkRequest request(url);
     request.setTransferTimeout(UiConst::NOTI_TIMEOUT5);
-    request.setRawHeader("User-Agent", "Notesman-Updater/1.0");
+    QString userAgent = QStringLiteral("%1/%2 (Contact: %3)")
+                            .arg(app::meta::NAME)
+                            .arg(app::meta::VERSION)
+                            .arg(app::meta::WEBSITE);
+    request.setRawHeader("User-Agent", userAgent.toUtf8());
+    request.setRawHeader("Accept", "application/vnd.github.v3+json");
+    request.setRawHeader("X-GitHub-Api-Version", "2022-11-28");
+
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+    QString eTag = settings.value("update/last_etag").toString();
+    if (!eTag.isEmpty()) { request.setRawHeader("If-None-Match", eTag.toUtf8()); }
 
     QNetworkReply* reply = m_networkManager.get(request);
 
@@ -51,6 +61,16 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
         emit updateCheckFailed(reply->errorString());
         reply->deleteLater();
         reply = nullptr;
+        return;
+    }
+
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+    QByteArray newETag = reply->rawHeader("ETag");
+    if (!newETag.isEmpty()) { settings.setValue("update/last_etag", newETag); }
+
+    constexpr int kNotModiCode{304};
+    if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == kNotModiCode) {
+        emit noUpdateAvailable();
         return;
     }
 

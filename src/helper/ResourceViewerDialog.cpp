@@ -130,6 +130,7 @@ void ResourceViewerDialog::loadContent() {
 
 void ResourceViewerDialog::setupActions() {
     auto* toolbar = new QToolBar(this);
+    toolbar->setObjectName("ResourceViewerToolbar");
     toolbar->setMovable(false);
 
     auto* leftSpacer = new QWidget(toolbar);

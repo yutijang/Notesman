@@ -106,7 +106,7 @@ void AddTabWidget::onTextRadioToggled(bool checked) {
 }
 
 void AddTabWidget::onBrowseFile() {
-    QSettings settings("Notesman", "configs");
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
 
     const QString kDefaultDir = settings.value("addTab/lastBrowseDir", QDir::homePath()).toString();
 

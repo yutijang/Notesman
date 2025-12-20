@@ -1,17 +1,19 @@
-if (WIN32)
-  add_executable(updater updater_windows.cpp)
-
-  target_link_options(updater PRIVATE "/SUBSYSTEM:CONSOLE")
-
-  target_link_libraries(updater PRIVATE miniz_static)
-
-  set_target_properties(updater PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-  )
+if(WIN32)
+  set(UPDATER_SRC updater_windows.cpp)
 elseif(UNIX)
-  add_executable(updater updater_linux.cpp)
+  set(UPDATER_SRC updater_linux.cpp)
+endif()
 
-  set_target_properties(updater PROPERTIES
+set(UPDATER_PROJECT_NAME updater)
+add_executable(${UPDATER_PROJECT_NAME} ${UPDATER_SRC})
+
+if (WIN32)
+  target_link_options(${UPDATER_PROJECT_NAME} PRIVATE "/SUBSYSTEM:CONSOLE")
+  target_link_libraries(${UPDATER_PROJECT_NAME} PRIVATE miniz_static)
+endif()
+
+if(TARGET ${UPDATER_PROJECT_NAME})
+  set_target_properties(${UPDATER_PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
   )
 endif()

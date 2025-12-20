@@ -138,9 +138,9 @@ void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) 
 }
 
 void MainWindow::showEvent(QShowEvent* event) {
-    QMainWindow::showEvent(event);             // Gọi base trước
+    QMainWindow::showEvent(event);                                    // Gọi base trước
 
-    QSettings settings("Notesman", "configs"); // Tạo INI/JSON config
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP); // Tạo INI/JSON config
 
     // Đọc vị trí lưu
     int x = settings.value("window/posX", -1).toInt();
@@ -168,7 +168,7 @@ void MainWindow::showEvent(QShowEvent* event) {
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     // Lưu vị trí và kích thước
-    QSettings settings("Notesman", "configs");
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
     settings.setValue("window/posX", x());
     settings.setValue("window/posY", y());
     settings.setValue("window/width", width());

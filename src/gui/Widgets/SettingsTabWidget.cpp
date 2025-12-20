@@ -21,8 +21,6 @@
 namespace {
     constexpr int LAYOUT_MINWIDTH{370};
     constexpr int COUNTDOWN{60};
-    constexpr auto SETTINGS_ORG = "Notesman";
-    constexpr auto SETTINGS_APP = "configs";
 } // namespace
 
 SettingsTabWidget::SettingsTabWidget(QWidget* parent) : QWidget(parent) {
@@ -154,7 +152,7 @@ void SettingsTabWidget::onBrowseBtnClicked() {
     auto* targetEdit = senderButton->property("targetEdit").value<QLineEdit*>();
     if (targetEdit == nullptr) { return; }
 
-    QSettings settings(SETTINGS_ORG, SETTINGS_APP);
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
     const QString kDefaultDir =
         settings.value(QStringLiteral("settingsTab/lastBrowseDir"), QDir::homePath()).toString();
 

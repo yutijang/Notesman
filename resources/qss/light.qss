@@ -192,29 +192,29 @@ QToolButton::menu-indicator {
     color: #E05C2A;
 }
 
-QToolButton {
+QToolBar#ResourceViewerToolbar QToolButton {
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 2px;
     background-color: transparent;
 }
 
-QToolButton:hover {
+QToolBar#ResourceViewerToolbar ToolButton:hover {
     background-color: rgba(128, 128, 128, 15%); 
     border: 1px solid #F7AA5C;
 }
 
-QToolButton:pressed {
+QToolBar#ResourceViewerToolbar QToolButton:pressed {
     background-color: rgba(0, 0, 0, 15%);
     padding-left: 3px;
     padding-top: 3px;
 }
 
-QToolButton:checked {
+QToolBar#ResourceViewerToolbar QToolButton:checked {
     background-color: rgba(0, 120, 215, 20%);
     border: 1px solid rgba(0, 120, 215, 40%);
 }
 
-QToolButton:checked:hover {
+QToolBar#ResourceViewerToolbar QToolButton:checked:hover {
     background-color: rgba(0, 120, 215, 30%);
 }
