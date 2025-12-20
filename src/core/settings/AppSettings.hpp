@@ -26,6 +26,7 @@ class AppSettings {
             return m_resourceDir == std::filesystem::path{K_DEFAULT_RESOURCE_DIR};
         }
 
+        // maybe unused
         [[nodiscard]] bool isResourceDirCustomized() const noexcept {
             return m_isResourceDirCustomized;
         }

@@ -30,6 +30,7 @@ class AppController;
 class QProgressDialog;
 class ResultsTable;
 class InfoCornerWidget;
+class QAction;
 
 // ----------------------------------------------------
 
@@ -124,6 +125,8 @@ class MainWindow : public QMainWindow {
         SettingsTabWidget* m_settingsTab{};
 
         // Browse Tab
+        QAction* m_deleteResourceAction{};
+        ResultsTable* m_resultsTbl{};
 
         // Add Tab
         CppHighlighter* m_cppHighlighter{};

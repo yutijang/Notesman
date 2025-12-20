@@ -95,6 +95,22 @@ void MainWindow::setupBrowseTab() {
     QObject::connect(this, &MainWindow::updateColumnWidthsRequest, m_browseTab,
                      &BrowseTabWidget::updateColumnWidths);
 
+    m_resultsTbl = m_browseTab->resultsTable();
+    m_deleteResourceAction = new QAction(tr("Delete Resource"), this);
+    m_deleteResourceAction->setIcon(QIcon(":/icons/erase.ico"));
+    m_deleteResourceAction->setShortcut(QKeySequence::Delete);
+    m_deleteResourceAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_deleteResourceAction->setEnabled(false);
+    m_resultsTbl->addAction(m_deleteResourceAction);
+
+    QObject::connect(m_deleteResourceAction, &QAction::triggered, this,
+                     [this] { handleContextMenuDeleteAction(m_resultsTbl); });
+
+    QObject::connect(m_resultsTbl->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+                     [this](const QItemSelection &sel, const QItemSelection &) {
+                         m_deleteResourceAction->setEnabled(!sel.isEmpty());
+                     });
+
     m_tabWidget->addTab(m_browseTab, QIcon(":/icons/browse_tab.ico"), tr("Browse"));
 }
 
@@ -206,8 +222,7 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
         return;
     }
 
-    auto* resultsTbl = m_browseTab->resultsTable();
-    if (resultsTbl == nullptr) {
+    if (m_resultsTbl == nullptr) {
         qWarning() << "ResultsTable not available!";
         return;
     }
@@ -235,12 +250,9 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
 
     menu.addSeparator();
 
-    QAction* deleteAction = menu.addAction(tr("Delete Resource"));
-    deleteAction->setIcon(QIcon(":/icons/erase.ico"));
-    QObject::connect(deleteAction, &QAction::triggered, this,
-                     [this, resultsTbl] { handleContextMenuDeleteAction(resultsTbl); });
+    menu.addAction(m_deleteResourceAction);
 
-    menu.exec(resultsTbl->viewport()->mapToGlobal(
+    menu.exec(m_resultsTbl->viewport()->mapToGlobal(
         pos + QPoint(5, 5))); // NOLINT(readability-magic-numbers)
 }
 
