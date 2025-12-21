@@ -9,7 +9,11 @@ add_executable(${UPDATER_PROJECT_NAME} ${UPDATER_SRC})
 
 if (WIN32)
   target_link_options(${UPDATER_PROJECT_NAME} PRIVATE "/SUBSYSTEM:CONSOLE")
-  target_link_libraries(${UPDATER_PROJECT_NAME} PRIVATE miniz_static)
+  target_link_libraries(${UPDATER_PROJECT_NAME}
+    PRIVATE
+      miniz_static
+      logger
+  )
 endif()
 
 if(TARGET ${UPDATER_PROJECT_NAME})

@@ -9,25 +9,35 @@
 #include "sqldb_raii.hpp"
 #include "file_repository.hpp"
 
-void FileRepository::insertFile(sqlite3_int64 resourceId, std::string_view storedPath,
-                                std::string_view originalPath, bool isManaged) {
+namespace {
+    inline std::string toUtf8String(const std::filesystem::path &p) {
+        const std::u8string u8 = p.u8string();
+        return {u8.begin(), u8.end()};
+    }
+} // namespace
+
+void FileRepository::insertFile(sqlite3_int64 resourceId, const std::filesystem::path &storedPath,
+                                const std::filesystem::path &originalPath, bool isManaged) {
     SQLiteStmt stmt(m_db.get(), "INSERT INTO files(resource_id, stored_path, original_path, "
                                 "is_managed) VALUES (?, ?, ?, ?);");
 
     sqlite3_bind_int64(stmt.get(), 1, resourceId);
 
+    const std::string storedUtf8 = toUtf8String(storedPath);
+    const std::string originalUtf8 = toUtf8String(originalPath);
+
     if (isManaged) {
         // Liên kết nội bộ, sao chép file gốc vào thư mục lưu trữ nội bộ,
         // tồn tại 2 đường dẫn khác nhau, khi sử dụng: ưu tiên storedPath
-        sqlite3_bind_text(stmt.get(), 2, storedPath.data(), static_cast<int>(storedPath.size()),
+        sqlite3_bind_text(stmt.get(), 2, storedUtf8.data(), static_cast<int>(storedUtf8.size()),
                           SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt.get(), 3, originalPath.data(), static_cast<int>(originalPath.size()),
+        sqlite3_bind_text(stmt.get(), 3, originalUtf8.data(), static_cast<int>(originalUtf8.size()),
                           SQLITE_TRANSIENT);
     } else {
         // Liên kết ngoài, 2 đường dẫn giống nhau, khi sử dụng: ưu tiên storedPath
-        sqlite3_bind_text(stmt.get(), 2, originalPath.data(), static_cast<int>(originalPath.size()),
+        sqlite3_bind_text(stmt.get(), 2, originalUtf8.data(), static_cast<int>(originalUtf8.size()),
                           SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt.get(), 3, originalPath.data(), static_cast<int>(originalPath.size()),
+        sqlite3_bind_text(stmt.get(), 3, originalUtf8.data(), static_cast<int>(originalUtf8.size()),
                           SQLITE_TRANSIENT);
     }
 
@@ -41,23 +51,26 @@ void FileRepository::insertFile(sqlite3_int64 resourceId, std::string_view store
     }
 }
 
-void FileRepository::updateFile(sqlite3_int64 resourceId, std::string_view storedPath,
-                                std::string_view originalPath, bool isManaged) {
+void FileRepository::updateFile(sqlite3_int64 resourceId, const std::filesystem::path &storedPath,
+                                const std::filesystem::path &originalPath, bool isManaged) {
     SQLiteStmt stmt(m_db.get(), "UPDATE files SET stored_path = ?, original_path = ?, is_managed = "
                                 "? WHERE resource_id = ?;");
+
+    const std::string storedUtf8 = toUtf8String(storedPath);
+    const std::string originalUtf8 = toUtf8String(originalPath);
 
     if (isManaged) {
         // Liên kết nội bộ, sao chép file gốc vào thư mục lưu trữ nội bộ,
         // tồn tại 2 đường dẫn khác nhau, khi sử dụng: ưu tiên storedPath
-        sqlite3_bind_text(stmt.get(), 1, storedPath.data(), static_cast<int>(storedPath.size()),
+        sqlite3_bind_text(stmt.get(), 1, storedUtf8.data(), static_cast<int>(storedUtf8.size()),
                           SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt.get(), 2, originalPath.data(), static_cast<int>(originalPath.size()),
+        sqlite3_bind_text(stmt.get(), 2, originalUtf8.data(), static_cast<int>(originalUtf8.size()),
                           SQLITE_TRANSIENT);
     } else {
         // Liên kết ngoài, 2 đường dẫn giống nhau, khi sử dụng: ưu tiên storedPath
-        sqlite3_bind_text(stmt.get(), 1, originalPath.data(), static_cast<int>(originalPath.size()),
+        sqlite3_bind_text(stmt.get(), 1, originalUtf8.data(), static_cast<int>(originalUtf8.size()),
                           SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt.get(), 2, originalPath.data(), static_cast<int>(originalPath.size()),
+        sqlite3_bind_text(stmt.get(), 2, originalUtf8.data(), static_cast<int>(originalUtf8.size()),
                           SQLITE_TRANSIENT);
     }
 
@@ -67,8 +80,7 @@ void FileRepository::updateFile(sqlite3_int64 resourceId, std::string_view store
 
     const int rc = sqlite3_step(stmt.get());
     if (rc == SQLITE_CONSTRAINT) {
-        throw std::runtime_error("Update failed: file path already exists -> " +
-                                 std::string(storedPath));
+        throw std::runtime_error("Update failed: file path already exists -> " + storedUtf8);
     }
 
     if (rc != SQLITE_DONE) {
@@ -164,10 +176,14 @@ std::optional<sqlite3_int64> FileRepository::getResourceIdBystoredPath(std::stri
     return std::nullopt;
 }
 
-std::optional<sqlite3_int64> FileRepository::getResourceIdByOriginalPath(std::string_view path) {
+std::optional<sqlite3_int64>
+    FileRepository::getResourceIdByOriginalPath(const std::filesystem::path &path) {
     SQLiteStmt stmt(m_db.get(), "SELECT resource_id FROM files WHERE original_path = ?;");
 
-    sqlite3_bind_text(stmt.get(), 1, path.data(), static_cast<int>(path.size()), SQLITE_TRANSIENT);
+    const std::string pathUtf8 = toUtf8String(path);
+
+    sqlite3_bind_text(stmt.get(), 1, pathUtf8.data(), static_cast<int>(pathUtf8.size()),
+                      SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt.get()) == SQLITE_ROW) { return sqlite3_column_int64(stmt.get(), 0); }
 

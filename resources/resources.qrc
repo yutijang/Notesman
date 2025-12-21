@@ -28,6 +28,11 @@
         <file>icons/save.ico</file>
         <file>icons/load.ico</file>
         <file>icons/syntax.ico</file>
+        <file>icons/type-text.ico</file>
+        <file>icons/type-cpp.ico</file>
+        <file>icons/type-pdf.ico</file>
+        <file>icons/type-html.ico</file>
+        <file>icons/type-epub.ico</file>
     </qresource>
 
     <qresource prefix="/">

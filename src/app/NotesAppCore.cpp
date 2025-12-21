@@ -15,8 +15,9 @@ sqlite3_int64 NotesAppCore::addTextNote(const std::string &title, const std::str
     return m_resService.addTextResource(title, content, type);
 }
 
-sqlite3_int64 NotesAppCore::addFileNote(const std::string &filepath, const std::string &title,
-                                        ResourceType type, bool isManaged) const {
+sqlite3_int64 NotesAppCore::addFileNote(const std::filesystem::path &filepath,
+                                        const std::string &title, ResourceType type,
+                                        bool isManaged) const {
     return m_fileService.addFileResource(filepath, title, type, isManaged);
 }
 
@@ -87,7 +88,7 @@ bool NotesAppCore::isExistTitle(std::string_view title, ResourceType type) const
     return m_resService.isExistTitle(title, type);
 }
 
-bool NotesAppCore::isFileIndexed(const std::string &filepath) const {
+bool NotesAppCore::isFileIndexed(const std::filesystem::path &filepath) const {
     auto resId = m_fileService.findResourceByFile(filepath);
     return resId.has_value();
 }

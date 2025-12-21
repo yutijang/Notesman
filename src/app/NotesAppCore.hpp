@@ -28,7 +28,7 @@ class NotesAppCore {
         [[nodiscard]] sqlite3_int64 addTextNote(const std::string &title,
                                                 const std::string &content,
                                                 ResourceType type) const;
-        [[nodiscard]] sqlite3_int64 addFileNote(const std::string &filepath,
+        [[nodiscard]] sqlite3_int64 addFileNote(const std::filesystem::path &filepath,
                                                 const std::string &title, ResourceType type,
                                                 bool isManaged) const;
         [[nodiscard]] std::optional<FullResource> getFullResource(sqlite3_int64 resourceId) const;
@@ -58,7 +58,7 @@ class NotesAppCore {
 
         // ========= Utility =========
         [[nodiscard]] bool isExistTitle(std::string_view title, ResourceType type) const;
-        [[nodiscard]] bool isFileIndexed(const std::string &filepath) const;
+        [[nodiscard]] bool isFileIndexed(const std::filesystem::path &filepath) const;
         static std::string computeFileHash(const std::filesystem::path &filePath);
 
     private:

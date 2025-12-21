@@ -1,3 +1,4 @@
+#include <ResourceTitleDelegate.hpp>
 #include <vector>
 #include <optional>
 #include <QWidget>
@@ -91,8 +92,8 @@ void BrowseTabWidget::setupUI() {
 
     m_resultsTbl = new ResultsTable(this);
     m_resultsTbl->setContextMenuPolicy(Qt::CustomContextMenu);
-    m_resultsTbl->setColumnCount(3);
-    m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title"), tr("Path")});
+    m_resultsTbl->setColumnCount(2);
+    m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title")});
     m_resultsTbl->horizontalHeader()->setStretchLastSection(true);
     m_resultsTbl->verticalHeader()->setVisible(false);
     m_resultsTbl->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
@@ -100,6 +101,7 @@ void BrowseTabWidget::setupUI() {
     m_resultsTbl->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_resultsTbl->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_resultsTbl->setSortingEnabled(true);
+    m_resultsTbl->setItemDelegateForColumn(1, new ResourceTitleDelegate(m_resultsTbl));
 
     mainLayout->addLayout(topLayout);
     mainLayout->addWidget(m_resultsTbl, 1);
@@ -131,7 +133,7 @@ void BrowseTabWidget::retranslateUi() {
     m_titleRad->setText(tr("Title"));
     m_contentRad->setText(tr("Content"));
 
-    m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title"), tr("Path")});
+    m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title")});
 
     m_clearTableBtn->setText(tr("Clear"));
     m_getAllBtn->setText(tr("Get All"));
@@ -175,11 +177,13 @@ void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
         const int row = m_resultsTbl->rowCount();
         m_resultsTbl->insertRow(row);
 
+        // No.
         auto* noItem = new QTableWidgetItem(QString::number(i + 1));
         noItem->setTextAlignment(Qt::AlignCenter);
         noItem->setFlags(noItem->flags() & ~Qt::ItemIsEditable);
         m_resultsTbl->setItem(row, 0, noItem);
 
+        // Title (delegate sẽ vẽ icon)
         auto* titleItem = new QTableWidgetItem(QString::fromStdString(res.resource.title));
         titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
 
@@ -190,12 +194,6 @@ void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
                            static_cast<int>(res.resource.type));
 
         m_resultsTbl->setItem(row, 1, titleItem);
-
-        if (res.filepath.has_value()) {
-            auto* pathItem = new QTableWidgetItem(QString::fromStdString(*res.filepath));
-            pathItem->setFlags(pathItem->flags() & ~Qt::ItemIsEditable);
-            m_resultsTbl->setItem(row, 2, pathItem);
-        }
     }
 
     m_resultsTbl->setUpdatesEnabled(true);

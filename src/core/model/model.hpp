@@ -15,8 +15,9 @@
 #include "helper.hpp"
 
 enum class ResourceType : std::uint8_t {
-    plainText, //> ghi chú text thường (QTextEdit, không highlight)
-    cCppCode,  //> snippet / mã nguồn C/C++ (QTextEdit + highlight)
+    plainText, //> text thuần ghi trực tiếp vào database,
+               // ghi chú text thường (QTextEdit, có hoặc không highlight)
+    cCppCode,  //> text thuần dạng file / snippet / mã nguồn C/C++ (QTextEdit + highlight)
     htmlDoc,   //> .html (WebView)
     pdfDoc,    //> .pdf (PDF viewer)
     epubDoc    //> .epub (Epub viewer)
@@ -55,16 +56,16 @@ enum class ResourceType : std::uint8_t {
 [[nodiscard]] inline std::optional<ResourceType> resourceTypeFromExtension(std::string_view ext) {
     const auto &extMap = []() -> const std::unordered_map<std::string_view, ResourceType> & {
         static const auto* map = new std::unordered_map<std::string_view, ResourceType>{
-            { "txt", ResourceType::plainText},
-            {   "c",  ResourceType::cCppCode},
-            { "cpp",  ResourceType::cCppCode},
-            {   "h",  ResourceType::cCppCode},
-            { "hpp",  ResourceType::cCppCode},
-            { "cxx",  ResourceType::cCppCode},
-            { "hxx",  ResourceType::cCppCode},
-            {"html",   ResourceType::htmlDoc},
-            { "pdf",    ResourceType::pdfDoc},
-            {"epub",   ResourceType::epubDoc}
+            { "txt", ResourceType::cCppCode},
+            {   "c", ResourceType::cCppCode},
+            { "cpp", ResourceType::cCppCode},
+            {   "h", ResourceType::cCppCode},
+            { "hpp", ResourceType::cCppCode},
+            { "cxx", ResourceType::cCppCode},
+            { "hxx", ResourceType::cCppCode},
+            {"html",  ResourceType::htmlDoc},
+            { "pdf",   ResourceType::pdfDoc},
+            {"epub",  ResourceType::epubDoc}
         };
         return *map;
     }();
@@ -74,9 +75,9 @@ enum class ResourceType : std::uint8_t {
     return std::nullopt;
 }
 
-[[nodiscard]] inline std::optional<ResourceType> resourceTypeFromFile(const std::string &pathStr) {
-    const std::filesystem::path path(pathStr);
-    const auto ext = Utils::getFileExtension(path);
+[[nodiscard]] inline std::optional<ResourceType>
+    resourceTypeFromFile(const std::filesystem::path &pathStr) {
+    const auto ext = Utils::getFileExtension(pathStr);
     return resourceTypeFromExtension(ext);
 }
 

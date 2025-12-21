@@ -61,8 +61,9 @@ std::string FileService::computeFileHash(const std::filesystem::path &filePath) 
 
 // Thêm file vào DB kèm hash
 // NOLINTNEXTLINE
-sqlite3_int64 FileService::addFileResource(const std::string &filepath, const std::string &title,
-                                           ResourceType type, bool isManaged) {
+sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath,
+                                           const std::string &title, ResourceType type,
+                                           bool isManaged) {
     // Tính hash của file
     std::string hash = computeFileHash(filepath);
 
@@ -70,7 +71,7 @@ sqlite3_int64 FileService::addFileResource(const std::string &filepath, const st
     auto existing = m_resRepo.getByFileHash(hash);
     if (existing.has_value()) { return existing->id; } // đã tồn tại -> trả về resource_id
 
-    std::string storedPath;
+    std::filesystem::path storedPath;
     if (isManaged) {
         storedPath = copyToStorage(filepath, hash);
     } else {
@@ -86,7 +87,8 @@ sqlite3_int64 FileService::addFileResource(const std::string &filepath, const st
 }
 
 // Kiểm tra file đã được index chưa
-std::optional<sqlite3_int64> FileService::findResourceByFile(const std::string &filepath) {
+std::optional<sqlite3_int64>
+    FileService::findResourceByFile(const std::filesystem::path &filepath) {
     // Kiểm tra trước với original_path
     auto byOriginal = m_fileRepo.getResourceIdByOriginalPath(filepath);
     if (byOriginal.has_value()) { return *byOriginal; }
@@ -117,18 +119,21 @@ void FileService::refreshFileHash(sqlite3_int64 resourceId) {
 }
 
 // NOLINTNEXTLINE
-std::string FileService::copyToStorage(const std::string &srcPath, const std::string &hash) {
+std::filesystem::path FileService::copyToStorage(const std::filesystem::path &srcPath,
+                                                 const std::string &hash) {
     namespace fs = std::filesystem;
 
     fs::path storageDir = "resources";
-    if (!fs::exists(storageDir)) { fs::create_directories(storageDir); }
+    fs::create_directories(storageDir);
 
-    fs::path ext = fs::path(srcPath).extension();
-    fs::path dest = storageDir / (hash + ext.string());
+    fs::path dest = storageDir / fs::path{hash}.replace_extension(srcPath.extension());
 
-    fs::copy_file(srcPath, dest, fs::copy_options::skip_existing);
+    try {
+        fs::copy_file(srcPath, dest, fs::copy_options::skip_existing);
+    } catch (const std::filesystem::filesystem_error &e) {
+        std::cerr << "Filesystem error:" << e.what();
+        throw; // hoặc return error
+    }
 
-    if (!fs::exists(storageDir)) { std::cout << "path not exist"; } // here
-
-    return dest.string();
+    return dest;
 }

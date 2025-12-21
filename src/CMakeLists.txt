@@ -1,6 +1,23 @@
 set(CMAKE_PCH_WARN_INVALID ON)
 
 # =========================================================
+# Logger
+# =========================================================
+add_library(logger STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/Logger.cpp
+)
+
+target_include_directories(logger
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper
+)
+
+target_link_libraries(logger
+  PUBLIC
+    spdlog::spdlog
+)
+
+# =========================================================
 # Core library
 # =========================================================
 add_library(notes-core STATIC
@@ -64,11 +81,11 @@ set(GUI_SOURCES
 set(HELPER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/FontLoader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResultsTable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceTitleDelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/helper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/DialogUtils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceViewerDialog.cpp
-
 )
 
 if(UNIX)
@@ -113,6 +130,8 @@ target_link_libraries(notes-app-lib-core
     Qt6::Gui
     Qt6::Widgets
     Qt6::Network
+  PRIVATE
+    logger
 )
 
 target_compile_definitions(notes-app-lib-core
@@ -158,7 +177,7 @@ target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     notes-app-lib-core # Thứ tự QUAN TRỌNG
-    notes-app-lib-qtkeychain
+    notes-app-lib-qtkeychain    
 )
 
 if(WIN32)

@@ -23,18 +23,19 @@ class FileService {
         // title: tiêu đề resource
         // type: loại resource (pdf, epub,...)
         // isManaged: true = copy vào storage, false = chỉ link ngoài
-        sqlite3_int64 addFileResource(const std::string &filepath, const std::string &title,
-                                      ResourceType type, bool isManaged);
+        sqlite3_int64 addFileResource(const std::filesystem::path &filepath,
+                                      const std::string &title, ResourceType type, bool isManaged);
 
         // Kiểm tra file đã được index chưa
-        std::optional<sqlite3_int64> findResourceByFile(const std::string &filepath);
+        std::optional<sqlite3_int64> findResourceByFile(const std::filesystem::path &filepath);
 
         // Đồng bộ lại hash (khi file thay đổi nội dung)
         void refreshFileHash(sqlite3_int64 resourceId);
 
     private:
         // Helper: copy file vào storage (nếu isManaged = true)
-        static std::string copyToStorage(const std::string &srcPath, const std::string &hash);
+        std::filesystem::path copyToStorage(const std::filesystem::path &srcPath,
+                                            const std::string &hash);
 
         SQLiteDB &m_db;
         FileRepository &m_fileRepo;

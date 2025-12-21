@@ -6,6 +6,8 @@
 #include <windows.h>
 #include <miniz.h>
 
+#include "Logger.hpp"
+
 namespace fs = std::filesystem;
 
 namespace {

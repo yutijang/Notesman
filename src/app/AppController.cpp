@@ -272,7 +272,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
                                          const QString &filePath, const QStringList &tags,
                                          bool isTextMode) {
     ResourceType type = ResourceType::plainText;
-    const auto filePathUtf8 = filePath.toUtf8().toStdString();
+    const std::filesystem::path filePathFs{filePath.toStdWString()};
 
     if (!isTextMode && m_settings->isManagedResources()) {
         const auto &resDir = m_settings->resourceDir();
@@ -296,13 +296,13 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
             return;
         }
 
-        if (m_core->isFileIndexed(filePathUtf8)) {
+        if (m_core->isFileIndexed(filePathFs)) {
             emit addTabNotiRequest(tr("File exists in storage! Not add more."),
                                    UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
-        const auto typeOpt = resourceTypeFromFile(filePathUtf8);
+        const auto typeOpt = resourceTypeFromFile(filePathFs);
         if (!typeOpt.has_value()) {
             emit addTabNotiRequest(tr("File extension not support!"),
                                    UiConst::SettingsTabNotiLevel::warning);
@@ -331,7 +331,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
 
         emit addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::good);
     } else {
-        resId = m_core->addFileNote(filePath.toStdString(), titleStd, type,
+        resId = m_core->addFileNote(std::filesystem::path(filePath.toStdWString()), titleStd, type,
                                     m_settings->isManagedResources());
 
         emit addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::good);
