@@ -34,3 +34,5 @@ app_version.hpp
 version.rc
 
 src/app/google_oauth_config.hpp
+
+extern/sqlite3/

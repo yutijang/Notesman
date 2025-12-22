@@ -31,17 +31,15 @@ namespace {
         fs::path dirPath(targetFolder);
         std::error_code ec;
         if (!fs::exists(dirPath, ec) || !fs::is_directory(dirPath, ec)) {
-            const std::string folderUtf8 = wstringToUtf8(targetFolder);
-            const std::string errorMsg = ec.message();
-            Log::err("Folder invalid: {} - error: {}", folderUtf8, errorMsg);
+            Log::err("Folder invalid: {} - error: {}", wstringToUtf8(targetFolder), ec.message());
 
             return;
         }
 
         for (const auto &entry : fs::directory_iterator(dirPath, ec)) {
             if (ec) {
-                std::wcerr << L"Error: " << std::wstring(ec.message().begin(), ec.message().end())
-                           << L"\n";
+                Log::err("Error: {}", ec.message());
+
                 ec.clear();
                 continue;
             }
@@ -53,16 +51,10 @@ namespace {
 
             if (entry.is_directory(ec)) {
                 fs::remove_all(path, ec);
-                if (ec) {
-                    std::wcerr << L"Error remove all - "
-                               << std::wstring(ec.message().begin(), ec.message().end()) << L"\n";
-                }
+                if (ec) { Log::err("Error remove all: {}", ec.message()); }
             } else {
                 fs::remove(path, ec);
-                if (ec) {
-                    std::wcerr << L"Error remove - "
-                               << std::wstring(ec.message().begin(), ec.message().end()) << L"\n";
-                }
+                if (ec) { Log::err("Error remove: {}", ec.message()); }
             }
             ec.clear();
         }
@@ -121,7 +113,7 @@ namespace {
     // NOLINTNEXTLINE
     bool copyRecursive(const fs::path &from, const fs::path &to) {
         if (!fs::exists(from)) {
-            std::cerr << "copyRecursive failed: source not found: " << from << "\n";
+            Log::err("copyRecursive failed: source not found: {}", wstringToUtf8(from));
             return false;
         }
 
@@ -129,16 +121,16 @@ namespace {
 
         fs::create_directories(to, ec);
         if (ec) {
-            std::cerr << "copyRecursive failed: cannot create target directory: " << to << " : "
-                      << ec.message() << "\n";
+            Log::err("copyRecursive failed: cannot create target directory: {} : {}",
+                     wstringToUtf8(to), ec.message());
             return false;
         }
 
         fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
 
         if (ec) {
-            std::cerr << "copyRecursive failed: " << ec.message() << " (code " << ec.value() << ")"
-                      << " while copying from " << from << " to " << to << "\n";
+            Log::err("copyRecursive failed: {} (code {}) while copying from {} to {}", ec.message(),
+                     ec.value(), wstringToUtf8(from), wstringToUtf8(to));
             return false;
         }
 
@@ -174,7 +166,11 @@ namespace {
         const std::wstring appDir(argv[3]);
         const std::wstring tempDir = appDir + L"\\temp_update";
         const std::wstring zipPath(argv[4]);
-        unzipToFolder(zipPath, L"Notesman-x64", tempDir, false);
+        bool isUnzip = unzipToFolder(zipPath, L"Notesman-x64", tempDir, false);
+        if (!isUnzip) {
+            Log::err("Error unzip assets into temp_update folder");
+            return;
+        }
 
         // prepare arguments send to stage 2
         // argv[1] = --stage2
@@ -216,7 +212,7 @@ namespace {
                                  &si, &pi);
 
         if (ok == 0) {
-            std::cerr << "CreateProcessW failed: " << GetLastError() << "\n";
+            Log::err("CreateProcessW failed from stage1, error: {}", GetLastError());
         } else {
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
@@ -243,7 +239,12 @@ namespace {
         clearFolder(appDir, resDir);
 
         const std::wstring tempDir = appDir + L"\\temp_update";
-        copyRecursive(tempDir, appDir);
+        bool isCopied = copyRecursive(tempDir, appDir);
+        if (!isCopied) {
+            Log::err("Error copy assets from: {} to: {}", wstringToUtf8(tempDir),
+                     wstringToUtf8(appDir));
+            return;
+        }
 
         // prepare arguments send to main app
         // argv[1] = --update-done
@@ -281,7 +282,7 @@ namespace {
                                  &si, &pi);
 
         if (ok == 0) {
-            std::cerr << "CreateProcessW failed: " << GetLastError() << "\n";
+            Log::err("CreateProcessW failed from stage2, error: {}", GetLastError());
         } else {
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
@@ -291,8 +292,10 @@ namespace {
 } // namespace
 
 int wmain(int argc, wchar_t* argv[]) {
+    Log::init("updater");
+
     if (argc < 2) {
-        std::wcerr << "Arguments not enough\n";
+        Log::err("Arguments not enough, argc: {}/2", argc);
         return 1;
     }
 
@@ -300,20 +303,20 @@ int wmain(int argc, wchar_t* argv[]) {
 
     if (entry == L"--stage1") {
         if (argc < 7) { // NOLINT(readability-magic-numbers)
-            std::cerr << "Arguments not enough\n";
+            Log::err("Stage1: Arguments not enough, argc: {}/7", argc);
             return 1;
         }
 
         handleStage1(argv);
     } else if (entry == L"--stage2") {
         if (argc < 7) { // NOLINT(readability-magic-numbers)
-            std::cerr << "Arguments not enough\n";
+            Log::err("Stage2: Arguments not enough, argc: {}/7", argc);
             return 1;
         }
 
         handleStage2(argv);
     } else {
-        std::cerr << "Invalid entry\n";
+        Log::err("Invalid entry");
         return 1;
     }
 
