@@ -20,7 +20,11 @@
             "name": "spdlog"
         },
         {
-            "name": "sqlite3"
+            "name": "sqlite3",
+            "features": [
+                "fts5",
+                "unicode"
+            ]
         }
     ],
     "overrides": [
