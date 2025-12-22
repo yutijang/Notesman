@@ -23,15 +23,18 @@ namespace {
 
     // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
     void clearFolder(const std::wstring &targetFolder, const std::wstring &resDirName) {
-        std::unordered_set<std::wstring> keepFiles{L"temp_update", L"data.db", L"config.ini"};
+        std::unordered_set<std::wstring> keepFiles{L"temp_update", L"data.db", L"config.ini",
+                                                   L"logs"};
 
         if (!resDirName.empty() && resDirName != L"NULL_OR_ROOT") { keepFiles.insert(resDirName); }
 
         fs::path dirPath(targetFolder);
         std::error_code ec;
         if (!fs::exists(dirPath, ec) || !fs::is_directory(dirPath, ec)) {
-            std::wcerr << L"Folder invalid: " << targetFolder << L" - error: "
-                       << std::wstring(ec.message().begin(), ec.message().end()) << L"\n";
+            const std::string folderUtf8 = wstringToUtf8(targetFolder);
+            const std::string errorMsg = ec.message();
+            Log::err("Folder invalid: {} - error: {}", folderUtf8, errorMsg);
+
             return;
         }
 
