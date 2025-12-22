@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef _WIN32
-#    include <windows.h>
+    #include <windows.h>
 #endif
 
 #include <memory>
@@ -55,6 +55,7 @@ class AppInitializer final : public QObject {
 #endif
         void handleUpdateCleanup(const QStringList &args);
         void displayNotiUpdateComplete();
+        static void saveETagOnUpdateSuccess();
 
         std::unique_ptr<SQLiteDB> m_db;
         std::unique_ptr<ResourceRepository> m_resRepo;

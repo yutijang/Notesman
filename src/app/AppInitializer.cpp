@@ -298,6 +298,7 @@ void AppInitializer::checkUpdateFlag() {
 
         const auto updaterPID = static_cast<DWORD>(args[2].toULongLong());
         waitForProcessExitAsync(updaterPID, [this, args]() { handleUpdateCleanup(args); });
+        saveETagOnUpdateSuccess();
     }
 #elif defined(Q_OS_LINUX)
     if (args.size() >= 4 && args[1] == "--update-done") {
@@ -316,8 +317,20 @@ void AppInitializer::checkUpdateFlag() {
         if (fs::exists(binPath)) { fs::remove(binPath); }
 
         displayNotiUpdateComplete();
+        saveETagonUpdateSuccess();
     }
 #endif
+}
+
+void AppInitializer::saveETagOnUpdateSuccess() {
+    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+
+    const auto checkedETag = settings.value("update/pending_etag").toString();
+    if (!checkedETag.isEmpty()) {
+        settings.setValue("update/applied_etag", checkedETag);
+        settings.setValue("update/applied_version", app::meta::VERSION);
+        settings.remove("update/pending_etag");
+    }
 }
 
 void AppInitializer::handleUpdateCleanup(const QStringList &args) {

@@ -200,6 +200,33 @@ jobs:
             }
           }
 
+      - name: Find and copy fmt.dll and spdlog.dll
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          $dllNames = @("fmt.dll", "spdlog.dll")
+
+          foreach ($dll in $dllNames) {
+              $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dll"
+              if (Test-Path $preferredPath) {
+                  Write-Host "Found $dll at preferred location: $preferredPath"
+                  Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
+                  Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
+              } else {
+                  Write-Host "Preferred location for $dll not found, searching recursively under $vcpkgRoot ..."
+                  $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dll -ErrorAction SilentlyContinue | Select-Object -First 1
+                  if ($null -ne $dllFile) {
+                      Write-Host "Found $dll at: $($dllFile.FullName)"
+                      Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
+                      Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
+                  } else {
+                      Write-Error "$dll not found under $vcpkgRoot"
+                      exit 1
+                  }
+              }
+          }
+
       - name: Extract project version
         id: get_version
         shell: pwsh

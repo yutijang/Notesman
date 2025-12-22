@@ -10,6 +10,7 @@
 #include "UpdateManager.hpp"
 #include "app_version.hpp"
 #include "UiConstants.hpp"
+#include "Logger.hpp"
 
 UpdateManager::UpdateManager(QObject* parent) : QObject(parent) {}
 
@@ -24,17 +25,31 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
     QUrl url(versionCheckUrl);
     QNetworkRequest request(url);
     request.setTransferTimeout(UiConst::NOTI_TIMEOUT5);
-    QString userAgent = QStringLiteral("%1/%2 (Contact: %3)")
-                            .arg(app::meta::NAME)
-                            .arg(app::meta::VERSION)
-                            .arg(app::meta::WEBSITE);
+    const QString userAgent = QStringLiteral("%1/%2 (Contact: %3)")
+                                  .arg(app::meta::NAME)
+                                  .arg(app::meta::VERSION)
+                                  .arg(app::meta::WEBSITE);
     request.setRawHeader("User-Agent", userAgent.toUtf8());
     request.setRawHeader("Accept", "application/vnd.github.v3+json");
     request.setRawHeader("X-GitHub-Api-Version", "2022-11-28");
 
     QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
-    QString eTag = settings.value("update/last_etag").toString();
-    if (!eTag.isEmpty()) { request.setRawHeader("If-None-Match", eTag.toUtf8()); }
+    const QString appliedVersion = settings.value("update/applied_version").toString();
+    if (!appliedVersion.isEmpty()) {
+        const int compare = compareVersionsQt(app::meta::VERSION, appliedVersion);
+        if (compare < 0) {
+            settings.remove("update/applied_etag");
+            settings.remove("update/applied_version");
+
+            const QString msg = QStringLiteral("Rollback detected: local=%1, applied=%2")
+                                    .arg(app::meta::VERSION)
+                                    .arg(appliedVersion);
+            Log::warn(msg.toStdString());
+        }
+    }
+
+    const QString appliedETag = settings.value("update/applied_etag").toString();
+    if (!appliedETag.isEmpty()) { request.setRawHeader("If-None-Match", appliedETag.toUtf8()); }
 
     QNetworkReply* reply = m_networkManager.get(request);
 
@@ -64,15 +79,14 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
         return;
     }
 
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
-    QByteArray newETag = reply->rawHeader("ETag");
-    if (!newETag.isEmpty()) { settings.setValue("update/last_etag", newETag); }
-
     constexpr int kNotModiCode{304};
     if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == kNotModiCode) {
         emit noUpdateAvailable();
+        reply->deleteLater();
         return;
     }
+
+    const QByteArray pendingETag = reply->rawHeader("ETag");
 
     const QByteArray data = reply->readAll();
     reply->deleteLater();
@@ -94,16 +108,25 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     if (checkForUpdate == -1) {
         auto updateInfo = findAssetInfo(jsonDoc);
         if (updateInfo.has_value() && updateInfo->isValid()) {
-            updateInfo->tagName = latestVersion;
+            if (!pendingETag.isEmpty()) {
+                QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+                if (!pendingETag.isEmpty()) {
+                    settings.setValue("update/pending_etag", pendingETag);
+                }
+            }
 
-            auto infoSummary = updateInfoToSummary(*updateInfo);
-            emit updateAvailable(infoSummary); // ---> UpdateManager* AppController::updateManager()
+            updateInfo->tagName = latestVersion;
+            emit updateAvailable(updateInfoToSummary(
+                *updateInfo));            // ---> UpdateManager* AppController::updateManager()
         } else {
             emit updateCheckFailed(
-                tr("Error gather info"));      // ---> UpdateManager* AppController::updateManager()
+                tr("Error gather info")); // ---> UpdateManager* AppController::updateManager()
         }
     } else {
-        emit noUpdateAvailable();              // ---> UpdateManager* AppController::updateManager()
+        QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+        settings.remove("update/pending_etag");
+
+        emit noUpdateAvailable(); // ---> UpdateManager* AppController::updateManager()
     }
 }
 
