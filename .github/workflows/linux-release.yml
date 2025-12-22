@@ -83,7 +83,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: ${{ env.VCPKG_ROOT }}
-          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
+          vcpkgGitCommitId: 'b8927a1f9dd394496414668e1d2f94b2559d45a8'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
           runVcpkgInstall: false
 

@@ -48,7 +48,7 @@ target_precompile_headers(notes-core
 
 target_link_libraries(notes-core
   PUBLIC
-    sqlite3_wrapper
+    SQLite::SQLite3
     OpenSSL::SSL
     OpenSSL::Crypto
 )
@@ -104,8 +104,6 @@ add_library(notes-app-lib-core STATIC
 )
 
 target_include_directories(notes-app-lib-core
-  SYSTEM PRIVATE
-    ${PROJECT_SOURCE_DIR}/extern/sqlite3
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/app
     ${CMAKE_CURRENT_SOURCE_DIR}/app/workers

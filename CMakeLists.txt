@@ -64,6 +64,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 find_package(OpenSSL REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 # --- QtKeychain ---------------------------------------------
 include(FetchContent)
@@ -103,7 +104,7 @@ set(CMAKE_AUTORCC ON)
 # endif()
 
 # Thêm subdirectory app
-add_subdirectory(extern/sqlite3)
+# add_subdirectory(extern/sqlite3)
 add_subdirectory(extern/miniz)
 add_subdirectory(src)
 

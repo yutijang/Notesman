@@ -1,7 +1,7 @@
 {
     "name": "notesman",
-    "version": "1.0.0",
-    "builtin-baseline": "bd52fac7114fdaa2208de8dd1227212a6683e562",
+    "version": "2025.12.9",
+    "builtin-baseline": "b8927a1f9dd394496414668e1d2f94b2559d45a8",
     "dependencies": [
         {
             "name": "openssl"
@@ -18,6 +18,9 @@
         },
         {
             "name": "spdlog"
+        },
+        {
+            "name": "sqlite3"
         }
     ],
     "overrides": [

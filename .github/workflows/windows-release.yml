@@ -80,7 +80,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: ${{ env.VCPKG_ROOT }}
-          vcpkgGitCommitId: 'bd52fac7114fdaa2208de8dd1227212a6683e562'
+          vcpkgGitCommitId: 'b8927a1f9dd394496414668e1d2f94b2559d45a8'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
           runVcpkgInstall: false
 
@@ -224,6 +224,31 @@ jobs:
                       Write-Error "$dll not found under $vcpkgRoot"
                       exit 1
                   }
+              }
+          }
+
+      - name: Find and copy sqlite3.dll
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          $dllName = "sqlite3.dll"
+
+          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dllName"
+          if (Test-Path $preferredPath) {
+              Write-Host "Found $dllName at preferred location: $preferredPath"
+              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
+              Write-Host "Copied $dllName to ${{ env.RELEASE_DIR }}"
+          } else {
+              Write-Host "Preferred location for $dllName not found, searching recursively under $vcpkgRoot ..."
+              $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dllName -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($null -ne $dllFile) {
+                  Write-Host "Found $dllName at: $($dllFile.FullName)"
+                  Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
+                  Write-Host "Copied $dllName to ${{ env.RELEASE_DIR }}"
+              } else {
+                  Write-Error "$dllName not found under $vcpkgRoot"
+                  exit 1
               }
           }
 
