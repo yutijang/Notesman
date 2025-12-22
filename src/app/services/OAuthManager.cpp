@@ -20,7 +20,7 @@
 #include "OAuthManager.hpp"
 #include "google_oauth_config.hpp"
 #include "free_port.hpp"
-#include "UiConstants.hpp"
+#include "SettingsManager.hpp"
 
 namespace {
     unsigned short oauthPort() {
@@ -43,7 +43,7 @@ namespace {
     constexpr auto KEY_ACCESS_TOKEN = "google/access_token";
     constexpr auto KEY_TOKEN_EXPIRY = "google/access_token_expiry";
     constexpr auto KEY_REFRESH_TOKEN = "Notesman_google_refresh_token";
-    constexpr int LOGIN_TIMEOUT{60000};
+    constexpr int LOGIN_TIMEOUT{60'000};
 } // namespace
 
 // --- BEGIN helper ---
@@ -88,9 +88,9 @@ void OAuthManager::processTokenJson(const QJsonObject &json) {
     if (!refresh.isEmpty()) { saveRefreshToken(refresh); }
 
     // Lưu vào Settings
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
-    settings.setValue(KEY_ACCESS_TOKEN, m_accessToken);
-    settings.setValue(KEY_TOKEN_EXPIRY, m_accessTokenExpiry.toSecsSinceEpoch());
+    auto &settings = SettingsManager::instance();
+    settings.set(KEY_ACCESS_TOKEN, m_accessToken);
+    settings.set(KEY_TOKEN_EXPIRY, m_accessTokenExpiry.toSecsSinceEpoch());
 }
 
 void OAuthManager::openBrowser(const QUrl &url) {
@@ -352,7 +352,7 @@ void OAuthManager::handleUnlinkGMRequested() {
 
     job->start();
 
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+    auto &settings = SettingsManager::instance();
     settings.remove(KEY_ACCESS_TOKEN);
     settings.remove(KEY_TOKEN_EXPIRY);
 
@@ -446,9 +446,9 @@ QString OAuthManager::accessToken() {
 void OAuthManager::tryAutoLogin() {
     if (m_isLogin) { return; }
 
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
-    m_accessToken = settings.value(KEY_ACCESS_TOKEN).toString();
-    qint64 expirySecs = settings.value(KEY_TOKEN_EXPIRY).toLongLong();
+    auto &settings = SettingsManager::instance();
+    m_accessToken = settings.get(KEY_ACCESS_TOKEN).toString();
+    qint64 expirySecs = settings.get(KEY_TOKEN_EXPIRY).toLongLong();
     m_accessTokenExpiry = QDateTime::fromSecsSinceEpoch(expirySecs, QTimeZone::utc());
 
     QString token = accessToken();

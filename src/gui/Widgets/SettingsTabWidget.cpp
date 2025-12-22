@@ -17,6 +17,7 @@
 #include "UiConstants.hpp"
 #include "SettingsData.hpp"
 #include "DialogUtils.hpp"
+#include "SettingsManager.hpp"
 
 namespace {
     constexpr int LAYOUT_MINWIDTH{370};
@@ -156,9 +157,9 @@ void SettingsTabWidget::onBrowseBtnClicked() {
     auto* targetEdit = senderButton->property("targetEdit").value<QLineEdit*>();
     if (targetEdit == nullptr) { return; }
 
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+    auto &settings = SettingsManager::instance();
     const QString kDefaultDir =
-        settings.value(QStringLiteral("settingsTab/lastBrowseDir"), QDir::homePath()).toString();
+        settings.get(QStringLiteral("settingsTab/lastBrowseDir"), QDir::homePath()).toString();
 
     QString dirPath =
         QFileDialog::getExistingDirectory(this, tr("Select Output Folder"), kDefaultDir);
@@ -169,7 +170,7 @@ void SettingsTabWidget::onBrowseBtnClicked() {
 
         // Get parent path
         const QString parentDir = QFileInfo(cleanPath).absoluteDir().absolutePath();
-        settings.setValue(QStringLiteral("settingsTab/lastBrowseDir"), parentDir);
+        settings.set(QStringLiteral("settingsTab/lastBrowseDir"), parentDir);
     }
 }
 

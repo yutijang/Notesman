@@ -11,6 +11,7 @@
 #include "app_version.hpp"
 #include "UiConstants.hpp"
 #include "Logger.hpp"
+#include "SettingsManager.hpp"
 
 UpdateManager::UpdateManager(QObject* parent) : QObject(parent) {}
 
@@ -33,8 +34,9 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
     request.setRawHeader("Accept", "application/vnd.github.v3+json");
     request.setRawHeader("X-GitHub-Api-Version", "2022-11-28");
 
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
-    const QString appliedVersion = settings.value("update/applied_version").toString();
+    auto &settings = SettingsManager::instance();
+
+    const QString appliedVersion = settings.get("update/applied_version").toString();
     if (!appliedVersion.isEmpty()) {
         const int compare = compareVersionsQt(app::meta::VERSION, appliedVersion);
         if (compare < 0) {
@@ -48,7 +50,7 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
         }
     }
 
-    const QString appliedETag = settings.value("update/applied_etag").toString();
+    const QString appliedETag = settings.get("update/applied_etag").toString();
     if (!appliedETag.isEmpty()) { request.setRawHeader("If-None-Match", appliedETag.toUtf8()); }
 
     QNetworkReply* reply = m_networkManager.get(request);
@@ -104,15 +106,14 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     const QString removeVer = normalizeVersionQt(latestVersion);
     const QString localVer = app::meta::VERSION;
 
+    auto &settings = SettingsManager::instance();
+
     const int checkForUpdate = compareVersionsQt(localVer, removeVer);
     if (checkForUpdate == -1) {
         auto updateInfo = findAssetInfo(jsonDoc);
         if (updateInfo.has_value() && updateInfo->isValid()) {
             if (!pendingETag.isEmpty()) {
-                QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
-                if (!pendingETag.isEmpty()) {
-                    settings.setValue("update/pending_etag", pendingETag);
-                }
+                if (!pendingETag.isEmpty()) { settings.set("update/pending_etag", pendingETag); }
             }
 
             updateInfo->tagName = latestVersion;
@@ -123,7 +124,6 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
                 tr("Error gather info")); // ---> UpdateManager* AppController::updateManager()
         }
     } else {
-        QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
         settings.remove("update/pending_etag");
 
         emit noUpdateAvailable(); // ---> UpdateManager* AppController::updateManager()

@@ -20,6 +20,7 @@
 #include "UiConstants.hpp"
 #include "model.hpp"
 #include "DialogUtils.hpp"
+#include "SettingsManager.hpp"
 
 AddTabWidget::AddTabWidget(QWidget* parent) : QWidget(parent) {
     setupUi();
@@ -106,9 +107,9 @@ void AddTabWidget::onTextRadioToggled(bool checked) {
 }
 
 void AddTabWidget::onBrowseFile() {
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+    auto &settings = SettingsManager::instance();
 
-    const QString kDefaultDir = settings.value("addTab/lastBrowseDir", QDir::homePath()).toString();
+    const QString kDefaultDir = settings.get("addTab/lastBrowseDir", QDir::homePath()).toString();
 
     QString filePath = QFileDialog::getOpenFileName(
         this, tr("Select Resource File"), kDefaultDir,
@@ -119,7 +120,7 @@ void AddTabWidget::onBrowseFile() {
 
         QFileInfo fileInfo(filePath);
         if (fileInfo.exists()) {
-            settings.setValue("addTab/lastBrowseDir", fileInfo.absoluteDir().path());
+            settings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path());
         }
 
         const auto typeOpt = resourceTypeFromFile(filePath.toStdString());

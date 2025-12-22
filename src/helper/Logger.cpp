@@ -10,7 +10,7 @@
 #include <source_location>
 
 namespace {
-    spdlog::logger* gLogger = nullptr;
+    spdlog::logger* gLogger{};
     std::once_flag gOnce;
 
     spdlog::logger &get() {

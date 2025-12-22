@@ -44,6 +44,7 @@
 #include "DialogUtils.hpp"
 #include "ResourceViewService.hpp"
 #include "ResourceViewerDialog.hpp"
+#include "SettingsManager.hpp"
 
 #if defined(Q_OS_LINUX)
     #include <sys/stat.h>
@@ -154,15 +155,15 @@ void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) 
 }
 
 void MainWindow::showEvent(QShowEvent* event) {
-    QMainWindow::showEvent(event);                                    // Gọi base trước
+    QMainWindow::showEvent(event);                // Gọi base trước
 
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP); // Tạo INI/JSON config
+    auto &settings = SettingsManager::instance(); // Tạo INI/JSON config
 
     // Đọc vị trí lưu
-    int x = settings.value("window/posX", -1).toInt();
-    int y = settings.value("window/posY", -1).toInt();
-    int w = settings.value("window/width", width()).toInt();
-    int h = settings.value("window/height", height()).toInt();
+    int x = settings.get("window/posX", -1).toInt();
+    int y = settings.get("window/posY", -1).toInt();
+    int w = settings.get("window/width", width()).toInt();
+    int h = settings.get("window/height", height()).toInt();
 
     if (x != -1 && y != -1) {
         // Dùng vị trí lưu (và kích thước nếu cần)
@@ -184,11 +185,11 @@ void MainWindow::showEvent(QShowEvent* event) {
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     // Lưu vị trí và kích thước
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
-    settings.setValue("window/posX", x());
-    settings.setValue("window/posY", y());
-    settings.setValue("window/width", width());
-    settings.setValue("window/height", height());
+    auto &settings = SettingsManager::instance();
+    settings.set("window/posX", x());
+    settings.set("window/posY", y());
+    settings.set("window/width", width());
+    settings.set("window/height", height());
 
     QMainWindow::closeEvent(event); // Gọi base để đóng
 }

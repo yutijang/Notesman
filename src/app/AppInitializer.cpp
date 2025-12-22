@@ -31,6 +31,7 @@
 #include "database_creator.hpp"
 #include "CorePaths.hpp"
 #include "app_version.hpp"
+#include "SettingsManager.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -317,18 +318,18 @@ void AppInitializer::checkUpdateFlag() {
         if (fs::exists(binPath)) { fs::remove(binPath); }
 
         displayNotiUpdateComplete();
-        saveETagonUpdateSuccess();
+        saveETagOnUpdateSuccess();
     }
 #endif
 }
 
 void AppInitializer::saveETagOnUpdateSuccess() {
-    QSettings settings(UiConst::SETTINGS_ORG, UiConst::SETTINGS_APP);
+    auto &settings = SettingsManager::instance();
 
-    const auto checkedETag = settings.value("update/pending_etag").toString();
+    const auto checkedETag = settings.get("update/pending_etag").toString();
     if (!checkedETag.isEmpty()) {
-        settings.setValue("update/applied_etag", checkedETag);
-        settings.setValue("update/applied_version", app::meta::VERSION);
+        settings.set("update/applied_etag", checkedETag);
+        settings.set("update/applied_version", app::meta::VERSION);
         settings.remove("update/pending_etag");
     }
 }

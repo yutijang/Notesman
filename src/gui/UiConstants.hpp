@@ -10,6 +10,4 @@ namespace UiConst {
     inline constexpr int BUTTON_NEXT_INPUT_WIDTH{40};
     enum class SettingsMessageState : std::uint8_t { none, updated, notChange };
     enum class SettingsTabNotiLevel : std::uint8_t { good, normal, caution, warning };
-    constexpr auto SETTINGS_ORG = "Notesman";
-    constexpr auto SETTINGS_APP = "configs";
 } // namespace UiConst
