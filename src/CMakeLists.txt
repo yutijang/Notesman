@@ -51,6 +51,7 @@ target_link_libraries(notes-core
     SQLite::SQLite3
     OpenSSL::SSL
     OpenSSL::Crypto
+    logger
 )
 
 # =========================================================
@@ -128,8 +129,6 @@ target_link_libraries(notes-app-lib-core
     Qt6::Gui
     Qt6::Widgets
     Qt6::Network
-  PRIVATE
-    logger
 )
 
 target_compile_definitions(notes-app-lib-core

@@ -365,19 +365,18 @@ void AppController::handleSearchRequest(const QString &keyword, const QString &m
 
     auto* worker = new ResourceSearchWorker(m_core);
     worker->setSearchParams(keyword, mode);
-
     auto* thread = new QThread();
     worker->moveToThread(thread);
 
     QObject::connect(thread, &QThread::started, worker, &ResourceSearchWorker::doSearch);
     QObject::connect(
         worker, &ResourceSearchWorker::searchFinished, this,
-        [this, thread](const std::vector<FullResource> &results) {
+        [this](const std::vector<FullResource> &results) {
             emit searchFinishedFromController(results);
-            thread->quit();
         },
         Qt::QueuedConnection);
 
+    QObject::connect(worker, &ResourceSearchWorker::searchFinished, thread, &QThread::quit);
     QObject::connect(thread, &QThread::finished, worker, &QObject::deleteLater);
     QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 

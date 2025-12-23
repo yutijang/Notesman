@@ -12,6 +12,7 @@
 #include "text_content_repository.hpp"
 #include "resource_service.hpp"
 #include "file_service.hpp"
+#include "Logger.hpp"
 
 // NOLINTNEXTLINE
 sqlite3_int64 ResourceService::addTextResource(const std::string &title, const std::string &content,
@@ -94,6 +95,7 @@ void ResourceService::deleteResources(const std::vector<sqlite3_int64> &resource
             try {
                 std::filesystem::remove(*(fileEntry->stored_path));
             } catch (const std::filesystem::filesystem_error &e) {
+                Log::warn("Failed to delete file: {}", e.what());
                 throw std::runtime_error("[WARN] Failed to delete file: " +
                                          std::string{(e.what())});
             }
@@ -156,6 +158,7 @@ void ResourceService::addTagToResource(sqlite3_int64 resourceId, const std::stri
         // Nếu chưa có → thêm tag mới
         auto newTagIdOpt = m_tagRepo.addTag(tag);
         if (!newTagIdOpt.has_value()) {
+            Log::err("Failed to insert new tag: {}", tag);
             throw std::runtime_error("Failed to insert new tag: " + tag);
         }
 

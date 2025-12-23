@@ -35,6 +35,24 @@ namespace Utils {
 
     [[nodiscard]] std::string getExtensionFromDownloadUrl(const std::string &url);
 
+    static std::string sanitizeFtsQuery(std::string_view input) {
+        if (input.empty()) { return {}; }
+
+        std::string clean{input};
+        bool hasWildcard{};
+
+        if (clean.back() == '*') {
+            hasWildcard = true;
+            clean.pop_back();
+        }
+
+        std::erase(clean, '\"');
+
+        if (hasWildcard) { return "\"" + clean + "\"*"; }
+
+        return "\"" + clean + "\"";
+    }
+
     // NOLINTBEGIN (readability-magic-numbers)
     [[nodiscard]] inline bool looksLikeCppCode(std::string_view text) noexcept {
         if (text.size() < 30) { return false; }

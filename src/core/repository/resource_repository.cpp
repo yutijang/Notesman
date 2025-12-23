@@ -76,7 +76,7 @@ std::vector<Resource> ResourceRepository::searchByTitleFTS(std::string_view keyw
     SQLiteStmt stmt(m_db.get(),
                     "SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at FROM "
                     "resources r JOIN resources_fts ON r.id = resources_fts.rowid WHERE "
-                    "resources_fts MATCH ?;");
+                    "resources_fts.title MATCH ?;");
 
     sqlite3_bind_text(stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()),
                       SQLITE_TRANSIENT);

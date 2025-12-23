@@ -89,16 +89,28 @@ std::vector<std::pair<sqlite3_int64, std::string>> TextContentRepository::getAll
 
 std::vector<std::pair<sqlite3_int64, std::string>>
     TextContentRepository::searchByContentFTS(std::string_view keyword) {
-    SQLiteStmt stmt(m_db.get(),
-                    "SELECT rowid, content FROM text_content_fts WHERE text_content_fts MATCH ?;");
+    SQLiteStmt stmt(m_db.get(), "SELECT tc.resource_id, tc.content "
+                                "FROM text_content_fts AS fts "
+                                "JOIN text_content AS tc "
+                                "  ON tc.resource_id = fts.rowid "
+                                "WHERE text_content_fts MATCH ? "
+                                "ORDER BY bm25(text_content_fts);");
 
     sqlite3_bind_text(stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()),
                       SQLITE_TRANSIENT);
 
     std::vector<std::pair<sqlite3_int64, std::string>> result;
     while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
-        sqlite_int64 rID = sqlite3_column_int64(stmt.get(), 0);
-        std::string content = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+        sqlite3_int64 rID = sqlite3_column_int64(stmt.get(), 0);
+
+        const char* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+        int bytes = sqlite3_column_bytes(stmt.get(), 1);
+
+        std::string content;
+        if ((textPtr != nullptr) && bytes > 0) {
+            content.assign(textPtr, static_cast<std::size_t>(bytes));
+        }
+
         result.emplace_back(rID, std::move(content));
     }
 

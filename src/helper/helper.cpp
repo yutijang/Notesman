@@ -24,4 +24,5 @@ namespace Utils {
 
         return {};
     }
+
 } // namespace Utils

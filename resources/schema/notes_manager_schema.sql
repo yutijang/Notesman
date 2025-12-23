@@ -40,37 +40,42 @@ CREATE TABLE IF NOT EXISTS resource_tags (
 -- -- --
 CREATE VIRTUAL TABLE text_content_fts USING fts5(
     content,
+    content='text_content', -- External content table (tùy chọn để tối ưu dung lượng)
+    content_rowid='resource_id',    
     tokenize = 'unicode61 remove_diacritics 1'
 );
 -- -- --
 
--- Trigger khi INSERT
-CREATE TRIGGER IF NOT EXISTS text_content_insert_fts
+-- Trigger INSERT cho text_content
+CREATE TRIGGER IF NOT EXISTS text_content_ai
 AFTER INSERT ON text_content
-WHEN new.content IS NOT NULL
 BEGIN
-    INSERT INTO text_content_fts (rowid, content) VALUES (new.resource_id, new.content);
+  INSERT INTO text_content_fts(rowid, content)
+  VALUES (new.resource_id, new.content);
 END;
 
--- Trigger khi UPDATE
-CREATE TRIGGER IF NOT EXISTS text_content_update_fts
-AFTER UPDATE ON text_content
+-- Trigger UPDATE cho text_content
+CREATE TRIGGER IF NOT EXISTS text_content_au
+AFTER UPDATE OF content ON text_content
 BEGIN
-    UPDATE text_content_fts SET content = new.content WHERE rowid = old.resource_id;
+  INSERT INTO text_content_fts(text_content_fts, rowid, content)
+  VALUES('delete', old.resource_id, old.content);
+
+  INSERT INTO text_content_fts(rowid, content)
+  VALUES(new.resource_id, new.content);
 END;
 
--- Trigger khi DELETE
-CREATE TRIGGER IF NOT EXISTS text_content_delete_fts
+-- Trigger DELETE cho text_content
+CREATE TRIGGER IF NOT EXISTS text_content_ad
 AFTER DELETE ON text_content
 BEGIN
-    DELETE FROM text_content_fts WHERE rowid = old.resource_id;
+  INSERT INTO text_content_fts(text_content_fts, rowid, content)
+  VALUES('delete', old.resource_id, old.content);
 END;
 
 -- -- --
 -- Indexes cho bảng resources
-CREATE INDEX IF NOT EXISTS idx_resources_title ON resources(title);
 CREATE INDEX IF NOT EXISTS idx_resources_type ON resources(type);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_resources_title_type ON resources(title, type);
 
 -- Index cho bảng tags
 CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
@@ -84,39 +89,59 @@ CREATE INDEX IF NOT EXISTS idx_resource_tags_tag_id ON resource_tags(tag_id);
 -- Tạo bảng ảo FTS5 cho resources(title)
 CREATE VIRTUAL TABLE IF NOT EXISTS resources_fts USING fts5(
     title,
+    content='resources',
+    content_rowid='id',    
     tokenize = 'unicode61 remove_diacritics 1'
 );
 
--- Trigger khi INSERT vào resources
-CREATE TRIGGER IF NOT EXISTS resources_insert_fts
+-- 1. Trigger INSERT: Đồng bộ khi thêm bản ghi mới
+CREATE TRIGGER IF NOT EXISTS resources_ai
 AFTER INSERT ON resources
-WHEN new.title IS NOT NULL
 BEGIN
-    INSERT INTO resources_fts (rowid, title) VALUES (new.id, new.title);
+  INSERT INTO resources_fts(rowid, title) 
+  VALUES (new.id, new.title);
 END;
 
--- Trigger khi UPDATE trên resources
-CREATE TRIGGER IF NOT EXISTS resources_update_fts
+-- 2. Trigger UPDATE: Xóa chỉ mục cũ và chèn chỉ mục mới (Chỉ chạy khi 'title' thay đổi)
+CREATE TRIGGER IF NOT EXISTS resources_au
 AFTER UPDATE OF title ON resources
-WHEN new.title IS NOT NULL
 BEGIN
-    UPDATE resources_fts SET title = new.title WHERE rowid = old.id;
+  INSERT INTO resources_fts(resources_fts, rowid, title) 
+  VALUES('delete', old.id, old.title);
+  
+  INSERT INTO resources_fts(rowid, title) 
+  VALUES(new.id, new.title);
 END;
 
--- Trigger khi DELETE trên resources
-CREATE TRIGGER IF NOT EXISTS resources_delete_fts
+-- 3. Trigger DELETE: Loại bỏ chỉ mục khi xóa bản ghi
+CREATE TRIGGER IF NOT EXISTS resources_ad
 AFTER DELETE ON resources
 BEGIN
-    DELETE FROM resources_fts WHERE rowid = old.id;
+  INSERT INTO resources_fts(resources_fts, rowid, title) 
+  VALUES('delete', old.id, old.title);
 END;
 
 -- -- --
 
 CREATE TRIGGER IF NOT EXISTS update_resource_timestamp
-AFTER UPDATE ON resources
+AFTER UPDATE OF title, type, file_hash ON resources
 FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
-    UPDATE resources SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+    UPDATE resources
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE id = OLD.id;
 END;
 
+---
+
+--- Trigger cập nhật resources.updated_at khi content đổi
+CREATE TRIGGER IF NOT EXISTS text_content_touch_resource
+AFTER UPDATE OF content ON text_content
+FOR EACH ROW
+WHEN COALESCE(NEW.content, '') <> COALESCE(OLD.content, '')
+BEGIN
+    UPDATE resources
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE id = NEW.resource_id;
+END;
