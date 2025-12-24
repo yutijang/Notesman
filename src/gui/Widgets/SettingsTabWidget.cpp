@@ -72,6 +72,10 @@ void SettingsTabWidget::setupConnections() {
                      &SettingsTabWidget::onUploadButtonClicked);
     QObject::connect(m_downloadDBBtn, &QPushButton::clicked, this,
                      &SettingsTabWidget::onDownloadButtonClicked);
+    QObject::connect(m_checkRemoteDBInfoBtn, &QPushButton::clicked, [this] {
+        m_checkRemoteDBInfoBtn->setEnabled(false);
+        emit requestDBInfo();
+    });
 
     QObject::connect(m_linkGDBtn, &QPushButton::clicked, this,
                      &SettingsTabWidget::onLinkBtnClicked);
@@ -105,6 +109,7 @@ void SettingsTabWidget::retranslateUi() {
     m_linkGDBtn->setText(tr("Link Gmail for backup database to Google Drive"));
     m_uploadDBBtn->setText(tr("Upload"));
     m_downloadDBBtn->setText(tr("Download"));
+    m_checkRemoteDBInfoBtn->setText(tr("Get DB info"));
     m_statusLabel->setText(tr("Waiting for you to confirm in the browser..."));
     m_info1->setText(tr("This app will:"));
     m_info2->setText(tr("• See your email address"));
@@ -271,8 +276,13 @@ QVBoxLayout* SettingsTabWidget::setupAccountLinkGroup() {
     m_downloadDBBtn->setMaximumWidth(80); // NOLINT(readability-magic-numbers)
     m_downloadDBBtn->setVisible(false);
 
+    m_checkRemoteDBInfoBtn = new QPushButton(tr("Get DB info"));
+    m_downloadDBBtn->setMaximumWidth(100); // NOLINT(readability-magic-numbers)
+    m_checkRemoteDBInfoBtn->setVisible(false);
+
     upDownButtonLayout->addWidget(m_uploadDBBtn);
     upDownButtonLayout->addWidget(m_downloadDBBtn);
+    upDownButtonLayout->addWidget(m_checkRemoteDBInfoBtn);
     upDownButtonLayout->addStretch(1);
     upDownButtonLayout->setSpacing(10); // NOLINT(readability-magic-numbers)
 
@@ -453,6 +463,7 @@ void SettingsTabWidget::handleAfterLinkAccount(const QString &htmlTextEmail) {
 
     m_uploadDBBtn->setVisible(true);
     m_downloadDBBtn->setVisible(true);
+    m_checkRemoteDBInfoBtn->setVisible(true);
 }
 
 void SettingsTabWidget::handleAfterUnlinkAccount() {
@@ -463,6 +474,7 @@ void SettingsTabWidget::handleAfterUnlinkAccount() {
 
     m_uploadDBBtn->setVisible(false);
     m_downloadDBBtn->setVisible(false);
+    m_checkRemoteDBInfoBtn->setVisible(false);
 }
 
 void SettingsTabWidget::onLinkBtnClicked() {
@@ -575,4 +587,16 @@ void SettingsTabWidget::showLoginStatus() {
     m_countdownTimer.start(1000);   // NOLINT(readability-magic-numbers)
 
     m_loginStatusWidget->setVisible(true);
+}
+
+void SettingsTabWidget::handleDBInfoGot(const QStringList &info) {
+    m_checkRemoteDBInfoBtn->setEnabled(true);
+
+    if (info.isEmpty()) {
+        DialogUtils::showInfo(this, tr("Database information"), tr("Database not exist"));
+    } else {
+        DialogUtils::showInfo(
+            this, tr("Database information"),
+            tr("File: %1\nSize: %2\nLast modified: %3").arg("data.db").arg(info[0]).arg(info[1]));
+    }
 }

@@ -23,6 +23,7 @@
 #include <QDir>
 #include <QModelIndexList>
 #include <QProcess>
+#include <QtTypes>
 
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
@@ -355,6 +356,12 @@ void MainWindow::setAppController(AppController* controller) {
 
     QObject::connect(m_settingsTab, &SettingsTabWidget::cancelLoginRequested, m_appController,
                      &AppController::cancelLoginRequestedForward);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::requestDBInfo, m_appController,
+                     &AppController::handleGetDBInfoRequested);
+
+    QObject::connect(this, &MainWindow::returnDBInfoForward, m_settingsTab,
+                     &SettingsTabWidget::handleDBInfoGot);
 }
 
 void MainWindow::changeEvent(QEvent* event) {

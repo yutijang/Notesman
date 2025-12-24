@@ -41,6 +41,8 @@ class SettingsTabWidget final : public QWidget {
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
         void handleLoginFailed(const QString &error = QString{});
 
+        void handleDBInfoGot(const QStringList &info);
+
     signals:
         void applySettingsRequested(const SettingsData &data);
         void defaultSettingsRequested();
@@ -50,6 +52,8 @@ class SettingsTabWidget final : public QWidget {
         void requestDownload();
         void cancelLoginRequested();
         void statusUpdateRequest(const QString &msg, int timeout) const;
+
+        void requestDBInfo();
 
     private slots:
         void onApplyBtnClicked();
@@ -94,6 +98,7 @@ class SettingsTabWidget final : public QWidget {
         QPushButton* m_uploadDBBtn{};
         QPushButton* m_downloadDBBtn{};
         QLabel* m_notiSettingsChangedLbl{};
+        QPushButton* m_checkRemoteDBInfoBtn{};
 
         bool m_isLinked{};
 

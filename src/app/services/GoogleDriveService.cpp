@@ -10,11 +10,13 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QLocale>
 
 #include "GoogleDriveService.hpp"
 #include "OAuthManager.hpp"
 #include "database_maintenance.hpp"
 #include "CorePaths.hpp"
+#include "Logger.hpp"
 
 GoogleDriveService::GoogleDriveService(OAuthManager* oauth, QObject* parent)
     : QObject(parent), m_oauth(oauth) {
@@ -38,7 +40,8 @@ void GoogleDriveService::uploadDatabase(const std::function<void(bool)> &done) {
     // metadata part
     QHttpPart metaPart;
     metaPart.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=UTF-8");
-    metaPart.setBody(R"({"name":"data.db","mimeType":"application/octet-stream"})");
+    metaPart.setBody(
+        R"({"name":"data.db","mimeType":"application/octet-stream","parents":["appDataFolder"]})");
     multi->append(metaPart);
 
     // file part (streamed)
@@ -64,31 +67,44 @@ void GoogleDriveService::uploadDatabase(const std::function<void(bool)> &done) {
     });
 }
 
-void GoogleDriveService::findDatabaseFile(const std::function<void(QString)> &done) {
+void GoogleDriveService::findAndGatherDatabaseFileInfo(
+    const std::function<void(UiConst::DriveFileInfo)> &done) {
     QUrl url("https://www.googleapis.com/drive/v3/files");
     QUrlQuery q;
     q.addQueryItem("q", "name='data.db' and trashed=false");
+    q.addQueryItem("spaces", "appDataFolder");
+    q.addQueryItem("fields", "files(id, size, modifiedTime)");
+
     url.setQuery(q);
 
     QNetworkRequest req(url);
     req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
+    req.setRawHeader("Accept", "application/json");
 
     auto* reply = m_networkManager.get(req);
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
-        QString id;
+        UiConst::DriveFileInfo info;
+
         if (reply->error() == QNetworkReply::NoError) {
             const auto obj = QJsonDocument::fromJson(reply->readAll()).object();
             const auto files = obj["files"].toArray();
-            if (!files.isEmpty()) { id = files.first().toObject().value("id").toString(); }
+            if (!files.isEmpty()) {
+                const auto fileObj = files.first().toObject();
+                info.isExists = true;
+                info.id = fileObj["id"].toString();
+                info.size = fileObj["size"].toString().toLongLong();
+                info.lastModified =
+                    QDateTime::fromString(fileObj["modifiedTime"].toString(), Qt::ISODate);
+            }
         } else {
-            qWarning() << "Find file error:" << reply->errorString();
+            QByteArray errorData = reply->readAll();
+            Log::info("Find file error: {} - Server response content: {}",
+                      reply->errorString().toStdString(), errorData.toStdString());
         }
 
         reply->deleteLater();
-        if (done) {
-            done(id); // nếu không có thì id="".
-        }
+        if (done) { done(info); }
     });
 }
 
@@ -166,7 +182,7 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
         DatabaseMaintenance::compact(filePath.toStdString());
     } catch (const std::runtime_error &ex) { qDebug() << "Compact error: " << ex.what(); }
 
-    findDatabaseFile([this](const QString &id) {
+    findAndGatherDatabaseFileInfo([this](const UiConst::DriveFileInfo &info) {
         auto finish = [this](bool success) {
             if (success) {
                 emit onUploadDBBtnRequest(false, tr("Compacted and uploaded new file"),
@@ -179,10 +195,10 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
             emit reconnectDBRequest();
         };
 
-        if (id.isEmpty()) {
+        if (!info.isExists) {
             uploadDatabase(finish);
         } else {
-            updateDatabase(id, finish);
+            updateDatabase(info.id, finish);
         }
     });
 }
@@ -195,15 +211,18 @@ void GoogleDriveService::downloadDbAuto() {
 void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
     if (isUpload) { return; }
 
-    findDatabaseFile([this](const QString &id) {
-        if (id.isEmpty()) {
+    findAndGatherDatabaseFileInfo([this](const UiConst::DriveFileInfo &info) {
+        if (!info.isExists) {
             emit onDownloadDBBtnRequest(false, tr("No database found or access denied"),
                                         UiConst::SettingsTabNotiLevel::caution);
         } else {
-            downloadDatabase(id, [this](bool ok) {
+            downloadDatabase(info.id, [this, info](bool ok) {
                 if (ok) {
-                    emit onDownloadDBBtnRequest(false, tr("Database downloaded successfully"),
-                                                UiConst::SettingsTabNotiLevel::good);
+                    emit onDownloadDBBtnRequest(
+                        false,
+                        tr("Database downloaded successfully, with size of data.db is: %1")
+                            .arg(info.size),
+                        UiConst::SettingsTabNotiLevel::good);
                 } else {
                     emit onDownloadDBBtnRequest(false,
                                                 tr("Failed to download database. Please try again"),
@@ -216,3 +235,43 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
 }
 
 // --- END Upload/download database ---
+
+void GoogleDriveService::deleteDatabaseFile(const QString &fileId,
+                                            const std::function<void(bool)> &done) {
+    if (fileId.isEmpty()) {
+        if (done) { done(false); }
+        return;
+    }
+
+    QUrl url("https://www.googleapis.com/drive/v3/files/" + fileId);
+    QNetworkRequest req(url);
+    req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
+
+    auto* reply = m_networkManager.deleteResource(req); // Gửi lệnh DELETE
+
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
+        const bool ok = (reply->error() == QNetworkReply::NoError);
+        if (!ok) { qWarning() << "Delete file failed:" << reply->errorString(); }
+        reply->deleteLater();
+        if (done) { done(ok); }
+    });
+}
+
+QString GoogleDriveService::formatDateTimeSmart(const QDateTime &dt) {
+    QDateTime local = dt.toLocalTime();
+
+    return QLocale::system().toString(local, QLocale::ShortFormat);
+}
+
+void GoogleDriveService::getDBInfo() {
+    findAndGatherDatabaseFileInfo([this](const UiConst::DriveFileInfo &info) {
+        QStringList res;
+
+        if (info.isExists) {
+            res << QString::fromStdString(Utils::normalizationDBFileSize(info.size));
+            res << formatDateTimeSmart(info.lastModified);
+        }
+
+        emit returnDBInfo(res);
+    });
+}

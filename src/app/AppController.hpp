@@ -73,6 +73,8 @@ class AppController final : public QObject {
         void uploadDbAuto();
         void downloadDbAuto();
 
+        void handleGetDBInfoRequested();
+
     signals:
         // waitting for using
         // void languageChanged();

@@ -3,6 +3,7 @@
 #include <memory>
 #include <QMainWindow>
 #include <QModelIndexList>
+#include <QtTypes>
 #include <sqlite3.h>
 
 #include "UiConstants.hpp"
@@ -68,6 +69,8 @@ class MainWindow : public QMainWindow {
             bool isDisable, const QString &message = QString{},
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
         void loginFailedForward(const QString &error = QString{});
+
+        void returnDBInfoForward(const QStringList &res);
 
     public slots:
         void setCore(NotesAppCore* core);

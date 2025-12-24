@@ -5,6 +5,7 @@
 #include <QNetworkReply>
 #include <QFile>
 #include <QTimer>
+#include <QtTypes>
 
 class DownloadManager final : public QObject {
         Q_OBJECT

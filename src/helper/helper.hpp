@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <cstdint>
 
 namespace Utils {
     // Lấy phần mở rộng của đường dẫn (vd: "file.txt" -> "txt")
@@ -78,6 +79,8 @@ namespace Utils {
 
         return score >= 5;
     }
+
+    std::string normalizationDBFileSize(std::uint64_t size);
 
     // NOLINTEND
 } // namespace Utils

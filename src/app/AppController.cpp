@@ -186,6 +186,9 @@ void AppController::oauthManager() {
             QObject::connect(m_GDService.get(), &GoogleDriveService::onUploadDBBtnRequest,
                              m_mainWindow, &MainWindow::startUploadDBForward);
 
+            QObject::connect(m_GDService.get(), &GoogleDriveService::returnDBInfo, m_mainWindow,
+                             &MainWindow::returnDBInfoForward);
+
             QObject::connect(m_oauthManager.get(), &OAuthManager::loginFailed, m_mainWindow,
                              &MainWindow::loginFailedForward);
 
@@ -434,4 +437,8 @@ void AppController::updateTranslatedStrings() {
 
         emit gmailLinkedForView(htmlTextEmail);
     }
+}
+
+void AppController::handleGetDBInfoRequested() {
+    if (m_GDService != nullptr) { m_GDService->getDBInfo(); }
 }

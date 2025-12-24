@@ -15,6 +15,7 @@
 #include <QStringList>
 #include <QProcess>
 #include <QTimer>
+#include <QtTypes>
 #include <keychain.h>
 
 #include "OAuthManager.hpp"
@@ -37,7 +38,7 @@ namespace {
     constexpr auto GOOGLE_OAUTH2_TOKEN_URL =
         QLatin1StringView("https://oauth2.googleapis.com/token");
     constexpr auto GOOGLE_OAUTH2_SCOPE_DRIVE =
-        QLatin1StringView("openid email https://www.googleapis.com/auth/drive.file");
+        QLatin1StringView("openid email https://www.googleapis.com/auth/drive.appdata");
     constexpr auto CLIENT_ID = QLatin1StringView(OAuthConfig::CLIENT_ID);
     constexpr auto CLIENT_SECRET = QLatin1StringView(OAuthConfig::CLIENT_SECRET);
     constexpr auto KEY_ACCESS_TOKEN = "google/access_token";

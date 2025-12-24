@@ -16,6 +16,8 @@ class GoogleDriveService final : public QObject {
         explicit GoogleDriveService(OAuthManager* oauth, QObject* parent = nullptr);
         ~GoogleDriveService() override = default;
 
+        void getDBInfo();
+
     public slots: // NOLINT(readability-redundant-access-specifiers)
         void uploadDbAuto();
         void downloadDbAuto();
@@ -34,11 +36,15 @@ class GoogleDriveService final : public QObject {
         void closeConnectDBRequest(bool isUpload);
         void reconnectDBRequest();
 
+        void returnDBInfo(const QStringList &res);
+
     private:
         void uploadDatabase(const std::function<void(bool)> &done);
-        void findDatabaseFile(const std::function<void(QString)> &done);
+        void findAndGatherDatabaseFileInfo(const std::function<void(UiConst::DriveFileInfo)> &done);
         void updateDatabase(const QString &fileId, const std::function<void(bool)> &done);
         void downloadDatabase(const QString &fileId, const std::function<void(bool)> &done);
+        void deleteDatabaseFile(const QString &fileId, const std::function<void(bool)> &done);
+        static QString formatDateTimeSmart(const QDateTime &dt);
 
         QNetworkAccessManager m_networkManager;
         OAuthManager* m_oauth;
