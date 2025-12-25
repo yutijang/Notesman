@@ -1,5 +1,4 @@
 #include <QDir>
-#include <QDebug>
 #include <QtTypes>
 
 #include "DownloadManager.hpp"

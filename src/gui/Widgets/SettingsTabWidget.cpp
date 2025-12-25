@@ -488,7 +488,12 @@ void SettingsTabWidget::onLinkBtnClicked() {
     }
 
     // Đã liên kết → Unlink
-    emit requestGoogleUnlink();
+    auto reply = DialogUtils::showQuestion(
+        this, tr("Information"),
+        tr("Yep, you're unlinking your Google account! It'll be disconnected in a sec.\n\nBy the "
+           "way, want to delete the data.db file on your Drive too, or leave it alone?"));
+
+    emit requestGoogleUnlink(reply == QMessageBox::Yes);
 }
 
 void SettingsTabWidget::handleLoginFailed(const QString &error) {
@@ -604,4 +609,8 @@ void SettingsTabWidget::handleDBInfoGot(const QStringList &info) {
                 .arg(info[3])
                 .arg(info[4]));
     }
+}
+
+void SettingsTabWidget::handleDeleteDBFileRespond(const QString &msg) {
+    DialogUtils::showInfo(this, tr("Information"), msg);
 }

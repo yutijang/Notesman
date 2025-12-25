@@ -43,11 +43,13 @@ class SettingsTabWidget final : public QWidget {
 
         void handleDBInfoGot(const QStringList &info);
 
+        void handleDeleteDBFileRespond(const QString &msg);
+
     signals:
         void applySettingsRequested(const SettingsData &data);
         void defaultSettingsRequested();
         void requestGoogleLogin();
-        void requestGoogleUnlink();
+        void requestGoogleUnlink(bool isDeleteDB);
         void requestUpload();
         void requestDownload();
         void cancelLoginRequested();

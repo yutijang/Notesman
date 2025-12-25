@@ -5,7 +5,6 @@
 #include <QApplication>
 #include <QString>
 #include <QPushButton>
-#include <QDebug>
 #include <QStyle>
 
 #include "TagInput.hpp"

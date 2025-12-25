@@ -10,7 +10,6 @@
 #include <QShowEvent>
 #include <QScreen>
 #include <QSettings>
-#include <QDebug>
 #include <QMenu>
 #include <QPoint>
 #include <QTimer>
@@ -46,13 +45,14 @@
 #include "ResourceViewService.hpp"
 #include "ResourceViewerDialog.hpp"
 #include "SettingsManager.hpp"
+#include "Logger.hpp"
 
 #if defined(Q_OS_LINUX)
-    #include <sys/stat.h>
-    #include <fcntl.h>
-    #include <unistd.h>
+#    include <sys/stat.h>
+#    include <fcntl.h>
+#    include <unistd.h>
 
-    #include "AppImageExtractor.hpp"
+#    include "AppImageExtractor.hpp"
 #endif
 
 namespace {
@@ -220,12 +220,12 @@ void MainWindow::viewPlaintextResource(int id, ResourceType type, const QString 
 void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
                                  const QString &path) {
     if (m_browseTab == nullptr) {
-        qWarning() << "BrowseTabWidget not initialized!";
+        Log::warn("BrowseTabWidget not initialized!");
         return;
     }
 
     if (m_resultsTbl == nullptr) {
-        qWarning() << "ResultsTable not available!";
+        Log::warn("ResultsTable not available!");
         return;
     }
 
@@ -243,7 +243,7 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
         QAction* openAction = menu.addAction(tr("Open path"));
         QObject::connect(openAction, &QAction::triggered, this, [path]() {
             if (path.isEmpty()) {
-                qDebug() << "No path to open.";
+                Log::info("No path to open.");
                 return;
             }
             QDesktopServices::openUrl(QUrl::fromLocalFile(path));
@@ -278,15 +278,12 @@ void MainWindow::setAppController(AppController* controller) {
 
     QObject::connect(this, &MainWindow::settingsUiRefreshRequest, m_settingsTab,
                      &SettingsTabWidget::handleUiRefreshRequest);
-
     QObject::connect(m_browseTab, &BrowseTabWidget::getAllDataRequested, m_appController,
                      &AppController::handleGetAllDataRequest);
     QObject::connect(m_appController, &AppController::displayResultForGetAll, m_browseTab,
                      &BrowseTabWidget::displayResults);
-
     QObject::connect(m_settingsTab, &SettingsTabWidget::defaultSettingsRequested, m_appController,
                      &AppController::handleDefaultSettingsRequest);
-
     QObject::connect(m_appController, &AppController::settingsUpdateStatus, this,
                      [this](const QString &, UiConst::SettingsMessageState state,
                             UiConst::SettingsTabNotiLevel /*unused*/) {
@@ -295,73 +292,54 @@ void MainWindow::setAppController(AppController* controller) {
 
     QObject::connect(m_appController, &AppController::settingsUpdateStatus, m_settingsTab,
                      &SettingsTabWidget::showNotification);
-
     QObject::connect(m_appController, &AppController::initialSettingsLoaded, m_settingsTab,
                      &SettingsTabWidget::handleInitialSettingsLoad);
-
     QObject::connect(m_settingsTab, &SettingsTabWidget::applySettingsRequested, m_appController,
                      &AppController::handleApplySettingsRequest);
-
     QObject::connect(m_appController, &AppController::requestSyntaxHighlightingUpdate, this,
                      &MainWindow::handleSyntaxHighlightingUpdate);
-
     QObject::connect(m_addTab, &AddTabWidget::applySyntaxHighlighterRequest, this,
                      &MainWindow::handleSyntaxHighlightingFromAddTabRequested);
-
     QObject::connect(m_appController, &AppController::addTabNotiRequest, m_addTab,
                      &AddTabWidget::showNotification);
-
     QObject::connect(m_addTab, &AddTabWidget::addNoteRequested, m_appController,
                      &AppController::handleAddNoteRequest);
-
     QObject::connect(m_appController, &AppController::resetAddTabInputsRequest, m_addTab,
                      &AddTabWidget::resetAddTabInputs);
-
     QObject::connect(m_browseTab, &BrowseTabWidget::searchRequested, m_appController,
                      &AppController::handleSearchRequest);
-
     QObject::connect(m_appController, &AppController::searchFinishedFromController, m_browseTab,
                      &BrowseTabWidget::handleResultsSearchRequested);
-
     QObject::connect(this, &MainWindow::checkUpdateRequest, m_appController,
                      &AppController::handleCheckUpdateRequested);
-
     QObject::connect(this, &MainWindow::updateDecision, m_appController,
                      &AppController::onUpdateDecision);
-
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleLogin, m_appController,
                      &AppController::handleLoginGMRequested);
-
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleUnlink, m_appController,
                      &AppController::handleUnlinkGMRequested);
-
     QObject::connect(m_appController, &AppController::gmailLinkedForView, m_settingsTab,
                      &SettingsTabWidget::handleAfterLinkAccount);
-
     QObject::connect(m_appController, &AppController::gmailUnlinked, m_settingsTab,
                      &SettingsTabWidget::handleAfterUnlinkAccount);
-
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestUpload, m_appController,
                      &AppController::uploadDbAuto);
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestDownload, m_appController,
                      &AppController::downloadDbAuto);
-
     QObject::connect(this, &MainWindow::startDownloadDBForward, m_settingsTab,
                      &SettingsTabWidget::handleDownloadDBRequested);
     QObject::connect(this, &MainWindow::startUploadDBForward, m_settingsTab,
                      &SettingsTabWidget::handleUploadDBRequested);
-
     QObject::connect(this, &MainWindow::loginFailedForward, m_settingsTab,
                      &SettingsTabWidget::handleLoginFailed);
-
     QObject::connect(m_settingsTab, &SettingsTabWidget::cancelLoginRequested, m_appController,
                      &AppController::cancelLoginRequestedForward);
-
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestDBInfo, m_appController,
                      &AppController::handleGetDBInfoRequested);
-
     QObject::connect(this, &MainWindow::returnDBInfoForward, m_settingsTab,
                      &SettingsTabWidget::handleDBInfoGot);
+    QObject::connect(m_appController, &AppController::deleteDatabaseFileRespondForward,
+                     m_settingsTab, &SettingsTabWidget::handleDeleteDBFileRespond);
 }
 
 void MainWindow::changeEvent(QEvent* event) {

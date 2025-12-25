@@ -1,5 +1,5 @@
 #ifdef Q_OS_WIN
-    #include <windows.h>
+#    include <windows.h>
 #endif
 
 #include <memory>
@@ -32,6 +32,7 @@
 #include "CorePaths.hpp"
 #include "app_version.hpp"
 #include "SettingsManager.hpp"
+#include "Logger.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -264,7 +265,6 @@ void AppInitializer::setupInitializerConnections() {
 void AppInitializer::closeDatabaseConnection(bool isUpload) {
     if (m_db) {
         m_db->close();
-        qDebug() << "connect to DB closed";
 
         emit dbClosed(isUpload);
     }
@@ -279,10 +279,8 @@ void AppInitializer::reinitializeDatabaseConnection() {
 
         verifyDatabase();
 
-        qDebug() << "connect to DB opened";
-
         emit dbOpened();
-    } catch (const std::exception &ex) { qDebug() << "Fatal error: " << ex.what(); }
+    } catch (const std::exception &ex) { Log::fatal("Fatal error: {}", ex.what()); }
 }
 
 void AppInitializer::checkUpdateFlag() {

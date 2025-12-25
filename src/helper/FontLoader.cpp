@@ -1,22 +1,22 @@
 #include <QApplication>
 #include <QFontDatabase>
 #include <QFont>
-#include <QDebug>
 #include <QString>
 #include <QStringList>
 
 #include "FontLoader.hpp"
+#include "Logger.hpp"
 #include "UiConstants.hpp"
 
 void FontLoader::loadCustomFontOnce() {
-    static bool loaded = false; // đảm bảo chỉ chạy 1 lần
+    static bool loaded{}; // đảm bảo chỉ chạy 1 lần
     if (loaded) { return; }
     loaded = true;
 
     const QString fontPath = ":/fonts/Roboto-Condensed-webfont.ttf";
     const int fontId = QFontDatabase::addApplicationFont(fontPath);
     if (fontId == -1) {
-        qWarning() << "Failed to load custom font from" << fontPath;
+        Log::warn("Failed to load custom font from {}", fontPath.toStdString());
         return;
     }
 
@@ -25,9 +25,8 @@ void FontLoader::loadCustomFontOnce() {
         QFont appFont(loadedFamilies.at(0));
         appFont.setPointSize(UiConst::FONT_SIZE); // NOLINT(readability-magic-numbers)
         qApp->setFont(appFont);
-        // qDebug() << "Custom font applied:" << appFont.family();
     } else {
-        qWarning() << "No font families found in" << fontPath;
+        Log::warn("No font families found in {}", fontPath.toStdString());
     }
 
     QFontDatabase::addApplicationFont(":/fonts/JetBrainsMono-Regular.ttf");

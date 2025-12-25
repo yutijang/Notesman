@@ -181,7 +181,7 @@ int UpdateManager::compareVersionsQt(const QString &vLocal, const QString &vRemo
     QVersionNumber remoteVersion = QVersionNumber::fromString(vRemote);
 
     if (localVersion.isNull() || remoteVersion.isNull()) {
-        qDebug() << "Lỗi: Định dạng phiên bản không hợp lệ.";
+        Log::err("Invalid version format");
         return 0;
     }
 

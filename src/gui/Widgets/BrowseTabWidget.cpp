@@ -14,6 +14,7 @@
 #include <QGroupBox>
 
 #include "BrowseTabWidget.hpp"
+#include "Logger.hpp"
 #include "ResultsTable.hpp"
 #include "model.hpp"
 #include "UiConstants.hpp"
@@ -155,7 +156,7 @@ void BrowseTabWidget::updateColumnWidths() {
 void BrowseTabWidget::onCellDoubleClicked(int row) {
     auto rowDataOpt = rowData(row);
     if (!rowDataOpt.has_value()) {
-        qWarning() << "Invalid row" << row;
+        Log::warn("Invalid row: {}", row);
         return;
     }
 

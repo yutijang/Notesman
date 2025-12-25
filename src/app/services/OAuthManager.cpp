@@ -19,6 +19,7 @@
 #include <keychain.h>
 
 #include "OAuthManager.hpp"
+#include "Logger.hpp"
 #include "google_oauth_config.hpp"
 #include "free_port.hpp"
 #include "SettingsManager.hpp"
@@ -108,7 +109,7 @@ void OAuthManager::openBrowser(const QUrl &url) {
                                 args);
     } else {
         if (!QDesktopServices::openUrl(url)) {
-            qWarning() << "Cannot open URL in default browser:" << url;
+            Log::warn("Cannot open URL in default browser: {}", url.toString().toStdString());
         }
     }
 #endif
@@ -164,7 +165,8 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
     if (!authCode.isEmpty()) {
         exchangeAuthCodeForTokens(authCode);
     } else if (!error.isEmpty()) {
-        qWarning() << "OAuth login failed, error:" << error;
+        Log::warn("OAuth login failed, error: {}", error.toStdString());
+
         emit loginFailed(tr("OAuth login was canceled"));
     }
 
@@ -225,7 +227,7 @@ void OAuthManager::exchangeAuthCodeForTokens(const QString &authCode) {
 
 void OAuthManager::handlePostFinished(QNetworkReply* reply) {
     if (reply->error() != QNetworkReply::NoError) {
-        qWarning() << "Token exchange failed:" << reply->errorString();
+        Log::warn("Token exchange failed: {}", reply->errorString().toStdString());
         reply->deleteLater();
         return;
     }
@@ -235,7 +237,7 @@ void OAuthManager::handlePostFinished(QNetworkReply* reply) {
 
     QJsonDocument json = QJsonDocument::fromJson(data);
     if (!json.isObject()) {
-        qWarning() << "Invalid token JSON";
+        Log::warn("Invalid token JSON");
         return;
     }
 
@@ -260,14 +262,14 @@ void OAuthManager::fetchUserEmail() {
 
         QJsonDocument doc = QJsonDocument::fromJson(data);
         if (!doc.isObject()) {
-            qWarning() << "Invalid userinfo JSON";
+            Log::warn("Invalid userinfo JSON");
             return;
         }
 
         const auto obj = doc.object();
         const QString email = obj["email"].toString();
         if (email.isEmpty()) {
-            qWarning() << "Email not present";
+            Log::warn("Email not present");
             return;
         }
 
@@ -296,7 +298,8 @@ void OAuthManager::handleLoginGMRequested() {
                      &OAuthManager::handleOAuthRedirect);
 
     if (!m_oauthServer->listen(QHostAddress::LocalHost, oauthPort())) {
-        qWarning() << "Cannot start local OAuth server";
+        Log::warn("Cannot start local OAuth server");
+
         emit loginFailed(
             tr("Port %1 is in use. Please close other apps using this port.").arg(oauthPort()));
         return;
@@ -344,9 +347,9 @@ void OAuthManager::handleUnlinkGMRequested() {
 
     QObject::connect(job, &QKeychain::Job::finished, [](QKeychain::Job* j) {
         if (j->error()) {
-            qWarning() << "Failed to delete refresh token:" << j->errorString();
+            Log::warn("Failed to delete refresh token: {}", j->errorString().toStdString());
         } else {
-            qDebug() << "Refresh token deleted successfully.";
+            Log::info("Refresh token deleted successfully.");
         }
         j->deleteLater();
     });
@@ -377,7 +380,8 @@ void OAuthManager::requestNewAccessToken(const QString &refreshToken,
     auto* reply = m_networkManager.post(req, body.toString(QUrl::FullyEncoded).toUtf8());
     QObject::connect(reply, &QNetworkReply::finished, this, [this, reply, finishedCallback]() {
         if (reply->error() != QNetworkReply::NoError) {
-            qWarning() << "Request new access token failed:" << reply->errorString();
+            Log::warn("Request new access token failed: {}", reply->errorString().toStdString());
+
             reply->deleteLater();
             return;
         }
@@ -398,9 +402,9 @@ void OAuthManager::saveRefreshToken(const QString &refreshToken) {
 
     QObject::connect(job, &QKeychain::Job::finished, [](QKeychain::Job* j) {
         if (j->error()) {
-            qWarning() << "Failed to save refresh token:" << j->errorString();
+            Log::warn("Failed to save refresh token: {}", j->errorString().toStdString());
         } else {
-            qDebug() << "Refresh token saved securely.";
+            Log::info("Refresh token saved securely.");
         }
         j->deleteLater();
     });
@@ -418,7 +422,7 @@ QString OAuthManager::loadRefreshToken() {
     loop.exec();
 
     if (job.error() != 0) {
-        qWarning() << "No refresh token found:" << job.errorString();
+        Log::warn("No refresh token found: {}", job.errorString().toStdString());
         return {};
     }
 
@@ -436,7 +440,7 @@ QString OAuthManager::accessToken() {
             requestNewAccessToken(refresh, [&]() { loop.quit(); });
             loop.exec();
         } else {
-            qWarning() << "No refresh token available, login required";
+            Log::warn("No refresh token available, login required");
             return {};
         }
     }
@@ -454,10 +458,10 @@ void OAuthManager::tryAutoLogin() {
 
     QString token = accessToken();
     if (!token.isEmpty()) {
-        qDebug() << "Auto login OK, can use access token now";
+        // Auto login OK, can use access token now
         fetchUserEmail();
-    } else {
-        qDebug() << "Need manual login";
+        // } else {
+        // Need manual login
     }
 }
 
@@ -472,7 +476,7 @@ void OAuthManager::cancelCurrentLogin() {
 
 void OAuthManager::revokeRefreshToken(const QString &refreshTokenToRevoke) {
     if (refreshTokenToRevoke.isEmpty()) {
-        qWarning() << "Revocation skipped: Token is empty.";
+        Log::warn("Revocation skipped: Token is empty.");
         return;
     }
 
@@ -487,9 +491,9 @@ void OAuthManager::revokeRefreshToken(const QString &refreshTokenToRevoke) {
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply]() {
         if (reply->error() == QNetworkReply::NoError) {
-            qDebug() << "Token successfully revoked on Google server.";
+            Log::info("Token successfully revoked on Google server.");
         } else {
-            qWarning() << "Token revocation failed:" << reply->errorString();
+            Log::warn("Token revocation failed: {}", reply->errorString().toStdString());
         }
         reply->deleteLater();
     });

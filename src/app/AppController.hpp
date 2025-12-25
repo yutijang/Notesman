@@ -69,7 +69,7 @@ class AppController final : public QObject {
         void handleCheckUpdateRequested();
         void onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo);
         void handleLoginGMRequested();
-        void handleUnlinkGMRequested();
+        void handleUnlinkGMRequested(bool isDeleteDB);
         void uploadDbAuto();
         void downloadDbAuto();
 
@@ -97,6 +97,9 @@ class AppController final : public QObject {
         void reconnectDBRequestForward();
         void dbClosedForward(bool isUpload);
         void dbOpenedForward();
+        void deleteDatabaseFileRequest();
+
+        void deleteDatabaseFileRespondForward(const QString &msg);
 
     private:
         void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;

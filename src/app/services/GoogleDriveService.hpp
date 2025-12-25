@@ -26,6 +26,8 @@ class GoogleDriveService final : public QObject {
         void onConnectClosedForUpload(bool isUpload);
         void onConnectClosedForDownload(bool isUpload);
 
+        void handledeleteDatabaseFileRequest();
+
     signals:
         void onDownloadDBBtnRequest(
             bool isDisable, const QString &message = QString{},
@@ -39,15 +41,28 @@ class GoogleDriveService final : public QObject {
 
         void returnDBInfo(const QStringList &res);
 
+        void deleteDatabaseFileRespond(const QString &msg);
+
     private:
+        struct DriveFileInfo {
+                QString id;
+                QString name;
+                qint64 size{};
+                QString md5Checksum;
+                qint64 version{};
+                QDateTime lastCreated;
+                QDateTime lastModified;
+                bool isExists{};
+        };
+
         void uploadDatabase(const std::function<void(bool)> &done);
-        void findAndGatherDatabaseFileInfo(const std::function<void(UiConst::DriveFileInfo)> &done);
+        void findAndGatherDatabaseFileInfo(const std::function<void(DriveFileInfo)> &done);
         void updateDatabase(const QString &fileId, const std::function<void(bool)> &done);
         void downloadDatabase(const QString &fileId, const std::function<void(bool)> &done);
         void deleteDatabaseFile(const QString &fileId, const std::function<void(bool)> &done);
         static QString formatDateTimeSmart(const QDateTime &dt);
         static QString calculateFileMD5(const QString &filePath);
-        static UiConst::DriveFileInfo parseFileInfo(const QJsonObject &obj);
+        static DriveFileInfo parseFileInfo(const QJsonObject &obj);
 
         QNetworkAccessManager m_networkManager;
         OAuthManager* m_oauth;

@@ -205,6 +205,11 @@ void AppController::oauthManager() {
             QObject::connect(this, &AppController::dbClosedForward, m_GDService.get(),
                              &GoogleDriveService::onConnectClosedForDownload);
 
+            QObject::connect(this, &AppController::deleteDatabaseFileRequest, m_GDService.get(),
+                             &GoogleDriveService::handledeleteDatabaseFileRequest);
+            QObject::connect(m_GDService.get(), &GoogleDriveService::deleteDatabaseFileRespond,
+                             this, &AppController::deleteDatabaseFileRespondForward);
+
             m_oauthManager->tryAutoLogin();
         }
     }
@@ -414,10 +419,12 @@ void AppController::handleLoginGMRequested() {
     if (m_oauthManager != nullptr) { m_oauthManager->handleLoginGMRequested(); }
 }
 
-void AppController::handleUnlinkGMRequested() {
+void AppController::handleUnlinkGMRequested(bool isDeleteDB) {
     if (m_oauthManager != nullptr) {
         m_currentLinkedEmail.clear();
         m_oauthManager->handleUnlinkGMRequested();
+
+        if (isDeleteDB && m_GDService != nullptr) { emit deleteDatabaseFileRequest(); }
     }
 }
 

@@ -17,6 +17,7 @@
 #include "database_maintenance.hpp"
 #include "CorePaths.hpp"
 #include "Logger.hpp"
+#include "helper.hpp"
 
 GoogleDriveService::GoogleDriveService(OAuthManager* oauth, QObject* parent)
     : QObject(parent), m_oauth(oauth) {
@@ -68,7 +69,7 @@ void GoogleDriveService::uploadDatabase(const std::function<void(bool)> &done) {
 }
 
 void GoogleDriveService::findAndGatherDatabaseFileInfo(
-    const std::function<void(UiConst::DriveFileInfo)> &done) {
+    const std::function<void(DriveFileInfo)> &done) {
     QUrl url("https://www.googleapis.com/drive/v3/files");
     QUrlQuery q;
     q.addQueryItem("q", "name='data.db' and trashed=false");
@@ -84,7 +85,7 @@ void GoogleDriveService::findAndGatherDatabaseFileInfo(
     auto* reply = m_networkManager.get(req);
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
-        UiConst::DriveFileInfo info;
+        DriveFileInfo info;
 
         if (reply->error() == QNetworkReply::NoError) {
             const auto obj = QJsonDocument::fromJson(reply->readAll()).object();
@@ -190,7 +191,7 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
         DatabaseMaintenance::compact(filePath.toStdString());
     } catch (const std::runtime_error &ex) { Log::err("Compact error: {}", ex.what()); }
 
-    findAndGatherDatabaseFileInfo([this](const UiConst::DriveFileInfo &info) {
+    findAndGatherDatabaseFileInfo([this](const DriveFileInfo &info) {
         auto finish = [this](bool success) {
             if (success) {
                 emit onUploadDBBtnRequest(false, tr("Compacted and uploaded new file"),
@@ -219,7 +220,7 @@ void GoogleDriveService::downloadDbAuto() {
 void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
     if (isUpload) { return; }
 
-    findAndGatherDatabaseFileInfo([this](const UiConst::DriveFileInfo &info) {
+    findAndGatherDatabaseFileInfo([this](const DriveFileInfo &info) {
         if (!info.isExists) {
             emit onDownloadDBBtnRequest(false, tr("No database found or access denied"),
                                         UiConst::SettingsTabNotiLevel::caution);
@@ -278,13 +279,14 @@ QString GoogleDriveService::formatDateTimeSmart(const QDateTime &dt) {
 }
 
 void GoogleDriveService::getDBInfo() {
-    findAndGatherDatabaseFileInfo([this](const UiConst::DriveFileInfo &info) {
+    findAndGatherDatabaseFileInfo([this](const DriveFileInfo &info) {
         QStringList res;
 
         if (info.isExists) {
             res << info.name;
             res << QString::number(info.version);
-            res << QString::fromStdString(Utils::normalizationDBFileSize(info.size));
+            res << QString::fromStdString(
+                Utils::normalizationDBFileSize(static_cast<std::uint64_t>(info.size)));
             res << formatDateTimeSmart(info.lastCreated);
             res << formatDateTimeSmart(info.lastModified);
         }
@@ -298,12 +300,12 @@ QString GoogleDriveService::calculateFileMD5(const QString &filePath) {
     if (!file.open(QIODevice::ReadOnly)) { return {}; }
 
     QCryptographicHash hash(QCryptographicHash::Md5);
-    while (!file.atEnd()) { hash.addData(file.read(8192)); }
+    while (!file.atEnd()) { hash.addData(file.read(8192)); } // NOLINT(readability-magic-numbers)
     return hash.result().toHex();
 }
 
-UiConst::DriveFileInfo GoogleDriveService::parseFileInfo(const QJsonObject &obj) {
-    UiConst::DriveFileInfo info;
+GoogleDriveService::DriveFileInfo GoogleDriveService::parseFileInfo(const QJsonObject &obj) {
+    GoogleDriveService::DriveFileInfo info;
 
     info.id = obj["id"].toString();
     info.name = obj["name"].toString();
@@ -315,4 +317,27 @@ UiConst::DriveFileInfo GoogleDriveService::parseFileInfo(const QJsonObject &obj)
     info.isExists = !info.id.isEmpty();
 
     return info;
+}
+
+void GoogleDriveService::handledeleteDatabaseFileRequest() {
+    findAndGatherDatabaseFileInfo([this](const DriveFileInfo &info) {
+        if (!info.isExists) {
+            QString msg =
+                tr("The %1 file does not exist, so there's no need to delete it.").arg("data.db");
+            emit deleteDatabaseFileRespond(msg);
+            return;
+        }
+
+        deleteDatabaseFile(info.id, [this, info](bool ok) {
+            QString msgRespond;
+            if (ok) {
+                msgRespond = tr("Delete %1 successful!").arg(info.name);
+            } else {
+                msgRespond = tr("Delete %1 failed!").arg(info.name);
+                Log::err("Error delete data.db");
+            }
+
+            emit deleteDatabaseFileRespond(msgRespond);
+        });
+    });
 }

@@ -72,6 +72,8 @@ class MainWindow : public QMainWindow {
 
         void returnDBInfoForward(const QStringList &res);
 
+        void deleteDatabaseFileRespondForward(const QString &msg);
+
     public slots:
         void setCore(NotesAppCore* core);
         void onCheckUpdateClicked();
