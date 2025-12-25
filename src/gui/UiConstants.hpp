@@ -16,7 +16,11 @@ namespace UiConst {
 
     struct DriveFileInfo {
             QString id;
+            QString name;
             qint64 size{};
+            QString md5Checksum;
+            qint64 version{};
+            QDateTime lastCreated;
             QDateTime lastModified;
             bool isExists{};
     };

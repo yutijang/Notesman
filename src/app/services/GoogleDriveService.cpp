@@ -29,7 +29,7 @@ void GoogleDriveService::uploadDatabase(const std::function<void(bool)> &done) {
     const QString filePath = CorePaths::databaseFile();
     auto* file = new QFile(filePath);
     if (!file->open(QIODevice::ReadOnly)) {
-        qWarning() << "Cannot open data.db";
+        Log::warn("Cannot open data.db");
         if (done) { done(false); }
         delete file;
         return;
@@ -41,12 +41,12 @@ void GoogleDriveService::uploadDatabase(const std::function<void(bool)> &done) {
     QHttpPart metaPart;
     metaPart.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=UTF-8");
     metaPart.setBody(
-        R"({"name":"data.db","mimeType":"application/octet-stream","parents":["appDataFolder"]})");
+        R"({"name":"data.db","mimeType":"application/x-sqlite3","parents":["appDataFolder"]})");
     multi->append(metaPart);
 
     // file part (streamed)
     QHttpPart filePart;
-    filePart.setHeader(QNetworkRequest::ContentTypeHeader, "application/octet-stream");
+    filePart.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-sqlite3");
     filePart.setBodyDevice(
         file);              // QNetworkAccessManager sẽ take ownership? we manage deletion below
     file->setParent(multi); // ensure deletion with multi
@@ -61,7 +61,7 @@ void GoogleDriveService::uploadDatabase(const std::function<void(bool)> &done) {
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         const bool ok = (reply->error() == QNetworkReply::NoError);
-        if (!ok) { qWarning() << "Upload failed:" << reply->errorString(); }
+        if (!ok) { Log::warn("Upload failed: {}", reply->errorString().toStdString()); }
         reply->deleteLater();
         if (done) { done(ok); }
     });
@@ -73,7 +73,7 @@ void GoogleDriveService::findAndGatherDatabaseFileInfo(
     QUrlQuery q;
     q.addQueryItem("q", "name='data.db' and trashed=false");
     q.addQueryItem("spaces", "appDataFolder");
-    q.addQueryItem("fields", "files(id, size, modifiedTime)");
+    q.addQueryItem("fields", "files(id,name,size,md5Checksum,version,createdTime,modifiedTime)");
 
     url.setQuery(q);
 
@@ -91,11 +91,7 @@ void GoogleDriveService::findAndGatherDatabaseFileInfo(
             const auto files = obj["files"].toArray();
             if (!files.isEmpty()) {
                 const auto fileObj = files.first().toObject();
-                info.isExists = true;
-                info.id = fileObj["id"].toString();
-                info.size = fileObj["size"].toString().toLongLong();
-                info.lastModified =
-                    QDateTime::fromString(fileObj["modifiedTime"].toString(), Qt::ISODate);
+                info = parseFileInfo(fileObj);
             }
         } else {
             QByteArray errorData = reply->readAll();
@@ -113,25 +109,25 @@ void GoogleDriveService::updateDatabase(const QString &fileId,
     const QString filePath = CorePaths::databaseFile();
     auto* file = new QFile(filePath);
     if (!file->open(QIODevice::ReadOnly)) {
+        Log::warn("Cannot open data.db for update");
         if (done) { done(false); }
+        delete file;
         return;
     }
-
-    const QByteArray dbBytes = file->readAll();
-    file->close();
 
     const QUrl url("https://www.googleapis.com/upload/drive/v3/files/" + fileId +
                    "?uploadType=media");
 
     QNetworkRequest req(url);
     req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
-    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/octet-stream");
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-sqlite3");
 
-    auto* reply = m_networkManager.sendCustomRequest(req, "PATCH", dbBytes);
+    auto* reply = m_networkManager.sendCustomRequest(req, "PATCH", file);
+    file->setParent(reply);
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         const bool ok = (reply->error() == QNetworkReply::NoError);
-        if (!ok) { qWarning() << "Update failed:" << reply->errorString(); }
+        if (!ok) { Log::warn("Update failed: {}", reply->errorString().toStdString()); }
         reply->deleteLater();
         if (done) { done(ok); }
     });
@@ -143,29 +139,41 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
 
     QNetworkRequest req(url);
     req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
+    req.setRawHeader("Accept", "application/x-sqlite3, application/octet-stream");
 
     auto* reply = m_networkManager.get(req);
+    const QString filePath = CorePaths::databaseFile();
+    auto* file = new QFile(filePath);
 
-    QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
-        if (reply->error() != QNetworkReply::NoError) {
-            qWarning() << "Download failed:" << reply->errorString();
-            reply->deleteLater();
-            if (done) { done(false); }
-            return;
-        }
-
-        const QString filePath = CorePaths::databaseFile();
-        QFile file(filePath);
-        if (!file.open(QIODevice::WriteOnly)) {
-            reply->deleteLater();
-            if (done) { done(false); }
-            return;
-        }
-
-        file.write(reply->readAll());
-        file.close();
+    if (!file->open(QIODevice::WriteOnly)) {
+        Log::warn("Download: Cannot open local file for writing");
+        reply->abort();
         reply->deleteLater();
-        if (done) { done(true); }
+        delete file;
+        if (done) { done(false); }
+        return;
+    }
+
+    QObject::connect(reply, &QNetworkReply::readyRead,
+                     [reply, file]() { file->write(reply->readAll()); });
+
+    QObject::connect(reply, &QNetworkReply::finished, this, [reply, file, done]() {
+        QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
+
+        if (reply->error() != QNetworkReply::NoError ||
+            (!contentType.contains("application/x-sqlite3") &&
+             !contentType.contains("application/octet-stream"))) {
+            Log::warn("Download failed or invalid MIME type: {}", contentType.toStdString());
+            file->close();
+            file->remove();
+        } else {
+            file->close();
+        }
+
+        const bool ok = (reply->error() == QNetworkReply::NoError);
+        file->deleteLater();
+        reply->deleteLater();
+        if (done) { done(ok); }
     });
 }
 
@@ -180,7 +188,7 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
     try {
         const QString filePath = CorePaths::databaseFile();
         DatabaseMaintenance::compact(filePath.toStdString());
-    } catch (const std::runtime_error &ex) { qDebug() << "Compact error: " << ex.what(); }
+    } catch (const std::runtime_error &ex) { Log::err("Compact error: {}", ex.what()); }
 
     findAndGatherDatabaseFileInfo([this](const UiConst::DriveFileInfo &info) {
         auto finish = [this](bool success) {
@@ -250,8 +258,14 @@ void GoogleDriveService::deleteDatabaseFile(const QString &fileId,
     auto* reply = m_networkManager.deleteResource(req); // Gửi lệnh DELETE
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
-        const bool ok = (reply->error() == QNetworkReply::NoError);
-        if (!ok) { qWarning() << "Delete file failed:" << reply->errorString(); }
+        const int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+        const bool ok = (reply->error() == QNetworkReply::NoError || statusCode == 404);
+
+        if (!ok) {
+            Log::warn("Delete file failed: {} (Status: {})", reply->errorString().toStdString(),
+                      statusCode);
+        }
         reply->deleteLater();
         if (done) { done(ok); }
     });
@@ -268,10 +282,37 @@ void GoogleDriveService::getDBInfo() {
         QStringList res;
 
         if (info.isExists) {
+            res << info.name;
+            res << QString::number(info.version);
             res << QString::fromStdString(Utils::normalizationDBFileSize(info.size));
+            res << formatDateTimeSmart(info.lastCreated);
             res << formatDateTimeSmart(info.lastModified);
         }
 
         emit returnDBInfo(res);
     });
+}
+
+QString GoogleDriveService::calculateFileMD5(const QString &filePath) {
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) { return {}; }
+
+    QCryptographicHash hash(QCryptographicHash::Md5);
+    while (!file.atEnd()) { hash.addData(file.read(8192)); }
+    return hash.result().toHex();
+}
+
+UiConst::DriveFileInfo GoogleDriveService::parseFileInfo(const QJsonObject &obj) {
+    UiConst::DriveFileInfo info;
+
+    info.id = obj["id"].toString();
+    info.name = obj["name"].toString();
+    info.size = obj["size"].toString().toLongLong();
+    info.md5Checksum = obj["md5Checksum"].toString();
+    info.version = obj["version"].toString().toLongLong();
+    info.lastCreated = QDateTime::fromString(obj["createdTime"].toString(), Qt::ISODate);
+    info.lastModified = QDateTime::fromString(obj["modifiedTime"].toString(), Qt::ISODate);
+    info.isExists = !info.id.isEmpty();
+
+    return info;
 }

@@ -3,6 +3,7 @@
 #include <functional>
 #include <QObject>
 #include <QString>
+#include <QJsonObject>
 #include <QNetworkAccessManager>
 
 #include "UiConstants.hpp"
@@ -45,6 +46,8 @@ class GoogleDriveService final : public QObject {
         void downloadDatabase(const QString &fileId, const std::function<void(bool)> &done);
         void deleteDatabaseFile(const QString &fileId, const std::function<void(bool)> &done);
         static QString formatDateTimeSmart(const QDateTime &dt);
+        static QString calculateFileMD5(const QString &filePath);
+        static UiConst::DriveFileInfo parseFileInfo(const QJsonObject &obj);
 
         QNetworkAccessManager m_networkManager;
         OAuthManager* m_oauth;

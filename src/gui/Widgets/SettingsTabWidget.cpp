@@ -597,6 +597,11 @@ void SettingsTabWidget::handleDBInfoGot(const QStringList &info) {
     } else {
         DialogUtils::showInfo(
             this, tr("Database information"),
-            tr("File: %1\nSize: %2\nLast modified: %3").arg("data.db").arg(info[0]).arg(info[1]));
+            tr("File: %1\nVersion: %2\nSize: %3\nLast created: %4\nLast modified: %5")
+                .arg(info[0])
+                .arg(info[1])
+                .arg(info[2])
+                .arg(info[3])
+                .arg(info[4]));
     }
 }
