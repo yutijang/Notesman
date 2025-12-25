@@ -10,7 +10,6 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
-#include <QSettings>
 #include <QTimer>
 #include <QCheckBox>
 

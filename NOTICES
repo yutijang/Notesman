@@ -20,3 +20,5 @@
 | pcre2             | BSD-2-Clause                   | licenses/pcre2_license.txt             |
 | SQLite3           | Public Domain                  | licenses/sqlite3-publicdomain.txt      |
 | ZSTD              | BSD-3-Clause                   | licenses/zstd_license.txt              |
+| spdlog            | MIT                            | licenses/spdlog_license.txt            |
+| miniz             | MIT                            | licenses/miniz_license.txt             |

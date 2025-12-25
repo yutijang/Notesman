@@ -103,6 +103,7 @@ class AppController final : public QObject {
 
     private:
         void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;
+        void finalizeUnlink();
 
         std::unique_ptr<AppSettings> m_settings;
         std::unique_ptr<QTranslator> m_translator;

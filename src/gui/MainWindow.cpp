@@ -9,7 +9,6 @@
 #include <QMessageBox>
 #include <QShowEvent>
 #include <QScreen>
-#include <QSettings>
 #include <QMenu>
 #include <QPoint>
 #include <QTimer>
@@ -48,11 +47,11 @@
 #include "Logger.hpp"
 
 #if defined(Q_OS_LINUX)
-#    include <sys/stat.h>
-#    include <fcntl.h>
-#    include <unistd.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
 
-#    include "AppImageExtractor.hpp"
+    #include "AppImageExtractor.hpp"
 #endif
 
 namespace {

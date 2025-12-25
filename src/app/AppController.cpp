@@ -18,6 +18,7 @@
 #include "UpdateInfoSummary.hpp"
 #include "DialogUtils.hpp"
 #include "CorePaths.hpp"
+#include "Logger.hpp"
 
 AppController::AppController(QObject* parent) : QObject(parent) {}
 
@@ -206,7 +207,7 @@ void AppController::oauthManager() {
                              &GoogleDriveService::onConnectClosedForDownload);
 
             QObject::connect(this, &AppController::deleteDatabaseFileRequest, m_GDService.get(),
-                             &GoogleDriveService::handledeleteDatabaseFileRequest);
+                             &GoogleDriveService::handleDeleteDatabaseFileRequest);
             QObject::connect(m_GDService.get(), &GoogleDriveService::deleteDatabaseFileRespond,
                              this, &AppController::deleteDatabaseFileRespondForward);
 
@@ -420,12 +421,28 @@ void AppController::handleLoginGMRequested() {
 }
 
 void AppController::handleUnlinkGMRequested(bool isDeleteDB) {
-    if (m_oauthManager != nullptr) {
-        m_currentLinkedEmail.clear();
-        m_oauthManager->handleUnlinkGMRequested();
+    if (m_oauthManager == nullptr) { return; }
 
-        if (isDeleteDB && m_GDService != nullptr) { emit deleteDatabaseFileRequest(); }
+    if (isDeleteDB && m_GDService != nullptr) {
+        QObject::connect(
+            m_GDService.get(), &GoogleDriveService::deleteDatabaseFileRespond, this,
+            [this](const QString &msg) {
+                Log::info("Cleanup on Cloud finished: {}. Now revoking token...",
+                          msg.toStdString());
+
+                finalizeUnlink();
+            },
+            Qt::SingleShotConnection);
+
+        emit deleteDatabaseFileRequest();
+    } else {
+        finalizeUnlink();
     }
+}
+
+void AppController::finalizeUnlink() {
+    m_currentLinkedEmail.clear();
+    m_oauthManager->handleUnlinkGMRequested();
 }
 
 void AppController::uploadDbAuto() {

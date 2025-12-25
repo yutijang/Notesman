@@ -1,7 +1,6 @@
 #include <QNetworkReply>
 #include <QRandomGenerator>
 #include <QJsonObject>
-#include <QSettings>
 #include <QJsonDocument>
 #include <QUrl>
 #include <QUrlQuery>

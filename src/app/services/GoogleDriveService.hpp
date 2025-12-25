@@ -26,7 +26,7 @@ class GoogleDriveService final : public QObject {
         void onConnectClosedForUpload(bool isUpload);
         void onConnectClosedForDownload(bool isUpload);
 
-        void handledeleteDatabaseFileRequest();
+        void handleDeleteDatabaseFileRequest();
 
     signals:
         void onDownloadDBBtnRequest(
