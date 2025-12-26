@@ -1,5 +1,7 @@
+#include <cstdio>
 #include <filesystem>
 #include <string>
+#include <system_error>
 #include <vector>
 #include <thread>
 #include <chrono>

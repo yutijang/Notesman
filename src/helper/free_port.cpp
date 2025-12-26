@@ -18,6 +18,7 @@ static constexpr SockHandle INVALID_SOCK = INVALID_SOCKET;
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
+    #include <cerrno>
 
 using SockHandle = int;
 static constexpr SockHandle INVALID_SOCK = -1;

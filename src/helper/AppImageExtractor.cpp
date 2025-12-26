@@ -1,10 +1,13 @@
+#include <sys/stat.h>
+#include <unistd.h> // for ::chmod
 #include <QProcess>
 #include <QFile>
 #include <QDir>
 #include <QDirIterator>
 #include <QDateTime>
-#include <sys/stat.h>
-#include <unistd.h> // for ::chmod
+#include <Qt>
+#include <QString>
+#include <QFileDevice>
 
 #include "AppImageExtractor.hpp"
 
