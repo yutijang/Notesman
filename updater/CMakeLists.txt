@@ -10,7 +10,7 @@ add_executable(${UPDATER_PROJECT_NAME} ${UPDATER_SRC})
 target_link_libraries(${UPDATER_PROJECT_NAME}
   PRIVATE
     logger
-    $<$<PLATFORM_ID:Windows>:miniz_static>
+    $<$<PLATFORM_ID:Windows>:miniz::miniz>
 )
 
 target_link_options(${UPDATER_PROJECT_NAME}

@@ -1,28 +1,23 @@
 {
     "name": "notesman",
-    "version": "2025.12.9",
+    "version": "2026.1.0",
     "builtin-baseline": "b8927a1f9dd394496414668e1d2f94b2559d45a8",
     "dependencies": [
+        "openssl",
+        "catch2",
+        "spdlog",
+        "miniz",
         {
-            "name": "openssl"
+            "name": "sqlite3",
+            "features": [
+                "fts5"
+            ]
         },
         {
             "name": "qtbase",
             "features": [
                 "gui",
                 "widgets"
-            ]
-        },
-        {
-            "name": "catch2"
-        },
-        {
-            "name": "spdlog"
-        },
-        {
-            "name": "sqlite3",
-            "features": [
-                "fts5"
             ]
         }
     ],

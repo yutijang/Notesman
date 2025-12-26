@@ -65,6 +65,7 @@ find_package(OpenSSL REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(miniz CONFIG REQUIRED)
 
 # --- QtKeychain ---------------------------------------------
 include(FetchContent)
@@ -105,7 +106,7 @@ set(CMAKE_AUTORCC ON)
 
 # Thêm subdirectory app
 # add_subdirectory(extern/sqlite3)
-add_subdirectory(extern/miniz)
+# add_subdirectory(extern/miniz)
 add_subdirectory(src)
 
 enable_testing()
