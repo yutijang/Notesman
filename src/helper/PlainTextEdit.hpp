@@ -1,8 +1,10 @@
 #pragma once
 
-#include <QWidget>
-#include <QPlainTextEdit>
-#include <QRect>
+#include <QtCore>
+#include <qplaintextedit.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QMimeData;
 class QPaintEvent;

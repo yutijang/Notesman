@@ -1,8 +1,15 @@
-#include <QMimeData>
-#include <QWidget>
-#include <QTextEdit>
-#include <QPainter>
-#include <QTextBlock>
+#include <QtCore>
+#include <algorithm>
+#include <cmath>
+#include <qcolor.h>
+#include <qfontmetrics.h>
+#include <qobject.h>
+#include <qpainter.h>
+#include <qpalette.h>
+#include <qplaintextedit.h>
+#include <qtextobject.h>
+#include <qtextoption.h>
+#include <qwidget.h>
 
 #include "PlainTextEdit.hpp"
 

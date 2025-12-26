@@ -1,6 +1,11 @@
 #pragma once
 
 #include <QStyledItemDelegate>
+#include <QSize>
+#include <QModelIndex>
+#include <QStyleOptionViewItem>
+
+class QPainter;
 
 class ResourceTitleDelegate final : public QStyledItemDelegate {
     public:

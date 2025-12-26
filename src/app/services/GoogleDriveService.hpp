@@ -1,10 +1,13 @@
 #pragma once
 
 #include <functional>
-#include <QObject>
-#include <QString>
-#include <QJsonObject>
-#include <QNetworkAccessManager>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qjsonobject.h>
+#include <qnetworkaccessmanager.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 #include "UiConstants.hpp"
 

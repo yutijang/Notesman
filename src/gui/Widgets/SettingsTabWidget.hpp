@@ -1,7 +1,10 @@
 #pragma once
 
-#include <QWidget>
-#include <QTimer>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtimer.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 #include "SettingsData.hpp"
 #include "UiConstants.hpp"

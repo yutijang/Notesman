@@ -1,19 +1,41 @@
 #ifdef Q_OS_WIN
-#    include <windows.h>
+    #include <windows.h>
 #endif
 
+#include <array>
+#include <exception>
+#include <functional>
+#include <handleapi.h>
+#include <minwindef.h>
+#include <processthreadsapi.h>
+#include <string>
+#include <string_view>
+#include <synchapi.h>
+#include <system_error>
+#include <vector>
+#include <winbase.h>
+#include <windef.h>
+#include <winnt.h>
+#include <winuser.h>
 #include <memory>
 #include <fstream>
 #include <ios>
 #include <filesystem>
-#include <QApplication>
-#include <QLocalServer>
-#include <QLocalSocket>
-#include <QStringView>
-#include <QMessageBox>
-#include <QTimer>
-#include <QDir>
+#include <qapplication.h>
+#include <qbuffer.h>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <qdir.h>
+#include <qlocalserver.h>
+#include <qmessagebox.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstringview.h>
+#include <qtimer.h>
+#include <qtmetamacros.h>
+#include <qlocalsocket.h>
 
+#include "AppSettings.hpp"
 #include "AppInitializer.hpp"
 #include "MainWindow.hpp"
 #include "AppController.hpp"

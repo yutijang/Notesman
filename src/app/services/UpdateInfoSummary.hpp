@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QString>
+#include <qobject.h>
 
 struct UpdateInfoSummary {
         [[nodiscard]] bool isValid() const {

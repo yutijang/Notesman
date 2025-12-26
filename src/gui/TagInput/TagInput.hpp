@@ -1,7 +1,10 @@
 #pragma once
 
-#include <QWidget>
-#include <QStringList>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QHBoxLayout;
 class QLineEdit;

@@ -1,9 +1,12 @@
-#include "Logger.hpp"
-
+#include <mutex>
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <memory>
 #include <string>
+
+#include "Logger.hpp"
 
 namespace {
     std::once_flag gOnce;

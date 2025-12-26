@@ -1,10 +1,10 @@
-#include <QObject>
-#include <QTextCharFormat>
-#include <QFocusEvent>
-#include <QTextEdit>
-#include <QColor>
-#include <QEvent>
-#include <QTextCursor>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtextcursor.h>
+#include <qtextedit.h>
+#include <qtextformat.h>
 
 #include "CodeEditorLineHighlighter.hpp"
 #include "PlainTextEdit.hpp"

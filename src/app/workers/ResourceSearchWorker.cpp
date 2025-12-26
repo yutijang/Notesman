@@ -1,5 +1,6 @@
-#include <QObject>
-#include <QStringView>
+#include <string>
+#include <vector>
+#include <qtmetamacros.h>
 
 #include "ResourceSearchWorker.hpp"
 #include "NotesAppCore.hpp"

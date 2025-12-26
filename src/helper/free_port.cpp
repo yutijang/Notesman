@@ -1,6 +1,9 @@
-#include "free_port.hpp"
-
+#include <cstdint>
+#include <inaddr.h>
+#include <minwindef.h>
 #include <system_error>
+
+#include "free_port.hpp"
 
 // ---------------- Platform includes ----------------
 #if defined(_WIN32)

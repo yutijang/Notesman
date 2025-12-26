@@ -1,8 +1,9 @@
 #include <optional>
-#include <QString>
-#include <QFile>
-#include <QTextStream>
 #include <sqlite3.h>
+#include <qbuffer.h>
+#include <qdebug.h>
+#include <qdir.h>
+#include <qobject.h>
 
 #include "NotesAppCore.hpp"
 #include "ResourceViewService.hpp"

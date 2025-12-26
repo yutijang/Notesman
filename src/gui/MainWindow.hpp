@@ -1,16 +1,21 @@
 #pragma once
 
 #include <memory>
-#include <QMainWindow>
-#include <QModelIndexList>
-#include <QtTypes>
+#include <optional>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qmainwindow.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include <sqlite3.h>
 
 #include "UiConstants.hpp"
 #include "Theme.hpp"
 #include "SettingsData.hpp"
 #include "UpdateInfoSummary.hpp"
-#include <ResourceViewService.hpp>
+#include "model.hpp"
+#include "ResourceViewService.hpp"
 
 // ----------------------------------------------------
 // Forward Declarations cho các Widgets con (Best Practice)

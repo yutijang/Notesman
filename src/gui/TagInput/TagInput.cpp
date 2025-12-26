@@ -1,11 +1,13 @@
-#include <QHBoxLayout>
-#include <QWidget>
-#include <QLineEdit>
-#include <QFont>
-#include <QApplication>
-#include <QString>
-#include <QPushButton>
-#include <QStyle>
+#include <qapplication.h>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <qlayout.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+#include <utility>
 
 #include "TagInput.hpp"
 

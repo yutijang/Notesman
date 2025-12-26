@@ -1,7 +1,10 @@
 #pragma once
 
+#include <filesystem>
+#include <sqlite3.h>
 #include <string>
 #include <optional>
+#include <string_view>
 #include <vector>
 #include <utility>
 

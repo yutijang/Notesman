@@ -1,11 +1,9 @@
-#include <QWidget>
-#include <QTableWidget>
-#include <QMouseEvent>
-#include <QFocusEvent>
-#include <QShowEvent>
-#include <QTimer>
-#include <QHeaderView>
-#include <QScrollBar>
+#include <qabstractitemmodel.h>
+#include <qapplication.h>
+#include <qfont.h>
+#include <qitemselectionmodel.h>
+#include <qtablewidget.h>
+#include <qtimer.h>
 
 #include "ResultsTable.hpp"
 

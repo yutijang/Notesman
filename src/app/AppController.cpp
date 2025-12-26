@@ -1,24 +1,42 @@
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
 #include <memory>
 #include <filesystem>
-#include <QObject>
-#include <QFileInfo>
-#include <QDir>
-#include <QString>
-#include <QTranslator>
-#include <QApplication>
-#include <QStyleFactory>
-#include <QTimer>
-#include <QThread>
-#include <QRegularExpression>
+#include <sqlite3.h>
+#include <string>
+#include <vector>
+#include <qapplication.h>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <qcoreevent.h>
+#include <qdir.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstylefactory.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+#include <qtranslator.h>
+#include <qurl.h>
 
 #include "AppController.hpp"
+#include "AppSettings.hpp"
+#include "DownloadManager.hpp"
+#include "GoogleDriveService.hpp"
+#include "Language.hpp"
 #include "MainWindow.hpp"
 #include "NotesAppCore.hpp"
+#include "OAuthManager.hpp"
 #include "ResourceSearchWorker.hpp"
+#include "SettingsData.hpp"
+#include "Theme.hpp"
+#include "UiConstants.hpp"
 #include "UpdateInfoSummary.hpp"
 #include "DialogUtils.hpp"
 #include "CorePaths.hpp"
 #include "Logger.hpp"
+#include "UpdateManager.hpp"
+#include "model.hpp"
 
 AppController::AppController(QObject* parent) : QObject(parent) {}
 

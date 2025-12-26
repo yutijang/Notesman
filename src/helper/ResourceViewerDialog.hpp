@@ -1,6 +1,8 @@
 #pragma once
 
+#include <qtmetamacros.h>
 #include <sqlite3.h>
+#include <QObject>
 #include <QDialog>
 #include <QString>
 

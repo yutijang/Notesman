@@ -1,13 +1,13 @@
 #pragma once
 
 #include <functional>
-#include <QObject>
-#include <QString>
-#include <QTcpServer>
-#include <QNetworkAccessManager>
-#include <QDateTime>
-#include <QJsonObject>
-#include <QUrl>
+#include <qdatetime.h>
+#include <qjsonobject.h>
+#include <qnetworkaccessmanager.h>
+#include <qobject.h>
+#include <qtcpserver.h>
+#include <qtmetamacros.h>
+#include <qurl.h>
 
 class QTcpSocket;
 class QNetworkReply;

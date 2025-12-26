@@ -1,10 +1,26 @@
-#include <iostream>
+#if !defined(UNICODE) && !defined(_UNICODE)
+    #define UNICODE
+#endif
+
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <errhandlingapi.h>
+#include <handleapi.h>
+#include <minwindef.h>
+#include <processthreadsapi.h>
+#include <stringapiset.h>
+#include <synchapi.h>
 #include <unordered_set>
 #include <string>
 #include <filesystem>
 #include <system_error>
-#include <windows.h>
+#include <vector>
+#include <winbase.h>
 #include <miniz.h>
+#include <winnls.h>
+#include <winnt.h>
+#include <winuser.h>
 
 #include "Logger.hpp"
 

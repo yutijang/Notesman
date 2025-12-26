@@ -1,5 +1,11 @@
-#include <QDir>
-#include <QtTypes>
+#include <qbuffer.h>
+#include <qnetworkreply.h>
+#include <qnetworkrequest.h>
+#include <qobject.h>
+#include <qtimer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qurl.h>
 
 #include "DownloadManager.hpp"
 

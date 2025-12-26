@@ -1,7 +1,9 @@
 #pragma once
 
-#include <QWidget>
-#include <QStringList>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 #include "UiConstants.hpp"
 

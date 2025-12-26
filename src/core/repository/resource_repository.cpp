@@ -1,6 +1,10 @@
 #include <stdexcept>
 #include <optional>
 #include <sqlite3.h>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "resource_repository.hpp"
 #include "model.hpp"

@@ -1,11 +1,12 @@
 #pragma once
 
 #include <optional>
-#include <QObject>
-#include <QString>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QtTypes>
+#include <qjsondocument.h>
+#include <qnetworkaccessmanager.h>
+#include <qnetworkreply.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 #include "UpdateInfoSummary.hpp"
 

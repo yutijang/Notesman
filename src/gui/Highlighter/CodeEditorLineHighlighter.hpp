@@ -1,6 +1,8 @@
 #pragma once
 
-#include <QObject>
+#include <qcolor.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class PlainTextEdit;
 class QEvent;

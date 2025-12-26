@@ -1,8 +1,8 @@
-#include <QApplication>
-#include <QFontDatabase>
-#include <QFont>
-#include <QString>
-#include <QStringList>
+#include <qapplication.h>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <qfontdatabase.h>
+#include <qobject.h>
 
 #include "FontLoader.hpp"
 #include "Logger.hpp"

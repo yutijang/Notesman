@@ -5,10 +5,12 @@
 #endif
 
 #include <memory>
-#include <QLocalServer>
-#include <QLocalSocket>
-#include <QObject>
-#include <QString>
+#include <functional>
+#include <minwindef.h>
+#include <qcontainerfwd.h>
+#include <qlocalserver.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 #include "MainWindow.hpp"
 #include "AppController.hpp"

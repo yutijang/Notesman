@@ -1,11 +1,12 @@
-#include <QToolButton>
-#include <QMenu>
-#include <QWidget>
-#include <QFont>
-#include <QPoint>
-#include <QList>
-#include <QMouseEvent>
-#include <QSize>
+#include <qaction.h>
+#include <qicon.h>
+#include <qlist.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtoolbutton.h>
 
 #include "InfoCornerWidget.hpp"
 

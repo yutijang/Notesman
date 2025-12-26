@@ -1,10 +1,10 @@
-#include <QWidget>
 #include <QtCore>
-#include <QPoint>
-#include <QSize>
-#include <QStyle>
-#include <QMessageBox>
-#include <QLabel>
+#include <qlabel.h>
+#include <qmessagebox.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qstyle.h>
 
 #include "DialogUtils.hpp"
 

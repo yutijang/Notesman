@@ -1,3 +1,8 @@
+#include <QFont>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
 #include <sqlite3.h>
 #include <QCloseEvent>
 #include <QMessageBox>

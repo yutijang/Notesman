@@ -1,9 +1,10 @@
 #pragma once
 
-#include <QSettings>
-#include <QString>
-#include <QVariant>
 #include <mutex>
+#include <qobject.h>
+#include <qsettings.h>
+#include <qstringliteral.h>
+#include <qvariant.h>
 
 class SettingsManager {
     public:

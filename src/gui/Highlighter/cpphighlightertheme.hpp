@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QColor>
+#include <qcolor.h>
 
 struct CppHighlighterTheme {
         QColor type;

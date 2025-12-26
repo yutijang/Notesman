@@ -1,4 +1,4 @@
-#include <QApplication>
+#include <qapplication.h>
 
 #include "Logger.hpp"
 #include "AppInitializer.hpp"

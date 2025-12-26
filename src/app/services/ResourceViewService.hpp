@@ -1,8 +1,8 @@
 #pragma once
 
 #include <optional>
-#include <QString>
 #include <sqlite3.h>
+#include <qobject.h>
 
 #include "NotesAppCore.hpp"
 

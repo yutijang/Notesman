@@ -1,6 +1,7 @@
 #pragma once
 
-#include <QToolButton>
+#include <qtmetamacros.h>
+#include <qtoolbutton.h>
 
 class QWidget;
 class QMouseEvent;

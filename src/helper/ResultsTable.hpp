@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QTableWidget>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
 
 class QWidget;
 class QMouseEvent;

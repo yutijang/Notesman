@@ -1,28 +1,44 @@
+#include <QtCore>
 #include <memory>
+#include <optional>
+#include <qabstractitemmodel.h>
+#include <qapplication.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <qdesktopservices.h>
+#include <qdir.h>
+#include <qfileinfo.h>
+#include <qicon.h>
+#include <qitemselectionmodel.h>
+#include <qkeysequence.h>
+#include <qmainwindow.h>
+#include <qmenu.h>
+#include <qmessagebox.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qprocess.h>
+#include <qscreen.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qurl.h>
+#include <qvariant.h>
 #include <ranges>
 #include <sqlite3.h>
-#include <QMainWindow>
-#include <QTabWidget>
-#include <QWidget>
-#include <QLineEdit>
-#include <QLabel>
-#include <QMessageBox>
-#include <QShowEvent>
-#include <QScreen>
-#include <QMenu>
-#include <QPoint>
-#include <QTimer>
-#include <QApplication>
-#include <QDesktopServices>
-#include <QUrl>
-#include <QProgressDialog>
-#include <QStatusBar>
-#include <QVBoxLayout>
-#include <QDir>
-#include <QModelIndexList>
-#include <QProcess>
-#include <QtTypes>
+#include <vector>
 
+#if defined(Q_OS_LINUX)
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+
+    #include "AppImageExtractor.hpp"
+#endif
+
+#include "SettingsData.hpp"
+#include "Theme.hpp"
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
 #include "AddTabWidget.hpp"
@@ -32,6 +48,7 @@
 #include "ResultsTable.hpp"
 #include "cpphighlightertheme.hpp"
 #include "cpphighlighter.hpp"
+#include "helper.hpp"
 #include "model.hpp"
 #include "NotesAppCore.hpp"
 #include "PlainTextEdit.hpp"
@@ -45,14 +62,6 @@
 #include "ResourceViewerDialog.hpp"
 #include "SettingsManager.hpp"
 #include "Logger.hpp"
-
-#if defined(Q_OS_LINUX)
-    #include <sys/stat.h>
-    #include <fcntl.h>
-    #include <unistd.h>
-
-    #include "AppImageExtractor.hpp"
-#endif
 
 namespace {
     constexpr int GUI_WIDTH{1200};

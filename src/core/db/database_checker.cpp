@@ -1,5 +1,7 @@
 #include <sqlite3.h>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "database_checker.hpp"
 #include "sqldb_raii.hpp"

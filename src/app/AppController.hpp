@@ -1,14 +1,20 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
-#include <QObject>
-#include <QTranslator>
-#include <QTcpServer>
+#include <vector>
+#include <sqlite3.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtranslator.h>
 
 #include "AppSettings.hpp"
 #include "DownloadManager.hpp"
 #include "GoogleDriveService.hpp"
+#include "Language.hpp"
 #include "OAuthManager.hpp"
+#include "Theme.hpp"
 #include "UpdateManager.hpp"
 #include "model.hpp"
 #include "UiConstants.hpp"

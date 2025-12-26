@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QObject>
-#include <QString>
 #include <vector>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 #include "model.hpp"
 

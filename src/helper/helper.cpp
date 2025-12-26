@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <array>
@@ -28,7 +29,7 @@ namespace Utils {
         return {};
     }
 
-    // NOLINTBEGIN
+    // NOLINTBEGIN (readability-magic-numbers)
     std::string normalizationDBFileSize(std::uint64_t size) {
         if (size == 0) { return "0 B"; }
 
@@ -46,17 +47,17 @@ namespace Utils {
                                   ? std::format("{:.0f} {}", tmpSize, symbol[count])
                                   : std::format("{:.2f} {}", tmpSize, symbol[count]);
 
-        size_t space_pos = formatted.find(' ');
-        if (space_pos != std::string::npos) {
-            std::string num_part = formatted.substr(0, space_pos);
-            size_t dot_pos = num_part.find('.');
-            if (dot_pos != std::string::npos) {
-                size_t last = num_part.size() - 1;
-                while (last > dot_pos && num_part[last] == '0') { --last; }
-                if (num_part[last] == '.') { last--; }
-                num_part.erase(last + 1);
+        size_t spacePos = formatted.find(' ');
+        if (spacePos != std::string::npos) {
+            std::string numPart = formatted.substr(0, spacePos);
+            size_t dotPos = numPart.find('.');
+            if (dotPos != std::string::npos) {
+                size_t last = numPart.size() - 1;
+                while (last > dotPos && numPart[last] == '0') { --last; }
+                if (numPart[last] == '.') { last--; }
+                numPart.erase(last + 1);
             }
-            formatted = num_part + formatted.substr(space_pos);
+            formatted = numPart + formatted.substr(spacePos);
         }
 
         return formatted;

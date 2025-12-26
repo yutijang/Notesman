@@ -1,23 +1,29 @@
-#include <ResourceTitleDelegate.hpp>
-#include <vector>
+#include <cstddef>
 #include <optional>
-#include <QWidget>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QLabel>
-#include <QRadioButton>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QButtonGroup>
-#include <QHeaderView>
-#include <QTableView>
-#include <QGroupBox>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qboxlayout.h>
+#include <qbuttongroup.h>
+#include <qgroupbox.h>
+#include <qheaderview.h>
+#include <qicon.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qsizepolicy.h>
+#include <qtablewidget.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <vector>
 
 #include "BrowseTabWidget.hpp"
 #include "Logger.hpp"
 #include "ResultsTable.hpp"
 #include "model.hpp"
 #include "UiConstants.hpp"
+#include "ResourceTitleDelegate.hpp"
 
 BrowseTabWidget::BrowseTabWidget(QWidget* parent) : QWidget(parent) {
     setupUI();

@@ -1,10 +1,14 @@
 #include <filesystem>
 #include <fstream>
+#include <ios>
 #include <unordered_map>
 #include <string>
+#include <utility>
 
 #include "AppSettings.hpp"
+#include "Language.hpp"
 #include "SettingsData.hpp"
+#include "Theme.hpp"
 
 bool AppSettings::load(const std::filesystem::path &path) {
     if (!std::filesystem::exists(path)) { return false; }

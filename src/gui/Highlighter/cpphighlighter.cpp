@@ -1,14 +1,19 @@
-#include <QSyntaxHighlighter>
-#include <QTextDocument>
-#include <QRegularExpression>
-#include <QStringList>
-#include <QPalette>
-#include <QColor>
-#include <QObject>
-#include <QPointer>
-#include <QTimer>
+#include <algorithm>
+#include <qapplication.h>
+#include <qbrush.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpalette.h>
+#include <qregularexpression.h>
+#include <qsyntaxhighlighter.h>
+#include <qtextdocument.h>
+#include <qtextformat.h>
+#include <qtextobject.h>
 
 #include "cpphighlighter.hpp"
+#include "cpphighlightertheme.hpp"
 
 CppHighlighter::CppHighlighter(QTextDocument* parent, const CppHighlighterTheme &theme)
     : QSyntaxHighlighter(parent), m_theme(theme) {

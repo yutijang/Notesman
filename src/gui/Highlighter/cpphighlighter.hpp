@@ -1,10 +1,14 @@
 #pragma once
 
-#include <QSyntaxHighlighter>
-#include <QRegularExpression>
-#include <QTextCharFormat>
-#include <QTextDocument>
-#include <QPointer>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qpointer.h>
+#include <qregularexpression.h>
+#include <qsyntaxhighlighter.h>
+#include <qtextdocument.h>
+#include <qtextformat.h>
+#include <qtmetamacros.h>
 
 #include "cpphighlightertheme.hpp"
 

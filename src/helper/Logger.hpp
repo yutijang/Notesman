@@ -1,5 +1,9 @@
 #pragma once
 
+#include <fmt/base.h>
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <source_location>

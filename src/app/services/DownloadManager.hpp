@@ -1,11 +1,13 @@
 #pragma once
 
-#include <QObject>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QFile>
-#include <QTimer>
-#include <QtTypes>
+#include <qdir.h>
+#include <qnetworkaccessmanager.h>
+#include <qnetworkreply.h>
+#include <qobject.h>
+#include <qtimer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qurl.h>
 
 class DownloadManager final : public QObject {
         Q_OBJECT

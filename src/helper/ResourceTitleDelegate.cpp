@@ -1,5 +1,15 @@
-#include <QPainter>
-#include <QApplication>
+#include <QtCore>
+#include <qabstractitemmodel.h>
+#include <qapplication.h>
+#include <qicon.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpalette.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
 
 #include "ResourceTitleDelegate.hpp"
 #include "model.hpp"
