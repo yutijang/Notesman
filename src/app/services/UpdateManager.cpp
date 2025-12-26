@@ -1,3 +1,4 @@
+#include <optional>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUrl>
@@ -6,8 +7,14 @@
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QVersionNumber>
+#include <QString>
+#include <QObject>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <Qt>
 
 #include "UpdateManager.hpp"
+#include "UpdateInfoSummary.hpp"
 #include "app_version.hpp"
 #include "UiConstants.hpp"
 #include "Logger.hpp"

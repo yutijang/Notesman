@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QPlainTextEdit>
 #include <QRect>
+#include <QObject>
 
 class QMimeData;
 class QPaintEvent;

@@ -3,6 +3,7 @@
 #include <sqlite3.h>
 #include <QDialog>
 #include <QString>
+#include <QObject>
 
 #include "Theme.hpp"
 #include "model.hpp"

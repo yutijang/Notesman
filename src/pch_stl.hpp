@@ -1,13 +1,8 @@
 #pragma once
 
 #ifdef _WIN32
-    #if !defined(UNICODE) && !defined(_UNICODE)
-        #define UNICODE
-        #define _UNICODE
-    #endif
-
-    #define WIN32_LEAN_AND_MEAN
-
+    #include <winsock2.h> // winsock2.h được sử dụng trong free_port.cpp
+                          // cần khai báo nó trước windows.h để ngăn windows.h include winsock.h
     #include <windows.h>
 #endif
 

@@ -1,5 +1,9 @@
 #include <QDir>
-#include <QtTypes>
+#include <QtGlobal>
+#include <QObject>
+#include <QTimer>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 
 #include "DownloadManager.hpp"
 

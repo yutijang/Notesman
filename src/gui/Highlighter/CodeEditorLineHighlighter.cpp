@@ -5,6 +5,8 @@
 #include <QColor>
 #include <QEvent>
 #include <QTextCursor>
+#include <QList>
+#include <qassert.h>
 
 #include "CodeEditorLineHighlighter.hpp"
 #include "PlainTextEdit.hpp"

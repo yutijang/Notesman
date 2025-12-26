@@ -4,6 +4,7 @@
 #include <QString>
 #include <QVariant>
 #include <mutex>
+#include <qstringliteral.h>
 
 class SettingsManager {
     public:

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <optional>
+#include <string_view>
 #include <vector>
 #include <utility>
+#include <sqlite3.h>
 
 #include "model.hpp"
 #include "file_repository.hpp"

@@ -1,5 +1,4 @@
-#include "free_port.hpp"
-
+#include <cstdint>
 #include <system_error>
 
 // ---------------- Platform includes ----------------
@@ -23,6 +22,8 @@ static constexpr SockHandle INVALID_SOCK = INVALID_SOCKET;
 using SockHandle = int;
 static constexpr SockHandle INVALID_SOCK = -1;
 #endif
+
+#include "free_port.hpp"
 
 // ---------------- RAII: Socket ----------------
 class Socket {

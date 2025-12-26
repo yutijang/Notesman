@@ -1,5 +1,8 @@
 #include <memory>
+#include <optional>
+#include <qminmax.h>
 #include <ranges>
+#include <vector>
 #include <sqlite3.h>
 #include <QMainWindow>
 #include <QTabWidget>
@@ -22,7 +25,17 @@
 #include <QModelIndexList>
 #include <QProcess>
 #include <QtTypes>
+#include <QKeySequence>
+#include <Qt>
+#include <QItemSelection>
+#include <QString>
+#include <QColor>
+#include <QFileInfo>
+#include <QCoreApplication>
+#include <QStringList>
 
+#include "SettingsData.hpp"
+#include "Theme.hpp"
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
 #include "AddTabWidget.hpp"
@@ -32,6 +45,7 @@
 #include "ResultsTable.hpp"
 #include "cpphighlightertheme.hpp"
 #include "cpphighlighter.hpp"
+#include "helper.hpp"
 #include "model.hpp"
 #include "NotesAppCore.hpp"
 #include "PlainTextEdit.hpp"

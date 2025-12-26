@@ -5,6 +5,7 @@
 #include <QStyle>
 #include <QMessageBox>
 #include <QLabel>
+#include <Qt>
 
 #include "DialogUtils.hpp"
 

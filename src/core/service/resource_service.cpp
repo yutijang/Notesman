@@ -4,6 +4,8 @@
 #include <optional>
 #include <filesystem>
 #include <sqlite3.h>
+#include <utility>
+#include <vector>
 
 #include "model.hpp"
 #include "resource_repository.hpp"

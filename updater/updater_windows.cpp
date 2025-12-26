@@ -1,9 +1,8 @@
-#include <iostream>
+#include <windows.h>
 #include <unordered_set>
 #include <string>
 #include <filesystem>
 #include <system_error>
-#include <windows.h>
 #include <miniz.h>
 
 #include "Logger.hpp"

@@ -2,6 +2,7 @@
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <functional>
 #endif
 
 #include <memory>
@@ -9,6 +10,7 @@
 #include <QLocalSocket>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 #include "MainWindow.hpp"
 #include "AppController.hpp"

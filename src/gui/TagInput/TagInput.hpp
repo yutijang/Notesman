@@ -2,6 +2,9 @@
 
 #include <QWidget>
 #include <QStringList>
+#include <QObject>
+#include <QList>
+#include <QString>
 
 class QHBoxLayout;
 class QLineEdit;

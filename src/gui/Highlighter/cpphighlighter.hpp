@@ -5,6 +5,8 @@
 #include <QTextCharFormat>
 #include <QTextDocument>
 #include <QPointer>
+#include <QObject>
+#include <QVector>
 
 #include "cpphighlightertheme.hpp"
 

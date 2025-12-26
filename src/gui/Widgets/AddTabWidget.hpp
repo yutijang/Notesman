@@ -2,6 +2,8 @@
 
 #include <QWidget>
 #include <QStringList>
+#include <QObject>
+#include <QString>
 
 #include "UiConstants.hpp"
 

@@ -1,11 +1,17 @@
 #ifdef Q_OS_WIN
-#    include <windows.h>
+    #include <windows.h>
 #endif
 
 #include <memory>
 #include <fstream>
 #include <ios>
 #include <filesystem>
+#include <array>
+#include <exception>
+#include <string>
+#include <string_view>
+#include <system_error>
+#include <vector>
 #include <QApplication>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -13,6 +19,9 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QDir>
+#include <QObject>
+#include <Qt>
+#include <QStringList>
 
 #include "AppInitializer.hpp"
 #include "MainWindow.hpp"
@@ -32,6 +41,7 @@
 #include "CorePaths.hpp"
 #include "app_version.hpp"
 #include "SettingsManager.hpp"
+#include "AppSettings.hpp"
 #include "Logger.hpp"
 
 namespace {

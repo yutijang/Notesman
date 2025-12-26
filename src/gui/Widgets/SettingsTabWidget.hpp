@@ -2,6 +2,9 @@
 
 #include <QWidget>
 #include <QTimer>
+#include <QString>
+#include <QObject>
+#include <QStringList>
 
 #include "SettingsData.hpp"
 #include "UiConstants.hpp"

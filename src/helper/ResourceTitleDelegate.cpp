@@ -1,5 +1,14 @@
 #include <QPainter>
 #include <QApplication>
+#include <QStyleOptionViewItem>
+#include <QModelIndex>
+#include <Qt>
+#include <QString>
+#include <QRect>
+#include <QSize>
+#include <QStyledItemDelegate>
+#include <QPalette>
+#include <qminmax.h>
 
 #include "ResourceTitleDelegate.hpp"
 #include "model.hpp"

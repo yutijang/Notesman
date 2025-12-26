@@ -2,13 +2,17 @@
 #include <QTextDocument>
 #include <QRegularExpression>
 #include <QStringList>
+#include <QString>
 #include <QPalette>
 #include <QColor>
 #include <QObject>
 #include <QPointer>
 #include <QTimer>
+#include <Qt>
+#include <algorithm>
 
 #include "cpphighlighter.hpp"
+#include "cpphighlightertheme.hpp"
 
 CppHighlighter::CppHighlighter(QTextDocument* parent, const CppHighlighterTheme &theme)
     : QSyntaxHighlighter(parent), m_theme(theme) {

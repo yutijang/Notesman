@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <array>
@@ -46,12 +47,12 @@ namespace Utils {
                                   ? std::format("{:.0f} {}", tmpSize, symbol[count])
                                   : std::format("{:.2f} {}", tmpSize, symbol[count]);
 
-        size_t space_pos = formatted.find(' ');
+        std::size_t space_pos = formatted.find(' ');
         if (space_pos != std::string::npos) {
             std::string num_part = formatted.substr(0, space_pos);
-            size_t dot_pos = num_part.find('.');
+            std::size_t dot_pos = num_part.find('.');
             if (dot_pos != std::string::npos) {
-                size_t last = num_part.size() - 1;
+                std::size_t last = num_part.size() - 1;
                 while (last > dot_pos && num_part[last] == '0') { --last; }
                 if (num_part[last] == '.') { last--; }
                 num_part.erase(last + 1);

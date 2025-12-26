@@ -6,6 +6,8 @@
 #include <QList>
 #include <QMouseEvent>
 #include <QSize>
+#include <Qt>
+#include <QObject>
 
 #include "InfoCornerWidget.hpp"
 

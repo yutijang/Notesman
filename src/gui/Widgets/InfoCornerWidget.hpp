@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QToolButton>
+#include <QObject>
 
 class QWidget;
 class QMouseEvent;

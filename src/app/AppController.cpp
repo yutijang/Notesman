@@ -1,5 +1,11 @@
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
 #include <memory>
 #include <filesystem>
+#include <string>
+#include <vector>
+#include <sqlite3.h>
 #include <QObject>
 #include <QFileInfo>
 #include <QDir>
@@ -10,15 +16,27 @@
 #include <QTimer>
 #include <QThread>
 #include <QRegularExpression>
+#include <QStringList>
+#include <Qt>
 
 #include "AppController.hpp"
+#include "AppSettings.hpp"
+#include "DownloadManager.hpp"
+#include "GoogleDriveService.hpp"
+#include "Language.hpp"
 #include "MainWindow.hpp"
 #include "NotesAppCore.hpp"
+#include "OAuthManager.hpp"
 #include "ResourceSearchWorker.hpp"
+#include "SettingsData.hpp"
+#include "Theme.hpp"
+#include "UiConstants.hpp"
 #include "UpdateInfoSummary.hpp"
 #include "DialogUtils.hpp"
 #include "CorePaths.hpp"
 #include "Logger.hpp"
+#include "UpdateManager.hpp"
+#include "model.hpp"
 
 AppController::AppController(QObject* parent) : QObject(parent) {}
 

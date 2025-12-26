@@ -1,8 +1,10 @@
 #pragma once
 
-#include <QWidget>
 #include <optional>
 #include <vector>
+#include <QWidget>
+#include <QString>
+#include <QObject>
 
 #include "model.hpp" // std::vector bắt buộc phải biết định nghĩa đầy đủ (tức là kích thước và cấu trúc) của kiểu dữ liệu mà nó chứa (FullResource) ngay tại thời điểm mẫu lớp std::vector được khởi tạo (instantiate) hoặc khai báo
 

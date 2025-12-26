@@ -1,9 +1,13 @@
 #pragma once
 
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <source_location>
 #include <concepts>
+#include <fmt/base.h>
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>
 

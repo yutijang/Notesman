@@ -54,6 +54,14 @@ target_link_libraries(notes-core
     logger
 )
 
+target_compile_definitions(notes-core
+  PRIVATE
+    $<$<PLATFORM_ID:Windows>:UNICODE>
+    $<$<PLATFORM_ID:Windows>:_UNICODE>
+    $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
+    $<$<PLATFORM_ID:Windows>:NOMINMAX>
+)
+
 # =========================================================
 # Sources
 # =========================================================

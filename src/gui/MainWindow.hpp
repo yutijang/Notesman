@@ -1,15 +1,20 @@
 #pragma once
 
 #include <memory>
+#include <optional>
+#include <sqlite3.h>
 #include <QMainWindow>
 #include <QModelIndexList>
 #include <QtTypes>
-#include <sqlite3.h>
+#include <QString>
+#include <QObject>
+#include <QStringList>
 
 #include "UiConstants.hpp"
 #include "Theme.hpp"
 #include "SettingsData.hpp"
 #include "UpdateInfoSummary.hpp"
+#include "model.hpp"
 #include <ResourceViewService.hpp>
 
 // ----------------------------------------------------

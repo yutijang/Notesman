@@ -1,5 +1,9 @@
 #include <stdexcept>
 #include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 #include <sqlite3.h>
 
 #include "resource_repository.hpp"

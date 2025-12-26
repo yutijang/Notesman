@@ -1,3 +1,4 @@
+#include <utility>
 #include <QHBoxLayout>
 #include <QWidget>
 #include <QLineEdit>
@@ -6,6 +7,10 @@
 #include <QString>
 #include <QPushButton>
 #include <QStyle>
+#include <QSizePolicy>
+#include <QObject>
+#include <QStringList>
+#include <Qt>
 
 #include "TagInput.hpp"
 

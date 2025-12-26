@@ -1,9 +1,11 @@
+#include <filesystem>
+#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <sqlite3.h>
 #include <optional>
 #include <vector>
 #include <utility>
+#include <sqlite3.h>
 
 #include "model.hpp"
 #include "sqldb_raii.hpp"

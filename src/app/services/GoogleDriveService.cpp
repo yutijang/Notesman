@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <functional>
 #include <QString>
 #include <QNetworkReply>
@@ -11,9 +12,19 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QLocale>
+#include <QObject>
+#include <QFile>
+#include <QNetworkRequest>
+#include <QtGlobal>
+#include <QStringList>
+#include <QCryptographicHash>
+#include <Qt>
+#include <qassert.h>
+#include <stdexcept>
 
 #include "GoogleDriveService.hpp"
 #include "OAuthManager.hpp"
+#include "UiConstants.hpp"
 #include "database_maintenance.hpp"
 #include "CorePaths.hpp"
 #include "Logger.hpp"

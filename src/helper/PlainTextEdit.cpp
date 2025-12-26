@@ -1,8 +1,16 @@
+#include <algorithm>
+#include <cmath>
 #include <QMimeData>
 #include <QWidget>
 #include <QTextEdit>
 #include <QPainter>
 #include <QTextBlock>
+#include <QPlainTextEdit>
+#include <QTextOption>
+#include <QString>
+#include <QRect>
+#include <QPalette>
+#include <QColor>
 
 #include "PlainTextEdit.hpp"
 

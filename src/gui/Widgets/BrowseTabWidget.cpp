@@ -1,4 +1,6 @@
 #include <ResourceTitleDelegate.hpp>
+#include <cstddef>
+#include <qminmax.h>
 #include <vector>
 #include <optional>
 #include <QWidget>
@@ -12,6 +14,12 @@
 #include <QHeaderView>
 #include <QTableView>
 #include <QGroupBox>
+#include <QSizePolicy>
+#include <Qt>
+#include <QAbstractItemView>
+#include <QObject>
+#include <QTableWidget>
+#include <QtGlobal>
 
 #include "BrowseTabWidget.hpp"
 #include "Logger.hpp"

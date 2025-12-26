@@ -1,4 +1,3 @@
-#include <sqlite3.h>
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QString>
@@ -10,6 +9,11 @@
 #include <QVBoxLayout>
 #include <QIcon>
 #include <QPixmap>
+#include <Qt>
+#include <QFont>
+#include <QSizePolicy>
+#include <QObject>
+#include <sqlite3.h>
 
 #include "ResourceViewerDialog.hpp"
 #include "PlainTextEdit.hpp"

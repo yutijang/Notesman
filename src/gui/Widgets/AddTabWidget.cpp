@@ -12,6 +12,10 @@
 #include <QDir>
 #include <QTimer>
 #include <QCheckBox>
+#include <QObject>
+#include <Qt>
+#include <QStringList>
+#include <QFileInfo>
 
 #include "PlainTextEdit.hpp"
 #include "TagInput.hpp"

@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -12,8 +13,14 @@
 #include <QTimer>
 #include <QSettings>
 #include <QFileDialog>
+#include <Qt>
+#include <QObject>
+#include <QFileInfo>
+#include <QStringList>
 
 #include "SettingsTabWidget.hpp"
+#include "Language.hpp"
+#include "Theme.hpp"
 #include "UiConstants.hpp"
 #include "SettingsData.hpp"
 #include "DialogUtils.hpp"

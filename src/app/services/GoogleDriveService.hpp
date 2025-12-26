@@ -5,6 +5,8 @@
 #include <QString>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
+#include <QStringList>
+#include <QtGlobal>
 
 #include "UiConstants.hpp"
 

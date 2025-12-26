@@ -1,15 +1,16 @@
 #include <array>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
 #include <optional>
-#include <sqlite3.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <sqlite3.h>
 
 #include "file_repository.hpp"
 #include "file_service.hpp"
@@ -79,7 +80,9 @@ sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath
     }
 
     sqlite3_int64 resourceId =
-        m_resRepo.insert({.title = title, .type = type, .file_hash = hash}); // NOLINT
+        m_resRepo.insert({.title = title,
+                          .type = type,
+                          .file_hash = hash}); // NOLINT (-Wmissing-designated-field-initializers)
 
     m_fileRepo.insertFile(resourceId, storedPath, filepath, isManaged);
 

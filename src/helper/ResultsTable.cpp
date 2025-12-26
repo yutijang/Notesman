@@ -6,6 +6,10 @@
 #include <QTimer>
 #include <QHeaderView>
 #include <QScrollBar>
+#include <QModelIndex>
+#include <QItemSelectionModel>
+#include <QFont>
+#include <QApplication>
 
 #include "ResultsTable.hpp"
 

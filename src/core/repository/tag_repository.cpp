@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <optional>
@@ -184,7 +186,7 @@ std::vector<Resource> TagRepository::getResourcesViaTags(const std::vector<std::
                       "FROM resources r ";
 
     // JOIN nhiều lần để đảm bảo AND
-    for (size_t i = 0; i < tags.size(); ++i) {
+    for (std::size_t i = 0; i < tags.size(); ++i) {
         sql += "JOIN resource_tags rt" + std::to_string(i) + " ON r.id = rt" + std::to_string(i) +
                ".resource_id "
                "JOIN tags t" +
@@ -193,14 +195,14 @@ std::vector<Resource> TagRepository::getResourcesViaTags(const std::vector<std::
     }
 
     sql += "WHERE ";
-    for (size_t i = 0; i < tags.size(); ++i) {
+    for (std::size_t i = 0; i < tags.size(); ++i) {
         if (i > 0) { sql += " AND "; }
         sql += "t" + std::to_string(i) + ".name = ?";
     }
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    for (size_t i = 0; i < tags.size(); ++i) {
+    for (std::size_t i = 0; i < tags.size(); ++i) {
         sqlite3_bind_text(stmt.get(), static_cast<int>(i + 1), tags[i].data(),
                           static_cast<int>(tags[i].size()), SQLITE_TRANSIENT);
     }

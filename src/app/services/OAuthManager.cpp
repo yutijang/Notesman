@@ -1,3 +1,6 @@
+#include <functional>
+#include <string_view>
+#include <keychain.h>
 #include <QNetworkReply>
 #include <QRandomGenerator>
 #include <QJsonObject>
@@ -12,10 +15,15 @@
 #include <QCryptographicHash>
 #include <QRegularExpression>
 #include <QStringList>
+#include <QString>
 #include <QProcess>
 #include <QTimer>
 #include <QtTypes>
-#include <keychain.h>
+#include <QByteArray>
+#include <QTcpServer>
+#include <QNetworkRequest>
+#include <QHostAddress>
+#include <QtGlobal>
 
 #include "OAuthManager.hpp"
 #include "Logger.hpp"
