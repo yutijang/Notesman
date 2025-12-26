@@ -77,7 +77,7 @@ jobs:
             exit 1
           fi
           tmp=$(mktemp)
-          jq 'del(.dependencies[] | select(.name == "qtbase"))' vcpkg.json > "$tmp" && mv "$tmp" vcpkg.json
+          jq 'del(.dependencies[] | select(type == "object" and .name == "qtbase"))' vcpkg.json > "$tmp" && mv "$tmp" vcpkg.json
 
       - name: Setup vcpkg (bootstrap)
         uses: lukka/run-vcpkg@v11

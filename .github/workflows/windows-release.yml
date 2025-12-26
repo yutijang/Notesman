@@ -252,6 +252,32 @@ jobs:
               }
           }
 
+      - name: Find and copy miniz DLL (optimized)
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+
+          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\miniz.dll"
+
+          if (Test-Path $preferredPath) {
+              Write-Host "Found miniz.dll at preferred location: $preferredPath"
+              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
+              Write-Host "Copied miniz.dll to ${{ env.RELEASE_DIR }}"
+          } else {
+              Write-Host "Preferred location not found, searching recursively under $vcpkgRoot ..."
+              $minizFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter "miniz.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+              if ($null -ne $minizFile) {
+                  Write-Host "Found miniz.dll at: $($minizFile.FullName)"
+                  Copy-Item $minizFile.FullName ${{ env.RELEASE_DIR }} -Force
+                  Write-Host "Copied miniz.dll to ${{ env.RELEASE_DIR }}"
+              } else {
+                  Write-Error "miniz.dll not found under $vcpkgRoot"
+                  exit 1
+              }
+          }
+
       - name: Extract project version
         id: get_version
         shell: pwsh
