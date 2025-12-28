@@ -169,7 +169,7 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
     }
 
     // 2. KIỂM TRA RIÊNG CHO QT PLUGIN
-    const wchar_t* qtPlugin = L"platforms\\qwindowsd.dll";
+    const wchar_t* qtPlugin = L"platforms\\qwindows.dll";
     if (fileExists(qtPlugin) == 0) {
         if (isAlreadyInList(missing, qtPlugin) == 0) {
             if (lstrlenW(missing) > 0 && lstrlenW(missing) < maxLen - 2) {
