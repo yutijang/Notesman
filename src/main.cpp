@@ -21,9 +21,10 @@ int main(int argc, char* argv[]) {
     cleanArgv[cleanArgc++] = argv[0];
     for (int i = 2; i < argc && cleanArgc < 64; ++i) { cleanArgv[cleanArgc++] = argv[i]; }
     // NOLINTEND
-#endif
-
     QApplication app(cleanArgc, cleanArgv);
+#else
+    QApplication app(argc, argv);
+#endif
 
     QApplication::setStyle("Fusion");
 
