@@ -28,12 +28,6 @@ target_link_libraries(${LAUNCHER}
     shlwapi
 )
 
-target_compile_options(${LAUNCHER}
-  PRIVATE
-    $<$<CONFIG:Release>:/MT>
-    $<$<CONFIG:Debug>:/MTd>
-)
-
 if(MSVC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")  # clang-cl
   target_link_options(${LAUNCHER}
     PRIVATE

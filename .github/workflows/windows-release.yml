@@ -154,9 +154,10 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path ${{ env.RELEASE_DIR }} | Out-Null
           Copy-Item "bin\Notesman.exe" ${{ env.RELEASE_DIR }}\ -Force
+          Copy-Item "bin\NotesmanCore.dll" ${{ env.RELEASE_DIR }}\ -Force
           Copy-Item "bin\updater.exe" ${{ env.RELEASE_DIR }}\ -Force
           $qtBin = "${{ steps.find_qt.outputs.qt_dir }}\bin"
-          & "$qtBin\windeployqt.exe" --release --dir ${{ env.RELEASE_DIR }} "${{ env.RELEASE_DIR }}\Notesman.exe"
+          & "$qtBin\windeployqt.exe" --release --dir ${{ env.RELEASE_DIR }} "${{ env.RELEASE_DIR }}\NotesmanCore.dll"
           if (-not (Test-Path "${{ env.RELEASE_DIR }}\Qt6Core.dll")) {
             Write-Error "Qt6 DLLs not found in release folder after windeployqt"
           }
