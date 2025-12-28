@@ -193,13 +193,13 @@ if(WIN32)
 
   set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE $<IF:$<CONFIG:Release>,TRUE,FALSE>
+    OUTPUT_NAME "NotesmanCore"
+    SUFFIX ".dll"    
   )    
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-  OUTPUT_NAME "NotesmanCore"
-  SUFFIX ".dll"
 )
 
 target_compile_definitions(${PROJECT_NAME}

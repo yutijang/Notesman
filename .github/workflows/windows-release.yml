@@ -279,6 +279,25 @@ jobs:
               }
           }
 
+      - name: Download and package VC Redistributable
+        shell: pwsh
+        run: |
+          $vcredistPath = Join-Path "${{ env.RELEASE_DIR }}" "VCRedist"
+          New-Item -ItemType Directory -Force -Path $vcredistPath | Out-Null
+          
+          $url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+          $output = Join-Path $vcredistPath "vc_redist.x64.exe"
+          
+          Write-Host "Downloading VC Redistributable from $url..."
+          Invoke-WebRequest -Uri $url -OutFile $output
+          
+          if (Test-Path $output) {
+            Write-Host "Successfully downloaded vc_redist.x64.exe to VCRedist folder."
+          } else {
+            Write-Error "Failed to download VC Redistributable."
+            exit 1
+          }
+
       - name: Extract project version
         id: get_version
         shell: pwsh
@@ -335,6 +354,7 @@ jobs:
             <!-- WINDOWS_SECTION_START -->
             **Windows Build**
             - Windows ZIP/executable included
+            - Microsoft Visual C++ Redistributable included (VCRedist folder)
             <!-- WINDOWS_SECTION_END -->
             `);
 

@@ -8,6 +8,8 @@
 #endif
 
 int main(int argc, char* argv[]) {
+    Log::init();
+
 #ifdef Q_OS_WIN
     if (!security_utils::verifyLauncherToken()) {
         Log::err("The application was run directly without using the launcher.");
@@ -27,8 +29,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     QApplication::setStyle("Fusion");
-
-    Log::init();
 
     AppInitializer initializer;
 
