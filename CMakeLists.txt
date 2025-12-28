@@ -14,6 +14,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # --- Global metadata ----------------------------------------
 set(PROJECT_AUTHOR "yutijang")
 set(PROJECT_WEBSITE "https://notesman-oauth.netlify.app")
+set(PROJECT_NAME_ORI "Launcher")
+# ------------------------------------------------------------
+
+# --- app core metadata --------------------------------------
+set(PROJECT_CORE_DESCRIPTION "Notesman application core")
+set(PROJECT_CORE_NAME "NotesmanCore.dll")
 # ------------------------------------------------------------
 
 # --- generate app_version.hpp for source code and clangd ----
@@ -26,11 +32,22 @@ configure_file(
     @ONLY
 )
 
+configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/templates/app_version_core.hpp.in
+    ${GENERATED_DIR}/app_version_core.hpp
+    @ONLY
+)
+
 if(WIN32)
     set(VERSION_RC_IN  "${CMAKE_SOURCE_DIR}/resources/version.rc.in")
     set(VERSION_RC_OUT "${CMAKE_BINARY_DIR}/generated/version.rc")
     configure_file(${VERSION_RC_IN} ${VERSION_RC_OUT} @ONLY)
     set(VERSION_RC ${VERSION_RC_OUT} CACHE INTERNAL "")
+
+    set(VERSION_CORE_RC_IN  "${CMAKE_SOURCE_DIR}/resources/version_core.rc.in")
+    set(VERSION_CORE_RC_OUT "${CMAKE_BINARY_DIR}/generated/version_core.rc")
+    configure_file(${VERSION_CORE_RC_IN} ${VERSION_CORE_RC_OUT} @ONLY)
+    set(VERSION_CORE_RC ${VERSION_CORE_RC_OUT} CACHE INTERNAL "")    
 
     set(ICON_RC_IN  "${CMAKE_SOURCE_DIR}/resources/app_icon.rc.in")
     set(ICON_RC_OUT "${CMAKE_BINARY_DIR}/generated/app_icon.rc")
@@ -114,3 +131,8 @@ add_subdirectory(tests)
 
 # updater
 add_subdirectory(updater)
+
+# launcher
+if(WIN32)
+    add_subdirectory(launcher)
+endif()

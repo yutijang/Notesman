@@ -156,8 +156,7 @@ namespace {
         // argv[2] = app PID
         // argv[3] = app dir
         // argv[4] = zip path
-        // argv[5] = app name
-        // argv[6] = resource dir name
+        // argv[5] = resource dir name
 
         const auto appPID = std::stoul(argv[2]);
         waitForProcessExit(appPID);
@@ -175,24 +174,21 @@ namespace {
         // argv[1] = --stage2
         // argv[2] = PID stage1 (current process: updater.exxe)
         // argv[3] = app dir
-        // argv[4] = app name
-        // argv[5] = zip path
-        // argv[6] = resource dir name
+        // argv[4] = zip path
+        // argv[5] = resource dir name
 
         const std::wstring exePath = tempDir + L"\\updater.exe";
         const std::wstring entryForStage2{L"--stage2"};
         const std::wstring currentPID = std::to_wstring(getCurrentProcessId());
-        const std::wstring appName(argv[5]);
-        const std::wstring resDirName(argv[6]);
+        const std::wstring resDirName(argv[5]);
 
         const std::wstring cmdLine = L"\"" + exePath + L"\" "    // "C:\...\temp_update\updater.exe"
                                    + entryForStage2 + L" "       // --stage2
                                    + currentPID + L" "           // 1234
                                    + L"\"" + appDir + L"\" "     // "C:\Apps\Notesman"
-                                   + L"\"" + appName + L"\" "    // "Notesman.exe"
                                    + L"\"" + zipPath + L"\" "    // "C:\Apps\update.zip"
                                    + L"\"" + resDirName + L"\""; // resources or NULL_OR_ROOT
-                                                                 //
+
         // CreateProcessW needs mutable buffer for cmdline
         std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
         cmdBuf.push_back(0);
@@ -221,11 +217,10 @@ namespace {
     void handleStage2(wchar_t* argv[]) {
         // arguments received from stage 1
         // argv[1] = --stage2
-        // argv[2] = PID stage1 (current process: updater.exxe)
+        // argv[2] = PID stage1 (current process: updater.exe)
         // argv[3] = app dir
-        // argv[4] = app name
-        // argv[5] = zip path
-        // argv[6] = resource dir name
+        // argv[4] = zip path
+        // argv[5] = resource dir name
 
         const auto stage1PID = std::stoul(argv[2]);
         waitForProcessExit(stage1PID);
@@ -234,7 +229,7 @@ namespace {
 
         // delete all file/folder in app dir
         // except temp_update, data.db, config.ini, resources dir if exist
-        const std::wstring resDir(argv[6]);
+        const std::wstring resDir(argv[5]);
         clearFolder(appDir, resDir);
 
         const std::wstring tempDir = appDir + L"\\temp_update";
@@ -253,10 +248,9 @@ namespace {
 
         const std::wstring entryForUpdateDone{L"--update-done"};
         const std::wstring currentPID = std::to_wstring(getCurrentProcessId());
-        const std::wstring appName(argv[4]);
-        const std::wstring zipPath(argv[5]);
+        const std::wstring zipPath(argv[4]);
 
-        const std::wstring exePath = appDir + L"\\" + appName;
+        const std::wstring exePath = appDir + L"\\Notesman.exe";
 
         const std::wstring cmdLine = L"\"" + exePath + L"\" "  // "C:\Apps\Notesman.exe"
                                    + entryForUpdateDone + L" " // --update-done
@@ -301,14 +295,14 @@ int wmain(int argc, wchar_t* argv[]) {
     const std::wstring entry(argv[1]);
 
     if (entry == L"--stage1") {
-        if (argc < 7) { // NOLINT(readability-magic-numbers)
+        if (argc < 6) { // NOLINT(readability-magic-numbers)
             Log::err("Stage1: Arguments not enough, argc: {}/7", argc);
             return 1;
         }
 
         handleStage1(argv);
     } else if (entry == L"--stage2") {
-        if (argc < 7) { // NOLINT(readability-magic-numbers)
+        if (argc < 6) { // NOLINT(readability-magic-numbers)
             Log::err("Stage2: Arguments not enough, argc: {}/7", argc);
             return 1;
         }

@@ -603,14 +603,15 @@ void MainWindow::handleDownloadFailCauseTimeout() {
 #if defined(Q_OS_WIN)
 void MainWindow::handleWindowsUpdate(const QString &filePath) {
     const QString targetDir = QCoreApplication::applicationDirPath();
-    const QString updaterPath = targetDir + "/updater.exe";
+    const auto kUpdaterName = QStringLiteral("Updater.exe");
+    const QString updaterPath = targetDir + "/" + kUpdaterName;
 
     if (!QFile::exists(updaterPath)) {
-        DialogUtils::showError(this, tr("Error"), tr("Missing updater.exe. Update failed!"));
+        DialogUtils::showError(this, tr("Error"),
+                               tr("Missing %1. Update failed!").arg(kUpdaterName));
         return;
     }
 
-    const QString appExeName = QFileInfo(QCoreApplication::applicationFilePath()).fileName();
     const QString currentPID = QString::number(getCurrentPid());
 
     const auto resDirStd = Utils::getDirectoryOrFileName(m_appController->resourceDir());
@@ -622,7 +623,6 @@ void MainWindow::handleWindowsUpdate(const QString &filePath) {
     args << currentPID;
     args << targetDir;
     args << filePath;
-    args << appExeName;
     args << resourceDirName;
 
     QProcess::startDetached(updaterPath, args);

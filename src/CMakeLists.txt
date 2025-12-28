@@ -186,19 +186,20 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 if(WIN32)
-    target_sources(${PROJECT_NAME}
-      PRIVATE
-          ${VERSION_RC}
-          ${APP_ICON_RC}
-    )
+  target_sources(${PROJECT_NAME}
+    PRIVATE
+      ${VERSION_CORE_RC}
+  )
 
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-      WIN32_EXECUTABLE $<IF:$<CONFIG:Release>,TRUE,FALSE>
-    )    
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+    WIN32_EXECUTABLE $<IF:$<CONFIG:Release>,TRUE,FALSE>
+  )    
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
+  OUTPUT_NAME "NotesmanCore"
+  SUFFIX ".dll"
 )
 
 target_compile_definitions(${PROJECT_NAME}

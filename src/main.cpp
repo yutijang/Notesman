@@ -2,9 +2,24 @@
 
 #include "Logger.hpp"
 #include "AppInitializer.hpp"
+#include "SecurityUtils.hpp"
 
 int main(int argc, char* argv[]) {
-    QApplication app(argc, argv);
+    if (!security_utils::verifyLauncherToken()) {
+        Log::err("The application was run directly without using the launcher.");
+        return 1;
+    }
+
+    // filter token
+    // NOLINTBEGIN
+    int cleanArgc = 0;
+    char* cleanArgv[64];
+    cleanArgv[cleanArgc++] = argv[0];
+    for (int i = 2; i < argc && cleanArgc < 64; ++i) { cleanArgv[cleanArgc++] = argv[i]; }
+    // NOLINTEND
+
+    QApplication app(cleanArgc, cleanArgv);
+
     QApplication::setStyle("Fusion");
 
     Log::init();
