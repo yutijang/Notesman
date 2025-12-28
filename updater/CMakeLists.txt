@@ -28,5 +28,4 @@ target_compile_definitions(${UPDATER_PROJECT_NAME}
 
 set_target_properties(${UPDATER_PROJECT_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-  OUTPUT_NAME "Updater"
 )

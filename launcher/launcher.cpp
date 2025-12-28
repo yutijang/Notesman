@@ -196,7 +196,7 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
 
     // Danh sách các file cần kiểm tra tính toàn vẹn
     const wchar_t* filenameCore{L"NotesmanCore.dll"};
-    const wchar_t* targets[] = {filenameCore, L"Updater.exe"};
+    const wchar_t* targets[] = {filenameCore, L"updater.exe"};
     int totalMissing{};
     BOOL isCrtMissing = FALSE; // Cờ đánh dấu thiếu CRT
 
