@@ -28,13 +28,6 @@ target_link_libraries(${LAUNCHER}
     shlwapi
 )
 
-if(MSVC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")  # clang-cl
-  target_link_options(${LAUNCHER}
-    PRIVATE
-      /NODEFAULTLIB:MSVCRT
-  )
-endif()
-
 target_sources(${LAUNCHER}
   PRIVATE
     ${VERSION_RC}
@@ -42,6 +35,7 @@ target_sources(${LAUNCHER}
 )
 
 set_target_properties(${LAUNCHER} PROPERTIES
+  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
   OUTPUT_NAME "Notesman"
 )
