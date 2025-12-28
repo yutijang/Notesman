@@ -189,6 +189,7 @@ if(WIN32)
   target_sources(${PROJECT_NAME}
     PRIVATE
       ${VERSION_CORE_RC}
+      ${APP_ICON_RC}
   )
 
   set_target_properties(${PROJECT_NAME} PROPERTIES

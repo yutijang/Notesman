@@ -294,8 +294,6 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
         lstrcatW(extraArgs, L"\""); // Bọc nháy kép để tránh lỗi đường dẫn có khoảng trắng
         lstrcatW(extraArgs, argvL[i]);
         lstrcatW(extraArgs, L"\"");
-
-        simple_log::write(argvL[i]);
     }
     LocalFree(argvL);
 
