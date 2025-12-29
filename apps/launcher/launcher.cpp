@@ -75,8 +75,8 @@ static BOOL isLibraryAvailable(const wchar_t* dllName, int depth, wchar_t* outMi
                             lstrcmpiW(wSubName, L"user32.dll") != 0) {
                             // Nếu tầng sâu báo lỗi
                             if (isLibraryAvailable(wSubName, depth - 1, outMissingName) == 0) {
-                                // Nếu tầng dưới ĐÃ gán tên vào outMissingName rồi, tầng này KHÔNG
-                                // gán đè lên nữa
+                                // Nếu tầng dưới đã gán tên vào outMissingName rồi,
+                                // tầng này không gán đè lên nữa
                                 if (outMissingName != nullptr && outMissingName[0] == L'\0') {
                                     lstrcpyW(outMissingName, wSubName);
                                 }
@@ -93,6 +93,22 @@ static BOOL isLibraryAvailable(const wchar_t* dllName, int depth, wchar_t* outMi
 
     FreeLibrary(hMod);
     return TRUE;
+}
+
+static void appendAnotherMissing(wchar_t* missing, int maxLen, const wchar_t* name,
+                                 const wchar_t* note = nullptr) {
+    if (isAlreadyInList(missing, name) != 0) { return; }
+
+    if (lstrlenW(missing) > 0 && lstrlenW(missing) < maxLen - 2) { lstrcatW(missing, L"\n"); }
+
+    if (note != nullptr) {
+        if (lstrlenW(missing) + lstrlenW(name) + lstrlenW(note) + 2 < maxLen) {
+            lstrcatW(missing, name);
+            lstrcatW(missing, note);
+        }
+    } else {
+        if (lstrlenW(missing) + lstrlenW(name) < maxLen) { lstrcatW(missing, name); }
+    }
 }
 
 /**
@@ -174,20 +190,14 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
         imp++;
     }
 
-    // 2. KIỂM TRA RIÊNG CHO QT PLUGIN
-    const wchar_t* qtPlugin = QT_PLATFORM_DLL;
-    if (fileExists(qtPlugin) == 0) {
-        if (isAlreadyInList(missing, qtPlugin) == 0) {
-            if (lstrlenW(missing) > 0 && lstrlenW(missing) < maxLen - 2) {
-                lstrcatW(missing, L"\n");
-            }
+    if (fileExists(QT_PLATFORM_DLL) == 0) {
+        appendAnotherMissing(missing, maxLen, QT_PLATFORM_DLL, L" (Missing Qt Platform)");
+        count++;
+    }
 
-            if (lstrlenW(missing) + lstrlenW(qtPlugin) + 25 < maxLen) {
-                lstrcatW(missing, qtPlugin);
-                lstrcatW(missing, L" (Missing Qt Platform)");
-                count++;
-            }
-        }
+    if (fileExists(L"libssl-3-x64.dll") == 0) {
+        appendAnotherMissing(missing, maxLen, L"libssl-3-x64.dll");
+        count++;
     }
 
     FreeLibrary(hMod);
