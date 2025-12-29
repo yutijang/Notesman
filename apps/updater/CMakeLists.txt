@@ -9,7 +9,7 @@ add_executable(${UPDATER_PROJECT_NAME} ${UPDATER_SRC})
 
 target_link_libraries(${UPDATER_PROJECT_NAME}
   PRIVATE
-    logger
+    common::logger
     $<$<PLATFORM_ID:Windows>:miniz::miniz>
 )
 
@@ -24,8 +24,4 @@ target_compile_definitions(${UPDATER_PROJECT_NAME}
     $<$<PLATFORM_ID:Windows>:_UNICODE>
     $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
     $<$<PLATFORM_ID:Windows>:NOMINMAX>
-)
-
-set_target_properties(${UPDATER_PROJECT_NAME} PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
 )

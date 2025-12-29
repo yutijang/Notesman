@@ -11,7 +11,7 @@ find_package(Qt6 COMPONENTS Test Widgets REQUIRED)
 
 # Tạo executable cho test
 add_executable(notes-core-tests
-    test_main.cpp
+    # test_main.cpp
     test_AppSettings.cpp
     test_model_utils.cpp
     test_sqldb_raii.cpp
@@ -26,8 +26,8 @@ add_executable(notes-core-tests
 # Include các thư mục header để test thấy được API của notes-core
 target_include_directories(notes-core-tests
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/src
-        ${PROJECT_SOURCE_DIR}/src/core
+        ${PROJECT_SOURCE_DIR}/apps/notesman
+        ${PROJECT_SOURCE_DIR}/apps/notesman/core
 )
 
 # Liên kết với notes-core và Catch2
@@ -47,9 +47,6 @@ set_target_properties(notes-core-tests PROPERTIES
 # ------------------------------
 # GUI Tests
 # ------------------------------
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-
 add_executable(gui-tests
     test_mainwindow_tabs.cpp
 )
@@ -57,15 +54,15 @@ add_executable(gui-tests
 # Thêm đường dẫn include để thấy header của notes-app-lib
 target_include_directories(gui-tests
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/src  # Đường dẫn đến app, gui, helper
-        ${PROJECT_SOURCE_DIR}/src/core/db
-        ${PROJECT_SOURCE_DIR}/src/core/model
-        ${PROJECT_SOURCE_DIR}/src/core/repository
-        ${PROJECT_SOURCE_DIR}/src/core/service
-        ${PROJECT_SOURCE_DIR}/src/core/settings
-        ${PROJECT_SOURCE_DIR}/src/gui
-        ${PROJECT_SOURCE_DIR}/src/app
-        ${PROJECT_SOURCE_DIR}/src/helper
+        ${PROJECT_SOURCE_DIR}/apps/notesman  # Đường dẫn đến app, gui, helper
+        ${PROJECT_SOURCE_DIR}/apps/notesman/core/db
+        ${PROJECT_SOURCE_DIR}/apps/notesman/core/model
+        ${PROJECT_SOURCE_DIR}/apps/notesman/core/repository
+        ${PROJECT_SOURCE_DIR}/apps/notesman/core/service
+        ${PROJECT_SOURCE_DIR}/apps/notesman/core/settings
+        ${PROJECT_SOURCE_DIR}/apps/notesman/gui
+        ${PROJECT_SOURCE_DIR}/apps/notesman/application
+        ${PROJECT_SOURCE_DIR}/apps/notesman/helper
 )
 
 target_link_libraries(gui-tests
@@ -81,6 +78,8 @@ set_target_properties(gui-tests PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED ON
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/tests"
+    AUTOMOC ON
+    AUTOUIC ON
 )
 
 add_test(NAME gui-tests COMMAND $<TARGET_FILE:gui-tests>)

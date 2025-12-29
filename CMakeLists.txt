@@ -11,62 +11,6 @@ project(Notesman
 # Bật export compile commands cho clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# --- Global metadata ----------------------------------------
-set(PROJECT_AUTHOR "yutijang")
-set(PROJECT_WEBSITE "https://notesman-oauth.netlify.app")
-set(PROJECT_NAME_ORI "Launcher")
-# ------------------------------------------------------------
-
-# --- app core metadata --------------------------------------
-set(PROJECT_CORE_DESCRIPTION "Notesman application core")
-set(PROJECT_CORE_NAME "NotesmanCore.dll")
-# ------------------------------------------------------------
-
-# --- generate app_version.hpp for source code and clangd ----
-set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
-file(MAKE_DIRECTORY ${GENERATED_DIR})
-
-configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/templates/app_version.hpp.in
-    ${GENERATED_DIR}/app_version.hpp
-    @ONLY
-)
-
-configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/templates/app_version_core.hpp.in
-    ${GENERATED_DIR}/app_version_core.hpp
-    @ONLY
-)
-
-if(WIN32)
-    set(VERSION_RC_IN  "${CMAKE_SOURCE_DIR}/resources/version.rc.in")
-    set(VERSION_RC_OUT "${CMAKE_BINARY_DIR}/generated/version.rc")
-    configure_file(${VERSION_RC_IN} ${VERSION_RC_OUT} @ONLY)
-    set(VERSION_RC ${VERSION_RC_OUT} CACHE INTERNAL "")
-
-    set(VERSION_CORE_RC_IN  "${CMAKE_SOURCE_DIR}/resources/version_core.rc.in")
-    set(VERSION_CORE_RC_OUT "${CMAKE_BINARY_DIR}/generated/version_core.rc")
-    configure_file(${VERSION_CORE_RC_IN} ${VERSION_CORE_RC_OUT} @ONLY)
-    set(VERSION_CORE_RC ${VERSION_CORE_RC_OUT} CACHE INTERNAL "")    
-
-    set(ICON_RC_IN  "${CMAKE_SOURCE_DIR}/resources/app_icon.rc.in")
-    set(ICON_RC_OUT "${CMAKE_BINARY_DIR}/generated/app_icon.rc")
-    configure_file(${ICON_RC_IN} ${ICON_RC_OUT} @ONLY)
-    set(APP_ICON_RC ${ICON_RC_OUT} CACHE INTERNAL "")
-endif()
-# ------------------------------------------------------------
-
-# --- OAuth config -------------------------------------------
-set(CLIENT_ID     "$ENV{GOOGLE_CLIENT_ID}")
-set(CLIENT_SECRET "$ENV{GOOGLE_CLIENT_SECRET}")
-
-configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/templates/google_oauth_config.hpp.in
-    ${GENERATED_DIR}/google_oauth_config.hpp
-    @ONLY
-)
-# ------------------------------------------------------------
-
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -109,6 +53,9 @@ if (TARGET qt6keychain)
 endif()
 # ------------------------------------------------------------
 
+# Set general output dir
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
+
 # ============================================================
 # Qt setup
 # ============================================================
@@ -124,15 +71,18 @@ set(CMAKE_AUTORCC ON)
 # Thêm subdirectory app
 # add_subdirectory(extern/sqlite3)
 # add_subdirectory(extern/miniz)
-add_subdirectory(src)
+add_subdirectory(apps/notesman)
 
 enable_testing()
 add_subdirectory(tests)
 
 # updater
-add_subdirectory(updater)
+add_subdirectory(apps/updater)
+
+# Logger
+add_subdirectory(common/logger)
 
 # launcher
 if(WIN32)
-    add_subdirectory(launcher)
+    add_subdirectory(apps/launcher)
 endif()

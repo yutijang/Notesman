@@ -5,7 +5,7 @@
 
 namespace simple_log {
     void write(const std::wstring &msg) {
-        const wchar_t* path = L"launcher.log";
+        const wchar_t* path = L"logs\\launcher.log";
 
         // 1. Lấy thời gian hệ thống
         SYSTEMTIME st;

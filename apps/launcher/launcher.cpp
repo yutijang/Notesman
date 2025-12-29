@@ -1,3 +1,9 @@
+#ifdef _DEBUG
+constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindowsd.dll";
+#else
+constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindows.dll";
+#endif
+
 #include <string>
 #include <windows.h>
 #include <shellapi.h>
@@ -169,7 +175,7 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
     }
 
     // 2. KIỂM TRA RIÊNG CHO QT PLUGIN
-    const wchar_t* qtPlugin = L"platforms\\qwindows.dll";
+    const wchar_t* qtPlugin = QT_PLATFORM_DLL;
     if (fileExists(qtPlugin) == 0) {
         if (isAlreadyInList(missing, qtPlugin) == 0) {
             if (lstrlenW(missing) > 0 && lstrlenW(missing) < maxLen - 2) {
@@ -189,14 +195,30 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
 }
 
 int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/, int /*unused*/) {
+    // Lấy đường dẫn tuyệt đối của Launcher
+    wchar_t exePath[MAX_PATH];
+    GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+
+    // Lấy đường dẫn thư mục (Directory)
+    std::wstring appDir = exePath;
+    size_t lastSlash = appDir.find_last_of(L"\\/");
+    if (lastSlash != std::string::npos) { appDir = appDir.substr(0, lastSlash); }
+
+    // Thiết lập CWD
+    SetCurrentDirectoryW(appDir.c_str());
+
     constexpr int bufferSize{2048}; // Tăng kích thước buffer vì kiểm tra nhiều file
     wchar_t missing[bufferSize];
     zeroMemoryW(missing, sizeof(missing));
     missing[0] = L'\0';
 
     // Danh sách các file cần kiểm tra tính toàn vẹn
-    const wchar_t* filenameCore{L"NotesmanCore.dll"};
-    const wchar_t* targets[] = {filenameCore, L"updater.exe"};
+    std::wstring fullPathCore = appDir + L"\\NotesmanCore.dll";
+    std::wstring fullPathUpdater = appDir + L"\\updater.exe";
+
+    const wchar_t* filenameCore = fullPathCore.c_str();
+    const wchar_t* targets[] = {filenameCore, fullPathUpdater.c_str()};
+
     int totalMissing{};
     BOOL isCrtMissing = FALSE; // Cờ đánh dấu thiếu CRT
 
@@ -230,7 +252,7 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
     if (totalMissing > 0) {
         simple_log::write(L"--- PHÁT HIỆN THIẾU PHỤ THUỘC (DEPENDENCY ERROR) ---");
         simple_log::write(missing);
-        ShellExecuteW(nullptr, L"open", L"launcher.log", nullptr, nullptr, SW_SHOWNORMAL);
+        ShellExecuteW(nullptr, L"open", L"\\logs\\launcher.log", nullptr, nullptr, SW_SHOWNORMAL);
 
         // Kiểm tra xem trong danh sách thiếu có các file của CRT không
         if ((StrStrW(missing, L"VCRUNTIME") != nullptr) ||

@@ -1,21 +1,34 @@
 set(CMAKE_PCH_WARN_INVALID ON)
 
-# =========================================================
-# Logger
-# =========================================================
-add_library(logger STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper/Logger.cpp
+# --- OAuth config (Notesman only) ---------------------------
+set(CLIENT_ID     "$ENV{GOOGLE_CLIENT_ID}")
+set(CLIENT_SECRET "$ENV{GOOGLE_CLIENT_SECRET}")
+
+set(NOTESMAN_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated/notesman")
+file(MAKE_DIRECTORY ${NOTESMAN_GENERATED_DIR})
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/templates/google_oauth_config.hpp.in
+    ${NOTESMAN_GENERATED_DIR}/google_oauth_config.hpp
+    @ONLY
+)
+# ------------------------------------------------------------
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/templates/app_version.hpp.in
+    ${NOTESMAN_GENERATED_DIR}/app_version.hpp
+    @ONLY
 )
 
-target_include_directories(logger
-  PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper
-)
+# --- metadata -----------------------------------------------
+set(NOTESMAN_AUTHOR "yutijang")
+set(NOTESMAN_WEBSITE "https://notesman-oauth.netlify.app")
+set(NOTESMAN_NAME_ORI "Notesman")
+set(NOTESMAN_DESCRIPTION "Notesman")
+set(NOTESMAN_INTERNAL_NAME "NotesmanCore.dll")
+set(NOTESMAN_FILENAME "NotesmanCore.dll")
 
-target_link_libraries(logger
-  PUBLIC
-    spdlog::spdlog
-)
+# ------------------------------------------------------------
 
 # =========================================================
 # Core library
@@ -51,7 +64,7 @@ target_link_libraries(notes-core
     SQLite::SQLite3
     OpenSSL::SSL
     OpenSSL::Crypto
-    logger
+    common::logger
 )
 
 target_compile_definitions(notes-core
@@ -66,14 +79,14 @@ target_compile_definitions(notes-core
 # Sources
 # =========================================================
 set(APP_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/NotesAppCore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/AppController.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/AppInitializer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/workers/ResourceSearchWorker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/UpdateManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/DownloadManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/GoogleDriveService.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/ResourceViewService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/NotesAppCore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/AppController.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/AppInitializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/workers/ResourceSearchWorker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/UpdateManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/DownloadManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/GoogleDriveService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/ResourceViewService.cpp
 )
 
 set(GUI_SOURCES
@@ -114,15 +127,15 @@ add_library(notes-app-lib-core STATIC
 
 target_include_directories(notes-app-lib-core
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/app
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/workers
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/services
+    ${CMAKE_CURRENT_SOURCE_DIR}/application
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/workers
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/services
     ${CMAKE_CURRENT_SOURCE_DIR}/gui
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
     ${CMAKE_CURRENT_SOURCE_DIR}/helper
-    ${GENERATED_DIR}
+    ${NOTESMAN_GENERATED_DIR} # OAuth config include dir
 )
 
 target_precompile_headers(notes-app-lib-core
@@ -148,7 +161,7 @@ target_compile_definitions(notes-app-lib-core
 
 #===
 add_library(notes-app-lib-qtkeychain STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/services/OAuthManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/OAuthManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/free_port.cpp
 )
 
@@ -174,7 +187,7 @@ target_link_libraries(notes-app-lib-qtkeychain
 # =========================================================
 add_executable(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp    
-    ${PROJECT_SOURCE_DIR}/resources/resources.qrc
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/resources.qrc
 )
 
 target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
@@ -186,22 +199,43 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 if(WIN32)
+  set(GENERATED_RC_DIR
+      "${CMAKE_BINARY_DIR}/generated/notesman"
+  )  
+  file(MAKE_DIRECTORY "${GENERATED_RC_DIR}")
+
+  set(NOTESMAN_VERSION_RC
+      "${GENERATED_RC_DIR}/version.rc"
+  )
+
+  configure_file(
+      ${CMAKE_CURRENT_SOURCE_DIR}/resources/version.rc.in
+      ${NOTESMAN_VERSION_RC}
+      @ONLY
+  )
+
+  set(NOTESMAN_ICON_RC
+      "${GENERATED_RC_DIR}/icon.rc"
+  )
+
+  configure_file(
+      ${CMAKE_CURRENT_SOURCE_DIR}/resources/app_icon.rc.in
+      ${NOTESMAN_ICON_RC}
+      @ONLY
+  )
+
   target_sources(${PROJECT_NAME}
     PRIVATE
-      ${VERSION_CORE_RC}
-      ${APP_ICON_RC}
+      ${NOTESMAN_VERSION_RC}
+      ${NOTESMAN_ICON_RC}
   )
 
   set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE $<IF:$<CONFIG:Release>,TRUE,FALSE>
     OUTPUT_NAME "NotesmanCore"
-    SUFFIX ".dll"    
+    SUFFIX ".dll"
   )    
 endif()
-
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
-)
 
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
