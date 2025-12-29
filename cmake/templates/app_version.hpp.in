@@ -6,7 +6,7 @@
 namespace app::meta {
     inline constexpr QLatin1StringView NAME = QLatin1StringView("@PROJECT_NAME@");
     inline constexpr QLatin1StringView VERSION = QLatin1StringView("@PROJECT_VERSION@");
-    inline constexpr QLatin1StringView AUTHOR = QLatin1StringView("@PROJECT_AUTHOR@");
-    inline constexpr QLatin1StringView WEBSITE = QLatin1StringView("@PROJECT_WEBSITE@");
+    inline constexpr QLatin1StringView AUTHOR = QLatin1StringView("@NOTESMAN_AUTHOR@");
+    inline constexpr QLatin1StringView WEBSITE = QLatin1StringView("@NOTESMAN_WEBSITE@");
     inline constexpr QLatin1StringView DESCRIPTION = QLatin1StringView("@PROJECT_DESCRIPTION@");
 } // namespace app::meta

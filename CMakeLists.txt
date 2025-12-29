@@ -71,18 +71,17 @@ set(CMAKE_AUTORCC ON)
 # Thêm subdirectory app
 # add_subdirectory(extern/sqlite3)
 # add_subdirectory(extern/miniz)
+
+# notesman core
 add_subdirectory(apps/notesman)
-
-enable_testing()
-add_subdirectory(tests)
-
 # updater
 add_subdirectory(apps/updater)
-
 # Logger
 add_subdirectory(common/logger)
-
 # launcher
 if(WIN32)
     add_subdirectory(apps/launcher)
 endif()
+
+enable_testing()
+add_subdirectory(tests)

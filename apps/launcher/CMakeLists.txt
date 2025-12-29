@@ -28,6 +28,15 @@ target_link_libraries(${LAUNCHER}
     shlwapi
 )
 
+# --- metadata ---------------------------------------
+set(PROJECT_AUTHOR "yutijang")
+set(PROJECT_WEBSITE "https://notesman-oauth.netlify.app")
+set(PROJECT_NAME_ORI "Launcher")
+set(PROJECT_DESCRIPTION "Notesman")
+set(PROJECT_INTERNAL_NAME "Launcher.exe")
+set(PROJECT_FILENAME "Notesman.exe")
+# ----------------------------------------------------
+
 set(LAUNCHER_GENERATED_DIR
     "${CMAKE_BINARY_DIR}/generated/launcher"
 )

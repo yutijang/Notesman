@@ -177,7 +177,7 @@ jobs:
           Categories=Utility;
           EOF
           mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
-          cp -v resources/icons/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
+          cp -v apps/notesman/resources/icons/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
 
       - name: Add updater into AppDir
         run: |

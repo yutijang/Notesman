@@ -1,5 +1,14 @@
 set(CMAKE_PCH_WARN_INVALID ON)
 
+# --- metadata -----------------------------------------------
+set(NOTESMAN_AUTHOR "yutijang")
+set(NOTESMAN_WEBSITE "https://notesman-oauth.netlify.app")
+set(NOTESMAN_NAME_ORI "Notesman")
+set(NOTESMAN_DESCRIPTION "Notesman")
+set(NOTESMAN_INTERNAL_NAME "NotesmanCore.dll")
+set(NOTESMAN_FILENAME "NotesmanCore.dll")
+# ------------------------------------------------------------
+
 # --- OAuth config (Notesman only) ---------------------------
 set(CLIENT_ID     "$ENV{GOOGLE_CLIENT_ID}")
 set(CLIENT_SECRET "$ENV{GOOGLE_CLIENT_SECRET}")
@@ -19,16 +28,6 @@ configure_file(
     ${NOTESMAN_GENERATED_DIR}/app_version.hpp
     @ONLY
 )
-
-# --- metadata -----------------------------------------------
-set(NOTESMAN_AUTHOR "yutijang")
-set(NOTESMAN_WEBSITE "https://notesman-oauth.netlify.app")
-set(NOTESMAN_NAME_ORI "Notesman")
-set(NOTESMAN_DESCRIPTION "Notesman")
-set(NOTESMAN_INTERNAL_NAME "NotesmanCore.dll")
-set(NOTESMAN_FILENAME "NotesmanCore.dll")
-
-# ------------------------------------------------------------
 
 # =========================================================
 # Core library
