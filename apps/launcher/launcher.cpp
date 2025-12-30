@@ -104,11 +104,15 @@ static void appendAnotherMissing(wchar_t* missing, int maxLen, const wchar_t* na
 
     if (note != nullptr) {
         if (lstrlenW(missing) + lstrlenW(name) + lstrlenW(note) + 2 < maxLen) {
+            lstrcatW(missing, L"  • ");
             lstrcatW(missing, name);
             lstrcatW(missing, note);
         }
     } else {
-        if (lstrlenW(missing) + lstrlenW(name) < maxLen) { lstrcatW(missing, name); }
+        if (lstrlenW(missing) + lstrlenW(name) < maxLen) {
+            lstrcatW(missing, L"  • ");
+            lstrcatW(missing, name);
+        }
     }
 }
 
@@ -179,6 +183,7 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
                         }
 
                         if (lstrlenW(missing) + nameLen < maxLen) {
+                            lstrcatW(missing, L"  • ");
                             lstrcatW(missing, finalName);
                             count++;
                         }
@@ -335,7 +340,7 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
 
             if (msgBox == IDYES) {
                 if (fileExists(L"VCRedist\\vc_redist.x64.exe") != 0) {
-                    simple_log::write(L"Đang khởi chạy trình cài đặt vc_redist.x64.exe...");
+                    simple_log::write(L"Khởi chạy trình cài đặt vc_redist.x64.exe...");
                     ShellExecuteW(nullptr, L"open", L"VCRedist\\vc_redist.x64.exe",
                                   L"/passive /norestart", nullptr, SW_SHOWNORMAL);
                 } else {
@@ -351,7 +356,7 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
 
             std::wstring msg = L"Ứng dụng không thể khởi động vì thiếu các thành phần sau:\n\n";
             msg += missing;
-            msg += L"\n\nHãy cài đặt lại ứng dụng hoặc liên hệ hỗ trợ: ";
+            msg += L"\n\nHãy tải lại ứng dụng hoặc liên hệ hỗ trợ: ";
             msg += supportEmail;
 
             showMessage(msg.c_str(), L"Thiếu thư viện");
