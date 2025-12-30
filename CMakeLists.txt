@@ -78,6 +78,8 @@ add_subdirectory(apps/notesman)
 add_subdirectory(apps/updater)
 # Logger
 add_subdirectory(common/logger)
+
+add_subdirectory(common/security_utils)
 # launcher
 if(WIN32)
     add_subdirectory(apps/launcher)

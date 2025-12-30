@@ -185,7 +185,7 @@ target_link_libraries(notes-app-lib-qtkeychain
 # Executable (GUI entry point)
 # =========================================================
 add_executable(${PROJECT_NAME}
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp    
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/resources.qrc
 )
 
@@ -194,7 +194,8 @@ target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     notes-app-lib-core # Thứ tự QUAN TRỌNG
-    notes-app-lib-qtkeychain    
+    notes-app-lib-qtkeychain
+    security_utils
 )
 
 if(WIN32)

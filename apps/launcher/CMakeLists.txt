@@ -5,12 +5,6 @@ add_executable(${LAUNCHER} WIN32
   simple_log.cpp
 )
 
-target_include_directories(${LAUNCHER}
-  PRIVATE
-    "${PROJECT_SOURCE_DIR}/apps/notesman/helper"
-    "${PROJECT_SOURCE_DIR}/apps/notesman"
-)
-
 target_compile_definitions(${LAUNCHER}
   PRIVATE
     UNICODE
@@ -23,9 +17,8 @@ target_link_libraries(${LAUNCHER}
   PRIVATE
     kernel32
     user32
-    shell32
-    bcrypt
     shlwapi
+    security_utils
 )
 
 # --- metadata ---------------------------------------
@@ -71,4 +64,7 @@ target_sources(${LAUNCHER}
 set_target_properties(${LAUNCHER} PROPERTIES
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
   OUTPUT_NAME "Notesman"
+  AUTOMOC OFF
+  AUTOUIC OFF
+  AUTORCC OFF
 )

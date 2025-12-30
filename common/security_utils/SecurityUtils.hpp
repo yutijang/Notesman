@@ -1,15 +1,15 @@
 #pragma once
 
+#include <array>
+#include <cstdint>
+#include <cstddef>
 #include <windows.h>
 #include <bcrypt.h>
 #include <shellapi.h>
 
-#pragma comment(lib, "bcrypt.lib")
-#pragma comment(lib, "shell32.lib")
-
 namespace security_utils {
     // Key và Secret dùng chung
-    static constexpr uint8_t OBFUSCATION_KEY = 0xa4U;
+    static constexpr std::uint8_t OBFUSCATION_KEY = 0xa4U;
     static constexpr unsigned char OBFUSCATED_SECRET[] = {0xef, 0xc9, 0xec, 0x87, 0xc2, 0xc1,
                                                           0xf2, 0xdd, 0x99, 0xfd, 0xd4, 0xf9,
                                                           0xe8, 0xd4, 0xdc, 0x8d, 0x00};
@@ -23,27 +23,34 @@ namespace security_utils {
     }
 
     // Lấy Epoch Minutes (Timestamp theo phút)
+    // NOLINTBEGIN (readability-magic-numbers)
     inline long long getCurrentEpochMinutes() {
         FILETIME ft;
         GetSystemTimeAsFileTime(&ft);
-        unsigned __int64 val = ((unsigned __int64) ft.dwHighDateTime << 32) | ft.dwLowDateTime;
+        std::uint64_t val = (static_cast<std::uint64_t>(ft.dwHighDateTime) << 32) |
+                            static_cast<std::uint64_t>(ft.dwLowDateTime);
         // Chuyển từ 100-nanosecond intervals sang phút: 10 * 1000 * 1000 * 60
         return static_cast<long long>(val / 600000000ULL);
     }
+
+    // NOLINTEND
 
     // Tính HMAC-SHA256 sử dụng BCrypt (Win32 API chuẩn)
     inline BOOL computeHMAC(const char* key, const char* message, BYTE* outHash) {
         BCRYPT_ALG_HANDLE hAlg{};
         BCRYPT_HASH_HANDLE hHash{};
-        DWORD cbHash{};
-        DWORD cbData{};
+        ULONG cbHash{};
+        ULONG cbData{};
 
         if (BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_SHA256_ALGORITHM, nullptr,
                                         BCRYPT_ALG_HANDLE_HMAC_FLAG) != 0) {
             return FALSE;
         }
 
-        BCryptGetProperty(hAlg, BCRYPT_HASH_LENGTH, (PBYTE) &cbHash, sizeof(DWORD), &cbData, 0);
+        if (BCryptGetProperty(hAlg, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&cbHash),
+                              sizeof(cbHash), &cbData, 0) != 0) {
+            return FALSE;
+        }
 
         if (BCryptCreateHash(hAlg, &hHash, nullptr, 0,
                              reinterpret_cast<PUCHAR>(const_cast<char*>(key)),
@@ -67,27 +74,31 @@ namespace security_utils {
         wchar_t* sep = wcschr(token, L':');
         if (sep == nullptr) { return false; }
 
-        wchar_t tsW[32] = {0};
-        lstrcpynW(tsW, token, (int) (sep - token + 1));
-        long long receivedTs = _wtoi64(tsW);
+        std::array<wchar_t, 32> tsW = {0};
+        lstrcpynW(tsW.data(), token, static_cast<int>(sep - token + 1));
+        long long receivedTs = _wtoi64(tsW.data());
         wchar_t* receivedHex = sep + 1;
 
-        char secret[32];
-        security_utils::getSecret(secret);
+        std::array<char, 32> secret{};
+        security_utils::getSecret(secret.data());
 
-        bool valid = false;
+        bool valid{};
         // Kiểm tra cửa sổ thời gian +/- 1 phút để tránh lệch clock
         for (long long t = receivedTs - 1; t <= receivedTs + 1; ++t) {
-            char testTsA[32];
-            wsprintfA(testTsA, "%lld", t);
+            std::array<char, 32> testTsA{};
+            wsprintfA(testTsA.data(), "%lld", t);
 
-            BYTE hash[32];
-            security_utils::computeHMAC(secret, testTsA, hash);
+            std::array<BYTE, 32> hash{};
+            security_utils::computeHMAC(secret.data(), testTsA.data(), hash.data());
 
-            wchar_t expectedHex[65] = {0};
-            for (int i = 0; i < 32; ++i) { wsprintfW(&expectedHex[i * 2], L"%02x", hash[i]); }
+            // wchar_t expectedHex[65] = {0};
+            std::array<wchar_t, 64> expectedHex{};
+            for (int i = 0; i < 32; ++i) {
+                wsprintfW(&expectedHex[static_cast<unsigned long long>(i) * 2], L"%02x",
+                          hash[static_cast<unsigned long long>(i)]);
+            }
 
-            if (lstrcmpiW(receivedHex, expectedHex) == 0) {
+            if (lstrcmpiW(receivedHex, expectedHex.data()) == 0) {
                 valid = true;
                 break;
             }
