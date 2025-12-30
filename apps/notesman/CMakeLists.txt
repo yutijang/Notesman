@@ -195,7 +195,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     notes-app-lib-core # Thứ tự QUAN TRỌNG
     notes-app-lib-qtkeychain
-    security_utils
+    $<$<TARGET_EXISTS:security_utils>:security_utils>
 )
 
 if(WIN32)

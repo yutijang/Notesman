@@ -79,10 +79,10 @@ add_subdirectory(apps/updater)
 # Logger
 add_subdirectory(common/logger)
 
-add_subdirectory(common/security_utils)
 # launcher
 if(WIN32)
     add_subdirectory(apps/launcher)
+    add_subdirectory(common/security_utils)
 endif()
 
 enable_testing()
