@@ -312,6 +312,12 @@ void OAuthManager::handleLoginGMRequested() {
         return;
     }
 
+    if (CLIENT_ID.isEmpty()) {
+        Log::err("CLIENT_ID is empty — OAuth config broken");
+        emit loginFailed(tr("OAuth configuration error"));
+        return;
+    }
+
     // Mở browser:
     QUrl authUrl(GOOGLE_OAUTH2_AUTH_URL);
     QUrlQuery query;
@@ -324,7 +330,6 @@ void OAuthManager::handleLoginGMRequested() {
     query.addQueryItem("access_type", "offline");
     authUrl.setQuery(query);
 
-    // QDesktopServices::openUrl(authUrl);
     openBrowser(authUrl);
 
     m_currentLoginTimer = new QTimer(this);
