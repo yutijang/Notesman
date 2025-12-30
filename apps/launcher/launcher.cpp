@@ -4,6 +4,7 @@ constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindowsd.dll";
 constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindows.dll";
 #endif
 
+#include <cstddef>
 #include <string>
 #include <windows.h>
 #include <shellapi.h>
@@ -173,8 +174,6 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
                 if (nameLen > 0 && finalName[0] >= 32) {
                     // Chỉ thêm nếu chưa có trong danh sách (ngăn trùng lặp tên thư viện)
                     if (isAlreadyInList(missing, finalName) == 0) {
-                        simple_log::write(L"Phát hiện thiếu: " + std::wstring(finalName));
-
                         if (lstrlenW(missing) > 0 && lstrlenW(missing) < maxLen - 2) {
                             lstrcatW(missing, L"\n");
                         }
@@ -204,102 +203,9 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
     return count;
 }
 
-int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/, int /*unused*/) {
-    // Lấy đường dẫn tuyệt đối của Launcher
-    wchar_t exePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, exePath, MAX_PATH);
-
-    // Lấy đường dẫn thư mục (Directory)
-    std::wstring appDir = exePath;
-    size_t lastSlash = appDir.find_last_of(L"\\/");
-    if (lastSlash != std::string::npos) { appDir = appDir.substr(0, lastSlash); }
-
-    // Thiết lập CWD
-    SetCurrentDirectoryW(appDir.c_str());
-
-    constexpr int bufferSize{2048}; // Tăng kích thước buffer vì kiểm tra nhiều file
-    wchar_t missing[bufferSize];
-    zeroMemoryW(missing, sizeof(missing));
-    missing[0] = L'\0';
-
-    // Danh sách các file cần kiểm tra tính toàn vẹn
-    std::wstring fullPathCore = appDir + L"\\NotesmanCore.dll";
-    std::wstring fullPathUpdater = appDir + L"\\updater.exe";
-
-    const wchar_t* filenameCore = fullPathCore.c_str();
-    const wchar_t* targets[] = {filenameCore, fullPathUpdater.c_str()};
-
-    int totalMissing{};
-    BOOL isCrtMissing = FALSE; // Cờ đánh dấu thiếu CRT
-
-    for (const wchar_t* exeName : targets) {
-        // Kiểm tra xem file EXE có tồn tại hay không trước khi kiểm tra DLL
-        if (fileExists(exeName) == 0) {
-            if (totalMissing > 0) { lstrcatW(missing, L"\n"); }
-            lstrcatW(missing, L"Không tìm thấy file: ");
-            lstrcatW(missing, exeName);
-            simple_log::write(L"Không tìm thấy file: " + std::wstring(exeName));
-            totalMissing++;
-            continue;
-        }
-
-        // Kiểm tra DLL cho từng file
-        // Chúng ta truyền vào buffer hiện tại để nối tiếp danh sách thiếu
-        int missCount = checkDependencies(exeName, missing, sizeof(missing) / sizeof(missing[0]));
-
-        if (missCount < 0) {
-            simple_log::write(L"Lỗi nghiêm trọng khi truy cập file hệ thống.");
-            showMessage(L"Lỗi nghiêm trọng khi truy cập file hệ thống.", L"Lỗi");
-            return 1;
-        }
-        totalMissing += missCount;
-    }
-
-    // --- GIẢ LẬP ĐỂ TEST (Xóa dòng này khi release) ---
-    // isCrtMissing = TRUE; totalMissing++; lstrcatW(missing, L"VCRUNTIME140.dll");
-    //
-    // Nếu bất kỳ file nào thiếu phụ thuộc, thông báo và dừng lại
-    if (totalMissing > 0) {
-        simple_log::write(L"--- PHÁT HIỆN THIẾU PHỤ THUỘC (DEPENDENCY ERROR) ---");
-        simple_log::write(missing);
-        ShellExecuteW(nullptr, L"open", L"\\logs\\launcher.log", nullptr, nullptr, SW_SHOWNORMAL);
-
-        // Kiểm tra xem trong danh sách thiếu có các file của CRT không
-        if ((StrStrW(missing, L"VCRUNTIME") != nullptr) ||
-            (StrStrW(missing, L"api-ms-win-crt") != nullptr)) {
-            isCrtMissing = TRUE;
-        }
-
-        if (isCrtMissing != 0) {
-            int msgBox = MessageBoxW(
-                nullptr,
-                L"Ứng dụng thiếu thư viện C++ Runtime cần thiết.\n\n"
-                L"Bạn có muốn cài đặt Microsoft Visual C++ Redistributable ngay bây giờ không?",
-                L"Yêu cầu cài đặt thành phần hệ thống", MB_YESNO | MB_ICONQUESTION);
-
-            if (msgBox == IDYES) {
-                if (fileExists(L"VCRedist\\vc_redist.x64.exe") != 0) {
-                    simple_log::write(L"Đang khởi chạy trình cài đặt vc_redist.x64.exe...");
-                    ShellExecuteW(nullptr, L"open", L"VCRedist\\vc_redist.x64.exe",
-                                  L"/passive /norestart", nullptr, SW_SHOWNORMAL);
-                } else {
-                    simple_log::write(L"Lỗi: Không tìm thấy file vc_redist.x64.exe để cài đặt.");
-                    // Nếu không có file kèm theo, mở link tải chính thức
-                    ShellExecuteW(nullptr, L"open",
-                                  L"https://aka.ms/vs/17/release/vc_redist.x64.exe", nullptr,
-                                  nullptr, SW_SHOWNORMAL);
-                }
-            }
-        } else {
-            showMessage(missing, L"Thiếu thư viện");
-        }
-
-        return 1;
-    }
-
+static void callMainCore(const wchar_t* filenameCore) {
     SetFileAttributesW(filenameCore, FILE_ATTRIBUTE_HIDDEN);
 
-    // --- Nếu mọi thứ OK, tiến hành chạy ứng dụng chính ---
     char secret[32];
     security_utils::getSecret(secret);
 
@@ -310,7 +216,9 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
     security_utils::computeHMAC(secret, tsStr, hash);
 
     wchar_t hexPart[65] = {0};
-    for (int i = 0; i < 32; ++i) { wsprintfW(&hexPart[i * 2], L"%02x", hash[i]); }
+    for (int i = 0; i < 32; ++i) {
+        wsprintfW(&hexPart[static_cast<ptrdiff_t>(i * 2)], L"%02x", hash[i]);
+    }
 
     wchar_t tokenW[128];
     wsprintfW(tokenW, L"%S:%s", tsStr, hexPart); // %S (viết hoa) để format char* sang wchar_t*
@@ -348,11 +256,112 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
         simple_log::write(L"Không thể khởi chạy " + std::wstring(filenameCore));
         showMessage((std::wstring(L"Không thể khởi chạy ") + filenameCore).c_str(), L"Lỗi");
 
-        return 1;
+        return;
     }
 
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
+}
+
+int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/, int /*unused*/) {
+    // Lấy đường dẫn tuyệt đối của Launcher
+    wchar_t exePath[MAX_PATH];
+    GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+
+    // Lấy đường dẫn thư mục (Directory)
+    std::wstring appDir = exePath;
+    size_t lastSlash = appDir.find_last_of(L"\\/");
+    if (lastSlash != std::string::npos) { appDir = appDir.substr(0, lastSlash); }
+
+    // Thiết lập CWD
+    SetCurrentDirectoryW(appDir.c_str());
+
+    constexpr int bufferSize{2048}; // Tăng kích thước buffer vì kiểm tra nhiều file
+    wchar_t missing[bufferSize];
+    zeroMemoryW(missing, sizeof(missing));
+    missing[0] = L'\0';
+
+    // Danh sách các file cần kiểm tra tính toàn vẹn
+    std::wstring fullPathCore = appDir + L"\\NotesmanCore.dll";
+    std::wstring fullPathUpdater = appDir + L"\\updater.exe";
+
+    const wchar_t* filenameCore = fullPathCore.c_str();
+    const wchar_t* targets[] = {filenameCore, fullPathUpdater.c_str()};
+
+    int totalMissing{};
+    BOOL isCrtMissing = FALSE; // Cờ đánh dấu thiếu CRT
+
+    for (const wchar_t* exeName : targets) {
+        // Kiểm tra xem file EXE có tồn tại hay không trước khi kiểm tra DLL
+        if (fileExists(exeName) == 0) {
+            if (totalMissing > 0) { lstrcatW(missing, L"\n"); }
+            lstrcatW(missing, L"Không tìm thấy file: ");
+            lstrcatW(missing, wcsrchr(exeName, L'\\') + 1); // Lấy tên file từ path
+            totalMissing++;
+            continue;
+        }
+
+        // Kiểm tra DLL cho từng file
+        int missCount = checkDependencies(exeName, missing, bufferSize);
+
+        if (missCount < 0) {
+            simple_log::write(L"Lỗi hệ thống khi phân tích PE: " + std::wstring(exePath));
+            showMessage(L"Không thể khởi chạy do lỗi truy cập tệp tin hệ thống.",
+                        L"Lỗi nghiêm trọng");
+            // mở log khi gặp lỗi hệ thống không xác định
+            ShellExecuteW(nullptr, L"open", L"logs\\launcher.log", nullptr, nullptr, SW_SHOWNORMAL);
+            return 1;
+        }
+        totalMissing += missCount;
+    }
+
+    // Nếu bất kỳ file nào thiếu phụ thuộc, thông báo và dừng lại
+    if (totalMissing > 0) {
+        simple_log::write(L"--- PHÁT HIỆN THIẾU PHỤ THUỘC (DEPENDENCY ERROR) ---");
+        simple_log::write(missing);
+
+        // Kiểm tra xem trong danh sách thiếu có các file của CRT không
+        if ((StrStrW(missing, L"VCRUNTIME") != nullptr) ||
+            (StrStrW(missing, L"api-ms-win-crt") != nullptr)) {
+            isCrtMissing = TRUE;
+        }
+
+        if (isCrtMissing != 0) {
+            int msgBox = MessageBoxW(
+                nullptr,
+                L"Ứng dụng thiếu thư viện C++ Runtime cần thiết.\n\n"
+                L"Bạn có muốn cài đặt Microsoft Visual C++ Redistributable ngay bây giờ không?",
+                L"Yêu cầu cài đặt thành phần hệ thống", MB_YESNO | MB_ICONQUESTION);
+
+            if (msgBox == IDYES) {
+                if (fileExists(L"VCRedist\\vc_redist.x64.exe") != 0) {
+                    simple_log::write(L"Đang khởi chạy trình cài đặt vc_redist.x64.exe...");
+                    ShellExecuteW(nullptr, L"open", L"VCRedist\\vc_redist.x64.exe",
+                                  L"/passive /norestart", nullptr, SW_SHOWNORMAL);
+                } else {
+                    simple_log::write(L"Lỗi: Không tìm thấy file vc_redist.x64.exe để cài đặt.");
+                    // Nếu không có file kèm theo, mở link tải chính thức
+                    ShellExecuteW(nullptr, L"open",
+                                  L"https://aka.ms/vs/17/release/vc_redist.x64.exe", nullptr,
+                                  nullptr, SW_SHOWNORMAL);
+                }
+            }
+        } else {
+            constexpr wchar_t supportEmail[] = L"yutijang@gmail.com";
+
+            std::wstring msg = L"Ứng dụng không thể khởi động vì thiếu các thành phần sau:\n\n";
+            msg += missing;
+            msg += L"\n\nHãy cài đặt lại ứng dụng hoặc liên hệ hỗ trợ: ";
+            msg += supportEmail;
+
+            showMessage(msg.c_str(), L"Thiếu thư viện");
+        }
+
+        return 1;
+    }
+
+    // --- Nếu mọi thứ OK, tiến hành chạy ứng dụng chính ---
+    callMainCore(filenameCore);
 
     return 0;
 }

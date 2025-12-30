@@ -61,6 +61,11 @@ target_sources(${LAUNCHER}
     ${LAUNCHER_ICON_RC}
 )
 
+target_precompile_headers(${LAUNCHER}
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/pch.hpp
+)
+
 set_target_properties(${LAUNCHER} PROPERTIES
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
   OUTPUT_NAME "Notesman"
