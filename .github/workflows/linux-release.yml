@@ -42,8 +42,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev \
-            libicu-dev libxcb-cursor0 libfontconfig1 libdbus-1-3 libxkbcommon-x11-0
+            libsecret-1-dev libicu-dev libxcb-xinerama0 libxkbcommon-x11-0
 
       - name: Fix Clang version to 18
         run: |
@@ -70,12 +69,6 @@ jobs:
             
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
-
-      - name: Install ICU 73
-        run: |
-          sudo add-apt-repository ppa:openshot.developers/libopenshot-daily -y
-          sudo apt-get update
-          sudo apt-get install -y libicu73
 
       - name: Prepare vcpkg manifest (remove qtbase directly)
         run: |
@@ -212,9 +205,9 @@ jobs:
       - name: Install Qt runtime dependencies for AppImage
         run: |
           sudo apt-get install -y \
-            libxcb1 libx11-6 libx11-xcb1 libxext6 libxrender1 libxi6 \
-            libxrandr2 libxfixes3 libxrender1 libxkbcommon0 libglu1-mesa \
-            libfreetype6 libglib2.0-0
+            libxcb1 libxcb-cursor0 libx11-6 libx11-xcb1 libxext6 libxrender1 libxi6 \
+            libxrandr2 libxfixes3 libxrender1 libxkbcommon0 libglu1-mesa libfontconfig1 \
+            libfreetype6 libdbus-1-3 libglib2.0-0
 
       - name: Bundle Qt6 app into AppImage
         run: |
