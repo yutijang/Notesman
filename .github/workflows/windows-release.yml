@@ -293,24 +293,30 @@ jobs:
       - name: Copy zlib1.dll from Qt bin
         shell: pwsh
         run: |
-          $qtBin = Join-Path "${{ env.Qt6_DIR }}" "..\..\..\bin"
+          $qtRoot = "${{ steps.find_qt.outputs.qt_dir }}"
+          
+          if (-not $qtRoot) {
+              Write-Error "Qt directory not found from previous step output."
+              exit 1
+          }
+
+          $qtBin = Join-Path $qtRoot "bin"
           $zlibPath = Join-Path $qtBin "zlib1.dll"
           $releaseDir = "${{ env.RELEASE_DIR }}"
 
+          Write-Host "Checking for zlib1.dll in: $zlibPath"
+
           if (Test-Path $zlibPath) {
-              Write-Host "Found zlib1.dll in Qt bin: $zlibPath"
+              if (-not (Test-Path $releaseDir)) { 
+                  New-Item -ItemType Directory -Path $releaseDir -Force 
+              }
+
               Copy-Item $zlibPath $releaseDir -Force
               Write-Host "Successfully copied zlib1.dll to $releaseDir"
           } else {
-              Write-Host "zlib1.dll not found in Qt bin, searching in $qtBin recursively..."
-              $file = Get-ChildItem -Path $qtBin -Recurse -Filter "zlib1.dll" | Select-Object -First 1
-              if ($null -ne $file) {
-                  Copy-Item $file.FullName $releaseDir -Force
-                  Write-Host "Found and copied: $($file.FullName)"
-              } else {
-                  Write-Error "CRITICAL: zlib1.dll not found in Qt installation. Qt6Svg.dll will fail to load."
-                  exit 1
-              }
+              Write-Error "CRITICAL: zlib1.dll not found at $zlibPath. Current Qt bin contents:"
+              Get-ChildItem $qtBin | Select-Object Name
+              exit 1
           }
 
       - name: Download and package VC Redistributable
