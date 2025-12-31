@@ -42,15 +42,12 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev libicu73
+            libsecret-1-dev libicu-dev
 
       - name: Fix Clang version to 18
         run: |
           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
-
-          /home/runner/work/Notesman/Qt/6.8.3/gcc_64/bin/qtpaths --version
-          ldd /home/runner/work/Notesman/Qt/6.8.3/gcc_64/bin/qtpaths
 
       - name: Setup ccache cache
         uses: actions/cache@v4
@@ -129,6 +126,10 @@ jobs:
           echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
+
+          /home/runner/work/Notesman/Qt/6.8.3/gcc_64/bin/qtpaths --version
+          ldd /home/runner/work/Notesman/Qt/6.8.3/gcc_64/bin/qtpaths
+          ldd $QT_DIR/bin/qtpaths | grep icui18n          
 
       - name: Setup vcpkg binary cache path
         run: |
