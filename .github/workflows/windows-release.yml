@@ -72,8 +72,19 @@ jobs:
             Write-Host "No vcpkg.json in repo root — aborting"
             exit 1
           }
-          $json = Get-Content vcpkg.json | ConvertFrom-Json
-          $json.dependencies = $json.dependencies | Where-Object { $_.name -ne "qtbase" }
+          $json = Get-Content vcpkg.json -Raw | ConvertFrom-Json
+          
+          $json.dependencies = $json.dependencies | Where-Object {
+              if ($_ -is [string]) {
+                  return $_ -ne "qtsvg"
+              }
+
+              if ($_.name) {
+                  return $_.name -ne "qtbase"
+              }
+              return $true
+          }
+                    
           $json | ConvertTo-Json -Depth 10 | Out-File vcpkg.json -Encoding utf8
           
       - name: Setup vcpkg (bootstrap)
@@ -107,6 +118,7 @@ jobs:
           target: desktop
           arch: win64_msvc2022_64
           install-deps: false
+          modules: 'qtsvg'
           cache: true
 
       - name: Locate Qt6 installation
