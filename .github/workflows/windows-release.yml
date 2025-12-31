@@ -179,7 +179,6 @@ jobs:
           Remove-Item "${{ env.RELEASE_DIR }}\generic" -Recurse
           Remove-Item "${{ env.RELEASE_DIR }}\styles" -Recurse
           Remove-Item "${{ env.RELEASE_DIR }}\opengl32sw.dll" -ErrorAction SilentlyContinue
-          Remove-Item "${{ env.RELEASE_DIR }}\Qt6Svg.dll" -ErrorAction SilentlyContinue
           Remove-Item "${{ env.RELEASE_DIR }}\D3Dcompiler_47.dll" -ErrorAction SilentlyContinue
 
           $allImagePlugins = Get-ChildItem "${{ env.RELEASE_DIR }}\imageformats\" -Filter "*.dll" -ErrorAction SilentlyContinue
@@ -290,6 +289,31 @@ jobs:
                   exit 1
               }
           }
+
+      - name: Find and copy zlib1.dll
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          $dllName = "zlib1.dll"
+
+          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dllName"
+          if (Test-Path $preferredPath) {
+              Write-Host "Found $dllName at preferred location: $preferredPath"
+              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
+              Write-Host "Copied $dllName to ${{ env.RELEASE_DIR }}"
+          } else {
+              Write-Host "Preferred location for $dllName not found, searching recursively under $vcpkgRoot ..."
+              $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dllName -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($null -ne $dllFile) {
+                  Write-Host "Found $dllName at: $($dllFile.FullName)"
+                  Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
+                  Write-Host "Copied $dllName to ${{ env.RELEASE_DIR }}"
+              } else {
+                  Write-Error "$dllName not found under $vcpkgRoot"
+                  exit 1
+              }
+          }          
 
       - name: Download and package VC Redistributable
         shell: pwsh
