@@ -4,6 +4,7 @@ namespace OAuthConfig {
     inline constexpr const char* CLIENT_ID = "@CLIENT_ID@";
     inline constexpr const char* CLIENT_SECRET = "@CLIENT_SECRET@";
 
+    // compile-time guard
     static_assert(CLIENT_ID[0] != '@', "ERROR: CLIENT_ID placeholder detected!");
     static_assert(CLIENT_ID[0] != '\0', "ERROR: CLIENT_ID is empty!");
 

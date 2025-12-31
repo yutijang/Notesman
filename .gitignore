@@ -33,7 +33,7 @@
 app_version.hpp
 version.rc
 
-apps/notesman/application/google_oauth_config.hpp
+apps/notesman/oauth_private.cmake
 
 extern/sqlite3/
 extern/miniz/

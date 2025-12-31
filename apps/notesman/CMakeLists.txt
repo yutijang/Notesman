@@ -10,8 +10,12 @@ set(NOTESMAN_FILENAME "NotesmanCore.dll")
 # ------------------------------------------------------------
 
 # --- OAuth config (Notesman only) ---------------------------
-set(CLIENT_ID     "$ENV{GOOGLE_CLIENT_ID}")
-set(CLIENT_SECRET "$ENV{GOOGLE_CLIENT_SECRET}")
+if(DEFINED ENV{GOOGLE_CLIENT_ID})
+  set(CLIENT_ID     "$ENV{GOOGLE_CLIENT_ID}")
+  set(CLIENT_SECRET "$ENV{GOOGLE_CLIENT_SECRET}")
+elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/oauth_private.cmake")
+  include("${CMAKE_CURRENT_SOURCE_DIR}/oauth_private.cmake")
+endif()
 
 set(NOTESMAN_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated/notesman")
 file(MAKE_DIRECTORY ${NOTESMAN_GENERATED_DIR})

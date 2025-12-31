@@ -258,8 +258,8 @@ static void callMainCore(const wchar_t* filenameCore) {
 
     if (CreateProcessW(nullptr, cmdLine, nullptr, nullptr, FALSE, flags, nullptr, nullptr, &si,
                        &pi) == 0) {
-        simple_log::write(L"Không thể khởi chạy " + std::wstring(filenameCore));
-        showMessage((std::wstring(L"Không thể khởi chạy ") + filenameCore).c_str(), L"Lỗi");
+        simple_log::write(L"Unable to launch " + std::wstring(filenameCore));
+        showMessage((std::wstring(L"Unable to launch ") + filenameCore).c_str(), L"Error");
 
         return;
     }
@@ -300,7 +300,8 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
         // Kiểm tra xem file EXE có tồn tại hay không trước khi kiểm tra DLL
         if (fileExists(exeName) == 0) {
             if (totalMissing > 0) { lstrcatW(missing, L"\n"); }
-            lstrcatW(missing, L"Không tìm thấy file: ");
+            lstrcatW(missing, L"  • ");
+            lstrcatW(missing, L"File not found: ");
             lstrcatW(missing, wcsrchr(exeName, L'\\') + 1); // Lấy tên file từ path
             totalMissing++;
             continue;
@@ -310,9 +311,8 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
         int missCount = checkDependencies(exeName, missing, bufferSize);
 
         if (missCount < 0) {
-            simple_log::write(L"Lỗi hệ thống khi phân tích PE: " + std::wstring(exePath));
-            showMessage(L"Không thể khởi chạy do lỗi truy cập tệp tin hệ thống.",
-                        L"Lỗi nghiêm trọng");
+            simple_log::write(L"System error while parsing PE: " + std::wstring(exePath));
+            showMessage(L"Unable to launch due to system file access error.", L"Critical Error");
             // mở log khi gặp lỗi hệ thống không xác định
             ShellExecuteW(nullptr, L"open", L"logs\\launcher.log", nullptr, nullptr, SW_SHOWNORMAL);
             return 1;
@@ -322,7 +322,7 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
 
     // Nếu bất kỳ file nào thiếu phụ thuộc, thông báo và dừng lại
     if (totalMissing > 0) {
-        simple_log::write(L"--- PHÁT HIỆN THIẾU PHỤ THUỘC (DEPENDENCY ERROR) ---");
+        simple_log::write(L"--- DETECTED MISSING DEPENDENCIES (DEPENDENCY ERROR) ---");
         simple_log::write(missing);
 
         // Kiểm tra xem trong danh sách thiếu có các file của CRT không
@@ -334,17 +334,17 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
         if (isCrtMissing != 0) {
             int msgBox = MessageBoxW(
                 nullptr,
-                L"Ứng dụng thiếu thư viện C++ Runtime cần thiết.\n\n"
-                L"Bạn có muốn cài đặt Microsoft Visual C++ Redistributable ngay bây giờ không?",
-                L"Yêu cầu cài đặt thành phần hệ thống", MB_YESNO | MB_ICONQUESTION);
+                L"The application is missing required Microsoft Visual C++ Runtime libraries.\n\n"
+                L"Do you want to install the Microsoft Visual C++ Redistributable now?",
+                L"System Component Required", MB_YESNO | MB_ICONQUESTION);
 
             if (msgBox == IDYES) {
                 if (fileExists(L"VCRedist\\vc_redist.x64.exe") != 0) {
-                    simple_log::write(L"Khởi chạy trình cài đặt vc_redist.x64.exe...");
+                    simple_log::write(L"Launching vc_redist.x64.exe installer...");
                     ShellExecuteW(nullptr, L"open", L"VCRedist\\vc_redist.x64.exe",
                                   L"/passive /norestart", nullptr, SW_SHOWNORMAL);
                 } else {
-                    simple_log::write(L"Lỗi: Không tìm thấy file vc_redist.x64.exe để cài đặt.");
+                    simple_log::write(L"Error: vc_redist.x64.exe installer file not found.");
                     // Nếu không có file kèm theo, mở link tải chính thức
                     ShellExecuteW(nullptr, L"open",
                                   L"https://aka.ms/vs/17/release/vc_redist.x64.exe", nullptr,
@@ -354,12 +354,12 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
         } else {
             constexpr wchar_t supportEmail[] = L"yutijang@gmail.com";
 
-            std::wstring msg = L"Ứng dụng không thể khởi động vì thiếu các thành phần sau:\n\n";
+            std::wstring msg = L"The application cannot start due to missing components:\n\n";
             msg += missing;
-            msg += L"\n\nHãy tải lại ứng dụng hoặc liên hệ hỗ trợ: ";
+            msg += L"\n\nPlease download the application again or contact support: ";
             msg += supportEmail;
 
-            showMessage(msg.c_str(), L"Thiếu thư viện");
+            showMessage(msg.c_str(), L"Missing files or libraries");
         }
 
         return 1;
