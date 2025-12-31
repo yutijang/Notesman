@@ -118,7 +118,7 @@ jobs:
           target: desktop
           arch: win64_msvc2022_64
           install-deps: false
-          modules: 'svg'
+          archives: 'qtbase qtsvg'
           cache: true
 
       - name: Locate Qt6 installation
