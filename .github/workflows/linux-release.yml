@@ -42,7 +42,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev libicu-dev libxcb-xinerama0 libxkbcommon-x11-0
+            libsecret-1-dev
 
       - name: Fix Clang version to 18
         run: |
@@ -132,6 +132,16 @@ jobs:
           ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
           echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
+
+      - name: ICU Version Symlink Hack
+        run: |
+          LIBICU_PATH=$(find /usr/lib/x86_64-linux-gnu/ -name "libicui18n.so.7*" | head -n 1)
+          LIBICU_DIR=$(dirname $LIBICU_PATH)
+          
+          sudo ln -s $LIBICU_DIR/libicui18n.so.72 /usr/lib/x86_64-linux-gnu/libicui18n.so.73
+          sudo ln -s $LIBICU_DIR/libicuuc.so.72 /usr/lib/x86_64-linux-gnu/libicuuc.so.73
+          sudo ln -s $LIBICU_DIR/libicudata.so.72 /usr/lib/x86_64-linux-gnu/libicudata.so.73
+          sudo ldconfig
 
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
