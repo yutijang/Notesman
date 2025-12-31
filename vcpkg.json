@@ -20,7 +20,8 @@
                 "widgets"
             ]
         },
-        "qtsvg"
+        "qtsvg",
+        "zlib"
     ],
     "overrides": [
         {

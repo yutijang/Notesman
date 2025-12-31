@@ -290,32 +290,27 @@ jobs:
               }
           }
 
-      - name: Brute Force Search for zlib1.dll
+      - name: Force Deploy zlib1.dll from vcpkg
         shell: pwsh
         run: |
+          $searchDir = "${{ github.workspace }}"
           $releaseDir = "${{ env.RELEASE_DIR }}"
-          if (-not (Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force }
-
-          Write-Host "Searching EVERYWHERE for zlib1.dll or zlib.dll..."
           
-          $foundFiles = Get-ChildItem -Path "D:\" -Filter "zlib*.dll" -Recurse -ErrorAction SilentlyContinue | 
-                        Where-Object { $_.FullName -notlike "*\Windows\*" -and $_.FullName -notlike "*\Program Files\*" }
+          Write-Host "Searching for zlib DLLs in workspace: $searchDir"
+          
+          $dll = Get-ChildItem -Path $searchDir -Filter "zlib*.dll" -Recurse -ErrorAction SilentlyContinue | 
+                 Where-Object { $_.FullName -like "*\bin\*" -and $_.FullName -notlike "*\debug\*" } | 
+                 Select-Object -First 1
 
-          if ($foundFiles) {
-              Write-Host "Found the following candidates:"
-              $foundFiles | ForEach-Object { Write-Host " - $($_.FullName)" }
-
-              $bestCandidate = $foundFiles | Where-Object { $_.FullName -notlike "*\debug\*" -and $_.FullName -notlike "*\buildtrees\*" } | Select-Object -First 1
+          if ($null -ne $dll) {
+              Write-Host "Found zlib at: $($dll.FullName)"
+              if (-not (Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force }
               
-              if ($null -eq $bestCandidate) { $bestCandidate = $foundFiles[0] }
-
-              Write-Host "Picking best candidate: $($bestCandidate.FullName)"
-              Copy-Item $bestCandidate.FullName (Join-Path $releaseDir "zlib1.dll") -Force
-              Write-Host "Successfully deployed to $releaseDir as zlib1.dll"
+              Copy-Item $dll.FullName (Join-Path $releaseDir "zlib1.dll") -Force
+              Write-Host "Deployed $($dll.Name) as zlib1.dll to $releaseDir"
           } else {
-              Write-Error "ABSOLUTE FAILURE: zlib DLL does not exist on this runner."
-              Write-Host "Listing content of vcpkg_installed bin:"
-              Get-ChildItem -Path "${{ github.workspace }}" -Filter "*.dll" -Recurse | Select-Object FullName
+              Write-Error "CRITICAL: vcpkg did not build zlib DLL. Check if your vcpkg triplet is set to dynamic (x64-windows)."
+              Get-ChildItem -Path $searchDir -Filter "*.dll" -Recurse | Select-Object FullName
               exit 1
           }
 
