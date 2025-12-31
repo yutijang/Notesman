@@ -290,32 +290,43 @@ jobs:
               }
           }
 
-      - name: Copy zlib1.dll from Qt bin
+      - name: Comprehensive zlib1.dll Search and Copy
         shell: pwsh
         run: |
-          $qtRoot = "${{ steps.find_qt.outputs.qt_dir }}"
+          $qtBin = Join-Path "${{ steps.find_qt.outputs.qt_dir }}" "bin"
+          $vcpkgBin = Join-Path "${{ env.VCPKG_ROOT }}" "installed\${{ env.VCPKG_DEFAULT_TRIPLET }}\bin"
+          $releaseDir = "${{ env.RELEASE_DIR }}"
           
-          if (-not $qtRoot) {
-              Write-Error "Qt directory not found from previous step output."
-              exit 1
+          $foundDll = $null
+          $searchPaths = @($qtBin, $vcpkgBin)
+          $targetNames = @("zlib1.dll", "zlib.dll")
+
+          Write-Host "Starting comprehensive search for zlib DLLs..."
+
+          foreach ($path in $searchPaths) {
+              if (Test-Path $path) {
+                  Write-Host "Searching in: $path"
+                  foreach ($name in $targetNames) {
+                      $fullPath = Join-Path $path $name
+                      if (Test-Path $fullPath) {
+                          $foundDll = $fullPath
+                          break
+                      }
+                  }
+              }
+              if ($foundDll) { break }
           }
 
-          $qtBin = Join-Path $qtRoot "bin"
-          $zlibPath = Join-Path $qtBin "zlib1.dll"
-          $releaseDir = "${{ env.RELEASE_DIR }}"
-
-          Write-Host "Checking for zlib1.dll in: $zlibPath"
-
-          if (Test-Path $zlibPath) {
-              if (-not (Test-Path $releaseDir)) { 
-                  New-Item -ItemType Directory -Path $releaseDir -Force 
-              }
-
-              Copy-Item $zlibPath $releaseDir -Force
-              Write-Host "Successfully copied zlib1.dll to $releaseDir"
+          if ($null -ne $foundDll) {
+              Write-Host "Found zlib source at: $foundDll"
+              if (-not (Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force }
+              
+              Copy-Item $foundDll (Join-Path $releaseDir "zlib1.dll") -Force
+              Write-Host "Successfully deployed zlib1.dll to $releaseDir"
           } else {
-              Write-Error "CRITICAL: zlib1.dll not found at $zlibPath. Current Qt bin contents:"
-              Get-ChildItem $qtBin | Select-Object Name
+              Write-Error "CRITICAL: No zlib DLL found in Qt or vcpkg."
+              Write-Host "Listing ALL DLLs in vcpkg bin for diagnostics:"
+              if (Test-Path $vcpkgBin) { Get-ChildItem $vcpkgBin -Filter *.dll | Select-Object Name }
               exit 1
           }
 
