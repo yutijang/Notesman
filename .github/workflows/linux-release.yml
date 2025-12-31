@@ -133,20 +133,19 @@ jobs:
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
           echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
 
-      - name: Fix ICU 73 Dependency (Symlink Hack)
+      - name: Fix ICU 73 Dependency (Symlink from 74)
         shell: bash
         run: |
           LIB_DIR="/usr/lib/x86_64-linux-gnu"
-          if [ -f "$LIB_DIR/libicui18n.so.72" ]; then
-            echo "Found ICU 72, creating symlinks for version 73..."
-            sudo ln -sf "$LIB_DIR/libicui18n.so.72" "$LIB_DIR/libicui18n.so.73"
-            sudo ln -sf "$LIB_DIR/libicuuc.so.72" "$LIB_DIR/libicuuc.so.73"
-            sudo ln -sf "$LIB_DIR/libicudata.so.72" "$LIB_DIR/libicudata.so.73"
+          if [ -f "$LIB_DIR/libicui18n.so.74" ]; then
+            echo "Found ICU 74, creating symlinks for version 73..."
+            sudo ln -sf "$LIB_DIR/libicui18n.so.74" "$LIB_DIR/libicui18n.so.73"
+            sudo ln -sf "$LIB_DIR/libicuuc.so.74" "$LIB_DIR/libicuuc.so.73"
+            sudo ln -sf "$LIB_DIR/libicudata.so.74" "$LIB_DIR/libicudata.so.73"
             sudo ldconfig
-            echo "Symlinks created successfully."
+            echo "Symlinks created successfully (74 -> 73)."
           else
-            echo "ICU 72 not found. Listing available versions:"
-            ls $LIB_DIR/libicu*
+            echo "CRITICAL: ICU 74 not found."
             exit 1
           fi
 
