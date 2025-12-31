@@ -133,32 +133,22 @@ jobs:
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
           echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
 
-      - name: Mock qtpaths to bypass ICU error
+      - name: Fix ICU 73 Dependency (Symlink Hack)
         shell: bash
         run: |
-          QT_BIN_DIR="${{ steps.find_qt.outputs.qt_dir }}/bin"
-          REAL_QTPATHS="$QT_BIN_DIR/qtpaths"
-          MOCK_QTPATHS="$QT_BIN_DIR/qtpaths_real"
-
-          if [ -f "$REAL_QTPATHS" ] && [ ! -f "$MOCK_QTPATHS" ]; then
-            mv "$REAL_QTPATHS" "$MOCK_QTPATHS"
-          fi
-
-          cat <<EOF > "$REAL_QTPATHS"
-          #!/bin/bash
-          if [[ "\$*" == *"--install-prefix"* ]]; then
-            echo "${{ steps.find_qt.outputs.qt_dir }}"
-          elif [[ "\$*" == *"--binaries-dir"* ]]; then
-            echo "${{ steps.find_qt.outputs.qt_dir }}/bin"
+          LIB_DIR="/usr/lib/x86_64-linux-gnu"
+          if [ -f "$LIB_DIR/libicui18n.so.72" ]; then
+            echo "Found ICU 72, creating symlinks for version 73..."
+            sudo ln -sf "$LIB_DIR/libicui18n.so.72" "$LIB_DIR/libicui18n.so.73"
+            sudo ln -sf "$LIB_DIR/libicuuc.so.72" "$LIB_DIR/libicuuc.so.73"
+            sudo ln -sf "$LIB_DIR/libicudata.so.72" "$LIB_DIR/libicudata.so.73"
+            sudo ldconfig
+            echo "Symlinks created successfully."
           else
-            echo "${{ steps.find_qt.outputs.qt_dir }}"
+            echo "ICU 72 not found. Listing available versions:"
+            ls $LIB_DIR/libicu*
+            exit 1
           fi
-          exit 0
-          EOF
-
-          chmod +x "$REAL_QTPATHS"
-          
-          echo "Mock qtpaths created at $REAL_QTPATHS to bypass ICU 73 dependency."
 
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
@@ -168,7 +158,6 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
-            -DCMAKE_PREFIX_PATH="${{ steps.find_qt.outputs.qt_dir }}" \
             -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" \
             -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
@@ -179,7 +168,6 @@ jobs:
           CXX: /usr/bin/clang++
           CCACHE_DIR: ${{ env.CCACHE_DIR }}
           CCACHE_CONFIGPATH: ${{ env.CCACHE_DIR }}/ccache.conf
-          LD_LIBRARY_PATH: ${{ steps.find_qt.outputs.qt_dir }}/lib:$LD_LIBRARY_PATH
           
       - name: Build (parallel)
         run: cmake --build build --parallel
