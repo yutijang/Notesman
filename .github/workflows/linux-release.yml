@@ -24,7 +24,9 @@ env:
 jobs:
   build-and-release:
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    container:
+      image: ubuntu:23.10    
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -42,6 +44,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
+            libicu73 libgl1 libxkbcommon0 \
             libsecret-1-dev
 
       # - name: Fix Clang version to 18
@@ -110,10 +113,9 @@ jobs:
           version: "6.7.3"
           host: linux
           target: desktop
-          install-deps: true
+          install-deps: false
           archives: 'qtbase qtsvg'
           cache: false
-          use-official: false
 
       - name: Locate Qt6 installation
         id: find_qt
