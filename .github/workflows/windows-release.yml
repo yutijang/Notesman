@@ -290,43 +290,32 @@ jobs:
               }
           }
 
-      - name: Comprehensive zlib1.dll Search and Copy
+      - name: Brute Force Search for zlib1.dll
         shell: pwsh
         run: |
-          $qtBin = Join-Path "${{ steps.find_qt.outputs.qt_dir }}" "bin"
-          $vcpkgBin = Join-Path "${{ env.VCPKG_ROOT }}" "installed\${{ env.VCPKG_DEFAULT_TRIPLET }}\bin"
           $releaseDir = "${{ env.RELEASE_DIR }}"
+          if (-not (Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force }
+
+          Write-Host "Searching EVERYWHERE for zlib1.dll or zlib.dll..."
           
-          $foundDll = $null
-          $searchPaths = @($qtBin, $vcpkgBin)
-          $targetNames = @("zlib1.dll", "zlib.dll")
+          $foundFiles = Get-ChildItem -Path "D:\" -Filter "zlib*.dll" -Recurse -ErrorAction SilentlyContinue | 
+                        Where-Object { $_.FullName -notlike "*\Windows\*" -and $_.FullName -notlike "*\Program Files\*" }
 
-          Write-Host "Starting comprehensive search for zlib DLLs..."
+          if ($foundFiles) {
+              Write-Host "Found the following candidates:"
+              $foundFiles | ForEach-Object { Write-Host " - $($_.FullName)" }
 
-          foreach ($path in $searchPaths) {
-              if (Test-Path $path) {
-                  Write-Host "Searching in: $path"
-                  foreach ($name in $targetNames) {
-                      $fullPath = Join-Path $path $name
-                      if (Test-Path $fullPath) {
-                          $foundDll = $fullPath
-                          break
-                      }
-                  }
-              }
-              if ($foundDll) { break }
-          }
-
-          if ($null -ne $foundDll) {
-              Write-Host "Found zlib source at: $foundDll"
-              if (-not (Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force }
+              $bestCandidate = $foundFiles | Where-Object { $_.FullName -notlike "*\debug\*" -and $_.FullName -notlike "*\buildtrees\*" } | Select-Object -First 1
               
-              Copy-Item $foundDll (Join-Path $releaseDir "zlib1.dll") -Force
-              Write-Host "Successfully deployed zlib1.dll to $releaseDir"
+              if ($null -eq $bestCandidate) { $bestCandidate = $foundFiles[0] }
+
+              Write-Host "Picking best candidate: $($bestCandidate.FullName)"
+              Copy-Item $bestCandidate.FullName (Join-Path $releaseDir "zlib1.dll") -Force
+              Write-Host "Successfully deployed to $releaseDir as zlib1.dll"
           } else {
-              Write-Error "CRITICAL: No zlib DLL found in Qt or vcpkg."
-              Write-Host "Listing ALL DLLs in vcpkg bin for diagnostics:"
-              if (Test-Path $vcpkgBin) { Get-ChildItem $vcpkgBin -Filter *.dll | Select-Object Name }
+              Write-Error "ABSOLUTE FAILURE: zlib DLL does not exist on this runner."
+              Write-Host "Listing content of vcpkg_installed bin:"
+              Get-ChildItem -Path "${{ github.workspace }}" -Filter "*.dll" -Recurse | Select-Object FullName
               exit 1
           }
 
