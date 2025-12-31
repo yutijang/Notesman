@@ -42,12 +42,15 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev
+            libsecret-1-dev libicu73
 
       - name: Fix Clang version to 18
         run: |
           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+
+          /home/runner/work/Notesman/Qt/6.8.3/gcc_64/bin/qtpaths --version
+          ldd /home/runner/work/Notesman/Qt/6.8.3/gcc_64/bin/qtpaths
 
       - name: Setup ccache cache
         uses: actions/cache@v4
