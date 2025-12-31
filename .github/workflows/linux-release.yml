@@ -42,7 +42,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev
+            libicu-dev libsecret-1-dev
 
       - name: Fix Clang version to 18
         run: |

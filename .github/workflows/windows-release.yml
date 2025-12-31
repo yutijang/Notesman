@@ -290,30 +290,32 @@ jobs:
               }
           }
 
-      - name: Find and copy zlib1.dll
+      - name: Find and copy zlib DLL
         shell: pwsh
         run: |
-          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
-          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $dllName = "zlib1.dll"
+          $vcpkgInstalled = Join-Path "${{ env.VCPKG_ROOT }}" "installed\${{ env.VCPKG_DEFAULT_TRIPLET }}\bin"
+          $releaseDir = "${{ env.RELEASE_DIR }}"
+          
+          $possibleNames = @("zlib.dll", "zlib1.dll")
+          $found = $false
 
-          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dllName"
-          if (Test-Path $preferredPath) {
-              Write-Host "Found $dllName at preferred location: $preferredPath"
-              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
-              Write-Host "Copied $dllName to ${{ env.RELEASE_DIR }}"
-          } else {
-              Write-Host "Preferred location for $dllName not found, searching recursively under $vcpkgRoot ..."
-              $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dllName -ErrorAction SilentlyContinue | Select-Object -First 1
-              if ($null -ne $dllFile) {
-                  Write-Host "Found $dllName at: $($dllFile.FullName)"
-                  Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
-                  Write-Host "Copied $dllName to ${{ env.RELEASE_DIR }}"
-              } else {
-                  Write-Error "$dllName not found under $vcpkgRoot"
-                  exit 1
+          foreach ($name in $possibleNames) {
+              $dllPath = Join-Path $vcpkgInstalled $name
+              if (Test-Path $dllPath) {
+                  Write-Host "Found zlib at: $dllPath"
+                  Copy-Item $dllPath $releaseDir -Force
+                  Write-Host "Copied $name to $releaseDir"
+                  $found = $true
+                  break
               }
-          }          
+          }
+
+          if (-not $found) {
+              Write-Error "Neither zlib.dll nor zlib1.dll found in $vcpkgInstalled"
+              Write-Host "Files in $vcpkgInstalled :"
+              Get-ChildItem $vcpkgInstalled | Select-Object Name
+              exit 1
+          }
 
       - name: Download and package VC Redistributable
         shell: pwsh
