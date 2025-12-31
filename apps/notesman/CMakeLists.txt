@@ -153,6 +153,7 @@ target_link_libraries(notes-app-lib-core
     Qt6::Gui
     Qt6::Widgets
     Qt6::Network
+    Qt6::Svg
 )
 
 target_compile_definitions(notes-app-lib-core

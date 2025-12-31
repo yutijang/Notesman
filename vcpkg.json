@@ -19,7 +19,8 @@
                 "gui",
                 "widgets"
             ]
-        }
+        },
+        "qtsvg"
     ],
     "overrides": [
         {

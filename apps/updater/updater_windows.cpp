@@ -109,7 +109,6 @@ namespace {
         return true;
     }
 
-    // NOLINTNEXTLINE
     bool copyRecursive(const fs::path &from, const fs::path &to) {
         if (!fs::exists(from)) {
             Log::err("copyRecursive failed: source not found: {}", wstringToUtf8(from));
