@@ -71,6 +71,12 @@ jobs:
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
 
+      - name: Install ICU 73
+        run: |
+          sudo add-apt-repository ppa:openshot.developers/libopenshot-daily -y
+          sudo apt-get update
+          sudo apt-get install -y libicu73
+
       - name: Prepare vcpkg manifest (remove qtbase directly)
         run: |
           if [ ! -f vcpkg.json ]; then
@@ -134,11 +140,6 @@ jobs:
           echo "ABS_ARCHIVES=${ABS_ARCHIVES}" >> $GITHUB_ENV
           echo "VCPKG_BINARY_SOURCES=clear;files,${ABS_ARCHIVES},readwrite" >> $GITHUB_ENV
 
-      - name: Configure Library Path for Qt Tools
-        run: |
-          QT_LIB_DIR="${{ steps.find_qt.outputs.qt_dir }}/lib"
-          echo "LD_LIBRARY_PATH=$QT_LIB_DIR:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
           echo "Using VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}"
