@@ -84,7 +84,7 @@ jobs:
               }
               return $true
           }
-                    
+
           $json | ConvertTo-Json -Depth 10 | Out-File vcpkg.json -Encoding utf8
           
       - name: Setup vcpkg (bootstrap)
@@ -118,7 +118,7 @@ jobs:
           target: desktop
           arch: win64_msvc2022_64
           install-deps: false
-          modules: 'qtsvg'
+          modules: 'svg'
           cache: true
 
       - name: Locate Qt6 installation
