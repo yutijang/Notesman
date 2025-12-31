@@ -44,10 +44,10 @@ jobs:
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
             libsecret-1-dev
 
-      - name: Fix Clang version to 18
-        run: |
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+      # - name: Fix Clang version to 18
+      #   run: |
+      #     sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
+      #     sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
 
       - name: Setup ccache cache
         uses: actions/cache@v4
