@@ -139,8 +139,6 @@ jobs:
           QT_LIB_DIR="${{ steps.find_qt.outputs.qt_dir }}/lib"
           echo "LD_LIBRARY_PATH=$QT_LIB_DIR:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           
-          ls $QT_LIB_DIR/libicu*
-
       - name: Configure CMake (use vcpkg toolchain and Qt6 dir)
         run: |
           echo "Using VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}"
