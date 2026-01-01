@@ -1,4 +1,4 @@
-name: Cleanup Linux Caches
+name: Cleanup All Linux Caches
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
         run: gh extension install actions/gh-actions-cache
 
       - name: List all caches
-        run: gh actions-cache list -R ${{ github.repository }} --limit 200 > cache_list.txt
+        run: gh actions-cache list -R ${{ github.repository }} --limit 100 > cache_list.txt
 
       - name: Delete all Linux caches
         run: |
