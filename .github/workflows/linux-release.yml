@@ -127,6 +127,13 @@ jobs:
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
 
+      - name: Export Qt tools into PATH
+        run: |
+          echo "${{ steps.find_qt.outputs.qt_dir }}/bin" >> $GITHUB_PATH
+
+          which qtpaths || true
+          qtpaths --query QT_VERSION || true
+
       - name: Setup vcpkg binary cache path
         run: |
           ABS_ARCHIVES=$(realpath "${VCPKG_ROOT}/archives")
