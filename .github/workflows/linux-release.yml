@@ -29,6 +29,11 @@ jobs:
     timeout-minutes: 120
 
     steps:
+      - name: Install required tools (git is mandatory)
+        run: |
+          apt-get update
+          apt-get install -y git ca-certificates
+              
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
