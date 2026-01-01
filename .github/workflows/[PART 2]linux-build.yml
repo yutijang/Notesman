@@ -36,7 +36,8 @@ jobs:
             build-essential pkg-config ninja-build \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
             libsecret-1-dev clang lld \
-            autoconf autoconf-archive automake libtool
+            autoconf autoconf-archive automake libtool \
+            libltdl-dev gettext
 
       - name: Fix Clang version to 18
         run: |
