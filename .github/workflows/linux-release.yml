@@ -23,10 +23,8 @@ env:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-22.04
-    container:
-      image: ubuntu:23.10    
-    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
       - name: Checkout repository
@@ -44,13 +42,12 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libicu73 libgl1 libxkbcommon0 \
             libsecret-1-dev
 
-      # - name: Fix Clang version to 18
-      #   run: |
-      #     sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-      #     sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+      - name: Fix Clang version to 18
+        run: |
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
 
       - name: Setup ccache cache
         uses: actions/cache@v4
@@ -102,20 +99,16 @@ jobs:
           key: ${{ runner.os }}-vcpkg-asset-${{ hashFiles('vcpkg.json') }}
           restore-keys: ${{ runner.os }}-vcpkg-asset-
 
-      - name: Remove preinstalled Qt (toolcache)
-        run: |
-          rm -rf "$GITHUB_WORKSPACE/Qt"
-          sudo rm -rf /opt/hostedtoolcache/Qt || true
-
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.7.3"
+          version: "6.8.3"
           host: linux
           target: desktop
-          install-deps: false
+          install-deps: true
           archives: 'qtbase qtsvg'
-          cache: false
+          cache: true
+          extra: --no-system-icu
 
       - name: Locate Qt6 installation
         id: find_qt
