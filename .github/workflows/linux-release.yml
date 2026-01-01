@@ -23,17 +23,10 @@ env:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-22.04
-    container:
-      image: ubuntu:23.10    
+    runs-on: ubuntu-latest
     timeout-minutes: 120
 
     steps:
-      - name: Install required tools (git is mandatory)
-        run: |
-          apt-get update
-          apt-get install -y git ca-certificates
-              
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
@@ -49,12 +42,12 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev libicu73
+            libsecret-1-dev
 
-      # - name: Fix Clang version to 18
-      #   run: |
-      #     sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-      #     sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+      - name: Fix Clang version to 18
+        run: |
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
 
       - name: Setup ccache cache
         uses: actions/cache@v4
@@ -109,7 +102,7 @@ jobs:
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.6.3"
+          version: "6.8.3"
           host: linux
           target: desktop
           install-deps: true

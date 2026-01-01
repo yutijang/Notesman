@@ -42,6 +42,10 @@ set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static QtKeychain" FORCE)
 set(BUILD_WITH_QT6 ON CACHE BOOL "" FORCE)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(QTKEYCHAIN_USE_QTPATHS OFF CACHE BOOL "" FORCE)
+endif()
+
 FetchContent_MakeAvailable(qtkeychain)
 
 # --- Tắt warning cho mã nguồn qtkeychain ---
