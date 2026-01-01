@@ -6,7 +6,17 @@ jobs:
   build-deps:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf /usr/lib/jvm
+          docker image prune --all --force
 
       - name: Install System Packages (Core Build Tools & Qt Dependencies)
         run: |
@@ -46,8 +56,18 @@ jobs:
             ${{ github.workspace }}/vcpkg_installed
           key: linux-vcpkg-full-deps-${{ hashFiles('vcpkg.json') }}
 
-      - name: Vcpkg Install
+      - name: Vcpkg Install (Release Only)
         if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         run: |
-          ./vcpkg/vcpkg install --triplet x64-linux-dynamic \
+          mkdir -p triplets
+          cp vcpkg/triplets/x64-linux-dynamic.cmake triplets/x64-linux-release.cmake
+          echo "set(VCPKG_BUILD_TYPE release)" >> triplets/x64-linux-release.cmake
+          
+          ./vcpkg/vcpkg install --triplet x64-linux-release \
+            --overlay-triplets=triplets \
             --x-install-root="${{ github.workspace }}/vcpkg_installed"
+
+      - name: Cleanup buildtrees
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
+        run: rm -rf vcpkg/buildtrees
+        

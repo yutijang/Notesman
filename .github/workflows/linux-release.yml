@@ -1,7 +1,7 @@
 name: Build & Release (Linux)
 
 on:
-  workflow_run:
+  # workflow_run:
     # workflows: ["Tag trigger"]
     # types: [completed]
   workflow_dispatch:
