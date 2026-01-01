@@ -108,7 +108,7 @@ jobs:
           install-deps: true
           archives: 'qtbase qtsvg'
           cache: true
-          extra: --no-system-icu
+          use-official: true
 
       - name: Locate Qt6 installation
         id: find_qt

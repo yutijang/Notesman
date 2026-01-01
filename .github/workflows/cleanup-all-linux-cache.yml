@@ -1,0 +1,33 @@
+name: Cleanup Linux Caches
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup-linux:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
+
+      - name: Authenticate gh
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Install gh-actions-cache extension
+        run: gh extension install actions/gh-actions-cache
+
+      - name: List all caches
+        run: gh actions-cache list -R ${{ github.repository }} --limit 200 > cache_list.txt
+
+      - name: Delete all Linux caches
+        run: |
+          echo "Deleting ALL caches containing 'linux'..."
+          grep -i "linux" cache_list.txt | awk -F'\t' '{print $1}' | \
+          while read cache_id; do
+            echo "🧹 Deleting Linux cache: $cache_id"
+            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
+          done
