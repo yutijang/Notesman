@@ -23,7 +23,9 @@ env:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    container:
+      image: ubuntu:23.10    
     timeout-minutes: 120
 
     steps:
@@ -42,12 +44,12 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev
+            libsecret-1-dev libicu73
 
-      - name: Fix Clang version to 18
-        run: |
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+      # - name: Fix Clang version to 18
+      #   run: |
+      #     sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
+      #     sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
 
       - name: Setup ccache cache
         uses: actions/cache@v4
@@ -102,13 +104,12 @@ jobs:
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.8.3"
+          version: "6.6.3"
           host: linux
           target: desktop
           install-deps: true
           archives: 'qtbase qtsvg'
           cache: true
-          use-official: true
 
       - name: Locate Qt6 installation
         id: find_qt
