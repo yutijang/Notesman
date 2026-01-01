@@ -23,7 +23,7 @@ env:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-23.10
+    runs-on: ubuntu-22.04
     timeout-minutes: 120
 
     steps:
@@ -102,7 +102,7 @@ jobs:
       - name: Install Qt6 (from action marketplace) - Shared libs
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.8.3"
+          version: "6.6.3"
           host: linux
           target: desktop
           install-deps: true
@@ -126,13 +126,6 @@ jobs:
           echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=${QT_DIR}/lib/cmake/Qt6" >> $GITHUB_OUTPUT
-
-      - name: Export Qt tools into PATH
-        run: |
-          echo "${{ steps.find_qt.outputs.qt_dir }}/bin" >> $GITHUB_PATH
-
-          which qtpaths || true
-          qtpaths --query QT_VERSION || true
 
       - name: Setup vcpkg binary cache path
         run: |
