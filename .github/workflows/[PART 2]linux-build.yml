@@ -35,7 +35,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config ninja-build \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev clang lld
+            libsecret-1-dev clang lld \
+            autoconf autoconf-archive automake libtool
 
       - name: Fix Clang version to 18
         run: |
