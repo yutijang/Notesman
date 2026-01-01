@@ -1,34 +1,44 @@
-name: Linux - Cache Dependencies
+name: Linux - Build Dependencies
+
 on:
   workflow_dispatch:
 
+env:
+  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
 jobs:
-  cache-vcpkg-qt:
-    runs-on: ubuntu-24.04
+  build-deps:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install System Build Tools
+
+      - name: Install System Packages
         run: |
-          sudo apt-get update && sudo apt-get install -y \
-            build-essential pkg-config libx11-dev libxkbcommon-dev libgl1-mesa-dev libsecret-1-dev
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential pkg-config jq curl unzip zip \
+            autoconf autoconf-archive automake libtool \
+            libgl1-mesa-dev libsecret-1-dev libx11-dev libxkbcommon-dev
 
       - name: Setup vcpkg
         run: |
-          git clone https://github.com/microsoft/vcpkg.git ${{ github.workspace }}/vcpkg
-          ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
+          if [ ! -d "${{ env.VCPKG_ROOT }}" ]; then
+            git clone https://github.com/microsoft/vcpkg.git ${{ env.VCPKG_ROOT }}
+            ${{ env.VCPKG_ROOT }}/bootstrap-vcpkg.sh
+          fi
 
-      - name: Build and Cache Dependencies
+      - name: Cache vcpkg binaries
+        id: cache-vcpkg
         uses: actions/cache@v4
-        id: cache-deps
         with:
           path: |
+            ${{ env.VCPKG_ROOT }}
             ${{ github.workspace }}/vcpkg_installed
-            ${{ github.workspace }}/vcpkg
-          key: linux-vcpkg-qt6-8-3-${{ hashFiles('vcpkg.json') }}
+          key: linux-vcpkg-qt6-${{ hashFiles('vcpkg.json') }}
 
-      - name: Run Vcpkg Install
-        if: steps.cache-deps.outputs.cache-hit != 'true'
+      - name: Vcpkg Install
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         run: |
-          ${{ github.workspace }}/vcpkg/vcpkg install --triplet x64-linux \
+          # Dùng triplet động như trong CMakePresets của bạn
+          ${{ env.VCPKG_ROOT }}/vcpkg install --triplet x64-linux-dynamic \
             --x-install-root="${{ github.workspace }}/vcpkg_installed"
