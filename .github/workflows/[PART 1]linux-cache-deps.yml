@@ -1,11 +1,15 @@
-name: Linux - Build Dependencies
+name: (PART 1) Linux - Build Dependencies
 
 on:
+  workflow_run:
+    workflows: ["Tag trigger"]
+    types: [completed]
   workflow_dispatch:
 
 jobs:
   build-deps:
     name: Build & Cache Dependencies
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
@@ -17,10 +21,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Free Disk Space
+      - name: Restore vcpkg artifacts
+        uses: actions/cache/restore@v4
+        id: restore-cache
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: linux-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            linux-vcpkg-
+
+      - name: Quick Exit if Cache Hit
+        if: steps.restore-cache.outputs.cache-hit == 'true'
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc "/usr/local/share/boost" /usr/lib/jvm
-          docker image prune --all --force
+          echo "Dependencies already cached. Skipping build."
+          exit 0   
 
       - name: Install system dependencies (Qt6 GUI)
         run: |
@@ -43,6 +59,11 @@ jobs:
             libdouble-conversion-dev libmd4c-dev libb2-dev libproxy-dev zlib1g-dev libssl-dev \
             libmd4c-html0 libsecret-1-dev gperf
 
+      - name: Fix Clang version to 18
+        run: |
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+          
       - name: Setup vcpkg
         run: |
           if [ ! -d "${VCPKG_ROOT}/.git" ]; then
@@ -61,17 +82,6 @@ jobs:
           set(QT_FEATURE_shared ON CACHE BOOL "")
           set(QT_FEATURE_static OFF CACHE BOOL "")
           EOF
-
-      - name: Restore vcpkg artifacts
-        uses: actions/cache/restore@v4
-        id: restore-cache
-        with:
-          path: |
-            ${{ github.workspace }}/vcpkg
-            ${{ github.workspace }}/vcpkg_installed
-          key: linux-vcpkg-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            linux-vcpkg-
 
       - name: Install dependencies via vcpkg
         run: |
@@ -93,4 +103,5 @@ jobs:
           path: |
             ${{ github.workspace }}/vcpkg
             ${{ github.workspace }}/vcpkg_installed
-          key: linux-vcpkg-${{ github.run_id }}-${{ github.run_attempt }}
+          key: linux-vcpkg-${{ hashFiles('vcpkg.json') }}
+          
