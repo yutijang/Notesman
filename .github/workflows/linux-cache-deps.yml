@@ -9,15 +9,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf /usr/lib/jvm
-          docker image prune --all --force
-
       - name: Install System Packages (Core Build Tools & Qt Dependencies)
         run: |
           sudo apt-get update
@@ -47,6 +38,14 @@ jobs:
             ./vcpkg/bootstrap-vcpkg.sh
           fi
 
+      - name: Create Custom Release Triplet
+        run: |
+          mkdir -p triplets
+          TRIPLET_PATH=$(find vcpkg/triplets -name "x64-linux-dynamic.cmake")
+          echo "Found triplet at: $TRIPLET_PATH"
+          cp "$TRIPLET_PATH" triplets/x64-linux-release.cmake
+          echo "set(VCPKG_BUILD_TYPE release)" >> triplets/x64-linux-release.cmake
+
       - name: Cache vcpkg artifacts
         id: cache-vcpkg
         uses: actions/cache@v4
@@ -59,10 +58,6 @@ jobs:
       - name: Vcpkg Install (Release Only)
         if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         run: |
-          mkdir -p triplets
-          cp vcpkg/triplets/x64-linux-dynamic.cmake triplets/x64-linux-release.cmake
-          echo "set(VCPKG_BUILD_TYPE release)" >> triplets/x64-linux-release.cmake
-          
           ./vcpkg/vcpkg install --triplet x64-linux-release \
             --overlay-triplets=triplets \
             --x-install-root="${{ github.workspace }}/vcpkg_installed"
@@ -70,4 +65,3 @@ jobs:
       - name: Cleanup buildtrees
         if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         run: rm -rf vcpkg/buildtrees
-        
