@@ -213,20 +213,30 @@ jobs:
         run: |
           QT_ROOT="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic"
           
-          QTPATHS_PATH=$(find "$QT_ROOT" -name "qtpaths*" -type f -executable | head -n 1)
-          sudo ln -sf "$QTPATHS_PATH" /usr/bin/qmake
+          QTPATHS_EXE=$(find "$QT_ROOT" -name "qtpaths" -type f -executable | head -n 1)
+          
+          if [ -z "$QTPATHS_EXE" ]; then
+            echo "ERROR: qtpaths not found in $QT_ROOT"
+            find "$QT_ROOT" -name "qtpaths*"
+            exit 1
+          fi
+          
+          echo "Found qtpaths at: $QTPATHS_EXE"
+          
+          sudo ln -sf "$QTPATHS_EXE" /usr/bin/qmake
+          
+          qmake --version
 
           export QT_PLUGIN_PATH="$QT_ROOT/Qt6/plugins"
           export LD_LIBRARY_PATH="$QT_ROOT/lib:$QT_ROOT/bin:$LD_LIBRARY_PATH"
+          
+          export QMAKE=/usr/bin/qmake
 
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
-            --plugin qt \
-            --custom-apprun
-        env:
-          QMAKE: ${{ steps.find_qt.outputs.qt_bin }}
+            --plugin qt
 
       - name: Remove unused Qt files from AppDir
         run: |
