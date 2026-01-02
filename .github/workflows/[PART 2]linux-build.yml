@@ -214,34 +214,31 @@ jobs:
           VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
           
           if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
-            echo "Renaming x64-linux-dynamic to x64-linux..."
+            echo "Standardizing triplet name..."
             rm -rf "$VCPKG_ROOT/x64-linux"
             mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
           fi
 
           TARGET_DIR="$VCPKG_ROOT/x64-linux"
-          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
+
+          QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
           
           if [ ! -f "$QTPATHS_EXE" ]; then
-            echo "qtpaths not found at $QTPATHS_EXE, checking secondary location..."
-            QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
+            QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
           fi
-
-          echo "Using Qt Tool: $QTPATHS_EXE"
-
-          sudo ln -sf "$QTPATHS_EXE" /usr/bin/qmake
-          export QMAKE=/usr/bin/qmake
+          
+          echo "Final verified Qt Tool path: $QTPATHS_EXE"
 
           mkdir -p "$TARGET_DIR/plugins"
           if [ -d "$TARGET_DIR/Qt6/plugins" ]; then
-            echo "Copying plugins for maximum compatibility..."
             cp -r "$TARGET_DIR/Qt6/plugins/"* "$TARGET_DIR/plugins/"
           fi
 
-          export QT_PLUGIN_PATH="$TARGET_DIR/plugins"
-          export LD_LIBRARY_PATH="$TARGET_DIR/lib:$LD_LIBRARY_PATH"
+          echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
+          echo "QT_PLUGIN_PATH=$TARGET_DIR/plugins" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$TARGET_DIR/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+          QMAKE="$QTPATHS_EXE" ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
