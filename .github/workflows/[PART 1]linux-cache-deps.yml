@@ -58,7 +58,7 @@ jobs:
             libinput-dev libmtdev-dev libevdev-dev libts-dev libudev-dev libvulkan-dev \
             libjpeg-dev libpng-dev libtiff-dev libgif-dev libwebp-dev libavif-dev \
             libdouble-conversion-dev libmd4c-dev libb2-dev libproxy-dev zlib1g-dev libssl-dev \
-            libmd4c-html0 libsecret-1-dev gperf ^libxcb.*-dev \            
+            libmd4c-html0 libsecret-1-dev gperf ^libxcb.*-dev 
 
       - name: Fix Clang version to 18
         run: |
