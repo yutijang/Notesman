@@ -16,6 +16,7 @@ jobs:
       VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
       CC: clang
       CXX: clang++
+      LDFLAGS: "-fuse-ld=lld"
 
     steps:
       - name: Checkout repository
@@ -79,6 +80,8 @@ jobs:
           set(VCPKG_CRT_LINKAGE dynamic)
           set(VCPKG_LIBRARY_LINKAGE dynamic)
           set(VCPKG_CMAKE_SYSTEM_NAME Linux)
+          set(VCPKG_C_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=1")
+          set(VCPKG_CXX_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=1")
           set(QT_FEATURE_shared ON CACHE BOOL "")
           set(QT_FEATURE_static OFF CACHE BOOL "")
           EOF
@@ -92,6 +95,12 @@ jobs:
           VCPKG_FEATURE_FLAGS: manifests
           VCPKG_BUILD_TYPE: release
 
+      - name: Export vcpkg build logs
+        if: failure()
+        run: |
+          find "${{ github.workspace }}/vcpkg/buildtrees" -name "*.log" -exec cp {} ${{ github.workspace }} \;
+          cat ${{ github.workspace }}/install-x64-linux-dynamic-rel-out.log
+          
       - name: Cleanup buildtrees (To keep cache small)
         if: always()
         run: rm -rf "${VCPKG_ROOT}/buildtrees"
