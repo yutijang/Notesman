@@ -96,33 +96,16 @@ jobs:
         run: |
           VCPKG_INSTALLED_ROOT="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
           
-          echo "Dumping all executable files in vcpkg_installed to find Qt tools:"
-          find "$VCPKG_INSTALLED_ROOT" -type f -executable -printf "%P\n" | grep -E "qmake|qt|moc|uic" || echo "No Qt executables found with execution bit."
-
-          QT_BIN=$(find "$VCPKG_INSTALLED_ROOT" -iname "qmake*" -type f | head -n 1)
-
-          if [ -z "$QT_BIN" ]; then
-            echo "qmake not found, searching for 'moc' as fallback..."
-            MOC_BIN=$(find "$VCPKG_INSTALLED_ROOT" -name "moc" -type f | head -n 1)
-            if [ -n "$MOC_BIN" ]; then
-               QT_BIN_DIR=$(dirname "$MOC_BIN")
-               echo "Found moc at $MOC_BIN, using its directory."
-               QT_BIN=$MOC_BIN 
-            fi
-          fi
-
-          if [ -z "$QT_BIN" ]; then
-            echo "CRITICAL ERROR: No Qt tools (qmake/moc) found in vcpkg_installed."
-            exit 1
-          fi
-
-          echo "Found candidate binary at: $QT_BIN"
-          QT_DIR=$(dirname $(dirname "$QT_BIN"))
+          QT_PATHS=$(find "$VCPKG_INSTALLED_ROOT" -name "qtpaths*" -type f -executable | head -n 1)
           
-          echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
-          echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
-          echo "Qt6_DIR=$VCPKG_INSTALLED_ROOT/share/qt6" >> $GITHUB_OUTPUT
-          echo "QMAKE=$QT_BIN" >> $GITHUB_ENV
+          if [ -z "$QT_PATHS" ]; then
+            QT_PATHS=$(find "$VCPKG_INSTALLED_ROOT" -name "moc" -type f -executable | head -n 1)
+          fi
+
+          echo "Found Qt tool at: $QT_PATHS"
+          
+          echo "qt_bin=$QT_PATHS" >> $GITHUB_OUTPUT
+          echo "qt_dir=$(dirname $(dirname "$QT_PATHS"))" >> $GITHUB_OUTPUT
 
       - name: Setup vcpkg binary cache path
         run: |
