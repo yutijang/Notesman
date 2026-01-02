@@ -169,6 +169,37 @@ jobs:
             libxrandr2 libxfixes3 libxrender1 libxkbcommon0 libglu1-mesa libfontconfig1 \
             libfreetype6 libdbus-1-3 libglib2.0-0
 
+      - name: Bundle Qt6 app into AppDir
+        run: |
+          set -e
+
+          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
+          if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
+            rm -rf "$VCPKG_ROOT/x64-linux"
+            mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
+          fi
+
+          TARGET_DIR="$VCPKG_ROOT/x64-linux"
+          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
+
+          mkdir -p AppDir/usr/bin AppDir/usr/lib
+
+          # copy app binary (UNPATCHED, tạm thời)
+          cp "${GITHUB_WORKSPACE}/bin/Notesman" AppDir/usr/bin/Notesman
+          chmod +x AppDir/usr/bin/Notesman
+
+          # copy deps
+          cp -d "$TARGET_DIR/lib"/libspdlog.so* AppDir/usr/lib/
+          cp -d "$TARGET_DIR/lib"/libfmt.so*     AppDir/usr/lib/
+          cp -d "$TARGET_DIR/lib"/libminiz.so*   AppDir/usr/lib/
+          cp -d "$TARGET_DIR/lib"/libsqlite3.so* AppDir/usr/lib/
+          cp -d "$TARGET_DIR/lib"/libssl.so*     AppDir/usr/lib/
+          cp -d "$TARGET_DIR/lib"/libcrypto.so*  AppDir/usr/lib/
+          cp -d "$TARGET_DIR/lib"/libz.so*       AppDir/usr/lib/
+
+          echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=AppDir/usr/lib:$TARGET_DIR/lib" >> $GITHUB_ENV
+
       - name: Patch ELF dependencies (fix spdlog SONAME)
         run: |
           set -e
@@ -179,52 +210,17 @@ jobs:
 
           patchelf \
             --replace-needed libspdlog.so.1.16 libspdlog.so.1 \
-            "$BIN" || true
+            "$BIN"
 
           echo "After patch:"
           readelf -d "$BIN" | grep spdlog || true
 
-      - name: Bundle Qt6 app into AppImage
+      - name: Build AppImage
         run: |
-          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"          
-          if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
-            echo "Standardizing triplet name..."
-            rm -rf "$VCPKG_ROOT/x64-linux"
-            mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
-          fi
-          TARGET_DIR="$VCPKG_ROOT/x64-linux"
-          QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"          
-          if [ ! -f "$QTPATHS_EXE" ]; then
-            QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
-          fi          
-          echo "Final verified Qt Tool path: $QTPATHS_EXE"
-
-          mkdir -p AppDir/usr/lib
-          echo "Injecting non-Qt dependencies from vcpkg.json..."
-
-          cp -d "$TARGET_DIR/lib"/libspdlog.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$TARGET_DIR/lib"/libfmt.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$TARGET_DIR/lib"/libminiz.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$TARGET_DIR/lib"/libsqlite3.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$TARGET_DIR/lib"/libssl.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$TARGET_DIR/lib"/libcrypto.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$TARGET_DIR/lib"/libz.so* AppDir/usr/lib/ 2>/dev/null || true          
-
-          mkdir -p "$TARGET_DIR/plugins"
-          if [ -d "$TARGET_DIR/Qt6/plugins" ]; then
-            cp -r "$TARGET_DIR/Qt6/plugins/"* "$TARGET_DIR/plugins/"
-          fi
-
-          echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
-          echo "QT_PLUGIN_PATH=$TARGET_DIR/plugins" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-
-          mkdir -p AppDir/usr/bin
-          cp -f "${GITHUB_WORKSPACE}/bin/Notesman" AppDir/usr/bin/Notesman
-          chmod +x AppDir/usr/bin/Notesman
-
           LINUXDEPLOY="${GITHUB_WORKSPACE}/linuxdeploy-x86_64.AppImage"
-          QMAKE="$QTPATHS_EXE" "$LINUXDEPLOY" --appdir AppDir \
+          chmod +x "$LINUXDEPLOY"
+
+          "$LINUXDEPLOY" --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
