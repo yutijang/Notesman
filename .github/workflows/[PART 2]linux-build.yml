@@ -211,21 +211,37 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
-          REAL_QT_ROOT="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic"
-          EXPECTED_QT_ROOT="${{ github.workspace }}/vcpkg_installed/x64-linux"
-
-          if [ "$REAL_QT_ROOT" != "$EXPECTED_QT_ROOT" ]; then
-            ln -sf "$REAL_QT_ROOT" "$EXPECTED_QT_ROOT"
+          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
+          
+          echo "Checking for qtpaths..."
+          QTPATHS_EXE=$(find "$VCPKG_ROOT" -name "qtpaths" -type f -executable | head -n 1)
+          
+          if [ -z "$QTPATHS_EXE" ]; then
+             echo "qtpaths not found, trying qmake..."
+             QTPATHS_EXE=$(find "$VCPKG_ROOT" -name "qmake" -type f -executable | head -n 1)
           fi
 
-          QT_TOOL_PATH=$(find "$REAL_QT_ROOT" -name "qtpaths" -type f -executable | head -n 1)
-          sudo ln -sf "$QT_TOOL_PATH" /usr/bin/qmake
-          
+          if [ -z "$QTPATHS_EXE" ]; then
+             QTPATHS_EXE="$VCPKG_ROOT/x64-linux-dynamic/tools/qt6/bin/qtpaths"
+          fi
+
+          echo "Final QT_TOOL_PATH: '$QTPATHS_EXE'"
+
+          if [ -n "$QTPATHS_EXE" ] && [ -f "$QTPATHS_EXE" ]; then
+             sudo ln -sf "$QTPATHS_EXE" /usr/bin/qmake
+             sudo ln -sf "$QTPATHS_EXE" /usr/bin/qtpaths
+          else
+             echo "ERROR: Cannot find any Qt tool to link!"
+             exit 1
+          fi
+
+          if [ ! -d "$VCPKG_ROOT/x64-linux" ]; then
+             ln -s "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
+          fi
+
           export QMAKE=/usr/bin/qmake
-          export QT_PLUGIN_PATH="$REAL_QT_ROOT/Qt6/plugins"
-          export LD_LIBRARY_PATH="$REAL_QT_ROOT/lib:$REAL_QT_ROOT/bin:$LD_LIBRARY_PATH"
-          
-          export EXTRA_QT_PLUGINS="platforms"
+          export QT_PLUGIN_PATH="$VCPKG_ROOT/x64-linux-dynamic/Qt6/plugins"
+          export LD_LIBRARY_PATH="$VCPKG_ROOT/x64-linux-dynamic/lib:$LD_LIBRARY_PATH"
 
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
