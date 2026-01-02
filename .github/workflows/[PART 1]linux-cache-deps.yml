@@ -90,7 +90,8 @@ jobs:
         run: |
           "$VCPKG_ROOT/vcpkg" install --triplet "${{ env.VCPKG_DEFAULT_TRIPLET }}" \
             --overlay-triplets="$GITHUB_WORKSPACE/vcpkg-triplets" \
-            --x-install-root="${{ github.workspace }}/vcpkg_installed"
+            --x-install-root="${{ github.workspace }}/vcpkg_installed" \
+            --clean-after-build
         env:
           VCPKG_FEATURE_FLAGS: manifests
           VCPKG_BUILD_TYPE: release
