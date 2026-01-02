@@ -212,29 +212,30 @@ jobs:
       - name: Bundle Qt6 app into AppImage
         run: |
           VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
-          REAL_DIR="$VCPKG_ROOT/x64-linux-dynamic"
+          
+          if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
+            echo "Renaming x64-linux-dynamic to x64-linux..."
+            rm -rf "$VCPKG_ROOT/x64-linux"
+            mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
+          fi
+
           TARGET_DIR="$VCPKG_ROOT/x64-linux"
-
-          if [ -d "$REAL_DIR" ]; then
-            echo "Moving $REAL_DIR to $TARGET_DIR to satisfy linuxdeploy"
-            rm -rf "$TARGET_DIR"
-            mv "$REAL_DIR" "$TARGET_DIR"
+          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
+          
+          if [ ! -f "$QTPATHS_EXE" ]; then
+            echo "qtpaths not found at $QTPATHS_EXE, checking secondary location..."
+            QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
           fi
 
-          QTPATHS_EXE=$(find "$TARGET_DIR" -name "qtpaths" -type f -executable | head -n 1)
-          echo "Final QT_TOOL_PATH: '$QTPATHS_EXE'"
-
-          if [ -z "$QTPATHS_EXE" ]; then
-             echo "ERROR: Cannot find qtpaths!"
-             exit 1
-          fi
+          echo "Using Qt Tool: $QTPATHS_EXE"
 
           sudo ln -sf "$QTPATHS_EXE" /usr/bin/qmake
           export QMAKE=/usr/bin/qmake
 
-          if [ -d "$TARGET_DIR/Qt6/plugins" ] && [ ! -d "$TARGET_DIR/plugins" ]; then
-             echo "Linking Qt6/plugins to plugins for compatibility"
-             ln -sf "$TARGET_DIR/Qt6/plugins" "$TARGET_DIR/plugins"
+          mkdir -p "$TARGET_DIR/plugins"
+          if [ -d "$TARGET_DIR/Qt6/plugins" ]; then
+            echo "Copying plugins for maximum compatibility..."
+            cp -r "$TARGET_DIR/Qt6/plugins/"* "$TARGET_DIR/plugins/"
           fi
 
           export QT_PLUGIN_PATH="$TARGET_DIR/plugins"
