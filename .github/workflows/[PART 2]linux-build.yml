@@ -72,7 +72,7 @@ jobs:
           ls "$VCPKG_ROOT_TRIPLET/lib" | grep xcb || echo "No xcb libs in /lib"
           
           echo "3. Checking Qt6 Config Summary (if exists):"
-          find "$VCPKG_ROOT_TRIPLET" -name "Qt6ConfigExtras.cmake"            
+          find "$VCPKG_ROOT_TRIPLET" -name "Qt6ConfigExtras.cmake"
 
       - name: Verify Cache Integrity
         run: |

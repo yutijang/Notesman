@@ -51,14 +51,10 @@ jobs:
             libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render0-dev \
             libxcb-render-util0-dev libxcb-util-dev libxcb-xinput-dev libxcb-cursor-dev \
             libxcb-glx0-dev libxcb-xkb-dev libxcb-xinerama0-dev libxcb-damage0-dev \
-            libxcb-composite0-dev libgtk-3-dev libsm-dev libice-dev libpthread-stubs0-dev \
-            libwayland-dev libwayland-egl-backend-dev libgl1-mesa-dev libegl1-mesa-dev \
-            libgles2-mesa-dev mesa-common-dev libglu1-mesa-dev libfontconfig1-dev \
-            libfreetype6-dev libharfbuzz-dev libicu-dev libdbus-1-dev libatspi2.0-dev \
-            libinput-dev libmtdev-dev libevdev-dev libts-dev libudev-dev libvulkan-dev \
-            libjpeg-dev libpng-dev libtiff-dev libgif-dev libwebp-dev libavif-dev \
-            libdouble-conversion-dev libmd4c-dev libb2-dev libproxy-dev zlib1g-dev libssl-dev \
-            libmd4c-html0 libsecret-1-dev gperf ^libxcb.*-dev 
+            libxcb-composite0-dev libgtk-3-dev libsm-dev libice-dev libgl1-mesa-dev \
+            libegl1-mesa-dev libgles2-mesa-dev mesa-common-dev libglu1-mesa-dev \
+            libfontconfig1-dev libfreetype6-dev libharfbuzz-dev libicu-dev libdbus-1-dev \
+            libudev-dev libvulkan-dev libssl-dev libsecret-1-dev gperf
 
       - name: Fix Clang version to 18
         run: |

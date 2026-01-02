@@ -20,6 +20,15 @@
                 "widgets"
             ]
         },
+        {
+            "name": "qtbase",
+            "platform": "linux",
+            "features": [
+                "xcb",
+                "xkb",
+                "fontconfig"
+            ]
+        },
         "qtsvg",
         "zlib"
     ],
