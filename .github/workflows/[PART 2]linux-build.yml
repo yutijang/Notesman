@@ -200,27 +200,36 @@ jobs:
           echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=AppDir/usr/lib:$TARGET_DIR/lib" >> $GITHUB_ENV
 
-      - name: Patch ELF dependencies (fix spdlog SONAME)
+      - name: Prepare AppDir and fix spdlog SONAME
         run: |
           set -e
-          BIN="AppDir/usr/bin/Notesman"
 
-          echo "Before patch:"
-          readelf -d "$BIN" | grep spdlog || true
+          TARGET_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux"
+          mkdir -p AppDir/usr/bin AppDir/usr/lib
 
-          patchelf \
-            --replace-needed libspdlog.so.1.16 libspdlog.so.1 \
-            "$BIN"
+          # copy app
+          cp bin/Notesman AppDir/usr/bin/Notesman
+          chmod +x AppDir/usr/bin/Notesman
 
-          echo "After patch:"
-          readelf -d "$BIN" | grep spdlog || true
+          # copy spdlog
+          cp "$TARGET_DIR/lib"/libspdlog.so* AppDir/usr/lib/
+
+          # FIX: ép SONAME đúng cái binary cần
+          patchelf --set-soname libspdlog.so.1 AppDir/usr/lib/libspdlog.so*
+
+          # các deps khác
+          cp "$TARGET_DIR/lib"/libfmt.so*     AppDir/usr/lib/ || true
+          cp "$TARGET_DIR/lib"/libminiz.so*   AppDir/usr/lib/ || true
+          cp "$TARGET_DIR/lib"/libsqlite3.so* AppDir/usr/lib/ || true
+          cp "$TARGET_DIR/lib"/libssl.so*     AppDir/usr/lib/ || true
+          cp "$TARGET_DIR/lib"/libcrypto.so*  AppDir/usr/lib/ || true
+          cp "$TARGET_DIR/lib"/libz.so*       AppDir/usr/lib/ || true
 
       - name: Build AppImage
         run: |
-          LINUXDEPLOY="${GITHUB_WORKSPACE}/linuxdeploy-x86_64.AppImage"
-          chmod +x "$LINUXDEPLOY"
-
-          "$LINUXDEPLOY" --appdir AppDir \
+          chmod +x linuxdeploy-x86_64.AppImage
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
