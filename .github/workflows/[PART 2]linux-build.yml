@@ -1,4 +1,4 @@
-name: (PART 2) Build & Release (Linux)
+name: (PART 2) Linux - Build & Release
 
 on:
   workflow_run:
