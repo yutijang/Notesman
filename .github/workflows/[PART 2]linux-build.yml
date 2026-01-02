@@ -212,13 +212,10 @@ jobs:
       - name: Bundle Qt6 app into AppImage
         run: |
           VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
-          
           if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
-            echo "Standardizing triplet name..."
             rm -rf "$VCPKG_ROOT/x64-linux"
             mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
           fi
-
           TARGET_DIR="$VCPKG_ROOT/x64-linux"
 
           QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
@@ -227,20 +224,18 @@ jobs:
           fi
           echo "Final verified Qt Tool path: $QTPATHS_EXE"
 
+          sudo ln -sf "$QTPATHS_EXE" /usr/bin/qmake
+          sudo ln -sf "$QTPATHS_EXE" /usr/bin/qtpaths
+
           mkdir -p "$TARGET_DIR/plugins"
           if [ -d "$TARGET_DIR/Qt6/plugins" ]; then
             cp -r "$TARGET_DIR/Qt6/plugins/"* "$TARGET_DIR/plugins/"
           fi
 
-          export QMAKE="$QTPATHS_EXE"
-          export QT_PLUGIN_PATH="$TARGET_DIR/plugins"
-          export LD_LIBRARY_PATH="$TARGET_DIR/lib:$LD_LIBRARY_PATH"
-          
-          echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
-          echo "QT_PLUGIN_PATH=$TARGET_DIR/plugins" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
-
-          EXTRA_LD_LIBRARY_PATH="$TARGET_DIR/lib" QMAKE="$QTPATHS_EXE" ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+          QMAKE="/usr/bin/qmake" \
+          LD_LIBRARY_PATH="$TARGET_DIR/lib:$LD_LIBRARY_PATH" \
+          QT_PLUGIN_PATH="$TARGET_DIR/plugins" \
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
