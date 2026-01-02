@@ -171,46 +171,38 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
-          TARGET_DIR="vcpkg_installed/x64-linux-dynamic"
+          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
           
-          QTP_SRC=$(find "$TARGET_DIR/bin" -name "qtpaths" -type f -executable | head -n 1)
-          
-          if [ -z "$QTP_SRC" ]; then
-            QTP_SRC=$(find "$TARGET_DIR" -name "qtpaths" -type f -executable | head -n 1)
+          if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
+            echo "Standardizing triplet name..."
+            rm -rf "$VCPKG_ROOT/x64-linux"
+            mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
           fi
 
-          if [ -z "$QTP_SRC" ]; then
-            echo "ERROR: qtpaths still not found. Listing all executables in bin:"
-            ls -F "$TARGET_DIR/bin"
-            exit 1
+          TARGET_DIR="$VCPKG_ROOT/x64-linux"
+
+          QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
+          
+          if [ ! -f "$QTPATHS_EXE" ]; then
+            QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
           fi
           
-          echo "Found qtpaths at: $QTP_SRC"
-          sudo cp "$QTP_SRC" /usr/bin/qmake
-          sudo cp "$QTP_SRC" /usr/bin/qtpaths
-          sudo chmod +x /usr/bin/qmake /usr/bin/qtpaths
+          echo "Final verified Qt Tool path: $QTPATHS_EXE"
 
-          mkdir -p AppDir/usr/lib
-          LIB_DIR="$TARGET_DIR/lib"
-          
-          cp -d "$LIB_DIR"/libspdlog.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$LIB_DIR"/libfmt.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$LIB_DIR"/libminiz.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$LIB_DIR"/libsqlite3.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$LIB_DIR"/libssl.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$LIB_DIR"/libcrypto.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -d "$LIB_DIR"/libz.so* AppDir/usr/lib/ 2>/dev/null || true
+          mkdir -p "$TARGET_DIR/plugins"
+          if [ -d "$TARGET_DIR/Qt6/plugins" ]; then
+            cp -r "$TARGET_DIR/Qt6/plugins/"* "$TARGET_DIR/plugins/"
+          fi
 
-          export QMAKE="/usr/bin/qmake"
-          export LD_LIBRARY_PATH="AppDir/usr/lib:$LIB_DIR:$LD_LIBRARY_PATH"
-          export QT_PLUGIN_PATH="$TARGET_DIR/plugins"
+          echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
+          echo "QT_PLUGIN_PATH=$TARGET_DIR/plugins" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$TARGET_DIR/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+          QMAKE="$QTPATHS_EXE" ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
-            --plugin qt \
-            --output appimage
+            --plugin qt
 
       - name: Remove unused Qt files from AppDir
         run: |
