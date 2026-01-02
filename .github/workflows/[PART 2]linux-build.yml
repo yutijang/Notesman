@@ -103,10 +103,7 @@ jobs:
 
       - name: Debug vcpkg_installed
         run: |
-          ls -R ${{ github.workspace }}/vcpkg_installed
-
-          pkg-config --exists --print-errors xcb xcb-icccm xcb-image xcb-keysyms xcb-renderutil xcb-xkb xkbcommon-x11
-          echo "Exit code: $?"
+          find vcpkg_installed -name "libqxcb.so"
 
       # - name: Locate Qt6 installation
       #   id: find_qt
