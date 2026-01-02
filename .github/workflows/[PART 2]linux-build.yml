@@ -219,16 +219,11 @@ jobs:
           TARGET_DIR="$VCPKG_ROOT/x64-linux"
 
           REAL_QT_PATH=$(find "$TARGET_DIR" -name "qtpaths" -type f -executable | head -n 1)
-          echo "Real Qt path found: $REAL_QT_PATH"
-
           sudo cp "$REAL_QT_PATH" /usr/bin/qmake
           sudo chmod +x /usr/bin/qmake
-          
-          /usr/bin/qmake --version
 
           mkdir -p AppDir/usr/lib
-          cp "$TARGET_DIR/lib/libspdlog.so"* AppDir/usr/lib/ || true
-          cp "$TARGET_DIR/lib/libfmt.so"* AppDir/usr/lib/ || true
+          find "$TARGET_DIR/lib" -name "*.so*" -exec cp -d {} AppDir/usr/lib/ \;
 
           QMAKE="/usr/bin/qmake" \
           QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins" \
