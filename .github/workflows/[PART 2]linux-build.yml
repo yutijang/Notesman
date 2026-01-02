@@ -173,11 +173,15 @@ jobs:
         run: |
           TARGET_DIR="vcpkg_installed/x64-linux-dynamic"
           
-          QTP_SRC=$(find "$TARGET_DIR" -name "qtpaths" -type f -executable | head -n 1)
+          QTP_SRC=$(find "$TARGET_DIR/bin" -name "qtpaths" -type f -executable | head -n 1)
           
           if [ -z "$QTP_SRC" ]; then
-            echo "ERROR: Cannot find qtpaths in $TARGET_DIR"
-            ls -R "$TARGET_DIR/tools"
+            QTP_SRC=$(find "$TARGET_DIR" -name "qtpaths" -type f -executable | head -n 1)
+          fi
+
+          if [ -z "$QTP_SRC" ]; then
+            echo "ERROR: qtpaths still not found. Listing all executables in bin:"
+            ls -F "$TARGET_DIR/bin"
             exit 1
           fi
           
@@ -199,7 +203,7 @@ jobs:
 
           export QMAKE="/usr/bin/qmake"
           export LD_LIBRARY_PATH="AppDir/usr/lib:$LIB_DIR:$LD_LIBRARY_PATH"
-          export QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins"
+          export QT_PLUGIN_PATH="$TARGET_DIR/plugins"
 
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
