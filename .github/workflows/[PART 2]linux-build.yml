@@ -195,10 +195,8 @@ jobs:
           cp -d "$TARGET_DIR/lib"/libcrypto.so* AppDir/usr/lib/ 2>/dev/null || true
           cp -d "$TARGET_DIR/lib"/libz.so* AppDir/usr/lib/ 2>/dev/null || true          
 
-          cd AppDir/usr/lib
-
-          if [ ! -f libspdlog.so.1.16 ] && [ -f libspdlog.so.1 ]; then
-            ln -s libspdlog.so.1 libspdlog.so.1.16
+          if [ ! -f AppDir/usr/lib/libspdlog.so.1.16 ] && [ -f AppDir/usr/lib/libspdlog.so.1 ]; then
+            ln -s libspdlog.so.1 AppDir/usr/lib/libspdlog.so.1.16
           fi
 
           mkdir -p "$TARGET_DIR/plugins"
