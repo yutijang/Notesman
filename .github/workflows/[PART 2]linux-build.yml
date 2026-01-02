@@ -210,7 +210,9 @@ jobs:
           echo "QT_PLUGIN_PATH=$TARGET_DIR/plugins" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
-          QMAKE="$QTPATHS_EXE" ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+          LINUXDEPLOY="${GITHUB_WORKSPACE}/linuxdeploy-x86_64.AppImage"
+
+          QMAKE="$QTPATHS_EXE" "$LINUXDEPLOY" --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
