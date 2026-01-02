@@ -91,21 +91,21 @@ jobs:
       - name: Debug vcpkg_installed
         run: ls -R ${{ github.workspace }}/vcpkg_installed
 
-      - name: Locate Qt6 installation
-        id: find_qt
-        run: |
-          VCPKG_INSTALLED_ROOT="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
+      # - name: Locate Qt6 installation
+      #   id: find_qt
+      #   run: |
+      #     VCPKG_INSTALLED_ROOT="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
           
-          QT_PATHS=$(find "$VCPKG_INSTALLED_ROOT" -name "qtpaths*" -type f -executable | head -n 1)
+      #     QT_PATHS=$(find "$VCPKG_INSTALLED_ROOT" -name "qtpaths*" -type f -executable | head -n 1)
           
-          if [ -z "$QT_PATHS" ]; then
-            QT_PATHS=$(find "$VCPKG_INSTALLED_ROOT" -name "moc" -type f -executable | head -n 1)
-          fi
+      #     if [ -z "$QT_PATHS" ]; then
+      #       QT_PATHS=$(find "$VCPKG_INSTALLED_ROOT" -name "moc" -type f -executable | head -n 1)
+      #     fi
 
-          echo "Found Qt tool at: $QT_PATHS"
+      #     echo "Found Qt tool at: $QT_PATHS"
           
-          echo "qt_bin=$QT_PATHS" >> $GITHUB_OUTPUT
-          echo "qt_dir=$(dirname $(dirname "$QT_PATHS"))" >> $GITHUB_OUTPUT
+      #     echo "qt_bin=$QT_PATHS" >> $GITHUB_OUTPUT
+      #     echo "qt_dir=$(dirname $(dirname "$QT_PATHS"))" >> $GITHUB_OUTPUT
 
       - name: Setup vcpkg binary cache path
         run: |
@@ -190,13 +190,19 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
+          VCPKG_BIN_DIR="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/tools/Qt6/bin"
+          ln -sf "$VCPKG_BIN_DIR/qt-cmake" "$VCPKG_BIN_DIR/qmake"
+          
+          export PATH="$VCPKG_BIN_DIR:$PATH"
+          export QMAKE="$VCPKG_BIN_DIR/qmake"
+
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
             --plugin qt
-        env:
-          QMAKE: ${{ steps.find_qt.outputs.qt_bin }}
+        # env:
+          # QMAKE: ${{ steps.find_qt.outputs.qt_bin }}
 
       - name: Remove unused Qt files from AppDir
         run: |
