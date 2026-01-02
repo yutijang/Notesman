@@ -6,7 +6,10 @@
         "openssl",
         "catch2",
         "spdlog",
-        "miniz",
+        {
+            "name": "miniz",
+            "platform": "windows"
+        },
         {
             "name": "sqlite3",
             "features": [

@@ -255,27 +255,28 @@ jobs:
           cp apps/notesman/resources/icons/icon.png \
             "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
 
-      - name: Build AppImage
+      - name: Build AppImage (Qt6 via qtpaths)
         run: |
           set -e
 
           TARGET_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux"
 
-          if [ -x "$TARGET_DIR/tools/qt6/bin/qmake" ]; then
-            QMAKE_EXE="$TARGET_DIR/tools/qt6/bin/qmake"
-          elif [ -x "$TARGET_DIR/Qt6/bin/qmake" ]; then
-            QMAKE_EXE="$TARGET_DIR/Qt6/bin/qmake"
-          else
-            echo "ERROR: qmake not found"
-            find "$TARGET_DIR" -name qmake || true
+          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
+          if [ ! -x "$QTPATHS_EXE" ]; then
+            echo "ERROR: qtpaths not found"
+            find "$TARGET_DIR" -name qtpaths || true
             exit 1
           fi
 
-          echo "Using qmake: $QMAKE_EXE"
+          echo "Using qtpaths: $QTPATHS_EXE"
+
+          export QT_QPA_PLATFORM_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins/platforms"
+          export QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins"
+          export LD_LIBRARY_PATH="AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH"
 
           chmod +x linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
 
-          QMAKE="$QMAKE_EXE" \
           ./linuxdeploy-x86_64.AppImage \
             --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
