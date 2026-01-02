@@ -174,23 +174,23 @@ jobs:
           VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
           TARGET_DIR="$VCPKG_ROOT/x64-linux-dynamic"
           
-          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
-          [ ! -f "$QTPATHS_EXE" ] && QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
-          echo "Using verified QTPATHS: $QTPATHS_EXE"
+          REAL_QT_PATH="$TARGET_DIR/tools/qt6/qtpaths"
+          
+          sudo ln -sf "$REAL_QT_PATH" /usr/bin/qmake
+          sudo ln -sf "$REAL_QT_PATH" /usr/bin/qtpaths
+          sudo chmod +x /usr/bin/qmake /usr/bin/qtpaths
+
+          qmake --version
 
           mkdir -p AppDir/usr/lib
-          
-          echo "Copying verified libraries from log..."
           cp -P "$TARGET_DIR/lib"/libspdlog.so* AppDir/usr/lib/
           cp -P "$TARGET_DIR/lib"/libfmt.so* AppDir/usr/lib/
           cp -P "$TARGET_DIR/lib"/libminiz.so* AppDir/usr/lib/
           cp -P "$TARGET_DIR/lib"/libsqlite3.so* AppDir/usr/lib/
 
-          export QMAKE="$QTPATHS_EXE"
-          export LD_LIBRARY_PATH="AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH"
-          export QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins"
-
-          QMAKE="$QTPATHS_EXE" ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+          LD_LIBRARY_PATH="AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH" \
+          QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins" \
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
