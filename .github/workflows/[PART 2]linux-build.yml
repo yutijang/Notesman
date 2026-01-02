@@ -194,21 +194,16 @@ jobs:
           echo "Real triplet directory: $REAL_TRIPLET_DIR"
           
           QTPATHS_PATH=$(find "$REAL_TRIPLET_DIR" -name "qtpaths*" -type f -executable | head -n 1)
-          
-          if [ -z "$QTPATHS_PATH" ]; then
-            echo "ERROR: qtpaths not found in $REAL_TRIPLET_DIR"
-            find "${{ github.workspace }}/vcpkg_installed" -maxdepth 4
-            exit 1
-          fi
-          echo "Found qtpaths at: $QTPATHS_PATH"
-
           sudo ln -sf "$QTPATHS_PATH" /usr/bin/qmake
-          
+
           mkdir -p "$REAL_TRIPLET_DIR/Qt6"
-          if [ -d "$REAL_TRIPLET_DIR/plugins" ]; then
-             ln -sf "$REAL_TRIPLET_DIR/plugins" "$REAL_TRIPLET_DIR/Qt6/plugins"
-             echo "Linked plugins folder to Qt6/plugins"
-          fi
+          
+          rm -f "$REAL_TRIPLET_DIR/Qt6/plugins"
+          
+          ln -s "$REAL_TRIPLET_DIR/plugins" "$REAL_TRIPLET_DIR/Qt6/plugins"
+          
+          echo "Checking if libqxcb.so exists at the expected path:"
+          ls -l "$REAL_TRIPLET_DIR/Qt6/plugins/platforms/libqxcb.so" || echo "STILL NOT FOUND!"
 
           export QT_PLUGIN_PATH="$REAL_TRIPLET_DIR/plugins"
           export LD_LIBRARY_PATH="$REAL_TRIPLET_DIR/lib:$LD_LIBRARY_PATH"
