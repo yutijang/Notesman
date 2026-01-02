@@ -1,4 +1,4 @@
-name: Build & Release (Windows)
+name: (SINGLE JOB) Windows - Build & Release
 
 on:
   workflow_run:
