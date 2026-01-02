@@ -42,7 +42,7 @@ jobs:
             libsecret-1-dev clang lld \
             autoconf autoconf-archive automake libtool libltdl-dev gettext \
             '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev \
-            libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev
+            libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev            
 
       - name: Fix Clang version to 18
         run: |
@@ -102,8 +102,7 @@ jobs:
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
 
       - name: Debug vcpkg_installed
-        run: |
-          find vcpkg_installed -name "libqxcb.so"
+        run: ls -R ${{ github.workspace }}/vcpkg_installed
 
       # - name: Locate Qt6 installation
       #   id: find_qt
@@ -144,7 +143,7 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }} \
             -DVCPKG_INSTALLED_DIR=${{ github.workspace }}/vcpkg_installed \
             -DVCPKG_MANIFEST_MODE=ON \
-            -DVCPKG_MANIFEST_INSTALL=OFF \
+            -DVCPKG_MANIFEST_INSTALL=OFF \            
             -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
@@ -212,20 +211,20 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
-          REAL_TRIPLET_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux"
-          QTPATHS_PATH=$(find "$REAL_TRIPLET_DIR" -name "qtpaths*" -type f -executable | head -n 1)
+          QT_ROOT="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic"
+          
+          QTPATHS_PATH=$(find "$QT_ROOT" -name "qtpaths*" -type f -executable | head -n 1)
           sudo ln -sf "$QTPATHS_PATH" /usr/bin/qmake
-          REAL_LIB_PATH=$(find "$REAL_TRIPLET_DIR" -name "libqxcb.so" | head -n 1)
-          TARGET_DIR="$REAL_TRIPLET_DIR/Qt6/plugins/platforms"
-          sudo mkdir -p "$TARGET_DIR"
-          sudo ln -sf "$REAL_LIB_PATH" "$TARGET_DIR/libqxcb.so"
-          sudo ln -sf "$REAL_TRIPLET_DIR/plugins/"* "$REAL_TRIPLET_DIR/Qt6/plugins/" 2>/dev/null || true
+
+          export QT_PLUGIN_PATH="$QT_ROOT/Qt6/plugins"
+          export LD_LIBRARY_PATH="$QT_ROOT/lib:$QT_ROOT/bin:$LD_LIBRARY_PATH"
 
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
-            --plugin qt
+            --plugin qt \
+            --custom-apprun
         env:
           QMAKE: ${{ steps.find_qt.outputs.qt_bin }}
 
