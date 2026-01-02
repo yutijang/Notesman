@@ -61,27 +61,6 @@ jobs:
           restore-keys: |
             linux-vcpkg-
 
-      - name: Locate Dependencies Diagnostic
-        run: |
-          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
-          TARGET_DIR="$VCPKG_ROOT/x64-linux"
-          [ -d "$VCPKG_ROOT/x64-linux-dynamic" ] && TARGET_DIR="$VCPKG_ROOT/x64-linux-dynamic"
-          
-          echo "Scanning TARGET_DIR: $TARGET_DIR"
-          echo "--------------------------------------"
-          
-          DEPS=("openssl" "spdlog" "miniz" "sqlite3" "zlib" "fmt")
-          
-          for DEP in "${DEPS[@]}"; do
-            echo "Searching for $DEP..."
-            find "$TARGET_DIR" -name "lib${DEP}*.so*" -type f,l 2>/dev/null || echo "  -> NOT FOUND"
-          done
-          
-          echo "--------------------------------------"
-          echo "Checking Qt Tool position:"
-          find "$TARGET_DIR" -name "qtpaths" -type f -executable
-          exit 0
-
       - name: Verify Cache Integrity
         run: |
           if [ ! -d "${{ github.workspace }}/vcpkg_installed" ]; then
@@ -108,33 +87,6 @@ jobs:
             > "${CCACHE_DIR}/ccache.conf"
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
-
-      # - name: Debug vcpkg_installed
-      #   run: ls -R ${{ github.workspace }}/vcpkg_installed
-
-      # - name: Locate Qt6 installation
-      #   id: find_qt
-      #   run: |
-      #     VCPKG_QT_PATH="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          
-      #     echo "Searching in: $VCPKG_QT_PATH"
-          
-      #     QT_BIN=$(find "$VCPKG_QT_PATH" -name qmake -type f | grep -E "tools|bin" | head -n 1)
-
-      #     if [ -z "$QT_BIN" ] || [ ! -f "$QT_BIN" ]; then
-      #       echo "Current directory structure for debugging:"
-      #       find "$VCPKG_QT_PATH" -maxdepth 4
-      #       echo "Error: Could not find qmake in vcpkg_installed."
-      #       exit 1
-      #     fi
-
-      #     echo "Found qmake at: $QT_BIN"
-      #     QT_DIR=$(dirname $(dirname "$QT_BIN"))
-          
-      #     echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
-      #     echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
-      #     echo "Qt6_DIR=$VCPKG_QT_PATH/share/qt6" >> $GITHUB_OUTPUT
-      #     echo "QMAKE=$QT_BIN" >> $GITHUB_ENV
 
       - name: Setup vcpkg binary cache path
         run: |
@@ -220,23 +172,25 @@ jobs:
       - name: Bundle Qt6 app into AppImage
         run: |
           VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
-          if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
-            rm -rf "$VCPKG_ROOT/x64-linux"
-            mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
-          fi
-          TARGET_DIR="$VCPKG_ROOT/x64-linux"
-
-          REAL_QT_PATH=$(find "$TARGET_DIR" -name "qtpaths" -type f -executable | head -n 1)
-          sudo ln -sf "$REAL_QT_PATH" /usr/bin/qmake
-          sudo ln -sf "$REAL_QT_PATH" /usr/bin/qtpaths
+          TARGET_DIR="$VCPKG_ROOT/x64-linux-dynamic"
+          
+          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
+          [ ! -f "$QTPATHS_EXE" ] && QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
+          echo "Using verified QTPATHS: $QTPATHS_EXE"
 
           mkdir -p AppDir/usr/lib
-          cp -P "$TARGET_DIR/lib"/lib*.so* AppDir/usr/lib/
+          
+          echo "Copying verified libraries from log..."
+          cp -P "$TARGET_DIR/lib"/libspdlog.so* AppDir/usr/lib/
+          cp -P "$TARGET_DIR/lib"/libfmt.so* AppDir/usr/lib/
+          cp -P "$TARGET_DIR/lib"/libminiz.so* AppDir/usr/lib/
+          cp -P "$TARGET_DIR/lib"/libsqlite3.so* AppDir/usr/lib/
 
-          QMAKE="/usr/bin/qmake" \
-          QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins" \
-          LD_LIBRARY_PATH="$TARGET_DIR/lib:$LD_LIBRARY_PATH" \
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+          export QMAKE="$QTPATHS_EXE"
+          export LD_LIBRARY_PATH="AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH"
+          export QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins"
+
+          QMAKE="$QTPATHS_EXE" ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
