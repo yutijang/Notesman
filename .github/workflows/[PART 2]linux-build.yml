@@ -96,24 +96,24 @@ jobs:
         run: |
           VCPKG_INSTALLED_ROOT="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
           
-          echo "Listing top-level directories in vcpkg_installed for debug:"
-          ls -F "$VCPKG_INSTALLED_ROOT"
+          echo "Searching for qmake or qmake6..."
+          QT_BIN=$(find "$VCPKG_INSTALLED_ROOT" -type f \( -name "qmake" -o -name "qmake6" \) | grep -E "bin|libexec|tools" | head -n 1)
 
-          QT_BIN=$(find "$VCPKG_INSTALLED_ROOT" -name qmake -type f | head -n 1)
-
-          if [ -z "$QT_BIN" ]; then
-            echo "Error: qmake not found. Full directory tree (3 levels):"
-            find "$VCPKG_INSTALLED_ROOT" -maxdepth 3
+          if [ -z "$QT_BIN" ] || [ ! -f "$QT_BIN" ]; then
+            echo "Error: Neither qmake nor qmake6 found."
+            echo "Checking libexec content:"
+            ls -F "$VCPKG_INSTALLED_ROOT/libexec" || echo "libexec not found"
             exit 1
           fi
 
-          echo "Found qmake at: $QT_BIN"
+          echo "Found Qt binary at: $QT_BIN"
           
           QT_DIR=$(dirname $(dirname "$QT_BIN"))
           
           echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
           echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
           echo "Qt6_DIR=$VCPKG_INSTALLED_ROOT/share/qt6" >> $GITHUB_OUTPUT
+          
           echo "QMAKE=$QT_BIN" >> $GITHUB_ENV
 
       - name: Setup vcpkg binary cache path
