@@ -190,11 +190,11 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
-          VCPKG_BIN_DIR="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}/tools/Qt6/bin"
-          ln -sf "$VCPKG_BIN_DIR/qt-cmake" "$VCPKG_BIN_DIR/qmake"
+          QTPATHS_PATH=$(find ${{ github.workspace }}/vcpkg_installed -name "qtpaths*" -type f -executable | head -n 1)
           
-          export PATH="$VCPKG_BIN_DIR:$PATH"
-          export QMAKE="$VCPKG_BIN_DIR/qmake"
+          sudo ln -sf "$QTPATHS_PATH" /usr/bin/qmake
+          
+          qmake -query
 
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
