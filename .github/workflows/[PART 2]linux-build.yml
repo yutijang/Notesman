@@ -218,23 +218,23 @@ jobs:
           fi
           TARGET_DIR="$VCPKG_ROOT/x64-linux"
 
-          QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
-          if [ ! -f "$QTPATHS_EXE" ]; then
-            QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
+          REAL_QT_PATH="$TARGET_DIR/tools/qt6/qtpaths"
+          if [ ! -f "$REAL_QT_PATH" ]; then
+            REAL_QT_PATH="$TARGET_DIR/tools/qt6/bin/qtpaths"
           fi
-          echo "Final verified Qt Tool path: $QTPATHS_EXE"
+          echo "Verified real path: $REAL_QT_PATH"
 
-          sudo ln -sf "$QTPATHS_EXE" /usr/bin/qmake
-          sudo ln -sf "$QTPATHS_EXE" /usr/bin/qtpaths
-
-          mkdir -p "$TARGET_DIR/plugins"
-          if [ -d "$TARGET_DIR/Qt6/plugins" ]; then
-            cp -r "$TARGET_DIR/Qt6/plugins/"* "$TARGET_DIR/plugins/"
-          fi
+          sudo bash -c "cat > /usr/bin/qmake <<EOF
+          #!/bin/bash
+          exec $REAL_QT_PATH \"\$@\"
+          EOF"
+          sudo chmod +x /usr/bin/qmake
+          
+          /usr/bin/qmake --version
 
           QMAKE="/usr/bin/qmake" \
           LD_LIBRARY_PATH="$TARGET_DIR/lib:$LD_LIBRARY_PATH" \
-          QT_PLUGIN_PATH="$TARGET_DIR/plugins" \
+          QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins" \
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
