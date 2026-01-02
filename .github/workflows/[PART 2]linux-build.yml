@@ -190,19 +190,28 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
-          VCPKG_ROOT_TRIPLET="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          REAL_TRIPLET_DIR=$(find "${{ github.workspace }}/vcpkg_installed" -maxdepth 1 -type d -not -path "${{ github.workspace }}/vcpkg_installed" | head -n 1)
+          echo "Real triplet directory: $REAL_TRIPLET_DIR"
           
-          QTPATHS_PATH=$(find "$VCPKG_ROOT_TRIPLET" -name "qtpaths*" -type f -executable | head -n 1)
+          QTPATHS_PATH=$(find "$REAL_TRIPLET_DIR" -name "qtpaths*" -type f -executable | head -n 1)
+          
+          if [ -z "$QTPATHS_PATH" ]; then
+            echo "ERROR: qtpaths not found in $REAL_TRIPLET_DIR"
+            find "${{ github.workspace }}/vcpkg_installed" -maxdepth 4
+            exit 1
+          fi
+          echo "Found qtpaths at: $QTPATHS_PATH"
+
           sudo ln -sf "$QTPATHS_PATH" /usr/bin/qmake
           
-          mkdir -p "$VCPKG_ROOT_TRIPLET/Qt6"
-          if [ -d "$VCPKG_ROOT_TRIPLET/plugins" ]; then
-             ln -sf "$VCPKG_ROOT_TRIPLET/plugins" "$VCPKG_ROOT_TRIPLET/Qt6/plugins"
-             echo "Created symlink for plugins: $VCPKG_ROOT_TRIPLET/Qt6/plugins -> $VCPKG_ROOT_TRIPLET/plugins"
+          mkdir -p "$REAL_TRIPLET_DIR/Qt6"
+          if [ -d "$REAL_TRIPLET_DIR/plugins" ]; then
+             ln -sf "$REAL_TRIPLET_DIR/plugins" "$REAL_TRIPLET_DIR/Qt6/plugins"
+             echo "Linked plugins folder to Qt6/plugins"
           fi
 
-          export QT_PLUGIN_PATH="$VCPKG_ROOT_TRIPLET/plugins"
-          export LD_LIBRARY_PATH="$VCPKG_ROOT_TRIPLET/lib:$LD_LIBRARY_PATH"
+          export QT_PLUGIN_PATH="$REAL_TRIPLET_DIR/plugins"
+          export LD_LIBRARY_PATH="$REAL_TRIPLET_DIR/lib:$LD_LIBRARY_PATH"
 
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
