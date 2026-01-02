@@ -61,18 +61,26 @@ jobs:
           restore-keys: |
             linux-vcpkg-
 
-      - name: Debug Vcpkg Artifacts
+      - name: Locate Dependencies Diagnostic
         run: |
-          VCPKG_ROOT_TRIPLET="${{ github.workspace }}/vcpkg_installed/x64-linux"
+          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
+          TARGET_DIR="$VCPKG_ROOT/x64-linux"
+          [ -d "$VCPKG_ROOT/x64-linux-dynamic" ] && TARGET_DIR="$VCPKG_ROOT/x64-linux-dynamic"
           
-          echo "1. Checking for libqxcb.so in entire vcpkg_installed:"
-          find "$VCPKG_ROOT_TRIPLET" -name "libqxcb.so"
+          echo "Scanning TARGET_DIR: $TARGET_DIR"
+          echo "--------------------------------------"
           
-          echo "2. Checking for any xcb related libraries in lib folder:"
-          ls "$VCPKG_ROOT_TRIPLET/lib" | grep xcb || echo "No xcb libs in /lib"
+          DEPS=("openssl" "spdlog" "miniz" "sqlite3" "zlib" "fmt")
           
-          echo "3. Checking Qt6 Config Summary (if exists):"
-          find "$VCPKG_ROOT_TRIPLET" -name "Qt6ConfigExtras.cmake"
+          for DEP in "${DEPS[@]}"; do
+            echo "Searching for $DEP..."
+            find "$TARGET_DIR" -name "lib${DEP}*.so*" -type f,l 2>/dev/null || echo "  -> NOT FOUND"
+          done
+          
+          echo "--------------------------------------"
+          echo "Checking Qt Tool position:"
+          find "$TARGET_DIR" -name "qtpaths" -type f -executable
+          exit 0
 
       - name: Verify Cache Integrity
         run: |
