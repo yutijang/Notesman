@@ -190,11 +190,19 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
-          QTPATHS_PATH=$(find ${{ github.workspace }}/vcpkg_installed -name "qtpaths*" -type f -executable | head -n 1)
+          VCPKG_ROOT_TRIPLET="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
           
+          QTPATHS_PATH=$(find "$VCPKG_ROOT_TRIPLET" -name "qtpaths*" -type f -executable | head -n 1)
           sudo ln -sf "$QTPATHS_PATH" /usr/bin/qmake
           
-          qmake -query
+          mkdir -p "$VCPKG_ROOT_TRIPLET/Qt6"
+          if [ -d "$VCPKG_ROOT_TRIPLET/plugins" ]; then
+             ln -sf "$VCPKG_ROOT_TRIPLET/plugins" "$VCPKG_ROOT_TRIPLET/Qt6/plugins"
+             echo "Created symlink for plugins: $VCPKG_ROOT_TRIPLET/Qt6/plugins -> $VCPKG_ROOT_TRIPLET/plugins"
+          fi
+
+          export QT_PLUGIN_PATH="$VCPKG_ROOT_TRIPLET/plugins"
+          export LD_LIBRARY_PATH="$VCPKG_ROOT_TRIPLET/lib:$LD_LIBRARY_PATH"
 
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
