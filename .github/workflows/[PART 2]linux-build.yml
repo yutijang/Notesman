@@ -211,7 +211,7 @@ jobs:
           echo "LD_LIBRARY_PATH=AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
           mkdir -p AppDir/usr/bin
-          cp -f bin/Notesman AppDir/usr/bin/Notesman
+          cp -f "${GITHUB_WORKSPACE}/bin/Notesman" AppDir/usr/bin/Notesman
           chmod +x AppDir/usr/bin/Notesman
 
           LINUXDEPLOY="${GITHUB_WORKSPACE}/linuxdeploy-x86_64.AppImage"
