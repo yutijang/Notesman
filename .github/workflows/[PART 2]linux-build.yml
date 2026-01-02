@@ -171,35 +171,34 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
-          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
-          TARGET_DIR="$VCPKG_ROOT/x64-linux-dynamic"
-
-          if [ -f "$TARGET_DIR/tools/qt6/qtpaths" ]; then
-            SRC_QT="$TARGET_DIR/tools/qt6/qtpaths"
-          else
-            SRC_QT="$TARGET_DIR/tools/qt6/bin/qtpaths"
+          TARGET_DIR="vcpkg_installed/x64-linux-dynamic"
+          
+          QTP_SRC=$(find "$TARGET_DIR" -name "qtpaths" -type f -executable | head -n 1)
+          
+          if [ -z "$QTP_SRC" ]; then
+            echo "ERROR: Cannot find qtpaths in $TARGET_DIR"
+            ls -R "$TARGET_DIR/tools"
+            exit 1
           fi
-
-          echo "Found source QT tool at: $SRC_QT"
-          sudo cp "$SRC_QT" /usr/bin/qmake
-          sudo cp "$SRC_QT" /usr/bin/qtpaths
+          
+          echo "Found qtpaths at: $QTP_SRC"
+          sudo cp "$QTP_SRC" /usr/bin/qmake
+          sudo cp "$QTP_SRC" /usr/bin/qtpaths
           sudo chmod +x /usr/bin/qmake /usr/bin/qtpaths
 
-          qmake --version
-
           mkdir -p AppDir/usr/lib
-          echo "Copying libraries from vcpkg.json list..."
+          LIB_DIR="$TARGET_DIR/lib"
           
-          cp -P "$TARGET_DIR/lib"/libspdlog.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -P "$TARGET_DIR/lib"/libfmt.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -P "$TARGET_DIR/lib"/libminiz.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -P "$TARGET_DIR/lib"/libsqlite3.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -P "$TARGET_DIR/lib"/libssl.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -P "$TARGET_DIR/lib"/libcrypto.so* AppDir/usr/lib/ 2>/dev/null || true
-          cp -P "$TARGET_DIR/lib"/libz.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$LIB_DIR"/libspdlog.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$LIB_DIR"/libfmt.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$LIB_DIR"/libminiz.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$LIB_DIR"/libsqlite3.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$LIB_DIR"/libssl.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$LIB_DIR"/libcrypto.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$LIB_DIR"/libz.so* AppDir/usr/lib/ 2>/dev/null || true
 
           export QMAKE="/usr/bin/qmake"
-          export LD_LIBRARY_PATH="AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="AppDir/usr/lib:$LIB_DIR:$LD_LIBRARY_PATH"
           export QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins"
 
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
