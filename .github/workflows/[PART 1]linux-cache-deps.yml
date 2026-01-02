@@ -103,7 +103,13 @@ jobs:
           
       - name: Cleanup buildtrees (To keep cache small)
         if: always()
-        run: rm -rf "${VCPKG_ROOT}/buildtrees"
+        run: |
+          rm -rf "${VCPKG_ROOT}/buildtrees"
+          rm -rf "${VCPKG_ROOT}/packages"
+          rm -rf "${VCPKG_ROOT}/downloads"
+          rm -rf "${VCPKG_ROOT}/installed"
+          
+          echo "Cleanup completed. Ready to save cache."
 
       - name: Save vcpkg artifacts (Force save even on failure)
         uses: actions/cache/save@v4
@@ -112,5 +118,6 @@ jobs:
           path: |
             ${{ github.workspace }}/vcpkg
             ${{ github.workspace }}/vcpkg_installed
+            ~/.cache/vcpkg/archives
           key: linux-vcpkg-${{ hashFiles('vcpkg.json') }}
           
