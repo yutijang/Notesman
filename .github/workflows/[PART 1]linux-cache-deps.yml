@@ -99,9 +99,8 @@ jobs:
       - name: Export vcpkg build logs
         if: failure()
         run: |
-          find "${{ github.workspace }}/vcpkg/buildtrees" -name "*.log" -exec cp {} ${{ github.workspace }} \;
-          cat ${{ github.workspace }}/install-x64-linux-dynamic-rel-out.log
-          
+          find "${{ github.workspace }}/vcpkg/buildtrees" -name "*.log" -type f -exec echo "--- LOG: {} ---" \; -exec tail -n 200 {} \;
+
       - name: Cleanup buildtrees (To keep cache small)
         if: always()
         run: |
