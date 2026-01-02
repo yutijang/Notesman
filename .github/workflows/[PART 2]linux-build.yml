@@ -197,13 +197,12 @@ jobs:
           sudo ln -sf "$QTPATHS_PATH" /usr/bin/qmake
 
           mkdir -p "$REAL_TRIPLET_DIR/Qt6"
-          
-          rm -f "$REAL_TRIPLET_DIR/Qt6/plugins"
+          rm -rf "$REAL_TRIPLET_DIR/Qt6/plugins"
           
           ln -s "$REAL_TRIPLET_DIR/plugins" "$REAL_TRIPLET_DIR/Qt6/plugins"
           
-          echo "Checking if libqxcb.so exists at the expected path:"
-          ls -l "$REAL_TRIPLET_DIR/Qt6/plugins/platforms/libqxcb.so" || echo "STILL NOT FOUND!"
+          echo "Verifying path for linuxdeploy:"
+          ls -l "$REAL_TRIPLET_DIR/Qt6/plugins/platforms/libqxcb.so"
 
           export QT_PLUGIN_PATH="$REAL_TRIPLET_DIR/plugins"
           export LD_LIBRARY_PATH="$REAL_TRIPLET_DIR/lib:$LD_LIBRARY_PATH"
