@@ -221,12 +221,10 @@ jobs:
 
           TARGET_DIR="$VCPKG_ROOT/x64-linux"
 
-          QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
-          
+          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
           if [ ! -f "$QTPATHS_EXE" ]; then
-            QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
+            QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
           fi
-          
           echo "Final verified Qt Tool path: $QTPATHS_EXE"
 
           mkdir -p "$TARGET_DIR/plugins"
@@ -236,13 +234,16 @@ jobs:
 
           echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
           echo "QT_PLUGIN_PATH=$TARGET_DIR/plugins" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$TARGET_DIR/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          export LD_LIBRARY_PATH="$TARGET_DIR/lib:$LD_LIBRARY_PATH"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
           QMAKE="$QTPATHS_EXE" ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
             -d AppDir/Notesman.desktop \
             -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
-            --plugin qt
+            -L "$TARGET_DIR/lib" \
+            --plugin qt \
+            --output appimage
 
       - name: Remove unused Qt files from AppDir
         run: |
