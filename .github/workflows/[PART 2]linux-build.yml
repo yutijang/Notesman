@@ -42,7 +42,7 @@ jobs:
             libsecret-1-dev clang lld \
             autoconf autoconf-archive automake libtool libltdl-dev gettext \
             '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev \
-            libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev            
+            libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev
 
       - name: Fix Clang version to 18
         run: |
@@ -101,8 +101,8 @@ jobs:
           echo "CCACHE_CONFIGPATH=${CCACHE_DIR}/ccache.conf" >> $GITHUB_ENV
           echo "CCACHE_BASEDIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
 
-      - name: Debug vcpkg_installed
-        run: ls -R ${{ github.workspace }}/vcpkg_installed
+      # - name: Debug vcpkg_installed
+      #   run: ls -R ${{ github.workspace }}/vcpkg_installed
 
       # - name: Locate Qt6 installation
       #   id: find_qt
@@ -143,7 +143,7 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }} \
             -DVCPKG_INSTALLED_DIR=${{ github.workspace }}/vcpkg_installed \
             -DVCPKG_MANIFEST_MODE=ON \
-            -DVCPKG_MANIFEST_INSTALL=OFF \            
+            -DVCPKG_MANIFEST_INSTALL=OFF \
             -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
