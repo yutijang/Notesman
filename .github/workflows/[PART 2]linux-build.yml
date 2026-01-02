@@ -91,29 +91,30 @@ jobs:
       - name: Debug vcpkg_installed
         run: ls -R ${{ github.workspace }}/vcpkg_installed
 
-      - name: Locate Qt6 installation
-        id: find_qt
-        run: |
-          VCPKG_QT_PATH="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
+      # - name: Locate Qt6 installation
+      #   id: find_qt
+      #   run: |
+      #     VCPKG_INSTALLED_ROOT="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
           
-          echo "Searching in: $VCPKG_QT_PATH"
-          
-          QT_BIN=$(find "$VCPKG_QT_PATH" -name qmake -type f | grep -E "tools|bin" | head -n 1)
+      #     echo "Listing top-level directories in vcpkg_installed for debug:"
+      #     ls -F "$VCPKG_INSTALLED_ROOT"
 
-          if [ -z "$QT_BIN" ] || [ ! -f "$QT_BIN" ]; then
-            echo "Current directory structure for debugging:"
-            find "$VCPKG_QT_PATH" -maxdepth 4
-            echo "Error: Could not find qmake in vcpkg_installed."
-            exit 1
-          fi
+      #     QT_BIN=$(find "$VCPKG_INSTALLED_ROOT" -name qmake -type f | head -n 1)
 
-          echo "Found qmake at: $QT_BIN"
-          QT_DIR=$(dirname $(dirname "$QT_BIN"))
+      #     if [ -z "$QT_BIN" ]; then
+      #       echo "Error: qmake not found. Full directory tree (3 levels):"
+      #       find "$VCPKG_INSTALLED_ROOT" -maxdepth 3
+      #       exit 1
+      #     fi
+
+      #     echo "Found qmake at: $QT_BIN"
           
-          echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
-          echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
-          echo "Qt6_DIR=$VCPKG_QT_PATH/share/qt6" >> $GITHUB_OUTPUT
-          echo "QMAKE=$QT_BIN" >> $GITHUB_ENV
+      #     QT_DIR=$(dirname $(dirname "$QT_BIN"))
+          
+      #     echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
+      #     echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
+      #     echo "Qt6_DIR=$VCPKG_INSTALLED_ROOT/share/qt6" >> $GITHUB_OUTPUT
+      #     echo "QMAKE=$QT_BIN" >> $GITHUB_ENV
 
       - name: Setup vcpkg binary cache path
         run: |
