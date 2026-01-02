@@ -91,30 +91,30 @@ jobs:
       - name: Debug vcpkg_installed
         run: ls -R ${{ github.workspace }}/vcpkg_installed
 
-      # - name: Locate Qt6 installation
-      #   id: find_qt
-      #   run: |
-      #     VCPKG_INSTALLED_ROOT="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
+      - name: Locate Qt6 installation
+        id: find_qt
+        run: |
+          VCPKG_INSTALLED_ROOT="${{ github.workspace }}/vcpkg_installed/${{ env.VCPKG_DEFAULT_TRIPLET }}"
           
-      #     echo "Listing top-level directories in vcpkg_installed for debug:"
-      #     ls -F "$VCPKG_INSTALLED_ROOT"
+          echo "Listing top-level directories in vcpkg_installed for debug:"
+          ls -F "$VCPKG_INSTALLED_ROOT"
 
-      #     QT_BIN=$(find "$VCPKG_INSTALLED_ROOT" -name qmake -type f | head -n 1)
+          QT_BIN=$(find "$VCPKG_INSTALLED_ROOT" -name qmake -type f | head -n 1)
 
-      #     if [ -z "$QT_BIN" ]; then
-      #       echo "Error: qmake not found. Full directory tree (3 levels):"
-      #       find "$VCPKG_INSTALLED_ROOT" -maxdepth 3
-      #       exit 1
-      #     fi
+          if [ -z "$QT_BIN" ]; then
+            echo "Error: qmake not found. Full directory tree (3 levels):"
+            find "$VCPKG_INSTALLED_ROOT" -maxdepth 3
+            exit 1
+          fi
 
-      #     echo "Found qmake at: $QT_BIN"
+          echo "Found qmake at: $QT_BIN"
           
-      #     QT_DIR=$(dirname $(dirname "$QT_BIN"))
+          QT_DIR=$(dirname $(dirname "$QT_BIN"))
           
-      #     echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
-      #     echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
-      #     echo "Qt6_DIR=$VCPKG_INSTALLED_ROOT/share/qt6" >> $GITHUB_OUTPUT
-      #     echo "QMAKE=$QT_BIN" >> $GITHUB_ENV
+          echo "qt_bin=$QT_BIN" >> $GITHUB_OUTPUT
+          echo "qt_dir=$QT_DIR" >> $GITHUB_OUTPUT
+          echo "Qt6_DIR=$VCPKG_INSTALLED_ROOT/share/qt6" >> $GITHUB_OUTPUT
+          echo "QMAKE=$QT_BIN" >> $GITHUB_ENV
 
       - name: Setup vcpkg binary cache path
         run: |
