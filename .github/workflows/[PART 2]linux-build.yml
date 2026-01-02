@@ -196,12 +196,21 @@ jobs:
           QTPATHS_PATH=$(find "$REAL_TRIPLET_DIR" -name "qtpaths*" -type f -executable | head -n 1)
           sudo ln -sf "$QTPATHS_PATH" /usr/bin/qmake
 
-          sudo mkdir -p "$REAL_TRIPLET_DIR/Qt6"
-          sudo rm -rf "$REAL_TRIPLET_DIR/Qt6/plugins"
+          REAL_LIB_PATH=$(find "$REAL_TRIPLET_DIR" -name "libqxcb.so" | head -n 1)
+          echo "Actual libqxcb.so path: $REAL_LIB_PATH"
+
+          if [ -z "$REAL_LIB_PATH" ]; then
+             echo "ERROR: libqxcb.so NOT FOUND ANYWHERE!"
+             exit 1
+          fi
+
+          TARGET_DIR="$REAL_TRIPLET_DIR/Qt6/plugins/platforms"
+          sudo mkdir -p "$TARGET_DIR"
+          sudo ln -sf "$REAL_LIB_PATH" "$TARGET_DIR/libqxcb.so"
           
-          sudo ln -s "$REAL_TRIPLET_DIR/plugins" "$REAL_TRIPLET_DIR/Qt6/plugins"
-          
-          echo "Verifying file existence at the path linuxdeploy expects:"
+          sudo ln -sf "$REAL_TRIPLET_DIR/plugins/"* "$REAL_TRIPLET_DIR/Qt6/plugins/" 2>/dev/null || true
+
+          echo "Final check for linuxdeploy:"
           ls -l "$REAL_TRIPLET_DIR/Qt6/plugins/platforms/libqxcb.so"
 
           export QT_PLUGIN_PATH="$REAL_TRIPLET_DIR/plugins"
