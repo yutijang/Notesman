@@ -171,23 +171,29 @@ jobs:
 
       - name: Bundle Qt6 app into AppImage
         run: |
-          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
-          
+          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"          
           if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
             echo "Standardizing triplet name..."
             rm -rf "$VCPKG_ROOT/x64-linux"
             mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
           fi
-
           TARGET_DIR="$VCPKG_ROOT/x64-linux"
-
-          QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"
-          
+          QTPATHS_EXE="$TARGET_DIR/tools/qt6/qtpaths"          
           if [ ! -f "$QTPATHS_EXE" ]; then
             QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
-          fi
-          
+          fi          
           echo "Final verified Qt Tool path: $QTPATHS_EXE"
+
+          mkdir -p AppDir/usr/lib
+          echo "Injecting non-Qt dependencies from vcpkg.json..."
+
+          cp -d "$TARGET_DIR/lib"/libspdlog.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$TARGET_DIR/lib"/libfmt.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$TARGET_DIR/lib"/libminiz.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$TARGET_DIR/lib"/libsqlite3.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$TARGET_DIR/lib"/libssl.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$TARGET_DIR/lib"/libcrypto.so* AppDir/usr/lib/ 2>/dev/null || true
+          cp -d "$TARGET_DIR/lib"/libz.so* AppDir/usr/lib/ 2>/dev/null || true          
 
           mkdir -p "$TARGET_DIR/plugins"
           if [ -d "$TARGET_DIR/Qt6/plugins" ]; then
@@ -196,7 +202,7 @@ jobs:
 
           echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
           echo "QT_PLUGIN_PATH=$TARGET_DIR/plugins" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$TARGET_DIR/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
           QMAKE="$QTPATHS_EXE" ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/Notesman \
