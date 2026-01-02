@@ -221,7 +221,6 @@ jobs:
           # ---- copy non-Qt deps from vcpkg ----
           cp -d "$TARGET_DIR/lib"/libspdlog.so*  "$APPDIR/usr/lib/"
           cp -d "$TARGET_DIR/lib"/libfmt.so*     "$APPDIR/usr/lib/" || true
-          cp -d "$TARGET_DIR/lib"/libminiz.so*   "$APPDIR/usr/lib/" || true
           cp -d "$TARGET_DIR/lib"/libsqlite3.so* "$APPDIR/usr/lib/" || true
           cp -d "$TARGET_DIR/lib"/libssl.so*     "$APPDIR/usr/lib/" || true
           cp -d "$TARGET_DIR/lib"/libcrypto.so*  "$APPDIR/usr/lib/" || true
