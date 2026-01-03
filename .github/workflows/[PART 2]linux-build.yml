@@ -78,9 +78,10 @@ jobs:
           ls -1 "$VCPKG_DIR/lib"/libsqlite3.so*  || echo "No sqlite3 found"
           ls -1 "$VCPKG_DIR/lib"/libicu*.so*     || echo "No ICU libraries found"
 
-          echo "== Potential Qt6 plugin directories =="
-          find "$VCPKG_DIR/lib/qt6/plugins" -type f 2>/dev/null || echo "No plugins in lib/qt6/plugins"
-          find "$VCPKG_DIR/share/qt6/plugins" -type f 2>/dev/null || echo "No plugins in share/qt6/plugins"
+          echo "== Searching for any Qt6 plugin directories =="
+          find "${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic" \
+              -type d \( -name "*plugins*" -o -name "*plugin*" \) \
+              || echo "No Qt6 plugin directories found"
 
           exit 1
 
