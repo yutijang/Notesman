@@ -322,11 +322,9 @@ jobs:
 
       - name: Package cleaned AppDir into AppImage (use appimagetool)
         run: |
-          cat > "$APPDIR/AppRun" <<'EOF'
-          #!/bin/bash
+          echo '#!/bin/bash
           HERE="$(dirname "$(readlink -f "${0}")")"
-          exec "$HERE/usr/bin/Notesman" "$@"
-          EOF
+          exec "$HERE/usr/bin/Notesman" "$@"' > "$APPDIR/AppRun"
 
           chmod +x "$APPDIR/AppRun"
 
