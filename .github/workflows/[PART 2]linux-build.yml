@@ -197,6 +197,31 @@ jobs:
             --set-rpath '$ORIGIN/../lib' \
             "$APPDIR/usr/bin/Notesman"
 
+      - name: List all runtime dependencies for packaging
+        run: |
+          set -e
+          APPDIR=AppDir
+          VCPKG_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic"
+
+          echo "== Notesman binary dependencies =="
+          ldd "$APPDIR/usr/bin/Notesman" | tee "$APPDIR/all_notesman_libs.txt"
+
+          echo "== Qt6 plugin dependencies =="
+          find "$VCPKG_DIR/Qt6/plugins" "$VCPKG_DIR/debug/Qt6/plugins" -type f -name "*.so" \
+            -exec ldd {} \; | tee "$APPDIR/all_plugins_libs.txt"
+
+          echo "== Missing libraries check =="
+          grep "not found" "$APPDIR/all_notesman_libs.txt" || echo "All main binary libs found"
+          grep "not found" "$APPDIR/all_plugins_libs.txt" || echo "All plugin libs found"
+
+          echo "== Summary of unique libraries =="
+          cat "$APPDIR/all_notesman_libs.txt" "$APPDIR/all_plugins_libs.txt" \
+            | awk '{print $1}' \
+            | sort -u \
+            > "$APPDIR/all_runtime_libs.txt"
+
+          exit 1
+
       - name: Verify runtime deps inside AppDir
         run: |
           set -e
