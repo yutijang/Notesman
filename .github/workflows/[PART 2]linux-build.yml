@@ -140,6 +140,15 @@ jobs:
       - name: Build (parallel)
         run: cmake --build build --parallel
 
+      - name: List Notesman runtime dependencies
+        run: |
+          set -e
+          echo "== ldd check with vcpkg libraries =="
+          export LD_LIBRARY_PATH="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic/lib:$LD_LIBRARY_PATH"
+          ldd "${{ github.workspace }}/bin/Notesman"
+
+          exit 1
+
       - name: Prepare AppDir (Qt6 + vcpkg, controlled)
         run: |
           set -e
