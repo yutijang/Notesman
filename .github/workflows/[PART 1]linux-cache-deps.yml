@@ -34,10 +34,15 @@ jobs:
             linux-vcpkg-
 
       - name: Quick Exit if Cache Hit
-        if: steps.restore-cache.outputs.cache-hit == 'true'
         run: |
-          echo "Dependencies already cached. Skipping build."
-          exit 0   
+          CACHE_DIR="${GITHUB_WORKSPACE}/vcpkg_installed"
+          CACHE_KEY="${{ steps.restore-cache.outputs.cache-matched-key }}"
+          CACHE_SIZE=$(du -s "$CACHE_DIR" 2>/dev/null | cut -f1 || echo 0)
+          MIN_SIZE=1000000  # 1GB
+          if [[ "$CACHE_KEY" != '' && -d "$CACHE_DIR" && "$CACHE_SIZE" -ge "$MIN_SIZE" ]]; then
+            echo "Dependencies already cached. Skipping build."
+            exit 0
+          fi
 
       - name: Install system dependencies (Qt6 GUI)
         run: |
