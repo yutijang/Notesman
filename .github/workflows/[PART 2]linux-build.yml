@@ -79,9 +79,10 @@ jobs:
           ls -1 "$VCPKG_DIR/lib"/libicu*.so*     || echo "No ICU libraries found"
 
           echo "== Searching for any Qt6 plugin directories =="
-          find "${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic" \
-              -type d \( -name "*plugins*" -o -name "*plugin*" \) \
-              || echo "No Qt6 plugin directories found"
+          find "$VCPKG_DIR" -type d \( -name "*plugins*" -o -name "*plugin*" \) || echo "No Qt6 plugin directories found"
+
+          echo "== Searching for any Qt6 plugin files =="
+          find "$VCPKG_DIR" -type f \( -name "*.so" -o -name "*.so.*" \) \( -path "*plugins*" -o -path "*plugin*" \) || echo "No Qt6 plugin libraries found"
 
           exit 1
 
