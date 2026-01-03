@@ -175,7 +175,7 @@ jobs:
           cp "$VCPKG_DIR/lib"/lib*.so* "$APPDIR/usr/lib/"
 
           # ---- Qt6 plugins (preserve structure) ----
-          cp -a "$VCPKG_DIR/plugins/"* "$APPDIR/usr/plugins/"
+          cp -a "$VCPKG_DIR/Qt6/plugins/"* "$APPDIR/usr/plugins/"
 
           # ---- Desktop file ----
           cat > "$APPDIR/Notesman.desktop" <<'EOF'
