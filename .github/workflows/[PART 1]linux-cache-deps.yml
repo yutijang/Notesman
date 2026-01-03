@@ -41,6 +41,7 @@ jobs:
 
       - name: Quick Exit if Cache Hit
         run: |
+          set -e
           CACHE_DIR="${GITHUB_WORKSPACE}/vcpkg_installed"
           CACHE_KEY="${{ steps.restore-cache.outputs.cache-matched-key }}"
           CACHE_SIZE=$(du -s "$CACHE_DIR" 2>/dev/null | cut -f1 || echo 0)
