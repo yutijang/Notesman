@@ -64,7 +64,7 @@ jobs:
       - name: List restored vcpkg & Qt6 libraries
         run: |
           set -e
-          VCPKG_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux"
+          VCPKG_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic"
 
           echo "== Restored Qt6 libraries =="
           ls -1 "$VCPKG_DIR/lib"/libQt6*.so* || echo "No Qt6 libraries found"
