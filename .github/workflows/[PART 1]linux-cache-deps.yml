@@ -103,7 +103,7 @@ jobs:
           find "${{ github.workspace }}/vcpkg/buildtrees" -name "*.log" -type f -exec echo "--- LOG: {} ---" \; -exec tail -n 200 {} \;
 
       - name: Cleanup buildtrees (To keep cache small)
-        if: always()
+        if: steps.restore-cache.outputs.cache-matched-key == ''
         run: |
           rm -rf "${VCPKG_ROOT}/buildtrees"
           rm -rf "${VCPKG_ROOT}/packages"
@@ -114,7 +114,7 @@ jobs:
 
       - name: Save vcpkg artifacts (Force save even on failure)
         uses: actions/cache/save@v4
-        if: always()
+        if: steps.restore-cache.outputs.cache-matched-key == ''
         with:
           path: |
             ${{ github.workspace }}/vcpkg
