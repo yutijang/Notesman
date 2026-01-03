@@ -187,8 +187,7 @@ jobs:
           Categories=Utility;
           EOF
 
-          cp apps/notesman/resources/icons/icon.png \
-            "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png"
+          cp -v apps/notesman/resources/icons/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
 
           patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/Notesman"
 
