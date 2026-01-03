@@ -61,7 +61,7 @@ jobs:
           restore-keys: |
             linux-vcpkg-
 
-      - name: List restored vcpkg & Qt6 libraries
+      - name: List restored vcpkg & Qt6 libraries and plugins
         run: |
           set -e
           VCPKG_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic"
@@ -78,8 +78,11 @@ jobs:
           ls -1 "$VCPKG_DIR/lib"/libsqlite3.so*  || echo "No sqlite3 found"
           ls -1 "$VCPKG_DIR/lib"/libicu*.so*     || echo "No ICU libraries found"
 
-          echo "== Restored Qt6 plugins =="
-          ls -1 "$VCPKG_DIR/plugins/"* || echo "No Qt plugins found"
+          echo "== Potential Qt6 plugin directories =="
+          find "$VCPKG_DIR/lib/qt6/plugins" -type f 2>/dev/null || echo "No plugins in lib/qt6/plugins"
+          find "$VCPKG_DIR/share/qt6/plugins" -type f 2>/dev/null || echo "No plugins in share/qt6/plugins"
+
+          exit 1
 
       - name: Verify Cache Integrity
         run: |
