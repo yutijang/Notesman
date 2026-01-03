@@ -26,7 +26,10 @@ find_package(OpenSSL REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network Svg REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
-find_package(miniz CONFIG REQUIRED)
+
+if(WIN32)
+    find_package(miniz CONFIG REQUIRED)    
+endif()
 
 # --- QtKeychain ---------------------------------------------
 include(FetchContent)

@@ -11,6 +11,10 @@
             "platform": "windows"
         },
         {
+            "name": "zlib",
+            "platform": "windows"
+        },
+        {
             "name": "sqlite3",
             "features": [
                 "fts5"
@@ -32,8 +36,7 @@
                 "fontconfig"
             ]
         },
-        "qtsvg",
-        "zlib"
+        "qtsvg"
     ],
     "overrides": [
         {

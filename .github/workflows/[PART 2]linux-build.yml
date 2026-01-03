@@ -115,30 +115,84 @@ jobs:
       - name: Build (parallel)
         run: cmake --build build --parallel
 
-      - name: Prepare AppDir for linuxdeployqt
+      - name: Prepare AppDir (Qt6 + vcpkg, controlled)
         run: |
           set -e
+
           APPDIR=AppDir
+          VCPKG_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux"
+
           rm -rf "$APPDIR"
-          mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib"
-          if [ -f ./bin/Notesman ]; then
-            cp ./bin/Notesman "$APPDIR/usr/bin/Notesman"
-          else
-            echo "Built binary not found in ./bin or build/ - adjust paths"
-            ls -la ./bin || true
-            ls -la build || true
-            exit 1
-          fi
+          mkdir -p \
+            "$APPDIR/usr/bin" \
+            "$APPDIR/usr/lib" \
+            "$APPDIR/usr/share/applications" \
+            "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+          # ---- main binary ----
+          cp bin/Notesman "$APPDIR/usr/bin/Notesman"
+          chmod +x "$APPDIR/usr/bin/Notesman"
+
+          # ---- Qt runtime from vcpkg ----
+          cp "$VCPKG_DIR/lib"/libQt6*.so*     "$APPDIR/usr/lib/"
+          cp "$VCPKG_DIR/lib"/libspdlog.so*   "$APPDIR/usr/lib/"
+          cp "$VCPKG_DIR/lib"/libfmt.so*      "$APPDIR/usr/lib/"
+          cp "$VCPKG_DIR/lib"/libssl.so*      "$APPDIR/usr/lib/"
+          cp "$VCPKG_DIR/lib"/libcrypto.so*   "$APPDIR/usr/lib/"
+          cp "$VCPKG_DIR/lib"/libz.so*        "$APPDIR/usr/lib/"
+          cp "$VCPKG_DIR/lib"/libsqlite3.so*  "$APPDIR/usr/lib/"
+          cp "$VCPKG_DIR/lib"/libicu*.so*     "$APPDIR/usr/lib/"
+
+          mkdir -p "$APPDIR/usr/lib/qt6/plugins"
+          cp -a "$VCPKG_DIR/plugins/"* "$APPDIR/usr/lib/qt6/plugins"
+
+          # ---- Desktop file ----
           cat > "$APPDIR/Notesman.desktop" <<'EOF'
           [Desktop Entry]
+          Type=Application
           Name=Notesman
           Exec=Notesman
           Icon=notesman
-          Type=Application
           Categories=Utility;
           EOF
-          mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
-          cp -v apps/notesman/resources/icons/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
+
+          cp apps/notesman/resources/icons/icon.png \
+            "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png"
+
+          # ---- Fix spdlog SONAME if needed ----
+          if readelf -d "$APPDIR/usr/bin/Notesman" | grep -q 'libspdlog.so.1.16'; then
+            patchelf \
+              --replace-needed libspdlog.so.1.16 libspdlog.so.1 \
+              "$APPDIR/usr/bin/Notesman"
+          fi
+
+          # ---- Runtime search path ----
+          patchelf \
+            --set-rpath '$ORIGIN/../lib' \
+            "$APPDIR/usr/bin/Notesman"
+
+      - name: Verify runtime deps inside AppDir
+        run: |
+          set -e
+          echo "== ldd check =="
+          if ldd AppDir/usr/bin/Notesman | grep -q 'not found'; then
+            echo "Missing shared libraries"
+            exit 1
+          fi  
+
+          if [ ! -f AppDir/usr/lib/qt6/plugins/platforms/libqxcb.so ]; then
+            echo "Qt platform plugin libqxcb.so not found"
+            exit 1
+          fi
+
+      - name: Verify Qt platform plugin dependencies
+        run: |
+          set -e
+          echo "== ldd qxcb plugin =="
+          if ldd AppDir/usr/lib/qt6/plugins/platforms/libqxcb.so | grep -q 'not found'; then
+            echo "Missing Qt platform plugin dependencies"
+            exit 1
+          fi
 
       - name: Add updater into AppDir
         run: |
@@ -155,133 +209,6 @@ jobs:
           cp bin/updater "$APPDIR/usr/bin/updater"
 
           chmod +x "$APPDIR/usr/bin/updater"
-
-      - name: Download linuxdeploy and plugin-qt
-        run: |
-          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
-          chmod +x linuxdeploy*.AppImage
-
-      - name: Install Qt runtime dependencies for AppImage
-        run: |
-          sudo apt-get install -y \
-            libxcb1 libxcb-cursor0 libx11-6 libx11-xcb1 libxext6 libxrender1 libxi6 \
-            libxrandr2 libxfixes3 libxrender1 libxkbcommon0 libglu1-mesa libfontconfig1 \
-            libfreetype6 libdbus-1-3 libglib2.0-0
-
-      - name: Bundle Qt6 app into AppDir
-        run: |
-          set -e
-
-          VCPKG_ROOT="${{ github.workspace }}/vcpkg_installed"
-          if [ -d "$VCPKG_ROOT/x64-linux-dynamic" ]; then
-            rm -rf "$VCPKG_ROOT/x64-linux"
-            mv "$VCPKG_ROOT/x64-linux-dynamic" "$VCPKG_ROOT/x64-linux"
-          fi
-
-          TARGET_DIR="$VCPKG_ROOT/x64-linux"
-          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
-
-          mkdir -p AppDir/usr/bin AppDir/usr/lib
-
-          # copy app binary (UNPATCHED, tạm thời)
-          cp "${GITHUB_WORKSPACE}/bin/Notesman" AppDir/usr/bin/Notesman
-          chmod +x AppDir/usr/bin/Notesman
-
-          # copy deps
-          cp -d "$TARGET_DIR/lib"/libspdlog.so* AppDir/usr/lib/
-          cp -d "$TARGET_DIR/lib"/libfmt.so*     AppDir/usr/lib/
-          cp -d "$TARGET_DIR/lib"/libminiz.so*   AppDir/usr/lib/
-          cp -d "$TARGET_DIR/lib"/libsqlite3.so* AppDir/usr/lib/
-          cp -d "$TARGET_DIR/lib"/libssl.so*     AppDir/usr/lib/
-          cp -d "$TARGET_DIR/lib"/libcrypto.so*  AppDir/usr/lib/
-          cp -d "$TARGET_DIR/lib"/libz.so*       AppDir/usr/lib/
-
-          echo "QMAKE=$QTPATHS_EXE" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=AppDir/usr/lib:$TARGET_DIR/lib" >> $GITHUB_ENV
-
-      - name: Prepare AppDir and fix spdlog SONAME
-        run: |
-          set -e
-
-          APPDIR=AppDir
-          TARGET_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux"
-
-          rm -rf "$APPDIR"
-          mkdir -p \
-            "$APPDIR/usr/bin" \
-            "$APPDIR/usr/lib" \
-            "$APPDIR/usr/share/applications" \
-            "$APPDIR/usr/share/icons/hicolor/256x256/apps"
-
-          # ---- copy main binary ----
-          cp bin/Notesman "$APPDIR/usr/bin/Notesman"
-          chmod +x "$APPDIR/usr/bin/Notesman"
-
-          # ---- copy non-Qt deps from vcpkg ----
-          cp -d "$TARGET_DIR/lib"/libspdlog.so*  "$APPDIR/usr/lib/"
-          cp -d "$TARGET_DIR/lib"/libfmt.so*     "$APPDIR/usr/lib/" || true
-          cp -d "$TARGET_DIR/lib"/libsqlite3.so* "$APPDIR/usr/lib/" || true
-          cp -d "$TARGET_DIR/lib"/libssl.so*     "$APPDIR/usr/lib/" || true
-          cp -d "$TARGET_DIR/lib"/libcrypto.so*  "$APPDIR/usr/lib/" || true
-          cp -d "$TARGET_DIR/lib"/libz.so*       "$APPDIR/usr/lib/" || true
-
-          echo "Before patch:"
-          readelf -d "$APPDIR/usr/bin/Notesman" | grep spdlog || true
-
-          patchelf \
-            --replace-needed libspdlog.so.1.16 libspdlog.so.1 \
-            "$APPDIR/usr/bin/Notesman" || true
-
-          echo "After patch:"
-          readelf -d "$APPDIR/usr/bin/Notesman" | grep spdlog || true
-
-          # ---- ensure SONAME đúng ----
-          if [ -f "$APPDIR/usr/lib/libspdlog.so.1" ]; then
-            patchelf --set-soname libspdlog.so.1 "$APPDIR/usr/lib/libspdlog.so.1"
-          fi
-
-          # ---- desktop file ----
-          cat > "$APPDIR/Notesman.desktop" <<'EOF'
-          [Desktop Entry]
-          Type=Application
-          Name=Notesman
-          Exec=Notesman
-          Icon=notesman
-          Categories=Utility;
-          EOF
-
-          cp apps/notesman/resources/icons/icon.png \
-            "$APPDIR/usr/share/icons/hicolor/256x256/apps/notesman.png" || true
-
-      - name: Build AppImage (Qt6 via qtpaths)
-        run: |
-          set -e
-
-          TARGET_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux"
-
-          QTPATHS_EXE="$TARGET_DIR/tools/qt6/bin/qtpaths"
-          if [ ! -x "$QTPATHS_EXE" ]; then
-            echo "ERROR: qtpaths not found"
-            find "$TARGET_DIR" -name qtpaths || true
-            exit 1
-          fi
-
-          echo "Using qtpaths: $QTPATHS_EXE"
-
-          export QT_QPA_PLATFORM_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins/platforms"
-          export QT_PLUGIN_PATH="$TARGET_DIR/Qt6/plugins"
-          export LD_LIBRARY_PATH="AppDir/usr/lib:$TARGET_DIR/lib:$LD_LIBRARY_PATH"
-
-          chmod +x linuxdeploy-x86_64.AppImage
-          chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
-
-          ./linuxdeploy-x86_64.AppImage \
-            --appdir AppDir \
-            -e AppDir/usr/bin/Notesman \
-            -d AppDir/Notesman.desktop \
-            -i AppDir/usr/share/icons/hicolor/256x256/apps/notesman.png \
-            --plugin qt
 
       - name: Remove unused Qt files from AppDir
         run: |
@@ -343,6 +270,9 @@ jobs:
 
       - name: Package cleaned AppDir into AppImage (use appimagetool)
         run: |
+          export QT_PLUGIN_PATH="$PWD/AppDir/usr/lib/qt6/plugins"
+          export QT_QPA_PLATFORM_PLUGIN_PATH="$PWD/AppDir/usr/lib/qt6/plugins/platforms"
+
           appName="Notesman-x86_64-v${{ steps.get_version.outputs.version }}.AppImage"
           ./appimagetool-x86_64.AppImage --runtime-file runtime-cache/runtime-x86_64 AppDir "${appName}"
 
