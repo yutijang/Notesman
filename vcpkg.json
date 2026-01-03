@@ -19,10 +19,6 @@
             "platform": "linux"
         },
         {
-            "name": "b2",
-            "platform": "linux"
-        },
-        {
             "name": "sqlite3",
             "features": [
                 "fts5"
