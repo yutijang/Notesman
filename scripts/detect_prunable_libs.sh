@@ -1,94 +1,68 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 APPDIR=AppDir
 LIBDIR="$APPDIR/usr/lib"
 PLUGINDIR="$APPDIR/usr/plugins"
-
 WORKDIR="$(mktemp -d)"
-echo "Workdir: $WORKDIR"
 
 # -----------------------------
-# 1. All bundled libs
+# 1. Collect all bundled libs
 # -----------------------------
-find "$LIBDIR" -maxdepth 1 -type f -name "*.so*" -exec basename {} \; \
-  | sort -u > "$WORKDIR/all_libs.txt"
+find "$LIBDIR" -type f -name '*.so*' -printf '%f\n' | sort -u > "$WORKDIR/all_libs.txt"
 
 # -----------------------------
-# 2. Required libs by ldd (binary + plugins)
+# 2. Collect entry ELFs
 # -----------------------------
-{
-  find "$APPDIR/usr/bin" -type f -executable -exec ldd {} \;
-  find "$PLUGINDIR" -type f -name "*.so" -exec ldd {} \;
-} \
-| awk '/=> \// {print $3}' \
-| xargs -n1 basename \
-| sort -u > "$WORKDIR/required_by_ldd.txt"
+find "$APPDIR/usr/bin" -type f -executable > "$WORKDIR/entry_bins.txt"
+find "$PLUGINDIR" -type f -name '*.so' >> "$WORKDIR/entry_bins.txt"
 
 # -----------------------------
-# 3. Qt runtime plugin load (REAL runtime deps)
+# 3. Resolve DT_NEEDED recursively
 # -----------------------------
-export QT_DEBUG_PLUGINS=1
-export QT_PLUGIN_PATH="$(realpath "$PLUGINDIR")"
-export LD_LIBRARY_PATH="$(realpath "$LIBDIR")"
+declare -A SEEN
+QUEUE=()
 
-QT_QPA_PLATFORM=offscreen \
-"$APPDIR/usr/bin/Notesman" \
-  > /dev/null \
-  2> "$WORKDIR/qt_plugins.log" || true
+while read -r f; do
+  QUEUE+=("$f")
+done < "$WORKDIR/entry_bins.txt"
 
-grep -oE 'lib[^/ ]+\.so[^ ]*' "$WORKDIR/qt_plugins.log" \
-  | sort -u > "$WORKDIR/required_by_qt.txt"
+> "$WORKDIR/required_fullpath.txt"
 
-# -----------------------------
-# 4. Hard whitelist (NEVER prune)
-# -----------------------------
-cat > "$WORKDIR/whitelist.txt" <<'EOF'
-^libQt6
-^libicu
-^libfreetype
-^libfontconfig
-^libharfbuzz
-^libxcb
-^libX11
-^libXau
-^libXdmcp
-^libGL
-^libEGL
-^libOpenGL
-^libstdc\+\+
-^libgcc_s
-^libc\.so
-^ld-linux
-^libz\.so
-^libzstd
-^libbz2
-^libpng
-^libssl
-^libcrypto
-^libsystemd
-EOF
+while ((${#QUEUE[@]})); do
+  cur="${QUEUE[0]}"
+  QUEUE=("${QUEUE[@]:1}")
+
+  readelf -d "$cur" 2>/dev/null \
+    | awk '/NEEDED/ {print $5}' \
+    | tr -d '[]' \
+    | while read -r dep; do
+        path="$LIBDIR/$dep"
+        [[ -f "$path" ]] || continue
+        [[ -n "${SEEN[$path]:-}" ]] && continue
+        SEEN["$path"]=1
+        echo "$path" >> "$WORKDIR/required_fullpath.txt"
+        QUEUE+=("$path")
+      done
+done
 
 # -----------------------------
-# 5. Merge all required libs
+# 4. Normalize required names
 # -----------------------------
-cat \
-  "$WORKDIR/required_by_ldd.txt" \
-  "$WORKDIR/required_by_qt.txt" \
-| sort -u > "$WORKDIR/required_all.txt"
+awk -F/ '{print $NF}' "$WORKDIR/required_fullpath.txt" \
+  | sort -u > "$WORKDIR/required_libs.txt"
 
 # -----------------------------
-# 6. Compute prune candidates
+# 5. Prune list = all - required
 # -----------------------------
-comm -23 "$WORKDIR/all_libs.txt" "$WORKDIR/required_all.txt" \
-| grep -Evf "$WORKDIR/whitelist.txt" \
-> prune_libs.txt
+comm -23 "$WORKDIR/all_libs.txt" "$WORKDIR/required_libs.txt" \
+  > prune_libs.txt
 
 # -----------------------------
-# 7. Report
+# 6. Report
 # -----------------------------
 echo "===== SUMMARY ====="
 echo "All libs:        $(wc -l < "$WORKDIR/all_libs.txt")"
-echo "Required libs:   $(wc -l < "$WORKDIR/required_all.txt")"
+echo "Required libs:   $(wc -l < "$WORKDIR/required_libs.txt")"
 echo "Prune candidates: $(wc -l < prune_libs.txt)"
-
 echo "Output: prune_libs.txt"
