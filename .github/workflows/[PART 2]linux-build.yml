@@ -237,21 +237,33 @@ jobs:
           echo "===== PRUNE LIST ====="
           cat prune_libs.txt
 
-      - name: Prune unused libraries
+      - name: Filter prune list with Qt runtime whitelist
         run: |
           set -e
 
-          APPDIR=AppDir/usr/lib
+          cat prune_libs.txt \
+            | grep -Ev '^(libQt6|libxcb|libX|libicu|libharfbuzz|libfreetype|libfontconfig|libpng|libjpeg|libz|libssl|libcrypto|libGL|libEGL|libOpenGL|libwayland)' \
+            > prune_libs.safe.txt
+
+          echo "===== SAFE PRUNE LIST ====="
+          cat prune_libs.safe.txt
+
+      - name: Prune unused libraries (safe)
+        run: |
+          set -e
+
+          LIBDIR=AppDir/usr/lib
 
           while read -r lib; do
             [ -z "$lib" ] && continue
-            if [ -f "$APPDIR/$lib" ]; then
+
+            if [ -f "$LIBDIR/$lib" ]; then
               echo "Removing $lib"
-              rm -v "$APPDIR/$lib"
+              rm -v "$LIBDIR/$lib"
             else
               echo "Skip missing $lib"
             fi
-          done < prune_libs.txt
+          done < prune_libs.safe.txt
 
       # - name: List all runtime dependencies for packaging
       #   run: |
