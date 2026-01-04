@@ -192,29 +192,41 @@ jobs:
 
           patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/Notesman"
           patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/plugins/platforms/libqxcb.so"
+          find "$APPDIR/usr/plugins" -name '*.so' -exec patchelf --set-rpath '$ORIGIN/../../lib' {} \;
 
-      - name: Bundle xcb cursor runtime dependency
+      - name: Bundle required XCB runtime libraries
         run: |
           set -e
 
           APPDIR=AppDir
 
-          # locate libxcb-cursor from system
-          lib=$(ldconfig -p | grep libxcb-cursor.so.0 | awk '{print $NF}' | head -n1)
+          REQUIRED_LIBS=(
+            libxcb-cursor.so.0
+            libxcb-xinput.so.0
+          )
 
-          if [ -z "$lib" ]; then
-            echo "libxcb-cursor.so.0 not found on runner"
-            exit 1
-          fi
+          for libname in "${REQUIRED_LIBS[@]}"; do
+            libpath=$(ldconfig -p | grep "$libname" | awk '{print $NF}' | head -n1)
 
-          echo "Found libxcb-cursor: $lib"
-          cp -v "$lib" "$APPDIR/usr/lib/"
+            if [ -z "$libpath" ]; then
+              echo "ERROR: $libname not found on runner"
+              exit 1
+            fi
+
+            echo "Bundling $libname from $libpath"
+            cp -v "$libpath" "$APPDIR/usr/lib/"
+          done
 
       - name: Verify qxcb dependencies
         run: |
           set -e
           export LD_LIBRARY_PATH="$PWD/AppDir/usr/lib"        
           ldd AppDir/usr/plugins/platforms/libqxcb.so
+
+          if ldd AppDir/usr/plugins/platforms/libqxcb.so | grep -q "not found"; then
+            echo "ERROR: Missing runtime libraries"
+            exit 1
+          fi          
 
       # - name: List all runtime dependencies for packaging
       #   run: |
