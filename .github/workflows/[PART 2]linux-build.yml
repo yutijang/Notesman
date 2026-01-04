@@ -325,15 +325,18 @@ jobs:
           APPDIR=AppDir
 
           cat > "$APPDIR/AppRun" <<'EOF'
-          #!/bin/bash
-          HERE="$(dirname "$(readlink -f "${0}")")"
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          export LD_LIBRARY_PATH="$HERE/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          export QT_PLUGIN_PATH="$HERE/usr/plugins"
+          export QML2_IMPORT_PATH="$HERE/usr/qml"
           exec "$HERE/usr/bin/Notesman" "$@"
           EOF
 
           chmod +x "$APPDIR/AppRun"
 
           appName="Notesman-x86_64-v${{ steps.get_version.outputs.version }}.AppImage"
-          ./appimagetool-x86_64.AppImage --runtime-file runtime-cache/runtime-x86_64 AppDir "${appName}"
+          ./appimagetool-x86_64.AppImage --runtime-file runtime-cache/runtime-x86_64 $APPDIR "${appName}"
 
       - name: Cleanup tools after packaging
         run: rm -f linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage || true
