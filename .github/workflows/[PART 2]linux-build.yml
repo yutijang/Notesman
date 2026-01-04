@@ -230,7 +230,7 @@ jobs:
 
       - name: Detect prunable libraries
         run: |
-          bash detect_prunable_libs.sh
+          bash scripts/detect_prunable_libs.sh
 
       - name: Show prune list
         run: |

@@ -31,7 +31,10 @@ export QT_DEBUG_PLUGINS=1
 export QT_PLUGIN_PATH="$(realpath "$PLUGINDIR")"
 export LD_LIBRARY_PATH="$(realpath "$LIBDIR")"
 
-"$APPDIR/usr/bin/Notesman" >/dev/null 2> "$WORKDIR/qt_plugins.log" || true
+QT_QPA_PLATFORM=offscreen \
+"$APPDIR/usr/bin/Notesman" \
+  > /dev/null \
+  2> "$WORKDIR/qt_plugins.log" || true
 
 grep -oE 'lib[^/ ]+\.so[^ ]*' "$WORKDIR/qt_plugins.log" \
   | sort -u > "$WORKDIR/required_by_qt.txt"
@@ -86,6 +89,6 @@ comm -23 "$WORKDIR/all_libs.txt" "$WORKDIR/required_all.txt" \
 echo "===== SUMMARY ====="
 echo "All libs:        $(wc -l < "$WORKDIR/all_libs.txt")"
 echo "Required libs:   $(wc -l < "$WORKDIR/required_all.txt")"
-echo "Prune candidates: $(wc -l < prune_libs.txt")"
+echo "Prune candidates: $(wc -l < prune_libs.txt)"
 
 echo "Output: prune_libs.txt"
