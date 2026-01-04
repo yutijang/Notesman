@@ -233,7 +233,7 @@ jobs:
           set -e
 
           cat prune_libs.txt \
-            | grep -Ev '^(libQt6|libxcb|libX|libwayland|libicu|libharfbuzz|libfreetype|libfontconfig|libpng|libjpeg|libturbojpeg|libz|libzstd|libb2|libbrotli|libdouble-conversion|libpcre2|libssl|libcrypto|libGL|libEGL|libOpenGL|libdbus-1|libresolv|libnss|libgcc_s|libstdc\+\+)' \
+            | grep -Ev '^(libQt6|libxcb|libX|libwayland|libicu|libharfbuzz|libfreetype|libfontconfig|libpng|libjpeg|libturbojpeg|libz|libzstd|libb2|libbrotli|libdouble-conversion|libpcre2|libssl|libcrypto|libGL|libEGL|libOpenGL|libdbus-1|libresolv|libnss|libgcc_s|libstdc\+\+|libsqlite3|libspdlog|liblzma|liblz4|libbz2)' \
             > prune_libs.safe.txt
 
           echo "===== SAFE PRUNE LIST ====="
