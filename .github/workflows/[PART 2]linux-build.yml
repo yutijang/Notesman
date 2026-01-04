@@ -228,6 +228,31 @@ jobs:
             exit 1
           fi          
 
+      - name: Detect prunable libraries
+        run: |
+          bash detect_prunable_libs.sh
+
+      - name: Show prune list
+        run: |
+          echo "===== PRUNE LIST ====="
+          cat prune_libs.txt
+
+      - name: Prune unused libraries
+        run: |
+          set -e
+
+          APPDIR=AppDir/usr/lib
+
+          while read -r lib; do
+            [ -z "$lib" ] && continue
+            if [ -f "$APPDIR/$lib" ]; then
+              echo "Removing $lib"
+              rm -v "$APPDIR/$lib"
+            else
+              echo "Skip missing $lib"
+            fi
+          done < prune_libs.txt
+
       # - name: List all runtime dependencies for packaging
       #   run: |
       #     set -e
