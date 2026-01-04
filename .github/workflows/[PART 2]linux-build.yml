@@ -61,31 +61,6 @@ jobs:
           restore-keys: |
             linux-vcpkg-
 
-      # - name: List restored vcpkg & Qt6 libraries and plugins
-      #   run: |
-      #     set -e
-      #     VCPKG_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic"
-
-      #     echo "== Restored Qt6 libraries =="
-      #     ls -1 "$VCPKG_DIR/lib"/libQt6*.so* || echo "No Qt6 libraries found"
-
-      #     echo "== Restored other common libs =="
-      #     ls -1 "$VCPKG_DIR/lib"/libspdlog.so*   || echo "No spdlog found"
-      #     ls -1 "$VCPKG_DIR/lib"/libfmt.so*      || echo "No fmt found"
-      #     ls -1 "$VCPKG_DIR/lib"/libssl.so*      || echo "No openssl found"
-      #     ls -1 "$VCPKG_DIR/lib"/libcrypto.so*   || echo "No openssl crypto found"
-      #     ls -1 "$VCPKG_DIR/lib"/libz.so*        || echo "No zlib found"
-      #     ls -1 "$VCPKG_DIR/lib"/libsqlite3.so*  || echo "No sqlite3 found"
-      #     ls -1 "$VCPKG_DIR/lib"/libicu*.so*     || echo "No ICU libraries found"
-
-      #     echo "== Searching for any Qt6 plugin directories =="
-      #     find "$VCPKG_DIR" -type d \( -name "*plugins*" -o -name "*plugin*" \) || echo "No Qt6 plugin directories found"
-
-      #     echo "== Searching for any Qt6 plugin files =="
-      #     find "$VCPKG_DIR" -type f \( -name "*.so" -o -name "*.so.*" \) \( -path "*plugins*" -o -path "*plugin*" \) || echo "No Qt6 plugin libraries found"
-
-      #     exit 1
-
       - name: Verify Cache Integrity
         run: |
           if [ ! -d "${{ github.workspace }}/vcpkg_installed" ]; then
@@ -139,15 +114,6 @@ jobs:
 
       - name: Build (parallel)
         run: cmake --build build --parallel
-
-      # - name: List Notesman runtime dependencies
-      #   run: |
-      #     set -e
-      #     echo "== ldd check with vcpkg libraries =="
-      #     export LD_LIBRARY_PATH="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic/lib:$LD_LIBRARY_PATH"
-      #     ldd "${{ github.workspace }}/bin/Notesman"
-
-      #     exit 1
 
       - name: Prepare AppDir (Qt6 + vcpkg, controlled)
         run: |
@@ -226,11 +192,36 @@ jobs:
           if ldd AppDir/usr/plugins/platforms/libqxcb.so | grep -q "not found"; then
             echo "ERROR: Missing runtime libraries"
             exit 1
-          fi          
+          fi
+
+      - name: Optimize Library Symlinks (Deduplicate)
+        run: |
+          set -e
+          LIB_DIR="AppDir/usr/lib"
+          [ -d "$LIB_DIR" ] || exit 1
+
+          echo "Optimizing libraries in $LIB_DIR..."
+          
+          pushd "$LIB_DIR"
+
+          find . -maxdepth 1 -type f -name "*.so" -delete
+          find . -maxdepth 1 -type l -name "*.so" -delete
+
+          for full_lib in $(ls *.so.*.* 2>/dev/null); do
+            soname=$(echo "$full_lib" | sed -r 's/(\.so\.[0-9]+).*/\1/')
+            
+            if [ "$full_lib" != "$soname" ] && [ -f "$soname" ]; then
+              echo "Link $soname -> $full_lib"
+              rm -f "$soname"
+              ln -s "$full_lib" "$soname"
+            fi
+          done
+
+          popd
 
       - name: Detect prunable libraries
         run: |
-          bash scripts/detect_prunable_libs.sh
+          bash apps/notesman/scripts/detect_prunable_libs.sh
 
       - name: Show prune list
         run: |
@@ -242,7 +233,7 @@ jobs:
           set -e
 
           cat prune_libs.txt \
-            | grep -Ev '^(libQt6|libxcb|libX|libwayland|libicu|libharfbuzz|libfreetype|libfontconfig|libpng|libjpeg|libturbojpeg|libz|libzstd|libb2|libbrotli|libdouble-conversion|libpcre2|libssl|libcrypto|libGL|libEGL|libOpenGL)' \
+            | grep -Ev '^(libQt6|libxcb|libX|libwayland|libicu|libharfbuzz|libfreetype|libfontconfig|libpng|libjpeg|libturbojpeg|libz|libzstd|libb2|libbrotli|libdouble-conversion|libpcre2|libssl|libcrypto|libGL|libEGL|libOpenGL|libdbus-1|libresolv|libnss|libgcc_s|libstdc\+\+)' \
             > prune_libs.safe.txt
 
           echo "===== SAFE PRUNE LIST ====="
@@ -265,109 +256,39 @@ jobs:
             fi
           done < prune_libs.safe.txt
 
-      # - name: List all runtime dependencies for packaging
-      #   run: |
-      #     set -e
+      - name: Remove unused Qt files from AppDir
+        run: |
+          set -e
+          APPDIR=AppDir/usr
+          [ -d "$APPDIR" ] || { echo "AppDir not found"; exit 1; }
 
-      #     APPDIR=AppDir
-      #     VCPKG_DIR="${{ github.workspace }}/vcpkg_installed/x64-linux-dynamic"
+          echo "Cleaning unused Qt modules and plugins..."
 
-      #     echo "== Scanning main binary =="
-      #     ldd "$APPDIR/usr/bin/Notesman" || true
+          rm -rf "$APPDIR/plugins/platforminputcontexts" || true
+          rm -rf "$APPDIR/plugins/platformthemes" || true
+          rm -rf "$APPDIR/plugins/egldeviceintegrations" || true
+          rm -rf "$APPDIR/plugins/generic" || true
+          rm -rf "$APPDIR/plugins/networkinformation" || true
+          rm -rf "$APPDIR/plugins/platformthemes" || true
+          rm -rf "$APPDIR/plugins/sqldrivers" || true
+          rm -rf "$APPDIR/share/doc" || true
+          rm -rf "$APPDIR/translations" || true
 
-      #     echo "== Scanning Qt6 plugin binaries =="
-      #     find "$APPDIR/usr/lib/qt6/plugins" -type f -executable -name "*.so*" | while read plugin; do
-      #       echo "== $plugin =="
-      #       ldd "$plugin" || true
-      #     done
+          IMAGE_FORMATS="$APPDIR/plugins/imageformats"
+          if [ -d "$IMAGE_FORMATS" ]; then
+            find "$IMAGE_FORMATS" -type f ! -name 'libqico.so' ! -name 'libqsvg.so' -delete
+          fi
 
-      #     echo "== Scanning all vcpkg libraries =="
-      #     find "$VCPKG_DIR" -type f -name "*.so*" -exec ls -l {} \;
+          PLATFORMS_DIR="$APPDIR/plugins/platforms"
+          if [ -d "$PLATFORMS_DIR" ]; then
+            find "$PLATFORMS_DIR" -type f ! -name 'libqxcb.so' ! -name 'libqoffscreen.so' -delete
+          fi
 
-      #     echo "== Missing libraries check =="
-      #     find "$APPDIR/usr/bin" "$APPDIR/usr/lib/qt6/plugins" -type f -executable -name "*.so*" | while read f; do
-      #       ldd "$f" 2>/dev/null | grep "not found" || true
-      #     done
+          TLS_DIR="$APPDIR/plugins/tls"
+          if [ -d "$TLS_DIR" ]; then
+            rm -f "$TLS_DIR/libqcertonlybackend.so"
+          fi
 
-      #     echo "== Summary of unique libraries =="
-      #     find "$APPDIR/usr/bin" "$APPDIR/usr/lib/qt6/plugins" -type f -executable -name "*.so*" | while read f; do
-      #       ldd "$f" 2>/dev/null | awk '/=>/ {print $1}' 
-      #     done | sort -u
-
-      #     exit 1
-
-      # - name: Verify runtime deps inside AppDir
-      #   run: |
-      #     set -e
-      #     echo "== ldd check =="
-      #     if ldd AppDir/usr/bin/Notesman | grep -q 'not found'; then
-      #       echo "Missing shared libraries"
-      #       exit 1
-      #     fi  
-
-      #     if [ ! -f AppDir/usr/lib/qt6/plugins/platforms/libqxcb.so ]; then
-      #       echo "Qt platform plugin libqxcb.so not found"
-      #       exit 1
-      #     fi
-
-      # - name: Verify Qt platform plugin dependencies
-      #   run: |
-      #     set -e
-      #     echo "== ldd qxcb plugin =="
-      #     if ldd AppDir/usr/lib/qt6/plugins/platforms/libqxcb.so | grep -q 'not found'; then
-      #       echo "Missing Qt platform plugin dependencies"
-      #       exit 1
-      #     fi
-
-      # - name: Add updater into AppDir
-      #   run: |
-      #     set -e
-      #     APPDIR=AppDir
-
-      #     if [ ! -f bin/updater ]; then
-      #       echo "updater not found! Listing bin directory..."
-      #       ls -la bin
-      #       exit 1
-      #     fi
-
-      #     mkdir -p "$APPDIR/usr/bin"
-      #     cp bin/updater "$APPDIR/usr/bin/updater"
-
-      #     chmod +x "$APPDIR/usr/bin/updater"
-
-      # - name: Remove unused Qt files from AppDir
-      #   run: |
-      #     set -e
-      #     APPDIR=AppDir/usr
-      #     [ -d "$APPDIR" ] || { echo "AppDir not found"; exit 1; }
-
-      #     echo "Cleaning unused Qt modules and plugins..."
-
-      #     rm -rf "$APPDIR/plugins/platforminputcontexts" || true
-      #     rm -rf "$APPDIR/plugins/platformthemes" || true
-      #     rm -rf "$APPDIR/share/doc" || true
-      #     rm -rf "$APPDIR/translations" || true
-
-      #     find "$APPDIR/share/icons/hicolor" -type d -path '*/16x16*' -prune -exec rm -rf {} +
-      #     find "$APPDIR/share/icons/hicolor" -type d -path '*/32x32*' -prune -exec rm -rf {} +
-      #     find "$APPDIR/share/icons/hicolor" -type d -path '*/64x64*' -prune -exec rm -rf {} +
-      #     find "$APPDIR/share/icons/hicolor" -type d -path '*/128x128*' -prune -exec rm -rf {} +
-      #     find "$APPDIR/share/icons/hicolor" -type d -path '*/scalable*' -prune -exec rm -rf {} +
-
-      #     rm -f "$APPDIR/lib/libsystemd.so."* \
-      #           "$APPDIR/lib/libgcrypt.so."* \
-      #           "$APPDIR/lib/libglib-2.0.so."* \
-      #           "$APPDIR/lib/libbz2.so."* \
-      #           "$APPDIR/lib/liblzma.so."*
-
-      #     IMAGE_FORMATS="$APPDIR/plugins/imageformats"
-      #     if [ -d "$IMAGE_FORMATS" ]; then
-      #       find "$IMAGE_FORMATS" -type f ! -name 'libqico.so' -delete
-      #     fi
-
-      #     rm -f "$APPDIR/plugins/tls/libqcertonlybackend.so"
-      #     rm -f "$APPDIR/plugins/xcbglintegrations/libqxcb-egl-integration.so"
-          
       - name: Download AppImage runtime with retry
         run: |
           mkdir -p runtime-cache
