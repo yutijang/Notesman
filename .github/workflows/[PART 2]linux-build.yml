@@ -192,6 +192,27 @@ jobs:
 
           patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/Notesman"
 
+      - name: Bundle xcb cursor runtime dependency
+        run: |
+          set -e
+
+          APPDIR=AppDir
+
+          # locate libxcb-cursor from system
+          lib=$(ldconfig -p | grep libxcb-cursor.so.0 | awk '{print $NF}' | head -n1)
+
+          if [ -z "$lib" ]; then
+            echo "libxcb-cursor.so.0 not found on runner"
+            exit 1
+          fi
+
+          echo "Found libxcb-cursor: $lib"
+          cp -v "$lib" "$APPDIR/usr/lib/"
+
+      - name: Verify qxcb dependencies
+        run: |
+          ldd AppDir/usr/plugins/platforms/libqxcb.so | grep -E 'not found|cursor' && exit 1 || true
+
       # - name: List all runtime dependencies for packaging
       #   run: |
       #     set -e
