@@ -198,25 +198,17 @@ jobs:
         run: |
           set -e
           LIB_DIR="AppDir/usr/lib"
-          [ -d "$LIB_DIR" ] || exit 1
-
-          echo "Optimizing libraries in $LIB_DIR..."
-          
           pushd "$LIB_DIR"
 
-          find . -maxdepth 1 -type f -name "*.so" -delete
           find . -maxdepth 1 -type l -name "*.so" -delete
 
-          for full_lib in $(ls *.so.*.* 2>/dev/null); do
-            soname=$(echo "$full_lib" | sed -r 's/(\.so\.[0-9]+).*/\1/')
-            
-            if [ "$full_lib" != "$soname" ] && [ -f "$soname" ]; then
-              echo "Link $soname -> $full_lib"
-              rm -f "$soname"
-              ln -s "$full_lib" "$soname"
-            fi
-          done
+          /sbin/ldconfig -n .
 
+          REAL_SQLITE=$(ls libsqlite3.so.* 2>/dev/null | head -n 1)
+          if [ -n "$REAL_SQLITE" ]; then
+             ln -sf "$REAL_SQLITE" libsqlite3.so
+             ln -sf "$REAL_SQLITE" libsqlite3.so.0
+          fi
           popd
 
       - name: Detect prunable libraries
