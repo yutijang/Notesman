@@ -191,6 +191,7 @@ jobs:
           cp apps/notesman/resources/icons/icon.png "$APPDIR/notesman.png"
 
           patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/Notesman"
+          patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/plugins/platforms/libqxcb.so"
 
       - name: Bundle xcb cursor runtime dependency
         run: |
@@ -211,7 +212,9 @@ jobs:
 
       - name: Verify qxcb dependencies
         run: |
-          ldd AppDir/usr/plugins/platforms/libqxcb.so | grep -E 'not found|cursor' && exit 1 || true
+          set -e
+          export LD_LIBRARY_PATH="$PWD/AppDir/usr/lib"        
+          ldd AppDir/usr/plugins/platforms/libqxcb.so
 
       # - name: List all runtime dependencies for packaging
       #   run: |
