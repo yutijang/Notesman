@@ -8,13 +8,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "Logger.hpp"
-
 namespace fs = std::filesystem;
 
 int main(int argc, char** argv) {
-    Log::init("updater");
-
     if (argc < 3) { return 1; }
 
     std::error_code ec;

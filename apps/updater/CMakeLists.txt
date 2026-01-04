@@ -8,8 +8,8 @@ set(UPDATER_PROJECT_NAME updater)
 add_executable(${UPDATER_PROJECT_NAME} ${UPDATER_SRC})
 
 target_link_libraries(${UPDATER_PROJECT_NAME}
-  PRIVATE
-    common::logger
+  PRIVATE    
+    $<$<PLATFORM_ID:Windows>:common::logger>
     $<$<PLATFORM_ID:Windows>:miniz::miniz>
 )
 
