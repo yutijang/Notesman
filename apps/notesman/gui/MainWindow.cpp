@@ -632,7 +632,9 @@ void MainWindow::handleWindowsUpdate(const QString &filePath) {
 }
 #elif defined(Q_OS_LINUX)
 void MainWindow::handleLinuxUpdate(const QString &filePath) {
-    const QString currentAppImage = QCoreApplication::arguments().first();
+    QString currentAppImage = qEnvironmentVariable("APPIMAGE");
+    if (currentAppImage.isEmpty()) { currentAppImage = QCoreApplication::arguments().first(); }
+
     const QString &downloadedAppImage = filePath;
 
     const QString updaterTmpPath = "/tmp/notesman-updater";
@@ -685,13 +687,13 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
 
         char* argvExec[] = {upC, a0C, a1C, pidC, nullptr};
 
+        Log::info("Arguments list: {}, {}, {}, {}", argvExec[0], argvExec[1], argvExec[2],
+                  argvExec[3]);
+
         // Optional: close inherited fds (File Descriptors (FD))
         // except stdin/out/err (helps avoid fd leaks)
         long maxFks = sysconf(_SC_OPEN_MAX);
         for (int fd = 3; fd < maxFks; ++fd) { ::close(fd); }
-
-        Log::info("Arguments list: {}, {}, {}, {}", argvExec[0], argvExec[1], argvExec[2],
-                  argvExec[3]);
 
         // Exec: if returns, it failed — write errno to logfile for debug
         ::execv(upC, argvExec);
