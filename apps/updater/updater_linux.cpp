@@ -1,3 +1,4 @@
+#include <csignal>
 #include <cstdio>
 #include <filesystem>
 #include <string>
@@ -7,19 +8,31 @@
 #include <chrono>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 namespace fs = std::filesystem;
 
 int main(int argc, char** argv) {
-    if (argc < 3) { return 1; }
+    if (argc < 4) { return 1; }
 
     std::error_code ec;
     const fs::path currentApp = fs::weakly_canonical(argv[1], ec);
     const fs::path newApp = fs::weakly_canonical(argv[2], ec);
+    pid_t parentPid = std::stoi(argv[3]);
+
     if (ec || !fs::exists(currentApp) || !fs::exists(newApp)) { return 2; }
 
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(500)); // NOLINT(readability-magic-numbers)
+    // NOLINTBEGIN (readability-magic-numbers)
+    const int maxAttempts = 50;
+    for (int i = 0; i < maxAttempts; ++i) {
+        if (kill(parentPid, 0) == -1 && errno == ESRCH) { break; }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    // NOLINTEND
+
+    // std::this_thread::sleep_for(
+    //     std::chrono::milliseconds(500)); // NOLINT(readability-magic-numbers)
 
     const fs::path targetApp = currentApp.parent_path() / newApp.filename();
 

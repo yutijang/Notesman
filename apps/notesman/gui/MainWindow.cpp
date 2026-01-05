@@ -45,7 +45,6 @@
 #include "ResultsTable.hpp"
 #include "cpphighlightertheme.hpp"
 #include "cpphighlighter.hpp"
-#include "helper.hpp"
 #include "model.hpp"
 #include "NotesAppCore.hpp"
 #include "PlainTextEdit.hpp"
@@ -66,6 +65,8 @@
     #include <unistd.h>
 
     #include "AppImageExtractor.hpp"
+#elif defined(Q_OS_WIN)
+    #include "helper.hpp"
 #endif
 
 namespace {
@@ -672,16 +673,22 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
         QByteArray a0BA = currentAppImage.toLocal8Bit();
         QByteArray a1BA = downloadedAppImage.toLocal8Bit();
 
+        QString parentPid = QString::number(QCoreApplication::applicationPid());
+        QByteArray pidBA = parentPid.toLocal8Bit();
+
         // strdup so pointers still valid even if Qt objects go away (not necessary after fork, but
         // harmless)
         char* upC = strdup(upBA.constData());
         char* a0C = strdup(a0BA.constData());
         char* a1C = strdup(a1BA.constData());
+        char* pidC = strdup(pidBA.constData());
 
-        char* argvExec[] = {upC, a0C, a1C, nullptr};
+        char* argvExec[] = {upC, a0C, a1C, pidC, nullptr};
 
-        // Optional: close inherited fds except stdin/out/err (helps avoid fd leaks)
-        for (int fd = 3; fd < 1024; ++fd) { ::close(fd); } // NOLINT(readability-magic-numbers)
+        // Optional: close inherited fds (File Descriptors (FD))
+        // except stdin/out/err (helps avoid fd leaks)
+        long maxFks = sysconf(_SC_OPEN_MAX);
+        for (int fd = 3; fd < maxFks; ++fd) { ::close(fd); }
 
         // Exec: if returns, it failed — write errno to logfile for debug
         ::execv(upC, argvExec);
@@ -702,6 +709,7 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
         free(upC);
         free(a0C);
         free(a1C);
+        free(pidC);
 
         _exit(127);                                         // NOLINT(readability-magic-numbers)
     }
