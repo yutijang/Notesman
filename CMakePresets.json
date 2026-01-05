@@ -13,7 +13,13 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER_LAUNCHER": "sccache",
-                "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
+                "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
+                "CMAKE_C_COMPILER_WORKS": "ON",
+                "CMAKE_CXX_COMPILER_WORKS": "ON"
+            },
+            "environment": {
+                "ARIA2_OPTS": "-x16 -s16 -k1M --download-result=hide --summary-interval=0",
+                "VCPKG_MAX_CONCURRENCY": "12"
             },
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         },
@@ -108,22 +114,22 @@
         {
             "name": "windows-debug",
             "configurePreset": "windows-debug",
-            "jobs": 4
+            "jobs": 8
         },
         {
             "name": "windows-release",
             "configurePreset": "windows-release",
-            "jobs": 4
+            "jobs": 8
         },
         {
             "name": "linux-debug",
             "configurePreset": "linux-debug",
-            "jobs": 4
+            "jobs": 8
         },
         {
             "name": "linux-release",
             "configurePreset": "linux-release",
-            "jobs": 4
+            "jobs": 8
         }
     ],
     "testPresets": [
