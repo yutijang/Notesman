@@ -34,27 +34,7 @@ int main(int argc, char** argv) {
 
     if (ec || !fs::exists(targetApp) || !fs::exists(newApp)) { return 2; }
 
-    // NOLINTBEGIN (readability-magic-numbers)
-    logUpdater("Đang chờ tiến trình cha (PID: " + std::to_string(parentPid) + ") thoát...");
-    int attempts = 0;
-    while (attempts < 50) { // Chờ tối đa 5 giây
-        if (kill(parentPid, 0) == -1 && errno == ESRCH) {
-            logUpdater("Tiến trình cha đã thoát thực sự.");
-            break;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        attempts++;
-
-        // Nếu sau 2 giây chưa thoát, gửi SIGTERM cho chắc chắn
-        if (attempts == 20) {
-            logUpdater("Cha quá lâu chưa thoát, gửi SIGTERM...");
-            kill(parentPid, SIGTERM);
-        }
-    }
-
-    // Nghỉ thêm 200ms để Kernel giải phóng file lock
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    // NOLINTEND
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     // std::this_thread::sleep_for(
     //     std::chrono::milliseconds(500)); // NOLINT(readability-magic-numbers)
