@@ -1,6 +1,7 @@
 #include <csignal>
 #include <cstdio>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -12,21 +13,36 @@
 
 namespace fs = std::filesystem;
 
+void logUpdater(const std::string &msg);
+
 int main(int argc, char** argv) {
-    if (argc < 4) { return 1; }
+    logUpdater("Updater đã khởi chạy.");
+
+    if (argc < 4) {
+        logUpdater("LỖI: Thiếu đối số (argc < 4)");
+        return 1;
+    }
 
     std::error_code ec;
     const fs::path currentApp = fs::weakly_canonical(argv[1], ec);
     const fs::path newApp = fs::weakly_canonical(argv[2], ec);
     pid_t parentPid = std::stoi(argv[3]);
 
+    logUpdater("Current App (đích): " + currentApp.string());
+    logUpdater("New App (nguồn): " + newApp.string());
+    logUpdater("Đang chờ Parent PID: " + std::to_string(parentPid));
+
     if (ec || !fs::exists(currentApp) || !fs::exists(newApp)) { return 2; }
 
     // NOLINTBEGIN (readability-magic-numbers)
     const int maxAttempts = 50;
     for (int i = 0; i < maxAttempts; ++i) {
-        if (kill(parentPid, 0) == -1 && errno == ESRCH) { break; }
+        if (kill(parentPid, 0) == -1 && errno == ESRCH) {
+            logUpdater("Main app đã thoát.");
+            break;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (i == 49) { logUpdater("CẢNH BÁO: Đã chờ 5s nhưng main app chưa thoát!"); }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     // NOLINTEND
@@ -36,10 +52,17 @@ int main(int argc, char** argv) {
 
     const fs::path &targetApp = currentApp;
 
+    logUpdater("Đang thực hiện ghi đè file...");
     bool copySuccess = fs::copy_file(newApp, targetApp, fs::copy_options::overwrite_existing, ec);
-    if (!copySuccess) { return 4; }
+    if (!copySuccess) {
+        logUpdater("LỖI COPY: " + ec.message());
+        return 4;
+    }
 
-    if (::chmod(targetApp.c_str(), 0755) != 0) { return 5; } // NOLINT(readability-magic-numbers)
+    if (::chmod(targetApp.c_str(), 0755) != 0) { // NOLINT(readability-magic-numbers)
+        logUpdater("LỖI chmod");
+        return 5;                                // NOLINT(readability-magic-numbers)
+    }
 
     // prepare args for execv
     // argv[0] = targetApp
@@ -62,9 +85,16 @@ int main(int argc, char** argv) {
     }
     args.push_back(nullptr);
 
+    logUpdater("Đang khởi động lại ứng dụng...");
+
     ::execv(args[0], args.data());
 
     perror("execv failed");
 
     return 6; // NOLINT(readability-magic-numbers)
+}
+
+void logUpdater(const std::string &msg) {
+    std::ofstream f("/tmp/notesman_debug.log", std::ios::app);
+    if (f.is_open()) { f << "[UPDATER] " << msg << '\n'; }
 }

@@ -690,6 +690,9 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
         long maxFks = sysconf(_SC_OPEN_MAX);
         for (int fd = 3; fd < maxFks; ++fd) { ::close(fd); }
 
+        Log::info("Arguments list: {}, {}, {}, {}", argvExec[0], argvExec[1], argvExec[2],
+                  argvExec[3]);
+
         // Exec: if returns, it failed — write errno to logfile for debug
         ::execv(upC, argvExec);
 
