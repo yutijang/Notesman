@@ -35,16 +35,13 @@ int main(int argc, char** argv) {
     if (ec || !fs::exists(currentApp) || !fs::exists(newApp)) { return 2; }
 
     // NOLINTBEGIN (readability-magic-numbers)
-    const int maxAttempts = 50;
-    for (int i = 0; i < maxAttempts; ++i) {
-        if (kill(parentPid, 0) == -1 && errno == ESRCH) {
-            logUpdater("Main app đã thoát.");
-            break;
-        }
+    int attempts = 0;
+    while (attempts < 100) {
+        if (kill(parentPid, 0) == -1 && errno == ESRCH) { break; }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        if (i == 49) { logUpdater("CẢNH BÁO: Đã chờ 5s nhưng main app chưa thoát!"); }
+        attempts++;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     // NOLINTEND
 
     // std::this_thread::sleep_for(
@@ -53,6 +50,7 @@ int main(int argc, char** argv) {
     const fs::path &targetApp = currentApp;
 
     logUpdater("Đang thực hiện ghi đè file...");
+    if (fs::exists(currentApp, ec)) { fs::remove(currentApp, ec); }
     bool copySuccess = fs::copy_file(newApp, targetApp, fs::copy_options::overwrite_existing, ec);
     if (!copySuccess) {
         logUpdater("LỖI COPY: " + ec.message());
