@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     // std::this_thread::sleep_for(
     //     std::chrono::milliseconds(500)); // NOLINT(readability-magic-numbers)
 
-    const fs::path targetApp = currentApp.parent_path() / newApp.filename();
+    const fs::path &targetApp = currentApp;
 
     bool copySuccess = fs::copy_file(newApp, targetApp, fs::copy_options::overwrite_existing, ec);
     if (!copySuccess) { return 4; }
