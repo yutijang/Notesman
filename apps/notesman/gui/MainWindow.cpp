@@ -675,20 +675,13 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
         QByteArray a0BA = currentAppImage.toLocal8Bit();
         QByteArray a1BA = downloadedAppImage.toLocal8Bit();
 
-        QString parentPid = QString::number(QCoreApplication::applicationPid());
-        QByteArray pidBA = parentPid.toLocal8Bit();
-
         // strdup so pointers still valid even if Qt objects go away (not necessary after fork, but
         // harmless)
         char* upC = strdup(upBA.constData());
         char* a0C = strdup(a0BA.constData());
         char* a1C = strdup(a1BA.constData());
-        char* pidC = strdup(pidBA.constData());
 
-        char* argvExec[] = {upC, a0C, a1C, pidC, nullptr};
-
-        Log::info("Arguments list: {}, {}, {}, {}", argvExec[0], argvExec[1], argvExec[2],
-                  argvExec[3]);
+        char* argvExec[] = {upC, a0C, a1C, nullptr};
 
         // Optional: close inherited fds (File Descriptors (FD))
         // except stdin/out/err (helps avoid fd leaks)
@@ -714,7 +707,6 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
         free(upC);
         free(a0C);
         free(a1C);
-        free(pidC);
 
         _exit(127);                                         // NOLINT(readability-magic-numbers)
     }
