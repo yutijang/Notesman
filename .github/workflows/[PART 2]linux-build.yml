@@ -256,7 +256,6 @@ jobs:
 
           echo "Cleaning unused Qt modules and plugins..."
 
-          rm -rf "$APPDIR/plugins/platforminputcontexts" || true
           rm -rf "$APPDIR/plugins/platformthemes" || true
           rm -rf "$APPDIR/plugins/egldeviceintegrations" || true
           rm -rf "$APPDIR/plugins/generic" || true

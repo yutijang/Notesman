@@ -61,10 +61,6 @@ int main(int argc, char** argv) {
 
     std::vector<std::string> argsStr{app, "--update-done", oldAppStr, updaterStr};
 
-    logUpdater("argsStr[0]: " + argsStr[0]);
-    logUpdater("argsStr[2]: " + argsStr[2]);
-    logUpdater("argsStr[3]: " + argsStr[3]);
-
     std::vector<char*> args;
     args.reserve(argsStr.size());
     for (auto &s : argsStr) {
