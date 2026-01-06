@@ -18,8 +18,7 @@
                 "CMAKE_CXX_COMPILER_WORKS": "ON"
             },
             "environment": {
-                "ARIA2_OPTS": "-x16 -s16 -k1M --download-result=hide --summary-interval=0",
-                "VCPKG_MAX_CONCURRENCY": "12"
+                "VCPKG_MAX_CONCURRENCY": "10"
             },
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         },
@@ -141,7 +140,7 @@
             },
             "execution": {
                 "stopOnFailure": false,
-                "jobs": 4
+                "jobs": 8
             }
         },
         {

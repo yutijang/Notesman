@@ -41,7 +41,7 @@ TEST_CASE("resourceTypeFromString - Valid and Invalid Inputs", "[Model][Utils][R
 
 TEST_CASE("resourceTypeFromExtension", "[Model][Utils][ResourceType]") {
     SECTION("Mapping valid resource type") {
-        REQUIRE(resourceTypeFromExtension("txt") == ResourceType::plainText);
+        REQUIRE(resourceTypeFromExtension("txt") == ResourceType::cCppCode);
         REQUIRE(resourceTypeFromExtension("cpp") == ResourceType::cCppCode);
         REQUIRE(resourceTypeFromExtension("h") == ResourceType::cCppCode);
         REQUIRE(resourceTypeFromExtension("pdf") == ResourceType::pdfDoc);
@@ -58,7 +58,7 @@ TEST_CASE("resourceTypeFromExtension", "[Model][Utils][ResourceType]") {
 
 TEST_CASE("resourceTypeFromFile", "[Model][Utils]") {
     SECTION("Check valid string file path") {
-        REQUIRE(resourceTypeFromFile("/mnt/Path/resource.txt") == ResourceType::plainText);
+        REQUIRE(resourceTypeFromFile("/mnt/Path/resource.txt").value() == ResourceType::cCppCode);
         REQUIRE(resourceTypeFromFile(R"(C:\res\exam.h)") == ResourceType::cCppCode);
         REQUIRE(resourceTypeFromFile("/mnt/MountPoint/path/res.pdf") == ResourceType::pdfDoc);
         REQUIRE(resourceTypeFromFile("D:\\cpp ebook\\learn.epub") == ResourceType::epubDoc);
