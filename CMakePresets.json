@@ -13,12 +13,7 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER_LAUNCHER": "sccache",
-                "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
-                "CMAKE_C_COMPILER_WORKS": "ON",
-                "CMAKE_CXX_COMPILER_WORKS": "ON"
-            },
-            "environment": {
-                "VCPKG_MAX_CONCURRENCY": "10"
+                "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
             },
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         },
