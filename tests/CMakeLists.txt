@@ -48,6 +48,7 @@ set_target_properties(notes-core-tests PROPERTIES
 # GUI Tests
 # ------------------------------
 add_executable(gui-tests
+    test_main.cpp
     test_mainwindow_tabs.cpp
 )
 

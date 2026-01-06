@@ -1,23 +1,30 @@
 #include "MainWindow.hpp"
+#include <memory>
 #include <QApplication>
 #include <QTabWidget>
 #include <QCoreApplication>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 
-TEST_CASE("MainWindow Tab Structure Check", "[GUI][MainWindow][Structure]") {
-    if (QCoreApplication::instance() == nullptr) {
-        static int argc = 0;
-        static char* argv[] = {nullptr}; // NOLINT(modernize-avoid-c-arrays)
-        // Sử dụng QApplication thay vì QCoreApplication vì MainWindow là QMainWindow
-        new QApplication(argc, argv);
-    }
+// Helper để quản lý vòng đời QApplication trong test
+struct QtTestFixture {
+        QtTestFixture() {
+            static int argc = 1;
+            static char arg0[] = "test_app";
+            static char* argv[] = {arg0, nullptr};
+            if (!qApp) { app = std::make_unique<QApplication>(argc, argv); }
+        }
 
+        std::unique_ptr<QApplication> app;
+};
+
+TEST_CASE("MainWindow Tab Structure Check", "[GUI][MainWindow][Structure]") {
     // Tạo instance của MainWindow
     MainWindow window;
 
     // Lấy widget trung tâm (phải là QTabWidget)
-    auto* tabWidget = qobject_cast<QTabWidget*>(window.centralWidget());
+    auto* central = window.centralWidget();
+    auto* tabWidget = qobject_cast<QTabWidget*>(central);
 
     SECTION("Central Widget Check") {
         // Kiểm tra xem widget trung tâm có tồn tại và là QTabWidget hay không
@@ -39,7 +46,7 @@ TEST_CASE("MainWindow Tab Structure Check", "[GUI][MainWindow][Structure]") {
         REQUIRE(tabWidget->isTabEnabled(0) == true);
 
         // Tab 1: Add Note
-        REQUIRE(tabWidget->tabText(1) == window.tr("Add Note"));
+        REQUIRE(tabWidget->tabText(1) == window.tr("Add Notes"));
         // Trong MainWindow.cpp, tab Add Note được setTabEnabled(false) ban đầu.
         REQUIRE(tabWidget->isTabEnabled(1) == true);
 

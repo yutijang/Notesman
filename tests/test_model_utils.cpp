@@ -1,25 +1,25 @@
-#include <cstring>
 #include <stdexcept>
 #include <optional>
+#include <string_view>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include "model.hpp"
 
 TEST_CASE("resourceTypeToString - Standard Mappings", "[Model][Utils][ResourceType]") {
     SECTION("Mapping text") {
-        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::plainText), "text") == 0);
+        CHECK(std::string_view(resourceTypeToString(ResourceType::plainText)) == "text");
     }
 
     SECTION("Mapping cpp") {
-        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::cCppCode), "cpp") == 0);
+        CHECK(std::string_view(resourceTypeToString(ResourceType::cCppCode)) == "cpp");
     }
 
     SECTION("Mapping pdf") {
-        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::pdfDoc), "pdf") == 0);
+        CHECK(std::string_view(resourceTypeToString(ResourceType::pdfDoc)) == "pdf");
     }
 
     SECTION("Mapping epub") {
-        REQUIRE(std::strcmp(resourceTypeToString(ResourceType::epubDoc), "epub") == 0);
+        CHECK(std::string_view(resourceTypeToString(ResourceType::epubDoc)) == "epub");
     }
 }
 

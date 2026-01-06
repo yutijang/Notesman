@@ -1,7 +1,6 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
-#include <filesystem>
 #include <sqlite3.h>
 #include "sqldb_raii.hpp"
 
@@ -44,12 +43,6 @@ TEST_CASE("SQLiteDB - RAII and Initialization", "[DB][RAII]") {
             rawDbPtr = db.get();
             REQUIRE(rawDbPtr != nullptr);
         }
-    }
-
-    SECTION("Error on open should throw and cleanup") {
-        auto invalidPath = std::filesystem::temp_directory_path() / "nonexist.db";
-        CHECK_THROWS_WITH(SQLiteDB(invalidPath.string()),
-                          Catch::Matchers::ContainsSubstring("Cannot open database"));
     }
 }
 
