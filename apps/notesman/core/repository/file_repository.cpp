@@ -97,8 +97,10 @@ void FileRepository::updateFile(sqlite3_int64 resourceId, const std::filesystem:
 }
 
 std::optional<FileEntry> FileRepository::getFileById(sqlite_int64 resourceId) {
-    SQLiteStmt stmt(m_db.get(), "SELECT resource_id, stored_path, original_path, is_managed FROM "
-                                "files WHERE resource_id = ?;");
+    static constexpr const char* sql = "SELECT resource_id, stored_path, original_path, is_managed "
+                                       "FROM files "
+                                       "WHERE resource_id = ?;";
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite3_bind_int64(stmt.get(), 1, resourceId);
 
@@ -138,8 +140,9 @@ bool FileRepository::exists(sqlite3_int64 resourceId) const {
 }
 
 std::vector<FileEntry> FileRepository::getAllFile() {
-    SQLiteStmt stmt(m_db.get(),
-                    "SELECT resource_id, stored_path, original_path, is_managed FROM files;");
+    static constexpr const char* sql = "SELECT resource_id, stored_path, original_path, is_managed "
+                                       "FROM files;";
+    SQLiteStmt stmt(m_db.get(), sql);
 
     std::vector<FileEntry> result;
 

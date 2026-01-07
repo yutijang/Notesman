@@ -27,6 +27,8 @@ class ResourceRepository {
 
         std::vector<Resource> getAll();
         std::vector<Resource> searchByTitleFTS(std::string_view keyword);
+        void extracted(SQLiteStmt &stmt, std::vector<Resource> &results);
+        std::vector<Resource> searchUnified(std::string_view keyword);
         std::optional<Resource> getByFileHash(std::string_view hash);
         std::optional<std::pair<std::string, std::string>> getTimestamps(sqlite3_int64 resourceID);
 
@@ -34,5 +36,7 @@ class ResourceRepository {
         [[nodiscard]] bool existsTitle(std::string_view title, ResourceType type) const;
 
     private:
+        static Resource resourceFromStmt(sqlite3_stmt* stmt);
+
         SQLiteDB &m_db;
 };

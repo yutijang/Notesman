@@ -206,6 +206,11 @@ void ResourceViewerDialog::setupActions() {
             actionSave->setEnabled(false);
             actionReload->setEnabled(false);
             break;
+        case ResourceType::unknown:
+            m_editor->setReadOnly(false);
+            actionSave->setEnabled(false);
+            actionReload->setEnabled(false);
+            break;
     }
 
     layout()->setMenuBar(toolbar);

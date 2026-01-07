@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS resource_tags (
 -- -- --
 CREATE VIRTUAL TABLE text_content_fts USING fts5(
     content,
-    content='text_content', -- External content table (tùy chọn để tối ưu dung lượng)
+    content='text_content',
     content_rowid='resource_id',    
     tokenize = 'unicode61 remove_diacritics 1'
 );
@@ -138,6 +138,63 @@ END;
 --- Trigger cập nhật resources.updated_at khi content đổi
 CREATE TRIGGER IF NOT EXISTS text_content_touch_resource
 AFTER UPDATE OF content ON text_content
+FOR EACH ROW
+WHEN COALESCE(NEW.content, '') <> COALESCE(OLD.content, '')
+BEGIN
+    UPDATE resources
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE id = NEW.resource_id;
+END;
+
+--- Bảng lưu nội dung text của file
+CREATE TABLE IF NOT EXISTS file_text_content (
+    resource_id INTEGER PRIMARY KEY,
+    extracted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    content TEXT NOT NULL,
+
+    FOREIGN KEY (resource_id)
+        REFERENCES resources(id)
+        ON DELETE CASCADE
+);
+
+--- FTS5 cho file text (external content)
+CREATE VIRTUAL TABLE file_text_content_fts USING fts5(
+    content,
+    content='file_text_content',
+    content_rowid='resource_id',
+    tokenize = 'unicode61 remove_diacritics 1'
+);
+
+--- Trigger đồng bộ FTS cho file text ---
+--- INSERT
+CREATE TRIGGER IF NOT EXISTS file_text_content_ai
+AFTER INSERT ON file_text_content
+BEGIN
+  INSERT INTO file_text_content_fts(rowid, content)
+  VALUES (new.resource_id, new.content);
+END;
+
+--- UPDATE
+CREATE TRIGGER IF NOT EXISTS file_text_content_au
+AFTER UPDATE OF content ON file_text_content
+BEGIN
+  INSERT INTO file_text_content_fts(file_text_content_fts, rowid, content)
+  VALUES('delete', old.resource_id, old.content);
+
+  INSERT INTO file_text_content_fts(rowid, content)
+  VALUES(new.resource_id, new.content);
+END;
+
+--- DELETE
+CREATE TRIGGER IF NOT EXISTS file_text_content_ad
+AFTER DELETE ON file_text_content
+BEGIN
+  INSERT INTO file_text_content_fts(file_text_content_fts, rowid, content)
+  VALUES('delete', old.resource_id, old.content);
+END;
+
+CREATE TRIGGER IF NOT EXISTS file_text_content_touch_resource
+AFTER UPDATE OF content ON file_text_content
 FOR EACH ROW
 WHEN COALESCE(NEW.content, '') <> COALESCE(OLD.content, '')
 BEGIN

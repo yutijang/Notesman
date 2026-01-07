@@ -41,6 +41,7 @@ add_library(notes-core STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/text_content_repository.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/file_repository.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/tag_repository.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/file_text_content_repository.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service/file_service.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service/resource_service.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/settings/AppSettings.cpp

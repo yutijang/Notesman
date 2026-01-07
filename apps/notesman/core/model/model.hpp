@@ -15,6 +15,7 @@
 #include "helper.hpp"
 
 enum class ResourceType : std::uint8_t {
+    unknown,
     plainText, //> text thuần ghi trực tiếp vào database,
                // ghi chú text thường (QTextEdit, có hoặc không highlight)
     cCppCode,  //> text thuần dạng file / snippet / mã nguồn C/C++ (QTextEdit + highlight)
@@ -32,6 +33,7 @@ enum class ResourceType : std::uint8_t {
         case ResourceType::htmlDoc  : return "html";
         case ResourceType::pdfDoc   : return "pdf";
         case ResourceType::epubDoc  : return "epub";
+        case ResourceType::unknown  : break;
     }
 #pragma clang diagnostic pop
     std::unreachable(); // compiler hiểu: chỗ này không bao giờ tới

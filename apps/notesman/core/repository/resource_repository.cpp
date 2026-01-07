@@ -33,54 +33,40 @@ sqlite3_int64 ResourceRepository::insert(const Resource &res) {
 }
 
 std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
-    SQLiteStmt stmt(m_db.get(),
-                    "SELECT id, title, type, created_at, updated_at FROM resources WHERE id = ?;");
+    static constexpr const char* sql = "SELECT id, title, type, created_at, updated_at "
+                                       "FROM resources "
+                                       "WHERE id = ?;";
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite3_bind_int64(stmt.get(), 1, resourceId);
 
-    if (sqlite3_step(stmt.get()) == SQLITE_ROW) {
-        Resource res;
-
-        res.id = sqlite3_column_int64(stmt.get(), 0);
-        res.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-
-        const char* typeText = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
-        res.type = resourceTypeFromString(typeText);
-
-        res.created_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 3));
-        res.updated_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 4));
-
-        return res;
-    }
+    if (sqlite3_step(stmt.get()) == SQLITE_ROW) { return resourceFromStmt(stmt.get()); }
 
     return std::nullopt;
 }
 
 std::vector<Resource> ResourceRepository::getAll() {
-    SQLiteStmt stmt(m_db.get(), "SELECT id, title, type, created_at, updated_at FROM resources;");
+    static constexpr const char* sql = "SELECT id, title, type, created_at, updated_at "
+                                       "FROM resources;";
+    SQLiteStmt stmt(m_db.get(), sql);
 
     std::vector<Resource> results;
     while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
-        Resource res;
-        res.id = sqlite3_column_int64(stmt.get(), 0);
-        res.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-
-        const char* typeText = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
-        res.type = resourceTypeFromString(typeText);
-
-        res.created_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 3));
-        res.updated_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 4));
-        results.push_back(std::move(res));
+        results.push_back(resourceFromStmt(stmt.get()));
     }
 
     return results;
 }
 
 std::vector<Resource> ResourceRepository::searchByTitleFTS(std::string_view keyword) {
-    SQLiteStmt stmt(m_db.get(),
-                    "SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at FROM "
-                    "resources r JOIN resources_fts ON r.id = resources_fts.rowid WHERE "
-                    "resources_fts.title MATCH ?;");
+    static constexpr const char* sql =
+        "SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at "
+        "FROM resources r "
+        "JOIN resources_fts "
+        "ON r.id = resources_fts.rowid "
+        "WHERE resources_fts.title MATCH ?;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite3_bind_text(stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()),
                       SQLITE_TRANSIENT);
@@ -246,4 +232,65 @@ bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) 
     if (sqlite3_step(stmt.get()) == SQLITE_ROW) { return sqlite3_column_int(stmt.get(), 0) != 0; }
 
     return false;
+}
+
+std::vector<Resource> ResourceRepository::searchUnified(std::string_view keyword) {
+    static constexpr const char* sql = R"(
+        SELECT r.id, r.title, r.type, r.created_at, r.updated_at, MIN(m.score) AS final_score
+        FROM resources r
+        JOIN (
+            SELECT rt.resource_id AS row_id, -10.0 AS score FROM tags t
+            JOIN resource_tags rt ON rt.tag_id = t.id WHERE t.name LIKE ?
+            UNION ALL
+            SELECT rowid AS row_id, bm25(resources_fts) AS score FROM resources_fts WHERE resources_fts MATCH ?
+            UNION ALL
+            SELECT rowid AS row_id, bm25(text_content_fts) + 5.0 AS score FROM text_content_fts WHERE text_content_fts MATCH ?
+            UNION ALL
+            SELECT rowid AS row_id, bm25(file_text_content_fts) + 10.0 AS score FROM file_text_content_fts WHERE file_text_content_fts MATCH ?
+        ) m ON r.id = m.row_id
+        GROUP BY r.id
+        ORDER BY final_score ASC, r.updated_at DESC
+        LIMIT 100;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    std::string likeTerm = std::string(keyword) + "%";
+    std::string matchTerm = "\"" + std::string(keyword) + "*\""; // Prefix match cho gợi ý
+
+    sqlite3_bind_text(stmt.get(), 1, likeTerm.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt.get(), 2, matchTerm.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt.get(), 3, matchTerm.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt.get(), 4, matchTerm.c_str(), -1, SQLITE_TRANSIENT);
+
+    std::vector<Resource> results;
+    while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+        results.push_back(resourceFromStmt(stmt.get()));
+    }
+
+    return results;
+}
+
+Resource ResourceRepository::resourceFromStmt(sqlite3_stmt* stmt) {
+    Resource res;
+
+    res.id = sqlite3_column_int64(stmt, 0);
+
+    const auto* titlePtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+    res.title = (titlePtr != nullptr) ? titlePtr : "";
+
+    const auto* typePtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+    if (typePtr != nullptr) {
+        res.type = resourceTypeFromString(typePtr);
+    } else {
+        res.type = ResourceType::unknown;
+    }
+
+    const auto* createdPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+    res.created_at = (createdPtr != nullptr) ? createdPtr : "";
+
+    const auto* updatedPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+    res.updated_at = (updatedPtr != nullptr) ? updatedPtr : "";
+
+    return res;
 }

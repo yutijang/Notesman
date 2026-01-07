@@ -15,7 +15,7 @@
 #include "SettingsData.hpp"
 #include "UpdateInfoSummary.hpp"
 #include "model.hpp"
-#include <ResourceViewService.hpp>
+#include "ResourceViewService.hpp"
 
 // ----------------------------------------------------
 // Forward Declarations cho các Widgets con (Best Practice)
