@@ -9,11 +9,13 @@
 #include "sqldb_raii.hpp"
 #include "file_repository.hpp"
 #include "resource_repository.hpp"
+#include "file_text_content_repository.hpp"
 
 class FileService {
     public:
-        FileService(SQLiteDB &db, FileRepository &fileRepo, ResourceRepository &resRepo) noexcept
-            : m_db(db), m_fileRepo(fileRepo), m_resRepo(resRepo) {}
+        FileService(SQLiteDB &db, FileRepository &fileRepo, ResourceRepository &resRepo,
+                    FileTextContentRepository &fileTextRepo) noexcept
+            : m_db(db), m_fileRepo(fileRepo), m_resRepo(resRepo), m_fileTextRepo(fileTextRepo) {}
 
         // Tính hash file (SHA256)
         static std::string computeFileHash(const std::filesystem::path &filePath);
@@ -24,7 +26,8 @@ class FileService {
         // type: loại resource (pdf, epub,...)
         // isManaged: true = copy vào storage, false = chỉ link ngoài
         sqlite3_int64 addFileResource(const std::filesystem::path &filepath,
-                                      const std::string &title, ResourceType type, bool isManaged);
+                                      const std::string &title, ResourceType type, bool isManaged,
+                                      const std::string &contentToIndex);
 
         // Kiểm tra file đã được index chưa
         std::optional<sqlite3_int64> findResourceByFile(const std::filesystem::path &filepath);
@@ -40,4 +43,5 @@ class FileService {
         SQLiteDB &m_db;
         FileRepository &m_fileRepo;
         ResourceRepository &m_resRepo;
+        FileTextContentRepository &m_fileTextRepo;
 };

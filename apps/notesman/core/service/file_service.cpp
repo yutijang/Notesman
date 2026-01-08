@@ -16,6 +16,7 @@
 #include "file_service.hpp"
 #include "model.hpp"
 #include "resource_repository.hpp"
+#include "file_text_content_repository.hpp"
 
 // Tính hash file (SHA256)
 std::string FileService::computeFileHash(const std::filesystem::path &filePath) {
@@ -64,7 +65,7 @@ std::string FileService::computeFileHash(const std::filesystem::path &filePath) 
 // NOLINTNEXTLINE
 sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath,
                                            const std::string &title, ResourceType type,
-                                           bool isManaged) {
+                                           bool isManaged, const std::string &contentToIndex) {
     // Tính hash của file
     std::string hash = computeFileHash(filepath);
 
@@ -72,6 +73,7 @@ sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath
     auto existing = m_resRepo.getByFileHash(hash);
     if (existing.has_value()) { return existing->id; } // đã tồn tại -> trả về resource_id
 
+    // Xử lý lưu trữ file vật lý
     std::filesystem::path storedPath;
     if (isManaged) {
         storedPath = copyToStorage(filepath, hash);
@@ -79,12 +81,17 @@ sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath
         storedPath = filepath;
     }
 
+    // Lưu Metadata vào bảng resources và lấy ID
     sqlite3_int64 resourceId =
         m_resRepo.insert({.title = title,
                           .type = type,
                           .file_hash = hash}); // NOLINT (-Wmissing-designated-field-initializers)
 
+    // Lưu thông tin file vào bảng files
     m_fileRepo.insertFile(resourceId, storedPath, filepath, isManaged);
+
+    // Lưu nội dung để search FTS5
+    if (!contentToIndex.empty()) { m_fileTextRepo.upsertText(resourceId, contentToIndex); }
 
     return resourceId;
 }

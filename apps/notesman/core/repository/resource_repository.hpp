@@ -26,9 +26,15 @@ class ResourceRepository {
         void removeBatch(const std::vector<sqlite3_int64> &resourceIds);
 
         std::vector<Resource> getAll();
+
+        // Tạm thời chưa sử dụng
         std::vector<Resource> searchByTitleFTS(std::string_view keyword);
-        void extracted(SQLiteStmt &stmt, std::vector<Resource> &results);
-        std::vector<Resource> searchUnified(std::string_view keyword);
+        // =========
+
+        std::vector<UnifiedSearchResult> searchByContentUnified(std::string_view keyword);
+        std::vector<UnifiedSearchResult> searchUnified(std::string_view likeKW,
+                                                       std::string_view ftsKW);
+
         std::optional<Resource> getByFileHash(std::string_view hash);
         std::optional<std::pair<std::string, std::string>> getTimestamps(sqlite3_int64 resourceID);
 

@@ -18,9 +18,9 @@ sqlite3_int64 NotesAppCore::addTextNote(const std::string &title, const std::str
 }
 
 sqlite3_int64 NotesAppCore::addFileNote(const std::filesystem::path &filepath,
-                                        const std::string &title, ResourceType type,
-                                        bool isManaged) const {
-    return m_fileService.addFileResource(filepath, title, type, isManaged);
+                                        const std::string &title, ResourceType type, bool isManaged,
+                                        const std::string &contentToIndex) const {
+    return m_fileService.addFileResource(filepath, title, type, isManaged, contentToIndex);
 }
 
 std::optional<FullResource> NotesAppCore::getFullResource(sqlite3_int64 resourceId) const {
@@ -53,8 +53,18 @@ std::vector<std::pair<sqlite3_int64, std::string>>
     return m_resService.searchByContent(keyword);
 }
 
-std::vector<FullResource> NotesAppCore::searchByContentFull(const std::string &keyword) const {
-    return m_resService.searchByContentFull(keyword);
+// std::vector<FullResource> NotesAppCore::searchByContentFull(const std::string &keyword) const {
+//     return m_resService.searchByContentFull(keyword);
+// }
+
+std::vector<FullResource>
+    NotesAppCore::searchByContentUnifiedFull(const std::string &keyword) const {
+    return m_resService.searchByContentUnifiedFull(keyword);
+}
+
+std::vector<FullResource> NotesAppCore::searchUnifiedFull(std::string_view likeKW,
+                                                          std::string_view ftsKW) const {
+    return m_resService.searchUnifiedFull(likeKW, ftsKW);
 }
 
 std::vector<FullResource> NotesAppCore::searchByTitleFull(const std::string &keyword) const {

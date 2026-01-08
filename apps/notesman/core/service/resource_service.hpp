@@ -7,6 +7,7 @@
 #include <string_view>
 #include <sqlite3.h>
 
+#include "file_text_content_repository.hpp"
 #include "model.hpp"
 #include "sqldb_raii.hpp"
 #include "resource_repository.hpp"
@@ -27,8 +28,10 @@ class ResourceService {
         sqlite3_int64 addTextResource(const std::string &title, const std::string &content,
                                       ResourceType type);
         sqlite3_int64 addFileResource(const std::string &filepath, const std::string &title,
-                                      ResourceType type, bool isManaged);
-        std::optional<FullResource> getFullResource(sqlite3_int64 resourceId);
+                                      ResourceType type, bool isManaged,
+                                      const std::string &contentToIndex);
+        std::optional<FullResource> getFullResource(sqlite3_int64 resourceId,
+                                                    bool includeContent = true);
         std::vector<FullResource> getAllFull();
 
         void updateText(sqlite3_int64 resourceId, std::string_view newText);
@@ -39,9 +42,18 @@ class ResourceService {
         // ========== Search ==========
         std::vector<Resource> searchByTitle(const std::string &keyword);
         std::vector<FullResource> searchByTitleFull(const std::string &keyword);
+
         std::vector<std::pair<sqlite3_int64, std::string>>
             searchByContent(const std::string &keyword);
+
+        // Tạm thời không sử dụng
         std::vector<FullResource> searchByContentFull(const std::string &keyword);
+        // =========
+
+        std::vector<FullResource> searchByContentUnifiedFull(const std::string &keyword);
+        std::vector<FullResource> searchUnifiedFull(std::string_view likeKW,
+                                                    std::string_view ftsKW);
+
         std::vector<Resource> getResourcesByTags(const std::vector<std::string> &tags);
 
         // ========== Tags ==========

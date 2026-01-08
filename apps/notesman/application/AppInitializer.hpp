@@ -23,6 +23,8 @@
 #include "file_service.hpp"
 #include "resource_service.hpp"
 
+// #include "file_text_content_repository.hpp"
+
 class AppInitializer final : public QObject {
         Q_OBJECT
 
@@ -63,6 +65,7 @@ class AppInitializer final : public QObject {
         std::unique_ptr<ResourceRepository> m_resRepo;
         std::unique_ptr<FileRepository> m_fileRepo;
         std::unique_ptr<TextContentRepository> m_textRepo;
+        std::unique_ptr<FileTextContentRepository> m_fileTextRepo;
         std::unique_ptr<TagRepository> m_tagRepo;
         std::unique_ptr<FileService> m_fileService;
         std::unique_ptr<ResourceService> m_resService;

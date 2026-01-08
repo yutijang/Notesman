@@ -33,7 +33,8 @@ class NotesAppCore {
                                                 ResourceType type) const;
         [[nodiscard]] sqlite3_int64 addFileNote(const std::filesystem::path &filepath,
                                                 const std::string &title, ResourceType type,
-                                                bool isManaged) const;
+                                                bool isManaged,
+                                                const std::string &contentToIndex) const;
         [[nodiscard]] std::optional<FullResource> getFullResource(sqlite3_int64 resourceId) const;
         [[nodiscard]] std::vector<FullResource> getAllFull() const;
 
@@ -46,8 +47,19 @@ class NotesAppCore {
         [[nodiscard]] std::vector<Resource> searchByTitle(const std::string &keyword) const;
         [[nodiscard]] std::vector<std::pair<sqlite3_int64, std::string>>
             searchByContent(const std::string &keyword) const;
+
+        // Tạm thời không sử dụng
+        // [[nodiscard]] std::vector<FullResource>
+        //     searchByContentFull(const std::string &keyword) const;
+        // // =========
+
         [[nodiscard]] std::vector<FullResource>
-            searchByContentFull(const std::string &keyword) const;
+            searchByContentUnifiedFull(const std::string &keyword) const;
+
+        // For mode all
+        [[nodiscard]] std::vector<FullResource> searchUnifiedFull(std::string_view likeKW,
+                                                                  std::string_view ftsKW) const;
+
         [[nodiscard]] std::vector<FullResource> searchByTitleFull(const std::string &keyword) const;
         [[nodiscard]] std::vector<FullResource> getFullResourcesByTag(const std::string &tag) const;
         [[nodiscard]] std::vector<Resource>

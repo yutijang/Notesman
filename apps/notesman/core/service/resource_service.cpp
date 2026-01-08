@@ -35,11 +35,12 @@ sqlite3_int64 ResourceService::addTextResource(const std::string &title, const s
 
 sqlite3_int64 ResourceService::addFileResource(const std::string &filepath,
                                                const std::string &title, ResourceType type,
-                                               bool isManaged) {
-    return m_fileService.addFileResource(filepath, title, type, isManaged);
+                                               bool isManaged, const std::string &contentToIndex) {
+    return m_fileService.addFileResource(filepath, title, type, isManaged, contentToIndex);
 }
 
-std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resourceId) {
+std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resourceId,
+                                                             bool includeContent) {
     // Lấy resource gốc
     auto resOpt = m_resRepo.getById(resourceId);
     if (!resOpt.has_value()) { return std::nullopt; }
@@ -56,24 +57,26 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
 
     // Nếu tài nguyên là text thuần
     if (fres.resource.type == ResourceType::plainText) {
-        fres.content = m_textRepo.getTextById(resourceId);
+        if (includeContent) {
+            fres.content = m_textRepo.getTextById(resourceId);
+        } else {
+            fres.content = std::nullopt; // Để trống để chờ gán snippet ở Service Search
+        }
+
         fres.filepath = std::nullopt;
+    } else { // Nếu là file: lấy FileEntry (có thể không tồn tại => trả nullopt)
+        auto entryOpt = m_fileRepo.getFileById(resourceId);
+        if (!entryOpt.has_value()) { return std::nullopt; }
 
-        return fres;
+        // Ưu tiên stored_path nếu có, fallback sang original_path
+        if (entryOpt->stored_path.has_value()) {
+            fres.filepath = entryOpt->stored_path;
+        } else {
+            fres.filepath = entryOpt->original_path; // original_path luôn tồn tại theo schema
+        }
+
+        fres.content = std::nullopt;                 // Luôn để trống, snippet sẽ được gán sau
     }
-
-    // Nếu là file: lấy FileEntry (có thể không tồn tại => trả nullopt)
-    auto entryOpt = m_fileRepo.getFileById(resourceId);
-    if (!entryOpt.has_value()) { return std::nullopt; }
-
-    // Ưu tiên stored_path nếu có, fallback sang original_path
-    if (entryOpt->stored_path.has_value()) {
-        fres.filepath = entryOpt->stored_path;
-    } else {
-        fres.filepath = entryOpt->original_path; // original_path luôn tồn tại theo schema
-    }
-
-    fres.content = std::nullopt;                 // file không có text_content trong DB
 
     return fres;
 }
@@ -142,6 +145,51 @@ std::vector<FullResource> ResourceService::searchByContentFull(const std::string
             results.push_back(std::move(*full));
         }
     }
+    return results;
+}
+
+std::vector<FullResource> ResourceService::searchByContentUnifiedFull(const std::string &keyword) {
+    std::vector<FullResource> results;
+    auto matches = m_resRepo.searchByContentUnified(keyword);
+    results.reserve(matches.size());
+
+    for (auto &match : matches) {
+        // Gọi getFullResource với cờ includeContent = false
+        // Để chỉ lấy Tags, Path và Metadata mà không truy vấn lại bảng text_content
+        auto fullOpt = getFullResource(match.res.id, false);
+
+        if (fullOpt.has_value()) {
+            FullResource &fres = *fullOpt;
+
+            // Tận dụng trường content để lưu Snippet highlight từ FTS
+            fres.content = std::move(match.snippet);
+
+            results.push_back(std::move(fres));
+        }
+    }
+
+    return results;
+}
+
+std::vector<FullResource> ResourceService::searchUnifiedFull(std::string_view likeKW,
+                                                             std::string_view ftsKW) {
+    std::vector<FullResource> results;
+    auto matches = m_resRepo.searchUnified(likeKW, ftsKW);
+    results.reserve(matches.size());
+
+    for (auto &match : matches) {
+        auto fullOpt = getFullResource(match.res.id, false);
+
+        if (fullOpt.has_value()) {
+            FullResource &fres = *fullOpt;
+
+            // Tận dụng trường content để lưu Snippet highlight từ FTS
+            fres.content = std::move(match.snippet);
+
+            results.push_back(std::move(fres));
+        }
+    }
+
     return results;
 }
 

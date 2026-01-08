@@ -43,6 +43,7 @@
 #include "SettingsManager.hpp"
 #include "AppSettings.hpp"
 #include "Logger.hpp"
+#include "file_text_content_repository.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -193,8 +194,10 @@ void AppInitializer::initializeCore() {
         m_resRepo = std::make_unique<ResourceRepository>(*m_db);
         m_fileRepo = std::make_unique<FileRepository>(*m_db);
         m_textRepo = std::make_unique<TextContentRepository>(*m_db);
+        m_fileTextRepo = std::make_unique<FileTextContentRepository>(*m_db);
         m_tagRepo = std::make_unique<TagRepository>(*m_db);
-        m_fileService = std::make_unique<FileService>(*m_db, *m_fileRepo, *m_resRepo);
+        m_fileService =
+            std::make_unique<FileService>(*m_db, *m_fileRepo, *m_resRepo, *m_fileTextRepo);
         m_resService = std::make_unique<ResourceService>(*m_db, *m_resRepo, *m_fileRepo,
                                                          *m_textRepo, *m_tagRepo, *m_fileService);
         m_core = std::make_unique<NotesAppCore>(*m_db, *m_resRepo, *m_fileRepo, *m_textRepo,

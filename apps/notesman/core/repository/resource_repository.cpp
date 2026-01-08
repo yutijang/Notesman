@@ -7,6 +7,7 @@
 #include <sqlite3.h>
 
 #include "resource_repository.hpp"
+#include "Logger.hpp"
 #include "model.hpp"
 #include "sqldb_raii.hpp"
 
@@ -234,19 +235,38 @@ bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) 
     return false;
 }
 
-std::vector<Resource> ResourceRepository::searchUnified(std::string_view keyword) {
+std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_view likeKW,
+                                                                   std::string_view ftsKW) {
     static constexpr const char* sql = R"(
-        SELECT r.id, r.title, r.type, r.created_at, r.updated_at, MIN(m.score) AS final_score
+        SELECT r.id, r.title, r.type, r.created_at, r.updated_at,
+               MIN(m.score) AS final_score,
+               m.snip AS snippet
         FROM resources r
         JOIN (
-            SELECT rt.resource_id AS row_id, -10.0 AS score FROM tags t
+            -- Khối 1: Tìm theo Tag (Không có snippet văn bản)            
+            SELECT rt.resource_id AS row_id, -10.0 AS score, '' AS snip
+            FROM tags t
             JOIN resource_tags rt ON rt.tag_id = t.id WHERE t.name LIKE ?
+
             UNION ALL
-            SELECT rowid AS row_id, bm25(resources_fts) AS score FROM resources_fts WHERE resources_fts MATCH ?
+
+            -- Khối 2: Tìm theo Title (Không có snippet văn bản)
+            SELECT rowid AS row_id, bm25(resources_fts) AS score, '' AS snip
+            FROM resources_fts WHERE resources_fts MATCH ?
+
             UNION ALL
-            SELECT rowid AS row_id, bm25(text_content_fts) + 5.0 AS score FROM text_content_fts WHERE text_content_fts MATCH ?
+
+            -- Khối 3: Tìm trong nội dung tài nguyên text thuần (Có snippet)
+            SELECT rowid AS row_id, bm25(text_content_fts) + 5.0 AS score,
+                   snippet(text_content_fts, 0, '[', ']', '...', 20) AS snip
+            FROM text_content_fts WHERE text_content_fts MATCH ?
+
             UNION ALL
-            SELECT rowid AS row_id, bm25(file_text_content_fts) + 10.0 AS score FROM file_text_content_fts WHERE file_text_content_fts MATCH ?
+
+            -- Khối 4: Tìm trong nội dung File (Có snippet)
+            SELECT rowid AS row_id, bm25(file_text_content_fts) + 10.0 AS score,
+                   snippet(file_text_content_fts, 0, '[', ']', '...', 20) AS snip
+            FROM file_text_content_fts WHERE file_text_content_fts MATCH ?
         ) m ON r.id = m.row_id
         GROUP BY r.id
         ORDER BY final_score ASC, r.updated_at DESC
@@ -255,17 +275,26 @@ std::vector<Resource> ResourceRepository::searchUnified(std::string_view keyword
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    std::string likeTerm = std::string(keyword) + "%";
-    std::string matchTerm = "\"" + std::string(keyword) + "*\""; // Prefix match cho gợi ý
+    sqlite3_bind_text(stmt.get(), 1, likeKW.data(), static_cast<int>(likeKW.size()),
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt.get(), 2, ftsKW.data(), static_cast<int>(ftsKW.size()),
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt.get(), 3, ftsKW.data(), static_cast<int>(ftsKW.size()),
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt.get(), 4, ftsKW.data(), static_cast<int>(ftsKW.size()),
+                      SQLITE_TRANSIENT);
 
-    sqlite3_bind_text(stmt.get(), 1, likeTerm.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 2, matchTerm.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 3, matchTerm.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 4, matchTerm.c_str(), -1, SQLITE_TRANSIENT);
+    std::vector<UnifiedSearchResult> results;
+    int rc{};
+    while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
+        UnifiedSearchResult item;
+        item.res = resourceFromStmt(stmt.get());
 
-    std::vector<Resource> results;
-    while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
-        results.push_back(resourceFromStmt(stmt.get()));
+        const char* snipPtr = reinterpret_cast<const char*>(
+            sqlite3_column_text(stmt.get(), 6)); // NOLINT(readability-magic-numbers)
+        item.snippet = (snipPtr != nullptr) ? snipPtr : "";
+
+        results.push_back(std::move(item));
     }
 
     return results;
@@ -293,4 +322,59 @@ Resource ResourceRepository::resourceFromStmt(sqlite3_stmt* stmt) {
     res.updated_at = (updatedPtr != nullptr) ? updatedPtr : "";
 
     return res;
+}
+
+std::vector<UnifiedSearchResult>
+    ResourceRepository::searchByContentUnified(std::string_view keyword) {
+    static constexpr const char* sql = R"(
+        SELECT r.id, r.title, r.type, r.created_at, r.updated_at, 
+            MIN(m.score) AS final_score, 
+            m.snip AS snippet
+        FROM resources r
+        JOIN (
+            -- Khối 1: Tìm trong ghi chú tay
+            SELECT rowid AS row_id,
+                   bm25(text_content_fts) AS score,
+                   snippet(text_content_fts, 0, '[', ']', '...', 20) AS snip
+            FROM text_content_fts WHERE text_content_fts MATCH ?
+            
+            UNION ALL
+            
+            -- Khối 2: Tìm trong nội dung file (code, txt...)
+            SELECT rowid AS row_id, 
+                   bm25(file_text_content_fts) + 1.0 AS score,
+                   snippet(file_text_content_fts, 0, '[', ']', '...', 20) AS snip
+            FROM file_text_content_fts WHERE file_text_content_fts MATCH ?
+            
+            -- Tương lai bổ sung Khối 3: PDF/EPUB tại đây
+        ) m ON r.id = m.row_id
+        GROUP BY r.id
+        ORDER BY final_score ASC, r.updated_at DESC
+        LIMIT 100
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    sqlite3_bind_text(stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()),
+                      SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt.get(), 2, keyword.data(), static_cast<int>(keyword.size()),
+                      SQLITE_TRANSIENT);
+
+    std::vector<UnifiedSearchResult> results;
+    int rc{};
+    while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
+        UnifiedSearchResult item;
+        item.res = (resourceFromStmt(stmt.get()));
+
+        // Bổ sung giá trị snippet
+        const char* snipPtr = reinterpret_cast<const char*>(
+            sqlite3_column_text(stmt.get(), 6)); // NOLINT(readability-magic-numbers)
+        if (snipPtr != nullptr) { item.snippet = snipPtr; }
+
+        results.push_back(std::move(item));
+    }
+
+    if (rc != SQLITE_DONE) { Log::err("FTS Search Error: {}", sqlite3_errmsg(m_db.get())); }
+
+    return results;
 }

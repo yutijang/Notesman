@@ -150,7 +150,7 @@ END;
 CREATE TABLE IF NOT EXISTS file_text_content (
     resource_id INTEGER PRIMARY KEY,
     extracted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    content TEXT NOT NULL,
+    content TEXT, -- cho trường hợp pdf và epub
 
     FOREIGN KEY (resource_id)
         REFERENCES resources(id)

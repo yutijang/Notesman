@@ -105,3 +105,8 @@ struct FileEntry {
         std::string original_path;
         bool is_managed{};
 };
+
+struct UnifiedSearchResult {
+        Resource res;
+        std::string snippet;
+};

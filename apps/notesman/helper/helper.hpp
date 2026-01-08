@@ -1,11 +1,30 @@
 #pragma once
 
 #include <filesystem>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <cstdint>
 
+enum class ResourceType : std::uint8_t;
+
+enum class IndexableResult : std::uint8_t {
+    yes,
+    noUnsupportedType,
+    noTooLarge,
+    noBinaryDetected,
+    noFileAccess
+};
+
 namespace Utils {
+    [[nodiscard]] std::string getExtensionFromDownloadUrl(const std::string &url);
+
+    std::string normalizationDBFileSize(std::uint64_t size);
+
+    std::string readFileToString(const std::filesystem::path &path);
+
+    IndexableResult isIndexable(ResourceType type, const std::filesystem::path &path);
+
     // Lấy phần mở rộng của đường dẫn (vd: "file.txt" -> "txt")
     [[nodiscard]] inline std::string getFileExtension(const std::filesystem::path &path) {
         auto ext = path.extension().string();
@@ -34,24 +53,45 @@ namespace Utils {
         return std::filesystem::weakly_canonical(path);
     }
 
-    [[nodiscard]] std::string getExtensionFromDownloadUrl(const std::string &url);
-
-    static std::string sanitizeFtsQuery(std::string_view input) {
+    static std::string sanitizeFtsQuery(std::string_view input, bool wrapInQuotes = true) {
         if (input.empty()) { return {}; }
 
         std::string clean{input};
         bool hasWildcard{};
 
+        // 1. Kiểm tra dấu *
         if (clean.back() == '*') {
             hasWildcard = true;
             clean.pop_back();
         }
 
+        // 2. Xóa nháy kép
+        std::erase(clean, '\"');
+        if (clean.empty()) { return {}; }
+
+        // 3. Đóng gói
+        if (wrapInQuotes) {
+            // Mode Title: Bọc nháy kép toàn bộ để tìm chính xác cụm từ
+            return "\"" + clean + (hasWildcard ? "*\"" : "\"");
+        }
+
+        // Mode Content: Không bọc nháy kép để tìm linh hoạt (từng từ rời rạc)
+        // Nhưng vẫn thêm * nếu người dùng yêu cầu
+        return clean + (hasWildcard ? "*" : "");
+    }
+
+    static std::string toLikeQuery(std::string_view input) {
+        if (input.empty()) { return {}; }
+        std::string clean{input};
         std::erase(clean, '\"');
 
-        if (hasWildcard) { return "\"" + clean + "\"*"; }
+        auto isSpace = [](unsigned char ch) { return std::isspace(ch); };
+        auto trimmedView = clean | std::views::drop_while(isSpace) | std::views::reverse |
+                           std::views::drop_while(isSpace) | std::views::reverse;
 
-        return "\"" + clean + "\"";
+        std::string trimmedS(trimmedView.begin(), trimmedView.end());
+
+        return trimmedS + "%"; // Tìm kiếm theo kiểu "bắt đầu bằng"
     }
 
     // NOLINTBEGIN (readability-magic-numbers)
@@ -79,8 +119,6 @@ namespace Utils {
 
         return score >= 5;
     }
-
-    std::string normalizationDBFileSize(std::uint64_t size);
 
     // NOLINTEND
 } // namespace Utils

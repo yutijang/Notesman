@@ -3,8 +3,12 @@
 #include <string>
 #include <array>
 #include <format>
+#include <fstream>
+#include <ios>
+#include <filesystem>
 
 #include "helper.hpp"
+#include "model.hpp"
 
 namespace Utils {
     std::string getExtensionFromDownloadUrl(const std::string &url) {
@@ -64,4 +68,55 @@ namespace Utils {
     }
 
     // NOLINTEND
+
+    std::string readFileToString(const std::filesystem::path &path) {
+        std::ifstream file(path, std::ios::binary);
+        if (!file) { return {}; }
+
+        file.seekg(0, std::ios::end);
+        const std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        std::string content;
+        content.resize(static_cast<std::size_t>(size));
+
+        file.read(content.data(), size);
+
+        return content;
+    }
+
+    IndexableResult isIndexable(ResourceType type, const std::filesystem::path &path) {
+        if (type != ResourceType::cCppCode && type != ResourceType::htmlDoc) {
+            return IndexableResult::noUnsupportedType;
+        }
+
+        std::error_code ec;
+        const auto fileSize = std::filesystem::file_size(path, ec);
+        if (ec || fileSize == 0 || fileSize > 2 * 1024 * 1024) {
+            return IndexableResult::noTooLarge;
+        }
+
+        std::ifstream file(path, std::ios::binary);
+        if (!file) { return IndexableResult::noFileAccess; }
+
+        char buffer[4096];
+        file.read(buffer, sizeof(buffer));
+        const auto bytesRead = file.gcount();
+
+        int suspicious{};
+        for (int i = 0; i < bytesRead; ++i) {
+            auto c = static_cast<unsigned char>(buffer[i]);
+
+            if (c == '\0') { return IndexableResult::noBinaryDetected; }
+
+            if (c < 7 || (c > 13 && c < 32)) {
+                if (++suspicious > 8) { // ~0.2%
+                    return IndexableResult::noBinaryDetected;
+                }
+            }
+        }
+
+        return IndexableResult::yes;
+    }
+
 } // namespace Utils

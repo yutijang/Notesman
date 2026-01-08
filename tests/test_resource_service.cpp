@@ -14,6 +14,7 @@
 #include "sqldb_raii.hpp"
 #include "tag_repository.hpp"
 #include "text_content_repository.hpp"
+#include "file_text_content_repository.hpp"
 
 namespace {
     void createMinimalSchema(sqlite3* db) {
@@ -78,8 +79,9 @@ TEST_CASE("ResourceService addTextResource basic behavior", "[ResourceService]")
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
     TextContentRepository textRepo(db);
+    FileTextContentRepository fileTextRepo(db);
     TagRepository tagRepo(db);
-    FileService fileService(db, fileRepo, resRepo);
+    FileService fileService(db, fileRepo, resRepo, fileTextRepo);
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService);
 
@@ -107,15 +109,16 @@ TEST_CASE("ResourceService addFileResource delegates correctly", "[ResourceServi
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
     TextContentRepository textRepo(db);
+    FileTextContentRepository fileTextRepo(db);
     TagRepository tagRepo(db);
-    FileService fileService(db, fileRepo, resRepo);
+    FileService fileService(db, fileRepo, resRepo, fileTextRepo);
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService);
 
     std::filesystem::path tmp = std::filesystem::temp_directory_path() / "rs_test.txt";
     std::ofstream(tmp) << "temp";
 
-    auto id = service.addFileResource(tmp.string(), "File1", ResourceType::pdfDoc, true);
+    auto id = service.addFileResource(tmp.string(), "File1", ResourceType::pdfDoc, true, "");
     auto file = fileRepo.getFileById(id);
     REQUIRE(file.has_value());
     CHECK(file->is_managed);
@@ -136,8 +139,9 @@ TEST_CASE("ResourceService getFullResource combines repositories correctly", "[R
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
     TextContentRepository textRepo(db);
+    FileTextContentRepository fileTextRepo(db);
     TagRepository tagRepo(db);
-    FileService fileService(db, fileRepo, resRepo);
+    FileService fileService(db, fileRepo, resRepo, fileTextRepo);
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService);
 
@@ -155,8 +159,9 @@ TEST_CASE("ResourceService deleteResource removes managed files", "[ResourceServ
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
     TextContentRepository textRepo(db);
+    FileTextContentRepository fileTextRepo(db);
     TagRepository tagRepo(db);
-    FileService fileService(db, fileRepo, resRepo);
+    FileService fileService(db, fileRepo, resRepo, fileTextRepo);
 
     std::filesystem::path tmpFile = std::filesystem::temp_directory_path() / "delete_rs_test.txt";
     std::ofstream(tmpFile) << "dummy";
@@ -184,8 +189,9 @@ TEST_CASE("ResourceService addTagToResource handles existing/new tags correctly"
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
     TextContentRepository textRepo(db);
+    FileTextContentRepository fileTextRepo(db);
     TagRepository tagRepo(db);
-    FileService fileService(db, fileRepo, resRepo);
+    FileService fileService(db, fileRepo, resRepo, fileTextRepo);
 
     sqlite3_exec(db.get(),
                  "INSERT INTO resources (title, type) VALUES ('Doc', 'text');"
@@ -219,8 +225,9 @@ TEST_CASE("ResourceService isExistTitle delegates correctly", "[ResourceService]
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
     TextContentRepository textRepo(db);
+    FileTextContentRepository fileTextRepo(db);
     TagRepository tagRepo(db);
-    FileService fileService(db, fileRepo, resRepo);
+    FileService fileService(db, fileRepo, resRepo, fileTextRepo);
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService);
     CHECK(service.isExistTitle("abc", ResourceType::pdfDoc));
@@ -246,8 +253,9 @@ TEST_CASE("ResourceService searchByTitleFull aggregates results", "[ResourceServ
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
     TextContentRepository textRepo(db);
+    FileTextContentRepository fileTextRepo(db);
     TagRepository tagRepo(db);
-    FileService fileService(db, fileRepo, resRepo);
+    FileService fileService(db, fileRepo, resRepo, fileTextRepo);
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService);
     auto result = service.searchByTitleFull("Qt");
@@ -276,8 +284,9 @@ TEST_CASE("ResourceService searchByContentFull aggregates results", "[ResourceSe
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
     TextContentRepository textRepo(db);
+    FileTextContentRepository fileTextRepo(db);
     TagRepository tagRepo(db);
-    FileService fileService(db, fileRepo, resRepo);
+    FileService fileService(db, fileRepo, resRepo, fileTextRepo);
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService);
 

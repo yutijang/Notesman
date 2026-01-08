@@ -89,12 +89,13 @@ std::vector<std::pair<sqlite3_int64, std::string>> TextContentRepository::getAll
     return results;
 }
 
+// Tạm thời không sử dụng
 std::vector<std::pair<sqlite3_int64, std::string>>
     TextContentRepository::searchByContentFTS(std::string_view keyword) {
     SQLiteStmt stmt(m_db.get(), "SELECT tc.resource_id, tc.content "
                                 "FROM text_content_fts AS fts "
                                 "JOIN text_content AS tc "
-                                "  ON tc.resource_id = fts.rowid "
+                                "ON tc.resource_id = fts.rowid "
                                 "WHERE text_content_fts MATCH ? "
                                 "ORDER BY bm25(text_content_fts);");
 
