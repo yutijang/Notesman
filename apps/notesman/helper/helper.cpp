@@ -92,14 +92,16 @@ namespace Utils {
 
         std::error_code ec;
         const auto fileSize = std::filesystem::file_size(path, ec);
-        if (ec || fileSize == 0 || fileSize > 2 * 1024 * 1024) {
+        if (ec || fileSize == 0 ||
+            fileSize >
+                static_cast<uintmax_t>(2 * 1024 * 1024)) { // NOLINT(readability-magic-numbers)
             return IndexableResult::noTooLarge;
         }
 
         std::ifstream file(path, std::ios::binary);
         if (!file) { return IndexableResult::noFileAccess; }
 
-        char buffer[4096];
+        char buffer[4096]; // NOLINT(readability-magic-numbers)
         file.read(buffer, sizeof(buffer));
         const auto bytesRead = file.gcount();
 
@@ -109,8 +111,8 @@ namespace Utils {
 
             if (c == '\0') { return IndexableResult::noBinaryDetected; }
 
-            if (c < 7 || (c > 13 && c < 32)) {
-                if (++suspicious > 8) { // ~0.2%
+            if (c < 7 || (c > 13 && c < 32)) { // NOLINT(readability-magic-numbers)
+                if (++suspicious > 8) {        // ~0.2%  // NOLINT(readability-magic-numbers)
                     return IndexableResult::noBinaryDetected;
                 }
             }

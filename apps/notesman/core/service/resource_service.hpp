@@ -7,7 +7,6 @@
 #include <string_view>
 #include <sqlite3.h>
 
-#include "file_text_content_repository.hpp"
 #include "model.hpp"
 #include "sqldb_raii.hpp"
 #include "resource_repository.hpp"
