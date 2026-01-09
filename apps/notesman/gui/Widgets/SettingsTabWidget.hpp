@@ -26,7 +26,19 @@ class SettingsTabWidget final : public QWidget {
 
         void retranslateUi();
 
-    public slots: // NOLINT(readability-redundant-access-specifiers)
+    signals:
+        void applySettingsRequested(const SettingsData &data);
+        void defaultSettingsRequested();
+        void requestGoogleLogin();
+        void requestGoogleUnlink(bool isDeleteDB);
+        void requestUpload();
+        void requestDownload();
+        void cancelLoginRequested();
+        void statusUpdateRequest(const QString &msg, int timeout) const;
+
+        void requestDBInfo();
+
+    public slots:
         void showNotification(
             const QString &message,
             UiConst::SettingsMessageState state = UiConst::SettingsMessageState::none,
@@ -47,18 +59,6 @@ class SettingsTabWidget final : public QWidget {
         void handleDBInfoGot(const QStringList &info);
 
         void handleDeleteDBFileRespond(const QString &msg);
-
-    signals:
-        void applySettingsRequested(const SettingsData &data);
-        void defaultSettingsRequested();
-        void requestGoogleLogin();
-        void requestGoogleUnlink(bool isDeleteDB);
-        void requestUpload();
-        void requestDownload();
-        void cancelLoginRequested();
-        void statusUpdateRequest(const QString &msg, int timeout) const;
-
-        void requestDBInfo();
 
     private slots:
         void onApplyBtnClicked();

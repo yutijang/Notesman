@@ -1,4 +1,3 @@
-#include <ResourceTitleDelegate.hpp>
 #include <cstddef>
 #include <qminmax.h>
 #include <vector>
@@ -26,6 +25,7 @@
 #include "ResultsTable.hpp"
 #include "model.hpp"
 #include "UiConstants.hpp"
+#include "ResourceTitleDelegate.hpp"
 
 BrowseTabWidget::BrowseTabWidget(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -61,15 +61,18 @@ void BrowseTabWidget::setupUI() {
     m_titleRad = new QRadioButton(tr("Title"));
     m_contentRad = new QRadioButton(tr("Content"));
     m_tagRad = new QRadioButton("Tag");
+    m_allRad = new QRadioButton(tr("All"));
     m_titleRad->setChecked(true);
     auto* searchByGroup = new QButtonGroup(this);
     searchByGroup->addButton(m_titleRad);
     searchByGroup->addButton(m_contentRad);
     searchByGroup->addButton(m_tagRad);
+    searchByGroup->addButton(m_allRad);
     radioLayout->addWidget(m_searchByLbl);
     radioLayout->addWidget(m_titleRad);
     radioLayout->addWidget(m_contentRad);
     radioLayout->addWidget(m_tagRad);
+    radioLayout->addWidget(m_allRad);
     radioLayout->setSpacing(20); // NOLINT(readability-magic-numbers)
     radioLayout->addStretch(1);
     searchGroupLayout->addLayout(radioLayout);
@@ -141,6 +144,7 @@ void BrowseTabWidget::retranslateUi() {
     m_searchByLbl->setText(tr("Search by: "));
     m_titleRad->setText(tr("Title"));
     m_contentRad->setText(tr("Content"));
+    m_allRad->setText(tr("All"));
 
     m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title")});
 
@@ -173,7 +177,7 @@ void BrowseTabWidget::onCellDoubleClicked(int row) {
     emit resourceDoubleClicked(data.id, data.type, data.title, data.path);
 }
 
-void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
+void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &results) {
     if (results.empty()) { return; }
 
     m_resultsTbl->setRowCount(0); // Dọn dẹp (clear) hoặc chuẩn bị lại bảng kết quả
@@ -193,14 +197,20 @@ void BrowseTabWidget::displayResults(const std::vector<FullResource> &results) {
         m_resultsTbl->setItem(row, 0, noItem);
 
         // Title (delegate sẽ vẽ icon)
-        auto* titleItem = new QTableWidgetItem(QString::fromStdString(res.resource.title));
+        auto* titleItem = new QTableWidgetItem(QString::fromStdString(res.res.title));
         titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
 
         titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceId),
-                           QVariant::fromValue<qlonglong>(res.resource.id));
+                           QVariant::fromValue<qlonglong>(res.res.id));
 
         titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceType),
-                           static_cast<int>(res.resource.type));
+                           static_cast<int>(res.res.type));
+
+        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::displaySubText),
+                           QString::fromStdString(res.displaySubText));
+
+        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceFlags),
+                           QVariant::fromValue(static_cast<int>(res.flags)));
 
         m_resultsTbl->setItem(row, 1, titleItem);
     }
@@ -283,14 +293,16 @@ void BrowseTabWidget::onSearchButtonClicked() {
     const QString mode = [this]() -> QString {
         if (m_titleRad->isChecked()) { return "title"; }
         if (m_contentRad->isChecked()) { return "content"; }
+        if (m_tagRad->isChecked()) { return "tag"; }
         // Luôn phải có return cuối cùng cho các trường hợp còn lại
-        return "tag";
+        return "all";
     }(); // Dấu ngoặc () ở cuối để gọi lambda ngay lập tức
 
     emit searchRequested(m_searchInp->text().trimmed(), mode);
 }
 
-void BrowseTabWidget::handleResultsSearchRequested(const std::vector<FullResource> &results) {
+void BrowseTabWidget::handleResultsSearchRequested(
+    const std::vector<UnifiedSearchResult> &results) {
     displayResults(results);
     updateColumnWidths();
 }

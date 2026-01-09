@@ -64,7 +64,34 @@ class AppController final : public QObject {
         void oauthManager();
         void updateTranslatedStrings();
 
-    public slots: // NOLINT(readability-redundant-access-specifiers)
+    signals:
+        // waitting for using
+        // void languageChanged();
+
+        void settingsLoaded(const SettingsData &settings);
+        void displayResultForGetAll(const std::vector<UnifiedSearchResult> &results);
+        void settingsUpdateStatus(
+            const QString &message, UiConst::SettingsMessageState state,
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+        void initialSettingsLoaded(const SettingsData &settings);
+        void requestSyntaxHighlightingUpdate(Theme theme);
+        void addTabNotiRequest(const QString &message, UiConst::SettingsTabNotiLevel notiType =
+                                                           UiConst::SettingsTabNotiLevel::normal);
+        void resetAddTabInputsRequest();
+        void searchFinishedFromController(const std::vector<UnifiedSearchResult> &results,
+                                          const QString &mode);
+        void gmailUnlinked();
+        void gmailLinkedForView(const QString &htmlTextEmail);
+        void cancelLoginRequestedForward();
+        void closeConnectDBRequestForward(bool isUpload);
+        void reconnectDBRequestForward();
+        void dbClosedForward(bool isUpload);
+        void dbOpenedForward();
+        void deleteDatabaseFileRequest();
+
+        void deleteDatabaseFileRespondForward(const QString &msg);
+
+    public slots:
         void handleGetAllDataRequest();
         void handleDefaultSettingsRequest();
         void handleApplySettingsRequest(const SettingsData &data);
@@ -80,32 +107,6 @@ class AppController final : public QObject {
         void downloadDbAuto();
 
         void handleGetDBInfoRequested();
-
-    signals:
-        // waitting for using
-        // void languageChanged();
-
-        void settingsLoaded(const SettingsData &settings);
-        void displayResultForGetAll(const std::vector<FullResource> &results);
-        void settingsUpdateStatus(
-            const QString &message, UiConst::SettingsMessageState state,
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
-        void initialSettingsLoaded(const SettingsData &settings);
-        void requestSyntaxHighlightingUpdate(Theme theme);
-        void addTabNotiRequest(const QString &message, UiConst::SettingsTabNotiLevel notiType =
-                                                           UiConst::SettingsTabNotiLevel::normal);
-        void resetAddTabInputsRequest();
-        void searchFinishedFromController(const std::vector<FullResource> &results);
-        void gmailUnlinked();
-        void gmailLinkedForView(const QString &htmlTextEmail);
-        void cancelLoginRequestedForward();
-        void closeConnectDBRequestForward(bool isUpload);
-        void reconnectDBRequestForward();
-        void dbClosedForward(bool isUpload);
-        void dbOpenedForward();
-        void deleteDatabaseFileRequest();
-
-        void deleteDatabaseFileRespondForward(const QString &msg);
 
     private:
         void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;

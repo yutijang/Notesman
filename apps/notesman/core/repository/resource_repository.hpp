@@ -27,9 +27,7 @@ class ResourceRepository {
 
         std::vector<Resource> getAll();
 
-        // Tạm thời chưa sử dụng
-        std::vector<Resource> searchByTitleFTS(std::string_view keyword);
-        // =========
+        std::vector<UnifiedSearchResult> searchByTitleFTS(std::string_view keyword);
 
         std::vector<UnifiedSearchResult> searchByContentUnified(std::string_view keyword);
         std::vector<UnifiedSearchResult> searchUnified(std::string_view likeKW,

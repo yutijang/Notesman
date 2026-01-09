@@ -33,14 +33,16 @@ class ResourceService {
                                                     bool includeContent = true);
         std::vector<FullResource> getAllFull();
 
+        std::vector<UnifiedSearchResult> getAllUnified();
+
         void updateText(sqlite3_int64 resourceId, std::string_view newText);
 
         void deleteResource(sqlite3_int64 resourceId);
         void deleteResources(const std::vector<sqlite3_int64> &resourceIds);
 
         // ========== Search ==========
-        std::vector<Resource> searchByTitle(const std::string &keyword);
-        std::vector<FullResource> searchByTitleFull(const std::string &keyword);
+        std::vector<UnifiedSearchResult> searchByTitle(const std::string &keyword);
+        std::vector<UnifiedSearchResult> searchByTitleFull(const std::string &keyword);
 
         std::vector<std::pair<sqlite3_int64, std::string>>
             searchByContent(const std::string &keyword);
@@ -49,9 +51,9 @@ class ResourceService {
         std::vector<FullResource> searchByContentFull(const std::string &keyword);
         // =========
 
-        std::vector<FullResource> searchByContentUnifiedFull(const std::string &keyword);
-        std::vector<FullResource> searchUnifiedFull(std::string_view likeKW,
-                                                    std::string_view ftsKW);
+        std::vector<UnifiedSearchResult> searchByContentUnifiedFull(const std::string &keyword);
+        std::vector<UnifiedSearchResult> searchUnifiedFull(std::string_view likeKW,
+                                                           std::string_view ftsKW);
 
         std::vector<Resource> getResourcesByTags(const std::vector<std::string> &tags);
 

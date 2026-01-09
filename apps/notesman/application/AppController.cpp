@@ -237,7 +237,7 @@ void AppController::oauthManager() {
 void AppController::handleGetAllDataRequest() {
     if (m_core == nullptr) { return; }
 
-    const auto &allRes = m_core->getAllFull();
+    const auto &allRes = m_core->getAllUnified();
     if (allRes.empty()) {
         if (m_mainWindow != nullptr) {
             m_mainWindow->updateStatus(tr("Database is empty"));
@@ -406,8 +406,8 @@ void AppController::handleSearchRequest(const QString &keyword, const QString &m
     QObject::connect(thread, &QThread::started, worker, &ResourceSearchWorker::doSearch);
     QObject::connect(
         worker, &ResourceSearchWorker::searchFinished, this,
-        [this](const std::vector<FullResource> &results) {
-            emit searchFinishedFromController(results);
+        [this, mode](const std::vector<UnifiedSearchResult> &results) {
+            emit searchFinishedFromController(results, mode);
         },
         Qt::QueuedConnection);
 

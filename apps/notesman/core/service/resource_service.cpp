@@ -25,7 +25,9 @@ sqlite3_int64 ResourceService::addTextResource(const std::string &title, const s
 
     // Insert vào resources (file_hash để trống)
     sqlite3_int64 resourceId =
-        m_resRepo.insert({.title = title, .type = type, .file_hash = ""}); // NOLINT
+        m_resRepo.insert({.title = title,
+                          .type = type,
+                          .file_hash = ""}); // NOLINT (-Wmissing-designated-field-initializers)
 
     // Insert nội dung text vào text_content
     m_textRepo.insertText(resourceId, content);
@@ -110,21 +112,12 @@ void ResourceService::deleteResources(const std::vector<sqlite3_int64> &resource
     m_resRepo.removeBatch(resourceIds);
 }
 
-std::vector<Resource> ResourceService::searchByTitle(const std::string &keyword) {
+std::vector<UnifiedSearchResult> ResourceService::searchByTitle(const std::string &keyword) {
     return m_resRepo.searchByTitleFTS(keyword);
 }
 
-std::vector<FullResource> ResourceService::searchByTitleFull(const std::string &keyword) {
-    std::vector<FullResource> results;
-    auto matches = m_resRepo.searchByTitleFTS(keyword);
-    results.reserve(matches.size());
-
-    for (const auto &res : matches) {
-        auto full = getFullResource(res.id);
-        if (full.has_value()) { results.push_back(*full); }
-    }
-
-    return results;
+std::vector<UnifiedSearchResult> ResourceService::searchByTitleFull(const std::string &keyword) {
+    return m_resRepo.searchByTitleFTS(keyword);
 }
 
 std::vector<std::pair<sqlite3_int64, std::string>>
@@ -148,49 +141,14 @@ std::vector<FullResource> ResourceService::searchByContentFull(const std::string
     return results;
 }
 
-std::vector<FullResource> ResourceService::searchByContentUnifiedFull(const std::string &keyword) {
-    std::vector<FullResource> results;
-    auto matches = m_resRepo.searchByContentUnified(keyword);
-    results.reserve(matches.size());
-
-    for (auto &match : matches) {
-        // Gọi getFullResource với cờ includeContent = false
-        // Để chỉ lấy Tags, Path và Metadata mà không truy vấn lại bảng text_content
-        auto fullOpt = getFullResource(match.res.id, false);
-
-        if (fullOpt.has_value()) {
-            FullResource &fres = *fullOpt;
-
-            // Tận dụng trường content để lưu Snippet highlight từ FTS
-            fres.content = std::move(match.snippet);
-
-            results.push_back(std::move(fres));
-        }
-    }
-
-    return results;
+std::vector<UnifiedSearchResult>
+    ResourceService::searchByContentUnifiedFull(const std::string &keyword) {
+    return m_resRepo.searchByContentUnified(keyword);
 }
 
-std::vector<FullResource> ResourceService::searchUnifiedFull(std::string_view likeKW,
-                                                             std::string_view ftsKW) {
-    std::vector<FullResource> results;
-    auto matches = m_resRepo.searchUnified(likeKW, ftsKW);
-    results.reserve(matches.size());
-
-    for (auto &match : matches) {
-        auto fullOpt = getFullResource(match.res.id, false);
-
-        if (fullOpt.has_value()) {
-            FullResource &fres = *fullOpt;
-
-            // Tận dụng trường content để lưu Snippet highlight từ FTS
-            fres.content = std::move(match.snippet);
-
-            results.push_back(std::move(fres));
-        }
-    }
-
-    return results;
+std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_view likeKW,
+                                                                    std::string_view ftsKW) {
+    return m_resRepo.searchUnified(likeKW, ftsKW);
 }
 
 std::vector<Resource> ResourceService::getResourcesByTags(const std::vector<std::string> &tags) {
@@ -277,6 +235,34 @@ std::vector<FullResource> ResourceService::getAllFull() {
     if (!resources.empty()) {
         out.reserve(resources.size());
         for (auto &r : resources) { out.push_back(buildFullFromResource(r)); }
+    }
+
+    return out;
+}
+
+std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
+    std::vector<UnifiedSearchResult> out;
+
+    auto resources = m_resRepo.getAll();
+    out.reserve(resources.size());
+
+    for (const auto &r : resources) {
+        UnifiedSearchResult u{};
+        u.res = r;
+
+        // SubText: ngày cập nhật
+        if (!r.updated_at.empty()) {
+            u.displaySubText = r.updated_at;
+        } else {
+            u.displaySubText = r.created_at;
+        }
+
+        // Tags
+        auto tagPairs = m_tagRepo.getTagsByResourceId(r.id);
+        for (auto &p : tagPairs) { u.tags.push_back(p.second); }
+
+        u.flags = ResourceFlags::none;
+        out.push_back(std::move(u));
     }
 
     return out;

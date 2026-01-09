@@ -106,7 +106,40 @@ struct FileEntry {
         bool is_managed{};
 };
 
+enum class ResourceFlags : std::uint8_t {
+    none = 0,
+
+    // ===== Nguồn khớp tìm kiếm =====
+    matchTitle = 1U << 0,   // Khớp từ title
+    matchContent = 1U << 1, // Khớp từ nội dung text / file_text
+    matchTag = 1U << 2,     // Khớp từ tag
+
+    // ===== Trạng thái nội dung =====
+    hasSnippet = 1U << 3,     // Có snippet hợp lệ (FTS snippet)
+    hasFullContent = 1U << 4, // Có content đầy đủ trong DB (text_content)
+
+    // ===== Trạng thái file =====
+    isFile = 1U << 5,    // Là tài nguyên file
+    isManaged = 1U << 6, // File được app quản lý (copied vào storage)
+    isExternal = 1U << 7 // File liên kết ngoài (linked)
+};
+
+constexpr ResourceFlags operator|(ResourceFlags a, ResourceFlags b) {
+    return static_cast<ResourceFlags>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b));
+}
+
+constexpr ResourceFlags operator&(ResourceFlags a, ResourceFlags b) {
+    return static_cast<ResourceFlags>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b));
+}
+
+constexpr bool hasFlag(ResourceFlags value, ResourceFlags flag) {
+    return (static_cast<std::uint8_t>(value) & static_cast<std::uint8_t>(flag)) != 0;
+}
+
 struct UnifiedSearchResult {
         Resource res;
-        std::string snippet;
+        std::string displaySubText;
+        std::optional<std::string> rawSnippet;
+        std::vector<std::string> tags;
+        ResourceFlags flags;
 };

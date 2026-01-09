@@ -22,13 +22,11 @@ class BrowseTabWidget final : public QWidget {
         ~BrowseTabWidget() override = default;
 
         void retranslateUi();
-        void displayResults(const std::vector<FullResource> &results);
+        void displayResults(const std::vector<UnifiedSearchResult> &results);
         void updateColumnWidths();
 
         // Getter
         [[nodiscard]] ResultsTable* resultsTable() const noexcept { return m_resultsTbl; }
-
-        void handleResultsSearchRequested(const std::vector<FullResource> &results);
 
     signals:
         void searchRequested(const QString &keyword, const QString &mode);
@@ -38,6 +36,9 @@ class BrowseTabWidget final : public QWidget {
                                   const QString &title, const QString &path);
         void statusUpdateRequest(const QString &msg, int timeout);
         void getAllDataRequested();
+
+    public slots:
+        void handleResultsSearchRequested(const std::vector<UnifiedSearchResult> &results);
 
     private slots:
         void onClearButtonClicked();
@@ -65,6 +66,7 @@ class BrowseTabWidget final : public QWidget {
         QRadioButton* m_titleRad{};
         QRadioButton* m_contentRad{};
         QRadioButton* m_tagRad{};
+        QRadioButton* m_allRad{};
         ResultsTable* m_resultsTbl{};
 
         // Group

@@ -22,7 +22,7 @@ class ResourceSearchWorker final : public QObject {
         }
 
     signals:
-        void searchFinished(const std::vector<FullResource> &results);
+        void searchFinished(const std::vector<UnifiedSearchResult> &results);
 
     public slots:
         void doSearch();

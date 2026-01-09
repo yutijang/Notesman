@@ -34,7 +34,7 @@ sqlite3_int64 ResourceRepository::insert(const Resource &res) {
 }
 
 std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
-    static constexpr const char* sql = "SELECT id, title, type, created_at, updated_at "
+    static constexpr const char* sql = "SELECT id, title, type, file_hash, created_at, updated_at "
                                        "FROM resources "
                                        "WHERE id = ?;";
     SQLiteStmt stmt(m_db.get(), sql);
@@ -47,7 +47,7 @@ std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
 }
 
 std::vector<Resource> ResourceRepository::getAll() {
-    static constexpr const char* sql = "SELECT id, title, type, created_at, updated_at "
+    static constexpr const char* sql = "SELECT id, title, type, file_hash, created_at, updated_at "
                                        "FROM resources;";
     SQLiteStmt stmt(m_db.get(), sql);
 
@@ -59,7 +59,7 @@ std::vector<Resource> ResourceRepository::getAll() {
     return results;
 }
 
-std::vector<Resource> ResourceRepository::searchByTitleFTS(std::string_view keyword) {
+std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::string_view keyword) {
     static constexpr const char* sql =
         "SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at "
         "FROM resources r "
@@ -72,24 +72,17 @@ std::vector<Resource> ResourceRepository::searchByTitleFTS(std::string_view keyw
     sqlite3_bind_text(stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()),
                       SQLITE_TRANSIENT);
 
-    std::vector<Resource> result;
+    std::vector<UnifiedSearchResult> result;
     while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
-        Resource res;
-        res.id = sqlite3_column_int64(stmt.get(), 0);
-        res.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+        Resource res = resourceFromStmt(stmt.get());
 
-        const char* typeText = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
-        res.type = resourceTypeFromString(typeText);
+        UnifiedSearchResult ures;
+        ures.res = std::move(res);
+        ures.displaySubText = ures.res.title;
+        ures.rawSnippet = std::nullopt;
+        ures.flags = ResourceFlags::matchTitle;
 
-        if (sqlite3_column_type(stmt.get(), 3) != SQLITE_NULL) {
-            res.file_hash = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 3));
-        }
-
-        res.created_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 4));
-        res.updated_at = reinterpret_cast<const char*>(
-            sqlite3_column_text(stmt.get(), 5)); // NOLINT(readability-magic-numbers)
-
-        result.push_back(std::move(res));
+        result.push_back(std::move(ures));
     }
 
     return result;
@@ -102,20 +95,7 @@ std::optional<Resource> ResourceRepository::getByFileHash(std::string_view hash)
     sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()), SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt.get()) == SQLITE_ROW) {
-        Resource res;
-        res.id = sqlite3_column_int64(stmt.get(), 0);
-        res.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-
-        const char* typeText = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
-        res.type = resourceTypeFromString(typeText);
-
-        if (sqlite3_column_type(stmt.get(), 3) != SQLITE_NULL) {
-            res.file_hash = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 3));
-        }
-
-        res.created_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 4));
-        res.updated_at = reinterpret_cast<const char*>(
-            sqlite3_column_text(stmt.get(), 5)); // NOLINT(readability-magic-numbers)
+        Resource res = resourceFromStmt(stmt.get());
 
         return res;
     }
@@ -238,7 +218,7 @@ bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) 
 std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_view likeKW,
                                                                    std::string_view ftsKW) {
     static constexpr const char* sql = R"(
-        SELECT r.id, r.title, r.type, r.created_at, r.updated_at,
+        SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at,
                MIN(m.score) AS final_score,
                m.snip AS snippet
         FROM resources r
@@ -287,12 +267,27 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
     std::vector<UnifiedSearchResult> results;
     int rc{};
     while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
-        UnifiedSearchResult item;
+        UnifiedSearchResult item{};
         item.res = resourceFromStmt(stmt.get());
+        item.flags = ResourceFlags::none;
 
         const char* snipPtr = reinterpret_cast<const char*>(
-            sqlite3_column_text(stmt.get(), 6)); // NOLINT(readability-magic-numbers)
-        item.snippet = (snipPtr != nullptr) ? snipPtr : "";
+            sqlite3_column_text(stmt.get(), 7)); // NOLINT(readability-magic-numbers)
+
+        if ((snipPtr != nullptr) && (*snipPtr != 0)) {
+            // Có snippet => match content
+            item.displaySubText = snipPtr;
+            item.rawSnippet = snipPtr;
+            item.flags = item.flags | ResourceFlags::matchContent | ResourceFlags::hasSnippet;
+
+            if (item.res.type != ResourceType::plainText) {
+                item.flags = item.flags | ResourceFlags::isFile;
+            }
+        } else {
+            // Không có snippet → Title hoặc Tag
+            item.displaySubText = ""; // Delegate sẽ tự quyết
+            item.flags = item.flags | ResourceFlags::matchTitle;
+        }
 
         results.push_back(std::move(item));
     }
@@ -300,34 +295,10 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
     return results;
 }
 
-Resource ResourceRepository::resourceFromStmt(sqlite3_stmt* stmt) {
-    Resource res;
-
-    res.id = sqlite3_column_int64(stmt, 0);
-
-    const auto* titlePtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-    res.title = (titlePtr != nullptr) ? titlePtr : "";
-
-    const auto* typePtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-    if (typePtr != nullptr) {
-        res.type = resourceTypeFromString(typePtr);
-    } else {
-        res.type = ResourceType::unknown;
-    }
-
-    const auto* createdPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-    res.created_at = (createdPtr != nullptr) ? createdPtr : "";
-
-    const auto* updatedPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-    res.updated_at = (updatedPtr != nullptr) ? updatedPtr : "";
-
-    return res;
-}
-
 std::vector<UnifiedSearchResult>
     ResourceRepository::searchByContentUnified(std::string_view keyword) {
     static constexpr const char* sql = R"(
-        SELECT r.id, r.title, r.type, r.created_at, r.updated_at, 
+        SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at, 
             MIN(m.score) AS final_score, 
             m.snip AS snippet
         FROM resources r
@@ -350,7 +321,7 @@ std::vector<UnifiedSearchResult>
         ) m ON r.id = m.row_id
         GROUP BY r.id
         ORDER BY final_score ASC, r.updated_at DESC
-        LIMIT 100
+        LIMIT 100;
     )";
 
     SQLiteStmt stmt(m_db.get(), sql);
@@ -363,13 +334,20 @@ std::vector<UnifiedSearchResult>
     std::vector<UnifiedSearchResult> results;
     int rc{};
     while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
-        UnifiedSearchResult item;
+        UnifiedSearchResult item{};
         item.res = (resourceFromStmt(stmt.get()));
 
         // Bổ sung giá trị snippet
         const char* snipPtr = reinterpret_cast<const char*>(
-            sqlite3_column_text(stmt.get(), 6)); // NOLINT(readability-magic-numbers)
-        if (snipPtr != nullptr) { item.snippet = snipPtr; }
+            sqlite3_column_text(stmt.get(), 7)); // NOLINT(readability-magic-numbers)
+
+        if (snipPtr != nullptr && (*snipPtr != 0)) {
+            item.displaySubText = snipPtr;
+            item.rawSnippet = snipPtr;
+            item.flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet;
+        } else {
+            item.flags = ResourceFlags::matchContent;
+        }
 
         results.push_back(std::move(item));
     }
@@ -377,4 +355,28 @@ std::vector<UnifiedSearchResult>
     if (rc != SQLITE_DONE) { Log::err("FTS Search Error: {}", sqlite3_errmsg(m_db.get())); }
 
     return results;
+}
+
+Resource ResourceRepository::resourceFromStmt(sqlite3_stmt* stmt) {
+    Resource res;
+
+    res.id = sqlite3_column_int64(stmt, 0);
+
+    const auto* titlePtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+    res.title = (titlePtr != nullptr) ? titlePtr : "";
+
+    const auto* typePtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+    res.type = (typePtr != nullptr) ? resourceTypeFromString(typePtr) : ResourceType::unknown;
+
+    const auto* fileHashPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+    res.file_hash = (fileHashPtr != nullptr) ? fileHashPtr : "";
+
+    const auto* createdPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+    res.created_at = (createdPtr != nullptr) ? createdPtr : "";
+
+    const auto* updatedPtr = reinterpret_cast<const char*>(
+        sqlite3_column_text(stmt, 5)); // NOLINT(readability-magic-numbers)
+    res.updated_at = (updatedPtr != nullptr) ? updatedPtr : "";
+
+    return res;
 }

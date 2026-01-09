@@ -21,11 +21,11 @@ class TagInput final : public QWidget {
 
         void retranslateUi();
 
-    public slots: // NOLINT(readability-redundant-access-specifiers)
-        void clearTags();
-
     signals:
         void tagAdded(const QString &tag);
+
+    public slots:
+        void clearTags();
 
     private slots:
         void onTextChanged(const QString &text);

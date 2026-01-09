@@ -16,8 +16,8 @@ void ResourceSearchWorker::doSearch() {
         return;
     }
 
-    std::string stdKeyword = m_keyword.toUtf8().toStdString();
-    std::vector<FullResource> results;
+    const std::string stdKeyword = m_keyword.toUtf8().toStdString();
+    std::vector<UnifiedSearchResult> results;
 
     try {
         if (m_mode == "title" || m_mode == "content") {
@@ -36,16 +36,34 @@ void ResourceSearchWorker::doSearch() {
             auto trimmedView = cleanTag | std::views::drop_while(isSpace) | std::views::reverse |
                                std::views::drop_while(isSpace) | std::views::reverse;
 
-            std::string trimmedS(trimmedView.begin(), trimmedView.end());
+            const std::string trimmedS(trimmedView.begin(), trimmedView.end());
 
-            results = m_core->getFullResourcesByTag(trimmedS);
+            auto fullRes = m_core->getFullResourcesByTag(trimmedS);
+            results.reserve(fullRes.size());
+
+            for (auto &fres : fullRes) {
+                UnifiedSearchResult ures;
+                ures.res = std::move(fres.resource);
+                ures.tags = std::move(fres.tags);
+                if (fres.content.has_value()) {
+                    ures.displaySubText = fres.content->substr(
+                        0, 100); // snippet ngắn // NOLINT(readability-magic-numbers)
+                    ures.rawSnippet = fres.content;
+                } else {
+                    ures.displaySubText = ures.res.title;
+                    ures.rawSnippet = std::nullopt;
+                }
+                ures.flags = ResourceFlags::matchTag;
+                results.push_back(std::move(ures));
+            }
+
         } else if (m_mode == "all") {
             // 1. Chuẩn bị chuỗi cho LIKE (Bảng Tag)
-            std::string likeKW = Utils::toLikeQuery(stdKeyword);
+            const std::string likeKW = Utils::toLikeQuery(stdKeyword);
 
             // 2. Chuẩn bị chuỗi cho MATCH (Bảng FTS Title/Content)
             // Dùng false để tìm kiếm linh hoạt hơn trong chế độ tìm tổng hợp
-            std::string ftsKW = Utils::sanitizeFtsQuery(stdKeyword + "*", false);
+            const std::string ftsKW = Utils::sanitizeFtsQuery(stdKeyword + "*", false);
 
             // 3. Gọi hàm hợp nhất trong Core
             // Hàm này sẽ bind likeKW vào các tham số LIKE và ftsKW vào các tham số MATCH

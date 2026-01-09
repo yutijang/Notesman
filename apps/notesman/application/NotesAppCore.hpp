@@ -38,13 +38,16 @@ class NotesAppCore {
         [[nodiscard]] std::optional<FullResource> getFullResource(sqlite3_int64 resourceId) const;
         [[nodiscard]] std::vector<FullResource> getAllFull() const;
 
+        [[nodiscard]] std::vector<UnifiedSearchResult> getAllUnified() const;
+
         void updateText(sqlite3_int64 resourceId, std::string_view newText);
 
         void deleteResource(sqlite3_int64 resourceId);
         void deleteResources(const std::vector<sqlite3_int64> &resourceIds);
 
         // ========= Search =========
-        [[nodiscard]] std::vector<Resource> searchByTitle(const std::string &keyword) const;
+        [[nodiscard]] std::vector<UnifiedSearchResult>
+            searchByTitle(const std::string &keyword) const;
         [[nodiscard]] std::vector<std::pair<sqlite3_int64, std::string>>
             searchByContent(const std::string &keyword) const;
 
@@ -53,14 +56,15 @@ class NotesAppCore {
         //     searchByContentFull(const std::string &keyword) const;
         // // =========
 
-        [[nodiscard]] std::vector<FullResource>
+        [[nodiscard]] std::vector<UnifiedSearchResult>
             searchByContentUnifiedFull(const std::string &keyword) const;
 
         // For mode all
-        [[nodiscard]] std::vector<FullResource> searchUnifiedFull(std::string_view likeKW,
-                                                                  std::string_view ftsKW) const;
+        [[nodiscard]] std::vector<UnifiedSearchResult>
+            searchUnifiedFull(std::string_view likeKW, std::string_view ftsKW) const;
 
-        [[nodiscard]] std::vector<FullResource> searchByTitleFull(const std::string &keyword) const;
+        [[nodiscard]] std::vector<UnifiedSearchResult>
+            searchByTitleFull(const std::string &keyword) const;
         [[nodiscard]] std::vector<FullResource> getFullResourcesByTag(const std::string &tag) const;
         [[nodiscard]] std::vector<Resource>
             getResourcesByTags(const std::vector<std::string> &tags) const;

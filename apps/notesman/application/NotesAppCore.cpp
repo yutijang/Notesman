@@ -31,6 +31,10 @@ std::vector<FullResource> NotesAppCore::getAllFull() const {
     return m_resService.getAllFull();
 }
 
+std::vector<UnifiedSearchResult> NotesAppCore::getAllUnified() const {
+    return m_resService.getAllUnified();
+}
+
 void NotesAppCore::updateText(sqlite3_int64 resourceId, std::string_view newText) {
     m_textRepo.updateText(resourceId, newText);
 }
@@ -44,7 +48,7 @@ void NotesAppCore::deleteResources(const std::vector<sqlite3_int64> &resourceIds
 }
 
 // ========= Search =========
-std::vector<Resource> NotesAppCore::searchByTitle(const std::string &keyword) const {
+std::vector<UnifiedSearchResult> NotesAppCore::searchByTitle(const std::string &keyword) const {
     return m_resService.searchByTitle(keyword);
 }
 
@@ -57,17 +61,17 @@ std::vector<std::pair<sqlite3_int64, std::string>>
 //     return m_resService.searchByContentFull(keyword);
 // }
 
-std::vector<FullResource>
+std::vector<UnifiedSearchResult>
     NotesAppCore::searchByContentUnifiedFull(const std::string &keyword) const {
     return m_resService.searchByContentUnifiedFull(keyword);
 }
 
-std::vector<FullResource> NotesAppCore::searchUnifiedFull(std::string_view likeKW,
-                                                          std::string_view ftsKW) const {
+std::vector<UnifiedSearchResult> NotesAppCore::searchUnifiedFull(std::string_view likeKW,
+                                                                 std::string_view ftsKW) const {
     return m_resService.searchUnifiedFull(likeKW, ftsKW);
 }
 
-std::vector<FullResource> NotesAppCore::searchByTitleFull(const std::string &keyword) const {
+std::vector<UnifiedSearchResult> NotesAppCore::searchByTitleFull(const std::string &keyword) const {
     return m_resService.searchByTitleFull(keyword);
 }
 

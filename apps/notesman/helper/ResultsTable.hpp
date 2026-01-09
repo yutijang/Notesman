@@ -22,11 +22,11 @@ class ResultsTable final : public QTableWidget {
         // NOLINTNEXTLINE(performance-enum-size)
         enum class ItemRole : int {
             resourceId = Qt::UserRole + 1,
-            resourceType,  // Kiểu tài nguyên
-            searchSnippet, // Chứa đoạn trích từ nội dung (từ hàm snippet() của FTS5)
-            fullPath,      // Đường dẫn file đầy đủ (để hiển thị nếu không có snippet)
-            tagList,       // Danh sách tag dưới dạng chuỗi (vd: "#cpp #stl")
-            matchType      // Để Delegate biết lý do khớp (Title, Tag, hay Content)
+            resourceType,   // Kiểu tài nguyên
+            displaySubText, // Chứa nội dung dòng thứ 2 của mỗi hàng item
+            fullPath,       // Cho Tooltip hoặc Mở file
+            tagList,
+            resourceFlags
         };
 
     protected:
