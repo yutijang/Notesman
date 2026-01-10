@@ -111,7 +111,7 @@ std::optional<FileEntry> FileRepository::getFileById(sqlite_int64 resourceId) {
     if (stmt.step() == SQLITE_ROW) {
         FileEntry entry;
 
-        entry.resource_id = sqlite3_column_int64(stmt.get(), 0);
+        entry.resource_id = stmt.getColumnInt64(0);
 
         if (sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL) {
             entry.stored_path = stmt.getColumnText(1);
@@ -145,7 +145,7 @@ std::vector<FileEntry> FileRepository::getAllFile() {
     while (stmt.step() == SQLITE_ROW) {
         FileEntry entry;
 
-        entry.resource_id = sqlite3_column_int64(stmt.get(), 0);
+        entry.resource_id = stmt.getColumnInt64(0);
 
         if (sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL) {
             entry.stored_path = stmt.getColumnText(1);
@@ -168,7 +168,7 @@ std::optional<sqlite3_int64> FileRepository::getResourceIdBystoredPath(std::stri
                                         SQLITE_TRANSIENT),
                       m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return sqlite3_column_int64(stmt.get(), 0); }
+    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnInt64(0); }
 
     return std::nullopt;
 }
@@ -183,7 +183,7 @@ std::optional<sqlite3_int64>
                                         static_cast<int>(pathUtf8.size()), SQLITE_TRANSIENT),
                       m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return sqlite3_column_int64(stmt.get(), 0); }
+    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnInt64(0); }
 
     return std::nullopt;
 }
@@ -206,7 +206,7 @@ std::optional<sqlite3_int64> FileRepository::getResourceIdByFilepath(std::string
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, filepath.data(),
                                         static_cast<int>(filepath.size()), SQLITE_TRANSIENT),
                       m_db.get());
-    if (stmt.step() == SQLITE_ROW) { return sqlite3_column_int64(stmt.get(), 0); }
+    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnInt64(0); }
 
     return std::nullopt;
 }

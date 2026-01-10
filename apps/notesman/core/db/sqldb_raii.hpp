@@ -126,6 +126,10 @@ class SQLiteStmt {
             return {text, static_cast<std::size_t>(bytes)};
         }
 
+        [[nodiscard]] sqlite3_int64 getColumnInt64(int index) const noexcept {
+            return sqlite3_column_int64(m_stmt.get(), index);
+        }
+
     private:
         unique_sqlite_stmt_ptr m_stmt;
 };

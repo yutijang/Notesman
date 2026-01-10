@@ -86,7 +86,7 @@ std::optional<sqlite3_int64> TagRepository::getTagIdByName(std::string_view name
 
     const int rc = stmt.step();
 
-    if (rc == SQLITE_ROW) { return sqlite3_column_int64(stmt.get(), 0); }
+    if (rc == SQLITE_ROW) { return stmt.getColumnInt64(0); }
 
     if (rc == SQLITE_DONE) { return std::nullopt; }
 
@@ -146,7 +146,7 @@ std::vector<std::pair<sqlite3_int64, std::string>>
     std::vector<std::pair<sqlite3_int64, std::string>> result;
     int rc{};
     while ((rc = stmt.step()) == SQLITE_ROW) {
-        sqlite3_int64 id = sqlite3_column_int64(stmt.get(), 0);
+        sqlite3_int64 id = stmt.getColumnInt64(0);
         auto name = stmt.getColumnText(1);
         result.emplace_back(id, std::move(name));
     }
@@ -161,7 +161,7 @@ std::vector<std::pair<sqlite3_int64, std::string>> TagRepository::getAllTags() {
 
     std::vector<std::pair<sqlite3_int64, std::string>> results;
     while (stmt.step() == SQLITE_ROW) {
-        sqlite3_int64 id = sqlite3_column_int64(stmt.get(), 0);
+        sqlite3_int64 id = stmt.getColumnInt64(0);
         auto name = stmt.getColumnText(1);
         results.emplace_back(id, std::move(name));
     }
@@ -201,7 +201,7 @@ std::vector<Resource> TagRepository::getResourcesViaTags(const std::vector<std::
     std::vector<Resource> results;
     while (stmt.step() == SQLITE_ROW) {
         Resource res{};
-        res.id = sqlite3_column_int64(stmt.get(), 0);
+        res.id = stmt.getColumnInt64(0);
         res.title = stmt.getColumnText(1);
         res.type = resourceTypeFromString(stmt.getColumnText(2));
         res.created_at = stmt.getColumnText(3);
@@ -226,7 +226,7 @@ std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name
     while ((rc = stmt.step()) == SQLITE_ROW) {
         Resource res{};
 
-        res.id = sqlite3_column_int64(stmt.get(), 0);
+        res.id = stmt.getColumnInt64(0);
 
         res.title = stmt.getColumnText(1);
 

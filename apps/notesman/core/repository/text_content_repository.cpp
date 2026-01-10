@@ -95,7 +95,7 @@ std::vector<std::pair<sqlite3_int64, std::string>>
 }
 
 std::pair<sqlite3_int64, std::string> TextContentRepository::rowToEntry(SQLiteStmt &stmt) {
-    sqlite3_int64 rID = sqlite3_column_int64(stmt.get(), 0);
+    sqlite3_int64 rID = stmt.getColumnInt64(0);
     auto content = stmt.getColumnText(1);
 
     return {rID, std::move(content)};

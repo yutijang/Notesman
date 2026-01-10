@@ -254,9 +254,9 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
 
         // SubText: ngày cập nhật
         if (!r.updated_at.empty()) {
-            u.displaySubText = r.updated_at;
+            u.displaySubText = "Latest modified: " + r.updated_at;
         } else {
-            u.displaySubText = r.created_at;
+            u.displaySubText = "Date created: " + r.created_at;
         }
 
         // Tags

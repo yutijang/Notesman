@@ -103,6 +103,8 @@ void BrowseTabWidget::setupUI() {
     topLayout->addLayout(utilityGroupLayout, 3);
 
     m_resultsTbl = new ResultsTable(this);
+    m_resultsTbl->verticalHeader()->setDefaultSectionSize(48); // NOLINT(readability-magic-numbers)
+    m_resultsTbl->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     m_resultsTbl->setContextMenuPolicy(Qt::CustomContextMenu);
     m_resultsTbl->setColumnCount(2);
     m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title")});

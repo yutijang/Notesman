@@ -34,44 +34,87 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
     QStyleOptionViewItem opt(option);
     initStyleOption(&opt, index);
 
+    // Không để style vẽ text mặc định
     opt.text.clear();
 
     const QWidget* widget = option.widget;
     QStyle* style = (widget != nullptr) ? widget->style() : QApplication::style();
     style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
 
-    // ==== LẤY DỮ LIỆU ====
-    const QString text = index.data(Qt::DisplayRole).toString();
+    // ===== LẤY DỮ LIỆU =====
+    const QString titleText = index.data(Qt::DisplayRole).toString();
+    const QString subText =
+        index.data(static_cast<int>(ResultsTable::ItemRole::displaySubText)).toString();
+
     const auto type = static_cast<ResourceType>(
         index.data(static_cast<int>(ResultsTable::ItemRole::resourceType)).toInt());
 
-    const int targetHeight{20};
-    int targetWidth = targetHeight;
+    // ===== ICON SVG =====
+    constexpr int iconSize = 20;
+    constexpr int spacing = 8;
 
+    int iconWidth = iconSize;
     QSvgRenderer* renderer = getRenderer(type);
-    if (renderer != nullptr) {
-        QSize defaultSize = renderer->defaultSize();
-        // Tính Width dựa trên Aspect Ratio: W_new = H_new * (W_orig / H_orig)
-        if (defaultSize.height() > 0) {
-            targetWidth = targetHeight * defaultSize.width() / defaultSize.height();
-        }
+    if ((renderer != nullptr) && renderer->defaultSize().height() > 0) {
+        iconWidth = iconSize * renderer->defaultSize().width() / renderer->defaultSize().height();
     }
 
-    constexpr int spacing{8};
     QRect rect = option.rect;
 
-    QRect svgRect{rect.right() - targetWidth - spacing, rect.center().y() - (targetHeight / 2),
-                  targetWidth, targetHeight};
+    QRect iconRect(rect.right() - iconWidth - spacing, rect.center().y() - (iconSize / 2),
+                   iconWidth, iconSize);
 
-    QRect textRect = rect.adjusted(spacing, 0, -(targetWidth + (spacing * 2)), 0);
+    QRect textRect = rect.adjusted(spacing, 0, -(iconWidth + (spacing * 2)), 0);
+
+    // ===== FONT =====
+    QFont titleFont = opt.font;
+    titleFont.setBold(true);
+
+    QFont subFont = opt.font;
+    subFont.setPointSizeF(opt.font.pointSizeF() - 1);
+
+    QFontMetrics titleFm(titleFont);
+    QFontMetrics subFm(subFont);
+
+    // ===== LAYOUT DỌC =====
+    constexpr int paddingTop = 2;
+    // constexpr int paddingBottom = 6;
+    constexpr int lineSpacing = 2;
+
+    int y = textRect.top() + paddingTop;
+
+    QRect titleRect(textRect.left(), y, textRect.width(), titleFm.height());
+
+    y += titleFm.height() + lineSpacing;
+
+    QRect subRect(textRect.left(), y, textRect.width(), subFm.height());
 
     painter->save();
-    painter->setRenderHint(QPainter::Antialiasing);
+    painter->setRenderHint(QPainter::TextAntialiasing);
+
+    // ===== TITLE =====
+    painter->setFont(titleFont);
     painter->setPen(opt.palette.color(
         ((opt.state & QStyle::State_Selected) != 0) ? QPalette::HighlightedText : QPalette::Text));
-    painter->drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text);
 
-    if (renderer != nullptr) { renderer->render(painter, svgRect); }
+    painter->drawText(titleRect, Qt::AlignLeft | Qt::AlignTop, titleText);
+
+    // ===== SUB TEXT =====
+    if (!subText.isEmpty()) {
+        painter->setFont(subFont);
+
+        QColor subColor = opt.palette.color(QPalette::Text);
+        subColor.setAlpha(160); // NOLINT(readability-magic-numbers)
+
+        painter->setPen(((opt.state & QStyle::State_Selected) != 0)
+                            ? opt.palette.color(QPalette::HighlightedText)
+                            : subColor);
+
+        painter->drawText(subRect, Qt::AlignLeft | Qt::AlignTop, subText);
+    }
+
+    // ===== ICON =====
+    if (renderer != nullptr) { renderer->render(painter, iconRect); }
 
     painter->restore();
 }
@@ -79,7 +122,7 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
 QSize ResourceTitleDelegate::sizeHint(const QStyleOptionViewItem &option,
                                       const QModelIndex &index) const {
     QSize sz = QStyledItemDelegate::sizeHint(option, index);
-    sz.setHeight(qMax(sz.height(), 30)); // NOLINT(readability-magic-numbers) // icon + padding
+    sz.setHeight(qMax(sz.height(), 48)); // NOLINT(readability-magic-numbers) // icon + padding
     return sz;
 }
 

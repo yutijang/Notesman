@@ -362,7 +362,7 @@ std::vector<UnifiedSearchResult>
 Resource ResourceRepository::resourceFromStmt(SQLiteStmt &stmt) {
     Resource res;
 
-    res.id = sqlite3_column_int64(stmt.get(), 0);
+    res.id = stmt.getColumnInt64(0);
     res.title = stmt.getColumnText(1);
 
     auto type = stmt.getColumnText(2);
