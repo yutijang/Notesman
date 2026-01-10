@@ -7,28 +7,28 @@
 #include <sqlite3.h>
 
 #include "resource_repository.hpp"
-#include "Logger.hpp"
 #include "model.hpp"
 #include "sqldb_raii.hpp"
+#include "sqlite_utils.hpp"
 
 sqlite3_int64 ResourceRepository::insert(const Resource &res) {
     SQLiteStmt stmt(m_db.get(), "INSERT INTO resources (title, type, file_hash) VALUES (?, ?, ?);");
 
-    sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT),
+                      m_db.get());
 
     const char* typeStr = resourceTypeToString(res.type);
-    sqlite3_bind_text(stmt.get(), 2, typeStr, -1, SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, typeStr, -1, SQLITE_TRANSIENT), m_db.get());
 
     if (res.type == ResourceType::plainText || res.file_hash.empty()) {
-        sqlite3_bind_null(stmt.get(), 3);
+        sqlite::checkBind(sqlite3_bind_null(stmt.get(), 3), m_db.get());
     } else {
-        sqlite3_bind_text(stmt.get(), 3, res.file_hash.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite::checkBind(
+            sqlite3_bind_text(stmt.get(), 3, res.file_hash.c_str(), -1, SQLITE_TRANSIENT),
+            m_db.get());
     }
 
-    if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-        std::string erroMSG = sqlite3_errmsg(m_db.get());
-        throw std::runtime_error("Insert failed for resource: " + res.title + " Error: " + erroMSG);
-    }
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "Insert resource");
 
     return sqlite3_last_insert_rowid(m_db.get());
 }
@@ -39,9 +39,9 @@ std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
                                        "WHERE id = ?;";
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite3_bind_int64(stmt.get(), 1, resourceId);
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    if (sqlite3_step(stmt.get()) == SQLITE_ROW) { return resourceFromStmt(stmt.get()); }
+    if (stmt.step() == SQLITE_ROW) { return resourceFromStmt(stmt.get()); }
 
     return std::nullopt;
 }
@@ -52,9 +52,7 @@ std::vector<Resource> ResourceRepository::getAll() {
     SQLiteStmt stmt(m_db.get(), sql);
 
     std::vector<Resource> results;
-    while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
-        results.push_back(resourceFromStmt(stmt.get()));
-    }
+    while (stmt.step() == SQLITE_ROW) { results.push_back(resourceFromStmt(stmt.get())); }
 
     return results;
 }
@@ -69,11 +67,12 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite3_bind_text(stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()),
-                      SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, keyword.data(),
+                                        static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
+                      m_db.get());
 
     std::vector<UnifiedSearchResult> result;
-    while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+    while (stmt.step() == SQLITE_ROW) {
         Resource res = resourceFromStmt(stmt.get());
 
         UnifiedSearchResult ures;
@@ -92,9 +91,11 @@ std::optional<Resource> ResourceRepository::getByFileHash(std::string_view hash)
     SQLiteStmt stmt(m_db.get(), "SELECT id, title, type, file_hash, created_at, updated_at FROM "
                                 "resources WHERE file_hash = ?;");
 
-    sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()), SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
 
-    if (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+    if (stmt.step() == SQLITE_ROW) {
         Resource res = resourceFromStmt(stmt.get());
 
         return res;
@@ -107,9 +108,9 @@ std::optional<std::pair<std::string, std::string>>
     ResourceRepository::getTimestamps(sqlite3_int64 resourceID) {
     SQLiteStmt stmt(m_db.get(), "SELECT created_at, updated_at FROM resources WHERE id = ?;");
 
-    sqlite3_bind_int64(stmt.get(), 1, resourceID);
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceID), m_db.get());
 
-    if (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+    if (stmt.step() == SQLITE_ROW) {
         std::string createdAt;
         std::string updatedAt;
 
@@ -131,25 +132,20 @@ void ResourceRepository::update(const Resource &res) {
     SQLiteStmt stmt(m_db.get(), "UPDATE resources SET title = ?, type = ?, updated_at = "
                                 "CURRENT_TIMESTAMP WHERE id = ?;");
 
-    sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 2, resourceTypeToString(res.type), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int64(stmt.get(), 3, res.id);
-
-    if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-        std::string erroMSG = sqlite3_errmsg(m_db.get());
-        throw std::runtime_error("Update failed: " + erroMSG);
-    }
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT),
+                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(stmt.get(), 2, resourceTypeToString(res.type), -1, SQLITE_TRANSIENT),
+        m_db.get());
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 3, res.id), m_db.get());
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "Update");
 }
 
 void ResourceRepository::remove(sqlite3_int64 resourceId) {
     SQLiteStmt stmt(m_db.get(), "DELETE FROM resources WHERE id = ?;");
 
-    sqlite3_bind_int64(stmt.get(), 1, resourceId);
-
-    if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-        std::string erroMSG = sqlite3_errmsg(m_db.get());
-        throw std::runtime_error("Delete failed: " + erroMSG);
-    }
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "remove");
 }
 
 void ResourceRepository::removeBatch(const std::vector<sqlite3_int64> &resourceIds) {
@@ -167,15 +163,15 @@ void ResourceRepository::removeBatch(const std::vector<sqlite3_int64> &resourceI
     bool success = true;
     {
         for (const auto id : resourceIds) {
-            sqlite3_bind_int64(stmt.get(), 1, id);
+            sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, id), m_db.get());
 
-            if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
+            if (stmt.step() != SQLITE_DONE) {
                 success = false;
                 break;
             }
 
-            sqlite3_reset(stmt.get());
-            sqlite3_clear_bindings(stmt.get());
+            stmt.reset();
+            stmt.clearBindings();
         }
     }
 
@@ -192,13 +188,11 @@ void ResourceRepository::removeBatch(const std::vector<sqlite3_int64> &resourceI
 void ResourceRepository::updateFileHash(sqlite3_int64 resourceID, std::string_view hash) {
     SQLiteStmt stmt(m_db.get(), "UPDATE resources SET file_hash = ? WHERE id = ?;");
 
-    sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()), SQLITE_TRANSIENT);
-    sqlite3_bind_int64(stmt.get(), 2, resourceID);
-
-    if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-        std::string erroMSG = sqlite3_errmsg(m_db.get());
-        throw std::runtime_error("Update failed: " + erroMSG);
-    }
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 2, resourceID), m_db.get());
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "updateFileHash");
 }
 
 bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) const {
@@ -206,11 +200,14 @@ bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) 
         m_db.get(),
         "SELECT EXISTS (SELECT 1 FROM resources WHERE title = ? AND type = ? LIMIT 1);");
 
-    sqlite3_bind_text(stmt.get(), 1, title.data(), static_cast<int>(title.size()),
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 2, resourceTypeToString(type), -1, SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, title.data(), static_cast<int>(title.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(stmt.get(), 2, resourceTypeToString(type), -1, SQLITE_TRANSIENT),
+        m_db.get());
 
-    if (sqlite3_step(stmt.get()) == SQLITE_ROW) { return sqlite3_column_int(stmt.get(), 0) != 0; }
+    if (stmt.step() == SQLITE_ROW) { return sqlite3_column_int(stmt.get(), 0) != 0; }
 
     return false;
 }
@@ -255,18 +252,22 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite3_bind_text(stmt.get(), 1, likeKW.data(), static_cast<int>(likeKW.size()),
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 2, ftsKW.data(), static_cast<int>(ftsKW.size()),
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 3, ftsKW.data(), static_cast<int>(ftsKW.size()),
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 4, ftsKW.data(), static_cast<int>(ftsKW.size()),
-                      SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, likeKW.data(),
+                                        static_cast<int>(likeKW.size()), SQLITE_TRANSIENT),
+                      m_db.get());
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, ftsKW.data(), static_cast<int>(ftsKW.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 3, ftsKW.data(), static_cast<int>(ftsKW.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 4, ftsKW.data(), static_cast<int>(ftsKW.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
 
     std::vector<UnifiedSearchResult> results;
     int rc{};
-    while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
+    while ((rc = stmt.step()) == SQLITE_ROW) {
         UnifiedSearchResult item{};
         item.res = resourceFromStmt(stmt.get());
         item.flags = ResourceFlags::none;
@@ -291,6 +292,8 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
 
         results.push_back(std::move(item));
     }
+
+    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "FTS Search");
 
     return results;
 }
@@ -326,14 +329,16 @@ std::vector<UnifiedSearchResult>
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite3_bind_text(stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()),
-                      SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt.get(), 2, keyword.data(), static_cast<int>(keyword.size()),
-                      SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, keyword.data(),
+                                        static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
+                      m_db.get());
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, keyword.data(),
+                                        static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
+                      m_db.get());
 
     std::vector<UnifiedSearchResult> results;
     int rc{};
-    while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
+    while ((rc = stmt.step()) == SQLITE_ROW) {
         UnifiedSearchResult item{};
         item.res = (resourceFromStmt(stmt.get()));
 
@@ -352,7 +357,7 @@ std::vector<UnifiedSearchResult>
         results.push_back(std::move(item));
     }
 
-    if (rc != SQLITE_DONE) { Log::err("FTS Search Error: {}", sqlite3_errmsg(m_db.get())); }
+    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "FTS Search");
 
     return results;
 }

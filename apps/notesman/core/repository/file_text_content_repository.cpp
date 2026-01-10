@@ -3,6 +3,7 @@
 
 #include "file_text_content_repository.hpp"
 #include "sqldb_raii.hpp"
+#include "sqlite_utils.hpp"
 
 void FileTextContentRepository::upsertText(sqlite3_int64 resourceId, std::string_view text) {
     static constexpr const char* sql =
@@ -14,17 +15,15 @@ void FileTextContentRepository::upsertText(sqlite3_int64 resourceId, std::string
         "WHERE content IS NOT excluded.content;";
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite3_bind_int64(stmt.get(), 1, resourceId);
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    sqlite3_bind_text64(stmt.get(), 2, text.data(), static_cast<sqlite3_uint64>(text.size()),
-                        SQLITE_TRANSIENT, SQLITE_UTF8);
+    sqlite::checkBind(sqlite3_bind_text64(stmt.get(), 2, text.data(),
+                                          static_cast<sqlite3_uint64>(text.size()),
+                                          SQLITE_TRANSIENT, SQLITE_UTF8),
+                      m_db.get());
 
-    const int resCheck = sqlite3_step(stmt.get());
-    if (resCheck != SQLITE_DONE) {
-        std::string erroMSG = sqlite3_errmsg(m_db.get());
-        throw std::runtime_error("Upsert content failed for resource ID: " +
-                                 std::to_string(resourceId) + " Error: " + erroMSG);
-    }
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE,
+                      "Upsert - Resource ID: " + std::to_string(resourceId));
 }
 
 std::optional<std::string> FileTextContentRepository::getTextById(sqlite3_int64 resourceId) {
@@ -32,9 +31,9 @@ std::optional<std::string> FileTextContentRepository::getTextById(sqlite3_int64 
         "SELECT content FROM file_text_content WHERE resource_id = ?;";
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite3_bind_int64(stmt.get(), 1, resourceId);
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    const int rc = sqlite3_step(stmt.get());
+    const int rc = stmt.step();
     if (rc == SQLITE_ROW) {
         const auto* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
         if (textPtr != nullptr) {
@@ -43,10 +42,7 @@ std::optional<std::string> FileTextContentRepository::getTextById(sqlite3_int64 
         }
     }
 
-    if (rc != SQLITE_DONE) {
-        throw std::runtime_error("Error fetching file text content: " +
-                                 std::string(sqlite3_errmsg(m_db.get())));
-    }
+    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "getTextById");
 
     return std::nullopt;
 }
@@ -56,9 +52,7 @@ bool FileTextContentRepository::isIndexed(sqlite3_int64 resourceId) {
         "SELECT 1 FROM file_text_content WHERE resource_id = ? LIMIT 1;";
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite3_bind_int64(stmt.get(), 1, resourceId);
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    const int rc = sqlite3_step(stmt.get());
-
-    return rc == SQLITE_ROW;
+    return stmt.step() == SQLITE_ROW;
 }

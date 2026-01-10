@@ -20,7 +20,9 @@
 sqlite3_int64 ResourceService::addTextResource(const std::string &title, const std::string &content,
                                                ResourceType type) {
     if (type != ResourceType::plainText) {
-        throw std::runtime_error("addTextResource only supports ResourceType::plainText");
+        std::string msg{"addTextResource only supports ResourceType::plainText"};
+        Log::err(msg);
+        throw std::runtime_error(msg);
     }
 
     // Insert vào resources (file_hash để trống)

@@ -57,7 +57,7 @@ namespace {
         sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt.get(), 2, resourceTypeToString(res.type), -1, SQLITE_TRANSIENT);
 
-        REQUIRE(sqlite3_step(stmt.get()) == SQLITE_DONE);
+        REQUIRE(stmt.step() == SQLITE_DONE);
 
         return sqlite3_last_insert_rowid(db.get());
     }
@@ -114,14 +114,14 @@ TEST_CASE("TagRepository link resource and tags", "[TagRepository][link]") {
 
         SQLiteStmt stmt(db.get(), "SELECT COUNT(*) FROM resource_tags;");
 
-        REQUIRE(sqlite3_step(stmt.get()) == SQLITE_ROW);
+        REQUIRE(stmt.step() == SQLITE_ROW);
         REQUIRE(sqlite3_column_int64(stmt.get(), 0) == 1);
     }
 
     SECTION("linkResourceWithTags creates multiple links") {
         repo.linkResourceWithTags(resId, {"hpp", "gui", "qt"});
         SQLiteStmt stmt(db.get(), "SELECT COUNT(*) FROM resource_tags;");
-        REQUIRE(sqlite3_step(stmt.get()) == SQLITE_ROW);
+        REQUIRE(stmt.step() == SQLITE_ROW);
         REQUIRE(sqlite3_column_int(stmt.get(), 0) == 3);
     }
 }

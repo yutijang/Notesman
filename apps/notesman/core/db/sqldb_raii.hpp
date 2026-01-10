@@ -10,22 +10,28 @@ class SQLiteDB {
     public:
         // Custom deleter cho sqlite3*
         struct SqliteDBDeleter {
-                void operator()(sqlite3* db) const { sqlite3_close_v2(db); }
+                void operator()(sqlite3* db) const noexcept { sqlite3_close_v2(db); }
         };
 
         using unique_sqlite_db_ptr = std::unique_ptr<sqlite3, SqliteDBDeleter>;
 
         explicit SQLiteDB(const std::string &filename) { open(filename); }
 
+        ~SQLiteDB() = default;
+        SQLiteDB(const SQLiteDB &) = delete;      // CẤM COPY để tránh double-free
+        SQLiteDB &operator=(const SQLiteDB &) = delete;
+
+        SQLiteDB(SQLiteDB &&) noexcept = default; // CHO PHÉP MOVE
+        SQLiteDB &operator=(SQLiteDB &&) noexcept = default;
+
+        [[nodiscard]] explicit operator bool() const noexcept { return m_db != nullptr; }
+
         [[nodiscard]] sqlite3* get() const noexcept { return m_db.get(); }
 
         void close() noexcept { m_db.reset(); }
 
         void open(const std::string &filename) {
-            if (m_db) { close(); }
-
             sqlite3* dbPtr = nullptr;
-            m_filename = filename;
 
             int rc = sqlite3_open_v2(filename.c_str(), &dbPtr,
                                      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI,
@@ -50,7 +56,8 @@ class SQLiteDB {
                 throw std::runtime_error("Failed to enable PRAGMA foreign_keys: " + errorMSG);
             }
 
-            m_db = unique_sqlite_db_ptr(dbPtr);
+            m_db.reset(dbPtr);
+            m_filename = filename;
         }
 
         [[nodiscard]] const std::string &getFilename() const noexcept { return m_filename; }
@@ -70,6 +77,8 @@ class SQLiteStmt {
         using unique_sqlite_stmt_ptr = std::unique_ptr<sqlite3_stmt, SqliteStmtDeleter>;
 
         explicit SQLiteStmt(sqlite3* db, const std::string &query) {
+            if (db == nullptr) { throw std::invalid_argument("SQLiteStmt: db is null"); }
+
             sqlite3_stmt* stmtPtr = nullptr;
 
             int rc = sqlite3_prepare_v2(db, query.c_str(), -1, &stmtPtr, nullptr);
@@ -78,10 +87,35 @@ class SQLiteStmt {
                 std::string errorMSG = sqlite3_errmsg(db);
                 throw std::runtime_error("Failed to prepare statement: " + errorMSG);
             }
+
             m_stmt.reset(stmtPtr);
         }
 
+        // Rule of Five
+        ~SQLiteStmt() = default;
+
+        SQLiteStmt(const SQLiteStmt &) = delete;
+        SQLiteStmt &operator=(const SQLiteStmt &) = delete;
+
+        SQLiteStmt(SQLiteStmt &&) noexcept = default;
+        SQLiteStmt &operator=(SQLiteStmt &&) noexcept = default;
+
+        // State check
+        [[nodiscard]] explicit operator bool() const noexcept { return m_stmt != nullptr; }
+
         [[nodiscard]] sqlite3_stmt* get() const noexcept { return m_stmt.get(); }
+
+        // Reset statement (reuse)
+        void reset() noexcept {
+            if (m_stmt) { sqlite3_reset(m_stmt.get()); }
+        }
+
+        // Clear bound parameters
+        void clearBindings() noexcept {
+            if (m_stmt) { sqlite3_clear_bindings(m_stmt.get()); }
+        }
+
+        [[nodiscard]] int step() noexcept { return sqlite3_step(m_stmt.get()); }
 
     private:
         unique_sqlite_stmt_ptr m_stmt;

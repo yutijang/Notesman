@@ -10,17 +10,16 @@
 #include "sqldb_raii.hpp"
 #include "tag_repository.hpp"
 #include "model.hpp"
+#include "sqlite_utils.hpp"
 
 std::optional<sqlite3_int64> TagRepository::addTag(std::string_view name) {
     SQLiteStmt stmt(m_db.get(), "INSERT INTO tags (name) VALUES (?) ON CONFLICT(name) DO NOTHING;");
 
-    sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
 
-    const int rc = sqlite3_step(stmt.get());
-    if (rc != SQLITE_DONE) {
-        std::string erroMSG = sqlite3_errmsg(m_db.get());
-        throw std::runtime_error("Insert tag failed, reason: " + erroMSG);
-    }
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "Insert tag");
 
     if (sqlite3_changes(m_db.get()) == 0) { return getTagIdByName(name); }
 
@@ -42,16 +41,14 @@ std::vector<sqlite3_int64> TagRepository::addTags(const std::vector<std::string>
                               "INSERT INTO tags (name) VALUES (?) ON CONFLICT(name) DO NOTHING;");
 
         for (const auto &name : names) {
-            sqlite3_reset(insertStmt.get());
-            sqlite3_clear_bindings(insertStmt.get());
-            sqlite3_bind_text(insertStmt.get(), 1, name.c_str(), static_cast<int>(name.size()),
-                              SQLITE_TRANSIENT);
+            insertStmt.reset();
+            insertStmt.clearBindings();
 
-            const int rc = sqlite3_step(insertStmt.get());
-            if (rc != SQLITE_DONE) {
-                throw std::runtime_error("Insert tag failed: " +
-                                         std::string(sqlite3_errmsg(m_db.get())));
-            }
+            sqlite::checkBind(sqlite3_bind_text(insertStmt.get(), 1, name.c_str(),
+                                                static_cast<int>(name.size()), SQLITE_TRANSIENT),
+                              m_db.get());
+
+            sqlite::checkStep(insertStmt.step(), m_db.get(), SQLITE_DONE, "Insert tag");
 
             sqlite3_int64 tagId{};
             if (sqlite3_changes(m_db.get()) == 0) {
@@ -83,27 +80,30 @@ std::vector<sqlite3_int64> TagRepository::addTags(const std::vector<std::string>
 std::optional<sqlite3_int64> TagRepository::getTagIdByName(std::string_view name) {
     SQLiteStmt stmt(m_db.get(), "SELECT id FROM tags WHERE name = ?;");
 
-    sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
 
-    const int rc = sqlite3_step(stmt.get());
+    const int rc = stmt.step();
+
     if (rc == SQLITE_ROW) { return sqlite3_column_int64(stmt.get(), 0); }
+
     if (rc == SQLITE_DONE) { return std::nullopt; }
 
-    throw std::runtime_error("getTagIdByName failed, reason: " +
-                             std::string(sqlite3_errmsg(m_db.get())));
+    if (rc != SQLITE_ROW && rc != SQLITE_DONE) {
+        sqlite::checkStep(rc, m_db.get(), SQLITE_ROW, "getTagIdByName (unexpected rc)");
+    }
+
+    return std::nullopt;
 }
 
 void TagRepository::linkResourceIdWithTag(const ParamIDs &param) {
     SQLiteStmt stmt(m_db.get(), "INSERT INTO resource_tags (resource_id, tag_id) VALUES (?, ?);");
 
-    sqlite3_bind_int64(stmt.get(), 1, param.resourceId);
-    sqlite3_bind_int64(stmt.get(), 2, param.tagId);
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, param.resourceId), m_db.get());
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 2, param.tagId), m_db.get());
 
-    const int rc = sqlite3_step(stmt.get());
-    if (rc != SQLITE_DONE) {
-        std::string erroMSG = sqlite3_errmsg(m_db.get());
-        throw std::runtime_error("Link ressource ID and tag ID failed, reason: " + erroMSG);
-    }
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "Link ressource ID and tag ID");
 }
 
 void TagRepository::linkResourceWithTags(sqlite3_int64 resourceId,
@@ -118,15 +118,12 @@ void TagRepository::linkResourceWithTags(sqlite3_int64 resourceId,
                         "INSERT OR IGNORE INTO resource_tags (resource_id, tag_id) VALUES (?, ?);");
 
         for (auto tagId : tagIds) {
-            sqlite3_reset(stmt.get());
-            sqlite3_bind_int64(stmt.get(), 1, resourceId);
-            sqlite3_bind_int64(stmt.get(), 2, tagId);
+            stmt.reset();
 
-            const int rc = sqlite3_step(stmt.get());
-            if (rc != SQLITE_DONE) {
-                throw std::runtime_error("Link resource-tag failed: " +
-                                         std::string(sqlite3_errmsg(m_db.get())));
-            }
+            sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
+            sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 2, tagId), m_db.get());
+
+            sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "Link resource-tag");
         }
 
         SQLiteStmt commitStmt(m_db.get(), "COMMIT;");
@@ -144,11 +141,11 @@ std::vector<std::pair<sqlite3_int64, std::string>>
     SQLiteStmt stmt(m_db.get(), "SELECT t.id, t.name FROM tags t JOIN resource_tags rt ON t.id = "
                                 "rt.tag_id WHERE rt.resource_id = ?;");
 
-    sqlite3_bind_int64(stmt.get(), 1, resourceId);
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
     std::vector<std::pair<sqlite3_int64, std::string>> result;
     int rc{};
-    while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
+    while ((rc = stmt.step()) == SQLITE_ROW) {
         sqlite3_int64 id = sqlite3_column_int64(stmt.get(), 0);
 
         std::string name;
@@ -158,10 +155,7 @@ std::vector<std::pair<sqlite3_int64, std::string>>
         result.emplace_back(id, std::move(name));
     }
 
-    if (rc != SQLITE_DONE) {
-        std::string erroMSG = sqlite3_errmsg(m_db.get());
-        throw std::runtime_error("Has problem at getTagsByResourceId, reason: " + erroMSG);
-    }
+    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "getTagsByResourceId");
 
     return result;
 }
@@ -170,7 +164,7 @@ std::vector<std::pair<sqlite3_int64, std::string>> TagRepository::getAllTags() {
     SQLiteStmt stmt(m_db.get(), "SELECT id, name FROM tags;");
 
     std::vector<std::pair<sqlite3_int64, std::string>> results;
-    while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+    while (stmt.step() == SQLITE_ROW) {
         sqlite3_int64 id = sqlite3_column_int64(stmt.get(), 0);
         std::string name = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
         results.emplace_back(id, std::move(name));
@@ -203,12 +197,13 @@ std::vector<Resource> TagRepository::getResourcesViaTags(const std::vector<std::
     SQLiteStmt stmt(m_db.get(), sql);
 
     for (std::size_t i = 0; i < tags.size(); ++i) {
-        sqlite3_bind_text(stmt.get(), static_cast<int>(i + 1), tags[i].data(),
-                          static_cast<int>(tags[i].size()), SQLITE_TRANSIENT);
+        sqlite::checkBind(sqlite3_bind_text(stmt.get(), static_cast<int>(i + 1), tags[i].data(),
+                                            static_cast<int>(tags[i].size()), SQLITE_TRANSIENT),
+                          m_db.get());
     }
 
     std::vector<Resource> results;
-    while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
+    while (stmt.step() == SQLITE_ROW) {
         Resource res{};
         res.id = sqlite3_column_int64(stmt.get(), 0);
         res.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
@@ -227,11 +222,13 @@ std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name
                     "SELECT r.id, r.title, r.type FROM resources r JOIN resource_tags rt ON r.id = "
                     "rt.resource_id JOIN tags t ON t.id = rt. tag_id WHERE t.name = ?;");
 
-    sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
 
     std::vector<Resource> results;
     int rc{};
-    while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
+    while ((rc = stmt.step()) == SQLITE_ROW) {
         Resource res{};
 
         res.id = sqlite3_column_int64(stmt.get(), 0);
@@ -251,10 +248,7 @@ std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name
         results.emplace_back(std::move(res));
     }
 
-    if (rc != SQLITE_DONE) {
-        throw std::runtime_error("Has problem at getResourcesViaOneTag, reason: " +
-                                 std::string(sqlite3_errmsg(m_db.get())));
-    }
+    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "getResourcesViaOneTag");
 
     return results;
 }
@@ -262,24 +256,15 @@ std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name
 void TagRepository::deleteTagFromResource(const ParamIDs &params) {
     SQLiteStmt stmt(m_db.get(), "DELETE FROM resource_tags WHERE resource_id = ? AND tag_id = ?;");
 
-    sqlite3_bind_int64(stmt.get(), 1, params.resourceId);
-    sqlite3_bind_int64(stmt.get(), 2, params.tagId);
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, params.resourceId), m_db.get());
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 2, params.tagId), m_db.get());
 
-    const int rc = sqlite3_step(stmt.get());
-    if (rc != SQLITE_DONE) {
-        throw std::runtime_error("Has problem at deleteTagFromResource, reason: " +
-                                 std::string(sqlite3_errmsg(m_db.get())));
-    }
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "deleteTagFromResource");
 }
 
 void TagRepository::deleteAllTagsFromResource(sqlite3_int64 resourceId) {
     SQLiteStmt stmt(m_db.get(), "DELETE FROM resource_tags WHERE resource_id = ?;");
 
-    sqlite3_bind_int64(stmt.get(), 1, resourceId);
-
-    const int rc = sqlite3_step(stmt.get());
-    if (rc != SQLITE_DONE) {
-        throw std::runtime_error("Has problem at deleteAllTagsFromResource, reason: " +
-                                 std::string(sqlite3_errmsg(m_db.get())));
-    }
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
+    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "deleteAllTagsFromResource");
 }
