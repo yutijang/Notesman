@@ -114,16 +114,10 @@ std::optional<FileEntry> FileRepository::getFileById(sqlite_int64 resourceId) {
         entry.resource_id = sqlite3_column_int64(stmt.get(), 0);
 
         if (sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL) {
-            const char* ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-            entry.stored_path = std::string(
-                ptr, static_cast<std::string::size_type>(sqlite3_column_bytes(stmt.get(), 1)));
+            entry.stored_path = stmt.getColumnText(1);
         }
 
-        {
-            const char* ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
-            entry.original_path = std::string(
-                ptr, static_cast<std::string::size_type>(sqlite3_column_bytes(stmt.get(), 2)));
-        }
+        { entry.original_path = stmt.getColumnText(2); }
 
         entry.is_managed = sqlite3_column_int(stmt.get(), 3) != 0;
 
@@ -154,16 +148,10 @@ std::vector<FileEntry> FileRepository::getAllFile() {
         entry.resource_id = sqlite3_column_int64(stmt.get(), 0);
 
         if (sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL) {
-            const char* ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-            entry.stored_path = std::string(
-                ptr, static_cast<std::string::size_type>(sqlite3_column_bytes(stmt.get(), 1)));
+            entry.stored_path = stmt.getColumnText(1);
         }
 
-        {
-            const char* ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
-            entry.original_path = std::string(
-                ptr, static_cast<std::string::size_type>(sqlite3_column_bytes(stmt.get(), 2)));
-        }
+        { entry.original_path = stmt.getColumnText(2); }
 
         entry.is_managed = sqlite3_column_int(stmt.get(), 3) != 0;
 
@@ -206,9 +194,7 @@ std::optional<std::string> FileRepository::getFilepathByResourceId(sqlite3_int64
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
     if (stmt.step() == SQLITE_ROW && sqlite3_column_type(stmt.get(), 0) != SQLITE_NULL) {
-        const char* ptr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
-        return std::string(
-            ptr, static_cast<std::string::size_type>(sqlite3_column_bytes(stmt.get(), 0)));
+        return stmt.getColumnText(0);
     }
 
     return std::nullopt;

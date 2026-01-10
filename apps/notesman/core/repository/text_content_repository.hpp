@@ -27,5 +27,7 @@ class TextContentRepository {
         bool exists(sqlite3_int64 resourceId);
 
     private:
+        static std::pair<sqlite3_int64, std::string> rowToEntry(SQLiteStmt &stmt);
+
         SQLiteDB &m_db;
 };

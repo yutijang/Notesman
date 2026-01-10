@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -27,15 +26,16 @@ std::optional<std::string> TextContentRepository::getTextById(sqlite3_int64 reso
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) {
-        if (sqlite3_column_type(stmt.get(), 0) != SQLITE_NULL) {
-            const char* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
-            int len = sqlite3_column_bytes(stmt.get(), 0);
-            return std::string(textPtr, static_cast<std::string::size_type>(len));
-        }
+    const int rc = stmt.step();
+    if (rc == SQLITE_ROW) {
+        if (sqlite3_column_type(stmt.get(), 0) != SQLITE_NULL) { return stmt.getColumnText(0); }
         // Giá trị trả về trong lệnh truy vấn có chỉ số bắt đầu là 0 và vì chỉ
         // truy vấn 1 cột content nên giá trị iCol trong sqlite3_column_text() là 0
     }
+
+    if (rc == SQLITE_DONE) { return std::nullopt; }
+
+    sqlite::checkStep(rc, m_db.get(), SQLITE_ROW, "getTextById");
 
     return std::nullopt;
 }
@@ -69,12 +69,7 @@ std::vector<std::pair<sqlite3_int64, std::string>> TextContentRepository::getAll
 
     std::vector<std::pair<sqlite3_int64, std::string>> results;
 
-    while (stmt.step() == SQLITE_ROW) {
-        sqlite3_int64 rID = sqlite3_column_int64(stmt.get(), 0);
-        std::string content = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-
-        results.emplace_back(rID, std::move(content));
-    }
+    while (stmt.step() == SQLITE_ROW) { results.emplace_back(rowToEntry(stmt)); }
 
     return results;
 }
@@ -94,19 +89,14 @@ std::vector<std::pair<sqlite3_int64, std::string>>
                       m_db.get());
 
     std::vector<std::pair<sqlite3_int64, std::string>> result;
-    while (stmt.step() == SQLITE_ROW) {
-        sqlite3_int64 rID = sqlite3_column_int64(stmt.get(), 0);
-
-        const char* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-        int bytes = sqlite3_column_bytes(stmt.get(), 1);
-
-        std::string content;
-        if ((textPtr != nullptr) && bytes > 0) {
-            content.assign(textPtr, static_cast<std::size_t>(bytes));
-        }
-
-        result.emplace_back(rID, std::move(content));
-    }
+    while (stmt.step() == SQLITE_ROW) { result.emplace_back(rowToEntry(stmt)); }
 
     return result;
+}
+
+std::pair<sqlite3_int64, std::string> TextContentRepository::rowToEntry(SQLiteStmt &stmt) {
+    sqlite3_int64 rID = sqlite3_column_int64(stmt.get(), 0);
+    auto content = stmt.getColumnText(1);
+
+    return {rID, std::move(content)};
 }

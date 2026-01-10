@@ -18,13 +18,17 @@ bool DatabaseChecker::checkIntegrity(std::vector<std::string> &messages) {
         }
 
         while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-            const unsigned char* text = sqlite3_column_text(stmt, 0);
-            if (text) {
-                std::string msg(reinterpret_cast<const char*>(text));
-                if (msg != "ok") {
-                    ok = false;
-                    messages.push_back(std::string(label) + ": " + msg);
-                }
+            const char* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            int bytes = sqlite3_column_bytes(stmt, 0);
+
+            std::string content;
+            if ((textPtr != nullptr) && bytes > 0) {
+                content.assign(textPtr, static_cast<std::size_t>(bytes));
+            }
+
+            if (content != "ok") {
+                ok = false;
+                messages.push_back(std::string(label) + ": " + content);
             }
         }
 

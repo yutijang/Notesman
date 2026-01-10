@@ -40,7 +40,7 @@ class ResourceRepository {
         [[nodiscard]] bool existsTitle(std::string_view title, ResourceType type) const;
 
     private:
-        static Resource resourceFromStmt(sqlite3_stmt* stmt);
+        static Resource resourceFromStmt(SQLiteStmt &stmt);
 
         SQLiteDB &m_db;
 };

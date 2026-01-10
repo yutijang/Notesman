@@ -117,6 +117,15 @@ class SQLiteStmt {
 
         [[nodiscard]] int step() noexcept { return sqlite3_step(m_stmt.get()); }
 
+        [[nodiscard]] std::string getColumnText(int index) const {
+            const char* text =
+                reinterpret_cast<const char*>(sqlite3_column_text(m_stmt.get(), index));
+            if (text == nullptr) { return {}; }
+
+            int bytes = sqlite3_column_bytes(m_stmt.get(), index);
+            return {text, static_cast<std::size_t>(bytes)};
+        }
+
     private:
         unique_sqlite_stmt_ptr m_stmt;
 };

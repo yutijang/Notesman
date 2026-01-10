@@ -147,11 +147,7 @@ std::vector<std::pair<sqlite3_int64, std::string>>
     int rc{};
     while ((rc = stmt.step()) == SQLITE_ROW) {
         sqlite3_int64 id = sqlite3_column_int64(stmt.get(), 0);
-
-        std::string name;
-        if (sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL) {
-            name = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-        }
+        auto name = stmt.getColumnText(1);
         result.emplace_back(id, std::move(name));
     }
 
@@ -166,7 +162,7 @@ std::vector<std::pair<sqlite3_int64, std::string>> TagRepository::getAllTags() {
     std::vector<std::pair<sqlite3_int64, std::string>> results;
     while (stmt.step() == SQLITE_ROW) {
         sqlite3_int64 id = sqlite3_column_int64(stmt.get(), 0);
-        std::string name = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+        auto name = stmt.getColumnText(1);
         results.emplace_back(id, std::move(name));
     }
 
@@ -206,11 +202,10 @@ std::vector<Resource> TagRepository::getResourcesViaTags(const std::vector<std::
     while (stmt.step() == SQLITE_ROW) {
         Resource res{};
         res.id = sqlite3_column_int64(stmt.get(), 0);
-        res.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-        res.type = resourceTypeFromString(
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2)));
-        res.created_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 3));
-        res.updated_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 4));
+        res.title = stmt.getColumnText(1);
+        res.type = resourceTypeFromString(stmt.getColumnText(2));
+        res.created_at = stmt.getColumnText(3);
+        res.updated_at = stmt.getColumnText(4);
         results.emplace_back(std::move(res));
     }
 
@@ -233,14 +228,10 @@ std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name
 
         res.id = sqlite3_column_int64(stmt.get(), 0);
 
-        if (sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL) {
-            res.title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-        }
+        res.title = stmt.getColumnText(1);
 
         if (sqlite3_column_type(stmt.get(), 2) != SQLITE_NULL) {
-            const char* typeText =
-                reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
-            res.type = resourceTypeFromString(typeText);
+            res.type = resourceTypeFromString(stmt.getColumnText(2));
         } else {
             res.type = resourceTypeFromString("");
         }

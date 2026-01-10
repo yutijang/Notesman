@@ -41,7 +41,7 @@ std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return resourceFromStmt(stmt.get()); }
+    if (stmt.step() == SQLITE_ROW) { return resourceFromStmt(stmt); }
 
     return std::nullopt;
 }
@@ -52,7 +52,7 @@ std::vector<Resource> ResourceRepository::getAll() {
     SQLiteStmt stmt(m_db.get(), sql);
 
     std::vector<Resource> results;
-    while (stmt.step() == SQLITE_ROW) { results.push_back(resourceFromStmt(stmt.get())); }
+    while (stmt.step() == SQLITE_ROW) { results.push_back(resourceFromStmt(stmt)); }
 
     return results;
 }
@@ -73,7 +73,7 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
 
     std::vector<UnifiedSearchResult> result;
     while (stmt.step() == SQLITE_ROW) {
-        Resource res = resourceFromStmt(stmt.get());
+        Resource res = resourceFromStmt(stmt);
 
         UnifiedSearchResult ures;
         ures.res = std::move(res);
@@ -95,11 +95,13 @@ std::optional<Resource> ResourceRepository::getByFileHash(std::string_view hash)
                                         SQLITE_TRANSIENT),
                       m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) {
-        Resource res = resourceFromStmt(stmt.get());
+    const int rc = stmt.step();
 
-        return res;
-    }
+    if (rc == SQLITE_ROW) { return resourceFromStmt(stmt); }
+
+    if (rc == SQLITE_DONE) { return std::nullopt; }
+
+    sqlite::checkStep(rc, m_db.get(), SQLITE_ROW, "getByFileHash");
 
     return std::nullopt;
 }
@@ -110,20 +112,18 @@ std::optional<std::pair<std::string, std::string>>
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceID), m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) {
-        std::string createdAt;
-        std::string updatedAt;
+    const int rc = stmt.step();
 
-        if (sqlite3_column_type(stmt.get(), 0) != SQLITE_NULL) {
-            createdAt = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
-        }
-
-        if (sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL) {
-            updatedAt = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
-        }
+    if (rc == SQLITE_ROW) {
+        auto createdAt = stmt.getColumnText(0);
+        auto updatedAt = stmt.getColumnText(1);
 
         return std::make_pair(std::move(createdAt), std::move(updatedAt));
     }
+
+    if (rc == SQLITE_DONE) { return std::nullopt; }
+
+    sqlite::checkStep(rc, m_db.get(), SQLITE_ROW, "getTimestamps");
 
     return std::nullopt;
 }
@@ -269,16 +269,15 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
     int rc{};
     while ((rc = stmt.step()) == SQLITE_ROW) {
         UnifiedSearchResult item{};
-        item.res = resourceFromStmt(stmt.get());
+        item.res = resourceFromStmt(stmt);
         item.flags = ResourceFlags::none;
 
-        const char* snipPtr = reinterpret_cast<const char*>(
-            sqlite3_column_text(stmt.get(), 7)); // NOLINT(readability-magic-numbers)
-
-        if ((snipPtr != nullptr) && (*snipPtr != 0)) {
+        auto snippet = stmt.getColumnText(7); // NOLINT(readability-magic-numbers)
+        if (!snippet.empty()) {
             // Có snippet => match content
-            item.displaySubText = snipPtr;
-            item.rawSnippet = snipPtr;
+            item.displaySubText = snippet;
+            item.rawSnippet = snippet;
+
             item.flags = item.flags | ResourceFlags::matchContent | ResourceFlags::hasSnippet;
 
             if (item.res.type != ResourceType::plainText) {
@@ -340,15 +339,13 @@ std::vector<UnifiedSearchResult>
     int rc{};
     while ((rc = stmt.step()) == SQLITE_ROW) {
         UnifiedSearchResult item{};
-        item.res = (resourceFromStmt(stmt.get()));
+        item.res = (resourceFromStmt(stmt));
 
         // Bổ sung giá trị snippet
-        const char* snipPtr = reinterpret_cast<const char*>(
-            sqlite3_column_text(stmt.get(), 7)); // NOLINT(readability-magic-numbers)
-
-        if (snipPtr != nullptr && (*snipPtr != 0)) {
-            item.displaySubText = snipPtr;
-            item.rawSnippet = snipPtr;
+        auto snippet = stmt.getColumnText(7); // NOLINT(readability-magic-numbers)
+        if (!snippet.empty()) {
+            item.displaySubText = snippet;
+            item.rawSnippet = snippet;
             item.flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet;
         } else {
             item.flags = ResourceFlags::matchContent;
@@ -362,26 +359,18 @@ std::vector<UnifiedSearchResult>
     return results;
 }
 
-Resource ResourceRepository::resourceFromStmt(sqlite3_stmt* stmt) {
+Resource ResourceRepository::resourceFromStmt(SQLiteStmt &stmt) {
     Resource res;
 
-    res.id = sqlite3_column_int64(stmt, 0);
+    res.id = sqlite3_column_int64(stmt.get(), 0);
+    res.title = stmt.getColumnText(1);
 
-    const auto* titlePtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-    res.title = (titlePtr != nullptr) ? titlePtr : "";
+    auto type = stmt.getColumnText(2);
+    res.type = type.empty() ? ResourceType::unknown : resourceTypeFromString(type);
 
-    const auto* typePtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-    res.type = (typePtr != nullptr) ? resourceTypeFromString(typePtr) : ResourceType::unknown;
-
-    const auto* fileHashPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-    res.file_hash = (fileHashPtr != nullptr) ? fileHashPtr : "";
-
-    const auto* createdPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-    res.created_at = (createdPtr != nullptr) ? createdPtr : "";
-
-    const auto* updatedPtr = reinterpret_cast<const char*>(
-        sqlite3_column_text(stmt, 5)); // NOLINT(readability-magic-numbers)
-    res.updated_at = (updatedPtr != nullptr) ? updatedPtr : "";
+    res.file_hash = stmt.getColumnText(3);
+    res.created_at = stmt.getColumnText(4);
+    res.updated_at = stmt.getColumnText(5); // NOLINT(readability-magic-numbers)
 
     return res;
 }

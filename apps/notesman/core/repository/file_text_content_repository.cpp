@@ -34,13 +34,7 @@ std::optional<std::string> FileTextContentRepository::getTextById(sqlite3_int64 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
     const int rc = stmt.step();
-    if (rc == SQLITE_ROW) {
-        const auto* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
-        if (textPtr != nullptr) {
-            int bytes = sqlite3_column_bytes(stmt.get(), 0);
-            return std::string(textPtr, static_cast<std::size_t>(bytes));
-        }
-    }
+    if (rc == SQLITE_ROW) { return stmt.getColumnText(0); }
 
     sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "getTextById");
 
