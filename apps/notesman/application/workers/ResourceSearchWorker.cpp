@@ -1,4 +1,3 @@
-#include <ranges>
 #include <string>
 #include <vector>
 #include <QObject>
@@ -20,25 +19,18 @@ void ResourceSearchWorker::doSearch() {
     std::vector<UnifiedSearchResult> results;
 
     try {
-        if (m_mode == "title" || m_mode == "content") {
-            if (m_mode == "title") {
-                const auto sanitizedKW = Utils::sanitizeFtsQuery(stdKeyword, true);
-                results = m_core->searchByTitleFull(sanitizedKW);
-            } else {
-                const auto sanitizedKW = Utils::sanitizeFtsQuery(stdKeyword, false);
-                results = m_core->searchByContentUnifiedFull(sanitizedKW);
-            }
+        if (m_mode == "title") {
+            const auto sanitizedKW = Utils::sanitizeFtsQuery(stdKeyword, true);
+            results = m_core->searchByTitleFull(sanitizedKW);
+        } else if (m_mode == "content") {
+            const auto sanitizedKW = Utils::sanitizeFtsQuery(stdKeyword, false);
+            results = m_core->searchByContentUnifiedFull(sanitizedKW);
         } else if (m_mode == "tag") {
             std::string cleanTag = stdKeyword;
             std::erase(cleanTag, '\"');
+            Utils::trimS(cleanTag);
 
-            auto isSpace = [](unsigned char ch) { return std::isspace(ch); };
-            auto trimmedView = cleanTag | std::views::drop_while(isSpace) | std::views::reverse |
-                               std::views::drop_while(isSpace) | std::views::reverse;
-
-            const std::string trimmedS(trimmedView.begin(), trimmedView.end());
-
-            auto fullRes = m_core->getFullResourcesByTag(trimmedS);
+            auto fullRes = m_core->getFullResourcesByTag(cleanTag);
             results.reserve(fullRes.size());
 
             for (auto &fres : fullRes) {
@@ -56,7 +48,6 @@ void ResourceSearchWorker::doSearch() {
                 ures.flags = ResourceFlags::matchTag;
                 results.push_back(std::move(ures));
             }
-
         } else if (m_mode == "all") {
             // 1. Chuẩn bị chuỗi cho LIKE (Bảng Tag)
             const std::string likeKW = Utils::toLikeQuery(stdKeyword);
@@ -69,7 +60,11 @@ void ResourceSearchWorker::doSearch() {
             // Hàm này sẽ bind likeKW vào các tham số LIKE và ftsKW vào các tham số MATCH
             results = m_core->searchUnifiedFull(likeKW, ftsKW);
         }
-    } catch (const std::runtime_error &ex) { Log::err("Error: {}", ex.what()); }
+    }
+
+    catch (const std::runtime_error &ex) {
+        Log::err("Error: {}", ex.what());
+    }
 
     emit searchFinished(results);
 }

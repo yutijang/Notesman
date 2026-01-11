@@ -23,7 +23,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
       - name: Install gh-actions-cache extension
-        run: gh extension install actions/gh-actions-cache
+        run: gh extension list | grep -q actions/gh-actions-cache || gh extension install actions/gh-actions-cache
 
       - name: List caches
         run: gh actions-cache list -R ${{ github.repository }} --limit 100 > cache_list.txt

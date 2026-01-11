@@ -45,9 +45,10 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
     const QString titleText = index.data(Qt::DisplayRole).toString();
     const QString subText =
         index.data(static_cast<int>(ResultsTable::ItemRole::displaySubText)).toString();
-
     const auto type = static_cast<ResourceType>(
         index.data(static_cast<int>(ResultsTable::ItemRole::resourceType)).toInt());
+    const auto flags = static_cast<ResourceFlags>(
+        index.data(static_cast<int>(ResultsTable::ItemRole::resourceFlags)).toInt());
 
     // ===== ICON SVG =====
     constexpr int iconSize = 20;
@@ -101,6 +102,14 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
 
     // ===== SUB TEXT =====
     if (!subText.isEmpty()) {
+        QString subTextForDisplay = tr("Latest modified: %1").arg(subText);
+
+        if (hasFlag(flags, ResourceFlags::matchContent)) {
+            subTextForDisplay = subText;
+        } else if (hasFlag(flags, ResourceFlags::matchTag)) {
+            subTextForDisplay = tr("Tags: %1").arg(subText);
+        }
+
         painter->setFont(subFont);
 
         QColor subColor = opt.palette.color(QPalette::Text);
@@ -110,7 +119,7 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
                             ? opt.palette.color(QPalette::HighlightedText)
                             : subColor);
 
-        painter->drawText(subRect, Qt::AlignLeft | Qt::AlignTop, subText);
+        painter->drawText(subRect, Qt::AlignLeft | Qt::AlignTop, subTextForDisplay);
     }
 
     // ===== ICON =====

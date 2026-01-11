@@ -53,7 +53,7 @@ namespace Utils {
         return std::filesystem::weakly_canonical(path);
     }
 
-    static std::string sanitizeFtsQuery(std::string_view input, bool wrapInQuotes = true) {
+    inline static std::string sanitizeFtsQuery(std::string_view input, bool wrapInQuotes = true) {
         if (input.empty()) { return {}; }
 
         std::string clean{input};
@@ -80,18 +80,22 @@ namespace Utils {
         return clean + (hasWildcard ? "*" : "");
     }
 
-    static std::string toLikeQuery(std::string_view input) {
+    inline static void trimS(std::string &source) {
+        auto isSpace = [](unsigned char ch) { return std::isspace(ch); };
+        auto trimmedView = source | std::views::drop_while(isSpace) | std::views::reverse |
+                           std::views::drop_while(isSpace) | std::views::reverse;
+        source = {trimmedView.begin(), trimmedView.end()};
+    }
+
+    inline static std::string toLikeQuery(std::string_view input) {
         if (input.empty()) { return {}; }
+
         std::string clean{input};
         std::erase(clean, '\"');
 
-        auto isSpace = [](unsigned char ch) { return std::isspace(ch); };
-        auto trimmedView = clean | std::views::drop_while(isSpace) | std::views::reverse |
-                           std::views::drop_while(isSpace) | std::views::reverse;
+        trimS(clean);
 
-        std::string trimmedS(trimmedView.begin(), trimmedView.end());
-
-        return trimmedS + "%"; // Tìm kiếm theo kiểu "bắt đầu bằng"
+        return clean + "%"; // Tìm kiếm theo kiểu "bắt đầu bằng"
     }
 
     // NOLINTBEGIN (readability-magic-numbers)

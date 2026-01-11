@@ -77,7 +77,7 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
 
         UnifiedSearchResult ures;
         ures.res = std::move(res);
-        ures.displaySubText = ures.res.title;
+        ures.displaySubText = ures.res.updated_at;
         ures.rawSnippet = std::nullopt;
         ures.flags = ResourceFlags::matchTitle;
 
