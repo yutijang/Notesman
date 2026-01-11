@@ -8,6 +8,8 @@
 #include <QSize>
 #include <QSvgRenderer>
 
+#include "model.hpp"
+
 class QPainter;
 
 class ResourceTitleDelegate final : public QStyledItemDelegate {

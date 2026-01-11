@@ -15,6 +15,7 @@
 #include "resource_service.hpp"
 #include "file_service.hpp"
 #include "Logger.hpp"
+#include "helper.hpp"
 
 // NOLINTNEXTLINE
 sqlite3_int64 ResourceService::addTextResource(const std::string &title, const std::string &content,

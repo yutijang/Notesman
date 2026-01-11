@@ -33,6 +33,7 @@ target_include_directories(notes-core-tests
 # Liên kết với notes-core và Catch2
 target_link_libraries(notes-core-tests
     PRIVATE
+        notes-app-lib-core
         notes-core              # thư viện logic chính
         Catch2::Catch2WithMain  # target có sẵn main() của Catch2 v3
 )
