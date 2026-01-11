@@ -37,15 +37,16 @@ void ResourceSearchWorker::doSearch() {
                 UnifiedSearchResult ures;
                 ures.res = std::move(fres.resource);
                 ures.tags = std::move(fres.tags);
-                if (fres.content.has_value()) {
-                    ures.displaySubText = fres.content->substr(
-                        0, 100); // snippet ngắn // NOLINT(readability-magic-numbers)
-                    ures.rawSnippet = fres.content;
+
+                if (!ures.tags.empty()) {
+                    ures.displaySubText = Utils::joinTags(ures.tags);
                 } else {
-                    ures.displaySubText = ures.res.title;
-                    ures.rawSnippet = std::nullopt;
+                    ures.displaySubText = {};
                 }
+
+                ures.rawSnippet = std::nullopt;
                 ures.flags = ResourceFlags::matchTag;
+
                 results.push_back(std::move(ures));
             }
         } else if (m_mode == "all") {

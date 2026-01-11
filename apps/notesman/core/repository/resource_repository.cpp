@@ -212,38 +212,56 @@ bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) 
     return false;
 }
 
+/*
+Quy ước bitmask:
+
+| Bit | Ý nghĩa          |
+| --- | ---------------- |
+| 1   | matchTag         |
+| 2   | matchTitle       |
+| 4   | matchContentText |
+| 8   | matchContentFile |
+
+*/
 std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_view likeKW,
                                                                    std::string_view ftsKW) {
     static constexpr const char* sql = R"(
         SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at,
                MIN(m.score) AS final_score,
-               m.snip AS snippet
+               MAX(m.snip) AS snippet,
+               SUM(m.match_reason) AS match_reason
         FROM resources r
         JOIN (
             -- Khối 1: Tìm theo Tag (Không có snippet văn bản)            
-            SELECT rt.resource_id AS row_id, -10.0 AS score, '' AS snip
+            SELECT rt.resource_id AS row_id, -10.0 AS score, '' AS snip, 1 AS match_reason
             FROM tags t
-            JOIN resource_tags rt ON rt.tag_id = t.id WHERE t.name LIKE ?
+            JOIN resource_tags rt ON rt.tag_id = t.id
+            WHERE t.name LIKE ?
 
             UNION ALL
 
             -- Khối 2: Tìm theo Title (Không có snippet văn bản)
-            SELECT rowid AS row_id, bm25(resources_fts) AS score, '' AS snip
-            FROM resources_fts WHERE resources_fts MATCH ?
+            SELECT rowid AS row_id, bm25(resources_fts) AS score, '' AS snip, 2 AS match_reason
+            FROM resources_fts
+            WHERE resources_fts MATCH ?
 
             UNION ALL
 
             -- Khối 3: Tìm trong nội dung tài nguyên text thuần (Có snippet)
             SELECT rowid AS row_id, bm25(text_content_fts) + 5.0 AS score,
-                   snippet(text_content_fts, 0, '[', ']', '...', 20) AS snip
-            FROM text_content_fts WHERE text_content_fts MATCH ?
+                   snippet(text_content_fts, 0, '[', ']', '...', 30) AS snip,
+                   4 AS match_reason
+            FROM text_content_fts
+            WHERE text_content_fts MATCH ?
 
             UNION ALL
 
             -- Khối 4: Tìm trong nội dung File (Có snippet)
             SELECT rowid AS row_id, bm25(file_text_content_fts) + 10.0 AS score,
-                   snippet(file_text_content_fts, 0, '[', ']', '...', 20) AS snip
-            FROM file_text_content_fts WHERE file_text_content_fts MATCH ?
+                   snippet(file_text_content_fts, 0, '[', ']', '...', 30) AS snip,
+                   8 AS match_reason
+            FROM file_text_content_fts
+            WHERE file_text_content_fts MATCH ?
         ) m ON r.id = m.row_id
         GROUP BY r.id
         ORDER BY final_score ASC, r.updated_at DESC
@@ -270,23 +288,27 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
     while ((rc = stmt.step()) == SQLITE_ROW) {
         UnifiedSearchResult item{};
         item.res = resourceFromStmt(stmt);
+
         item.flags = ResourceFlags::none;
+        const int reason = sqlite3_column_int(stmt.get(), 8);
 
-        auto snippet = stmt.getColumnText(7); // NOLINT(readability-magic-numbers)
-        if (!snippet.empty()) {
-            // Có snippet => match content
-            item.displaySubText = snippet;
-            item.rawSnippet = snippet;
+        ResourceFlags flags{};
+        if ((reason & 1) != 0) { flags |= ResourceFlags::matchTag; }
+        if ((reason & 2) != 0) { flags |= ResourceFlags::matchTitle; }
+        if ((reason & 4) != 0) { flags |= ResourceFlags::matchContent; }
+        if ((reason & 8) != 0) { // NOLINT(readability-magic-numbers)
+            flags |= ResourceFlags::matchContent;
+            flags |= ResourceFlags::isFile;
+        }
 
-            item.flags = item.flags | ResourceFlags::matchContent | ResourceFlags::hasSnippet;
+        item.flags = flags;
 
-            if (item.res.type != ResourceType::plainText) {
-                item.flags = item.flags | ResourceFlags::isFile;
+        if (hasFlag(item.flags, ResourceFlags::matchContent)) {
+            auto snippet = stmt.getColumnText(7); // NOLINT(readability-magic-numbers)
+            if (!snippet.empty()) {
+                item.rawSnippet = snippet;
+                item.flags |= ResourceFlags::hasSnippet;
             }
-        } else {
-            // Không có snippet → Title hoặc Tag
-            item.displaySubText = ""; // Delegate sẽ tự quyết
-            item.flags = item.flags | ResourceFlags::matchTitle;
         }
 
         results.push_back(std::move(item));
@@ -308,7 +330,7 @@ std::vector<UnifiedSearchResult>
             -- Khối 1: Tìm trong ghi chú tay
             SELECT rowid AS row_id,
                    bm25(text_content_fts) AS score,
-                   snippet(text_content_fts, 0, '[', ']', '...', 20) AS snip
+                   snippet(text_content_fts, 0, '[', ']', '...', 30) AS snip
             FROM text_content_fts WHERE text_content_fts MATCH ?
             
             UNION ALL
@@ -316,7 +338,7 @@ std::vector<UnifiedSearchResult>
             -- Khối 2: Tìm trong nội dung file (code, txt...)
             SELECT rowid AS row_id, 
                    bm25(file_text_content_fts) + 1.0 AS score,
-                   snippet(file_text_content_fts, 0, '[', ']', '...', 20) AS snip
+                   snippet(file_text_content_fts, 0, '[', ']', '...', 30) AS snip
             FROM file_text_content_fts WHERE file_text_content_fts MATCH ?
             
             -- Tương lai bổ sung Khối 3: PDF/EPUB tại đây
@@ -341,15 +363,12 @@ std::vector<UnifiedSearchResult>
         UnifiedSearchResult item{};
         item.res = (resourceFromStmt(stmt));
 
-        // Bổ sung giá trị snippet
+        item.flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet;
+
+        if (item.res.type != ResourceType::plainText) { item.flags |= ResourceFlags::isFile; }
+
         auto snippet = stmt.getColumnText(7); // NOLINT(readability-magic-numbers)
-        if (!snippet.empty()) {
-            item.displaySubText = snippet;
-            item.rawSnippet = snippet;
-            item.flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet;
-        } else {
-            item.flags = ResourceFlags::matchContent;
-        }
+        item.rawSnippet = snippet;
 
         results.push_back(std::move(item));
     }

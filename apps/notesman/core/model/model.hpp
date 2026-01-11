@@ -132,6 +132,11 @@ constexpr ResourceFlags operator&(ResourceFlags a, ResourceFlags b) {
     return static_cast<ResourceFlags>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b));
 }
 
+constexpr ResourceFlags &operator|=(ResourceFlags &lhs, ResourceFlags rhs) noexcept {
+    lhs = lhs | rhs;
+    return lhs;
+}
+
 constexpr bool hasFlag(ResourceFlags value, ResourceFlags flag) {
     return (static_cast<std::uint8_t>(value) & static_cast<std::uint8_t>(flag)) != 0;
 }

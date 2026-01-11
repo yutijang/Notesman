@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <cstdint>
+#include <cctype>
 
 enum class ResourceType : std::uint8_t;
 
@@ -24,6 +25,8 @@ namespace Utils {
     std::string readFileToString(const std::filesystem::path &path);
 
     IndexableResult isIndexable(ResourceType type, const std::filesystem::path &path);
+
+    std::string joinTags(const std::vector<std::string> &tags);
 
     // Lấy phần mở rộng của đường dẫn (vd: "file.txt" -> "txt")
     [[nodiscard]] inline std::string getFileExtension(const std::filesystem::path &path) {
@@ -125,4 +128,32 @@ namespace Utils {
     }
 
     // NOLINTEND
+
+    inline static std::string normalizeSnippet(std::string_view input) {
+        std::string out;
+        out.reserve(input.size());
+
+        bool inWhitespace = false;
+
+        for (char ch : input) {
+            auto c = static_cast<unsigned char>(ch);
+            if (std::isspace(c) != 0) {
+                if (!inWhitespace) {
+                    out.push_back(' ');
+                    inWhitespace = true;
+                }
+            } else {
+                out.push_back(static_cast<char>(c));
+                inWhitespace = false;
+            }
+        }
+
+        // trim đầu
+        if (!out.empty() && out.front() == ' ') { out.erase(out.begin()); }
+
+        // trim cuối
+        while (!out.empty() && out.back() == ' ') { out.pop_back(); }
+
+        return out;
+    }
 } // namespace Utils

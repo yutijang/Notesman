@@ -145,12 +145,33 @@ std::vector<FullResource> ResourceService::searchByContentFull(const std::string
 
 std::vector<UnifiedSearchResult>
     ResourceService::searchByContentUnifiedFull(const std::string &keyword) {
-    return m_resRepo.searchByContentUnified(keyword);
+    auto results = m_resRepo.searchByContentUnified(keyword);
+
+    for (auto &item : results) { item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet); }
+
+    return results;
 }
 
 std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_view likeKW,
                                                                     std::string_view ftsKW) {
-    return m_resRepo.searchUnified(likeKW, ftsKW);
+    auto results = m_resRepo.searchUnified(likeKW, ftsKW);
+
+    for (auto &item : results) {
+        if (hasFlag(item.flags, ResourceFlags::matchContent) && item.rawSnippet.has_value()) {
+            item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet);
+        } else if (hasFlag(item.flags, ResourceFlags::matchTag)) {
+            std::vector<std::string> tagNames;
+            auto tags = m_tagRepo.getTagsByResourceId(item.res.id);
+            tagNames.reserve(tags.size());
+            for (const auto &[id, name] : tags) { tagNames.push_back(name); }
+            item.tags = tagNames;
+            item.displaySubText = Utils::joinTags(item.tags);
+        } else if (hasFlag(item.flags, ResourceFlags::matchTitle)) {
+            item.displaySubText = item.res.updated_at;
+        }
+    }
+
+    return results;
 }
 
 std::vector<Resource> ResourceService::getResourcesByTags(const std::vector<std::string> &tags) {

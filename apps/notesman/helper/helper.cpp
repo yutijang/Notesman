@@ -121,4 +121,20 @@ namespace Utils {
         return IndexableResult::yes;
     }
 
+    std::string joinTags(const std::vector<std::string> &tags) {
+        std::string result;
+        bool first{true};
+
+        for (const auto &tag : tags) {
+            if (tag.empty()) { continue; }
+
+            if (!first) { result.append(", "); }
+            first = false;
+
+            result.append("#");
+            result.append(tag);
+        }
+
+        return result;
+    }
 } // namespace Utils
