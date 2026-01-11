@@ -35,9 +35,9 @@ jobs:
             ${{ env.VCPKG_ROOT }}
             ${{ github.workspace }}/vcpkg_installed
             ~/.cache/vcpkg/archives
-          key: linux-vcpkg-${{ hashFiles('vcpkg.json') }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
-            linux-vcpkg-
+            ${{ runner.os }}-vcpkg-
 
       - name: Install system dependencies (Qt6 GUI)
         if: steps.restore-cache.outputs.cache-matched-key == ''
@@ -120,5 +120,5 @@ jobs:
             ${{ github.workspace }}/vcpkg
             ${{ github.workspace }}/vcpkg_installed
             ~/.cache/vcpkg/archives
-          key: linux-vcpkg-${{ hashFiles('vcpkg.json') }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           

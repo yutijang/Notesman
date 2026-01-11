@@ -57,9 +57,9 @@ jobs:
             ${{ env.VCPKG_ROOT }}
             ${{ github.workspace }}/vcpkg_installed
             ~/.cache/vcpkg/archives
-          key: linux-vcpkg-${{ hashFiles('vcpkg.json') }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
-            linux-vcpkg-
+            ${{ runner.os }}-vcpkg-
 
       - name: Verify Cache Integrity
         run: |

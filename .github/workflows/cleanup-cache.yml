@@ -13,8 +13,11 @@ jobs:
       contents: read
 
     steps:
-      - name: Setup GitHub CLI
-        run: sudo apt-get install gh -y
+      - name: Ensure GitHub CLI
+        run: |
+          if ! command -v gh &> /dev/null; then
+            sudo apt-get update && sudo apt-get install gh -y
+          fi
 
       - name: Authenticate
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
@@ -32,36 +35,34 @@ jobs:
 
       - name: Delete caches older than 30 days
         run: |
-          echo "Deleting caches older than 30 days (older than 2592000 seconds)..."
+          echo "Deleting caches older than 30 days..."
           awk -F'\t' '{ if ($3 ~ /^[0-9]+$/ && $3 > 2592000) print $1 }' cache_list.txt | \
-          while read cache_id; do
-            echo "🧹 Deleting old cache: $cache_id"
-            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
-          done
+          xargs -r -I {} sh -c 'echo "🧹 Deleting old cache: {}"; gh actions-cache delete "{}" -R ${{ github.repository }} --confirm || true'
 
-      - name: Keep only 5 newest ccache caches
+      - name: Cleanup vcpkg caches (Per OS)
         run: |
-          echo "Cleaning ccache caches (keep 5 newest per OS)..."
-          grep "ccache-" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +6 | \
-          while read cache_id; do
-            echo "🧹 Deleting ccache cache: $cache_id"
-            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
-          done
+          # Linux
+          grep "Linux-vcpkg" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +6 | \
+          xargs -r -I {} sh -c 'echo "🧹 Deleting Linux vcpkg: {}"; gh actions-cache delete "{}" -R ${{ github.repository }} --confirm || true'
 
-      - name: Keep only 5 newest vcpkg caches
-        run: |
-          echo "Cleaning vcpkg caches (keep 5 newest per OS)..."
-          grep "vcpkg-bin-" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +6 | \
-          while read cache_id; do
-            echo "🧹 Deleting vcpkg cache: $cache_id"
-            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
-          done
+          # Windows
+          grep "Windows-vcpkg-bin" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +6 | \
+          xargs -r -I {} sh -c 'echo "🧹 Deleting Windows vcpkg: {}"; gh actions-cache delete "{}" -R ${{ github.repository }} --confirm || true'
 
-      - name: Keep only 3 newest Qt installer caches
+      - name: Cleanup ccache caches (Per OS)
         run: |
-          echo "Cleaning Qt installer caches (keep 3 newest per OS)..."
-          grep "install-qt-action-" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +4 | \
-          while read cache_id; do
-            echo "🧹 Deleting Qt cache: $cache_id"
-            gh actions-cache delete "$cache_id" -R ${{ github.repository }} --confirm || true
+          # Linux
+          grep "Linux-ccache" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +6 | \
+          xargs -r -I {} sh -c 'echo "🧹 Deleting Linux ccache: {}"; gh actions-cache delete "{}" -R ${{ github.repository }} --confirm || true'
+
+          # Windows
+          grep "Windows-ccache" cache_list.txt | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +6 | \
+          xargs -r -I {} sh -c 'echo "🧹 Deleting Windows ccache: {}"; gh actions-cache delete "{}" -R ${{ github.repository }} --confirm || true'
+
+      - name: Cleanup Qt caches (Per OS)
+        run: |
+          for os in "Linux" "Windows"; do
+            echo "Cleaning Qt caches for $os..."
+            grep "install-qt-action-" cache_list.txt | grep "$os" | sort -rk3 | awk -F'\t' '{print $1}' | tail -n +4 | \
+            xargs -r -I {} sh -c 'echo "🧹 Deleting Qt cache ($os): {}"; gh actions-cache delete "{}" -R ${{ github.repository }} --confirm || true'
           done
