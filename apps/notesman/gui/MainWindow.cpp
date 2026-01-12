@@ -194,8 +194,6 @@ void MainWindow::showEvent(QShowEvent* event) {
     }
 
     emit updateColumnWidthsRequest();
-
-    emit requestDatabaseInit();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {

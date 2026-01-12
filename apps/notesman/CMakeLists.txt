@@ -33,6 +33,12 @@ configure_file(
     @ONLY
 )
 
+configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/templates/db_version.hpp.in
+    ${NOTESMAN_GENERATED_DIR}/db_version.hpp
+    @ONLY
+)
+
 # =========================================================
 # Core library
 # =========================================================
@@ -57,6 +63,7 @@ target_include_directories(notes-core
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service
     ${CMAKE_CURRENT_SOURCE_DIR}/core/settings 
     ${CMAKE_CURRENT_SOURCE_DIR}/helper
+    ${NOTESMAN_GENERATED_DIR} # db version
 )
 
 target_precompile_headers(notes-core

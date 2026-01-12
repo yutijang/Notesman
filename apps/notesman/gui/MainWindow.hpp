@@ -55,7 +55,6 @@ class MainWindow : public QMainWindow {
         void onUpdateCheckFailed(const QString &error);
 
     signals:
-        void requestDatabaseInit(); // Gửi tín hiệu cho AppController/AppInitializer
         void requestDatabaseCreation();
         void requestUpdateCheck();
         void settingsTabShowNotification(

@@ -337,12 +337,16 @@ jobs:
         id: get_version
         shell: pwsh
         run: |
+          $version = "0.0.0"
+
           if (Test-Path "version.txt") {
-            $ver = (Get-Content "version.txt" -Raw).Trim()
-          } else {
-            $ver = "0.0.0"
+            $line = Get-Content "version.txt" | Where-Object { $_ -match '^APP=' } | Select-Object -First 1
+            if ($line) {
+              $version = ($line -replace '^APP=', '').Trim()
+            }
           }
-          echo "version=$ver" >> $env:GITHUB_OUTPUT
+
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Create ZIP package
         id: zip

@@ -5,6 +5,8 @@
 #include <sqlite3.h>
 
 #include "sqldb_raii.hpp"
+#include "Logger.hpp"
+#include "db_version.hpp"
 
 class DatabaseCreator {
     public:
@@ -19,16 +21,29 @@ class DatabaseCreator {
                     int rc = sqlite3_exec(db.get(), schemaSql.c_str(), nullptr, nullptr, &errMsg);
 
                     if (rc != SQLITE_OK) {
-                        error = (errMsg != nullptr) ? errMsg : "unknow";
+                        error = (errMsg != nullptr) ? errMsg : "Unknown error creating schema";
+                        Log::fatal(error);
                         sqlite3_free(errMsg);
                         return false;
                     }
+
+                    char* versionSql =
+                        sqlite3_mprintf("PRAGMA user_version = %d;", app::meta::DB_VERSION);
+                    rc = sqlite3_exec(db.get(), versionSql, nullptr, nullptr, &errMsg);
+                    sqlite3_free(versionSql);
+
+                    if (rc != SQLITE_OK) {
+                        error = (errMsg != nullptr) ? errMsg : "Error setting user_version";
+                        Log::fatal(error);
+                        sqlite3_free(errMsg);
+                        return false;
+                    }
+
+                    return true;
                 }
             } catch (const std::exception &ex) {
                 error = ex.what();
                 return false;
             }
-
-            return true;
         }
 };

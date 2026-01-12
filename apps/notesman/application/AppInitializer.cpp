@@ -112,10 +112,14 @@ void AppInitializer::run() {
     m_mainWindow = std::make_unique<MainWindow>();
 
     m_controller->setMainWindow(m_mainWindow.get());
+    m_mainWindow->setAppController(m_controller.get());
+
+    if (!initializeCore()) {
+        QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+        return;
+    }
 
     setupInitializerConnections();
-
-    m_mainWindow->setAppController(m_controller.get());
 
     m_controller->loadSettings();
 
@@ -132,7 +136,7 @@ void AppInitializer::run() {
     checkUpdateFlag();
 }
 
-void AppInitializer::initializeCore() {
+bool AppInitializer::initializeCore() {
     const QString dbFullPath = CorePaths::databaseFile();
     const std::filesystem::path dbPath = dbFullPath.toStdString();
 
@@ -144,27 +148,24 @@ void AppInitializer::initializeCore() {
         if (reply == QMessageBox::Yes) {
             createDatabase();
         } else {
-            if (m_mainWindow != nullptr) { m_mainWindow->close(); }
-            QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+            return false;
         }
-
-        return;
     }
 
     std::ifstream dbFile(dbPath, std::ios::binary);
     if (!dbFile.is_open()) {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"),
                                tr("Failed to open database file."));
-        return;
+        return false;
     }
 
-    const int len{16};
+    constexpr const int len{16};
     std::array<char, len> header{};
     dbFile.read(header.data(), header.size());
     if (!dbFile || dbFile.gcount() != len) {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"),
                                tr("Failed to read database header."));
-        return;
+        return false;
     }
 
     std::string_view headerView(header.data(), header.size());
@@ -179,17 +180,15 @@ void AppInitializer::initializeCore() {
         if (reply == QMessageBox::Yes) {
             createDatabase();
         } else {
-            if (m_mainWindow != nullptr) { m_mainWindow->close(); }
-            QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+            shutdownApplication();
+            return false;
         }
-
-        return;
     }
 
     try {
         m_db = std::make_unique<SQLiteDB>(dbPath.string());
 
-        verifyDatabase();
+        if (!verifyDatabase()) { return false; }
 
         m_resRepo = std::make_unique<ResourceRepository>(*m_db);
         m_fileRepo = std::make_unique<FileRepository>(*m_db);
@@ -213,6 +212,8 @@ void AppInitializer::initializeCore() {
     } catch (const std::exception &ex) {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(ex.what()));
     }
+
+    return true;
 }
 
 void AppInitializer::createDatabase() {
@@ -244,24 +245,55 @@ void AppInitializer::createDatabase() {
     initializeCore();
 }
 
-void AppInitializer::verifyDatabase() {
-    std::vector<std::string> issues;
+bool AppInitializer::verifyDatabase() {
     DatabaseChecker checker(*m_db);
 
-    bool result = checker.checkIntegrity(issues);
-    if (!result) {
+    std::vector<std::string> issues;
+    if (!checker.checkIntegrity(issues)) {
         QString msg = tr("Database integrity check failed:\n");
         for (const auto &e : issues) { msg += QString::fromStdString(e) + "\n"; }
 
-        DialogUtils::showError(m_mainWindow.get(), tr("Database Corruption"), msg);
+        Log::err(msg.toStdString());
+        DialogUtils::showError(
+            m_mainWindow.get(), tr("Database Corrupted"),
+            tr("The application has detected that the database file is corrupted or damaged.\n\n"
+               "Error details:\n"
+               "%1\n\n"
+               "To fix this problem:\n"
+               "1. Close the application completely\n"
+               "2. Delete the file 'data.db'\n"
+               "3. Restart the application\n\n"
+               "Note: You will lose all local data."
+               "If you have important information, please make a backup of data.db before "
+               "deleting.")
+                .arg(msg));
+
+        return false;
     }
+
+    const int currentVersion = checker.getDBVersion();
+    if (currentVersion < app::meta::DB_VERSION) {
+        Log::err("Database version is outdated, current verison: {}, required version: {}",
+                 currentVersion, app::meta::DB_VERSION);
+        DialogUtils::showInfo(m_mainWindow.get(), tr("Incompatible Database"),
+                              tr("Database version (%1) is outdated (Required: %2).\n\n"
+                                 "To fix this problem:\n"
+                                 "1. Close the application completely\n"
+                                 "2. Delete the file 'data.db'\n"
+                                 "3. Restart the application\n\n"
+                                 "Note: You will lose all local data. "
+                                 "If you have important information, please make a backup of "
+                                 "data.db before deleting.")
+                                  .arg(currentVersion)
+                                  .arg(app::meta::DB_VERSION));
+
+        return false;
+    }
+
+    return true;
 }
 
 void AppInitializer::setupInitializerConnections() {
-    // A. Window yêu cầu khởi tạo -> Initializer thực hiện
-    QObject::connect(m_mainWindow.get(), &MainWindow::requestDatabaseInit, this,
-                     &AppInitializer::initializeCore, Qt::UniqueConnection);
-
     // B. Initializer báo cáo Core đã sẵn sàng -> Window nhận
     QObject::connect(this, &AppInitializer::coreReady, m_mainWindow.get(), &MainWindow::setCore,
                      Qt::UniqueConnection);
@@ -405,3 +437,9 @@ void AppInitializer::waitForProcessExitAsync(DWORD pid, const std::function<void
     timer->start();
 }
 #endif
+
+void AppInitializer::shutdownApplication() {
+    if (m_mainWindow) { m_mainWindow->close(); }
+
+    QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+}

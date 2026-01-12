@@ -114,28 +114,29 @@ void AddTabWidget::onBrowseFile() {
 
     const QString kDefaultDir = settings.get("addTab/lastBrowseDir", QDir::homePath()).toString();
 
-    QString filePath = QFileDialog::getOpenFileName(
+    const QString filePath = QFileDialog::getOpenFileName(
         this, tr("Select Resource File"), kDefaultDir,
         tr("All Files (*);;Text Files (*.txt *.md);;C++ Source (*.cpp *.h)"));
 
-    if (!filePath.isEmpty()) {
-        m_filepathInp->setText(QDir::toNativeSeparators(filePath));
+    if (filePath.isEmpty()) { return; }
 
-        QFileInfo fileInfo(filePath);
-        if (fileInfo.exists()) {
-            settings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path());
-        }
+    m_filepathInp->setText(QDir::toNativeSeparators(filePath));
 
-        const auto typeOpt = resourceTypeFromFile(filePath.toStdString());
-        if (!typeOpt.has_value()) {
-            m_notiFilepathLbl->setText(tr("File extension not support!"));
-            m_notiFilepathLbl->setVisible(true);
+    QFileInfo fileInfo(filePath);
 
-            QTimer::singleShot(UiConst::NOTI_TIMEOUT5, this, [this]() {
-                m_notiFilepathLbl->clear();
-                m_notiFilepathLbl->setVisible(false);
-            });
-        }
+    m_titleInp->setText(fileInfo.completeBaseName());
+
+    if (fileInfo.exists()) { settings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path()); }
+
+    const auto typeOpt = resourceTypeFromFile(filePath.toStdString());
+    if (!typeOpt.has_value()) {
+        m_notiFilepathLbl->setText(tr("File extension not support!"));
+        m_notiFilepathLbl->setVisible(true);
+
+        QTimer::singleShot(UiConst::NOTI_TIMEOUT5, this, [this]() {
+            m_notiFilepathLbl->clear();
+            m_notiFilepathLbl->setVisible(false);
+        });
     }
 }
 

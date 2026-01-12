@@ -35,7 +35,7 @@ class AppInitializer final : public QObject {
         bool ensureSingleInstance();
         void run();
         void createDatabase();
-        void verifyDatabase();
+        bool verifyDatabase();
         void closeDatabaseConnection(bool isUpload);
         void reinitializeDatabaseConnection();
 
@@ -45,7 +45,7 @@ class AppInitializer final : public QObject {
         void dbOpened();
 
     public slots:
-        void initializeCore();
+        bool initializeCore();
 
     private slots:
         void onSecondInstanceMessage();
@@ -53,6 +53,7 @@ class AppInitializer final : public QObject {
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupInitializerConnections();
         void checkUpdateFlag();
+        void shutdownApplication();
 
 #ifdef Q_OS_WIN
         void waitForProcessExitAsync(DWORD pid, const std::function<void()> &onExited);
