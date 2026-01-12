@@ -6,6 +6,8 @@
 #include <fstream>
 #include <ios>
 #include <filesystem>
+#include <ranges>
+#include <cctype>
 
 #include "helper.hpp"
 #include "model.hpp"
@@ -101,13 +103,15 @@ namespace Utils {
         std::ifstream file(path, std::ios::binary);
         if (!file) { return IndexableResult::noFileAccess; }
 
-        char buffer[4096]; // NOLINT(readability-magic-numbers)
-        file.read(buffer, sizeof(buffer));
+        std::array<char, 4096> buffer{}; // NOLINT(readability-magic-numbers)
+        file.read(buffer.data(), buffer.size());
         const auto bytesRead = file.gcount();
 
+        std::string_view dataView(buffer.data(), static_cast<std::size_t>(bytesRead));
+
         int suspicious{};
-        for (int i = 0; i < bytesRead; ++i) {
-            auto c = static_cast<unsigned char>(buffer[i]);
+        for (char rawChar : dataView) {
+            auto c = static_cast<unsigned char>(rawChar);
 
             if (c == '\0') { return IndexableResult::noBinaryDetected; }
 
@@ -136,5 +140,106 @@ namespace Utils {
         }
 
         return result;
+    }
+
+    // NOLINTBEGIN (readability-magic-numbers)
+    [[nodiscard]] bool looksLikeCppCode(std::string_view text) noexcept {
+        if (text.size() < 30) { return false; }
+
+        int score{};
+
+        if (text.contains("#include <") || text.contains("#include \"")) {
+            score += 3;
+            if (score >= 5) { return true; }
+        }
+        if (text.contains("namespace ") || text.contains("class ") || text.contains("struct ")) {
+            score += 3;
+            if (score >= 5) { return true; }
+        }
+        if (text.contains("::")) {
+            score += 2;
+            if (score >= 5) { return true; }
+        }
+        if (text.contains("->")) {
+            score += 1;
+            if (score >= 5) { return true; }
+        }
+
+        return score >= 5;
+    }
+
+    // NOLINTEND
+
+    void trimS(std::string &source) {
+        auto isSpace = [](unsigned char ch) { return std::isspace(ch); };
+        auto trimmedView = source | std::views::drop_while(isSpace) | std::views::reverse |
+                           std::views::drop_while(isSpace) | std::views::reverse;
+        source = {trimmedView.begin(), trimmedView.end()};
+    }
+
+    std::string sanitizeFtsQuery(std::string_view input, bool wrapInQuotes) {
+        if (input.empty()) { return {}; }
+
+        std::string clean{input};
+        bool hasWildcard{};
+
+        // 1. Kiểm tra dấu *
+        if (clean.back() == '*') {
+            hasWildcard = true;
+            clean.pop_back();
+        }
+
+        // 2. Xóa nháy kép
+        std::erase(clean, '\"');
+        if (clean.empty()) { return {}; }
+
+        // 3. Đóng gói
+        if (wrapInQuotes) {
+            // Mode Title: Bọc nháy kép toàn bộ để tìm chính xác cụm từ
+            return "\"" + clean + (hasWildcard ? "*\"" : "\"");
+        }
+
+        // Mode Content: Không bọc nháy kép để tìm linh hoạt (từng từ rời rạc)
+        // Nhưng vẫn thêm * nếu người dùng yêu cầu
+        return clean + (hasWildcard ? "*" : "");
+    }
+
+    std::string normalizeSnippet(std::string_view input) {
+        std::string out;
+        out.reserve(input.size());
+
+        bool inWhitespace = false;
+
+        for (char ch : input) {
+            auto c = static_cast<unsigned char>(ch);
+            if (std::isspace(c) != 0) {
+                if (!inWhitespace) {
+                    out.push_back(' ');
+                    inWhitespace = true;
+                }
+            } else {
+                out.push_back(static_cast<char>(c));
+                inWhitespace = false;
+            }
+        }
+
+        // trim đầu
+        if (!out.empty() && out.front() == ' ') { out.erase(out.begin()); }
+
+        // trim cuối
+        while (!out.empty() && out.back() == ' ') { out.pop_back(); }
+
+        return out;
+    }
+
+    std::string toLikeQuery(std::string_view input) {
+        if (input.empty()) { return {}; }
+
+        std::string clean{input};
+        std::erase(clean, '\"');
+
+        trimS(clean);
+
+        return clean + "%"; // Tìm kiếm theo kiểu "bắt đầu bằng"
     }
 } // namespace Utils

@@ -46,6 +46,7 @@ add_library(notes-core STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service/resource_service.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/settings/AppSettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/db/database_checker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/helper.cpp
 )
 
 target_include_directories(notes-core
@@ -108,8 +109,7 @@ set(HELPER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/FontLoader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResultsTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceTitleDelegate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper/helper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp    
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/DialogUtils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceViewerDialog.cpp
 )

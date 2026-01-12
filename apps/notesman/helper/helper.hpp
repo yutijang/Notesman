@@ -1,11 +1,9 @@
 #pragma once
 
 #include <filesystem>
-#include <ranges>
 #include <string>
 #include <string_view>
 #include <cstdint>
-#include <cctype>
 
 enum class ResourceType : std::uint8_t;
 
@@ -27,6 +25,16 @@ namespace Utils {
     IndexableResult isIndexable(ResourceType type, const std::filesystem::path &path);
 
     std::string joinTags(const std::vector<std::string> &tags);
+
+    [[nodiscard]] bool looksLikeCppCode(std::string_view text) noexcept;
+
+    void trimS(std::string &source);
+
+    std::string sanitizeFtsQuery(std::string_view input, bool wrapInQuotes = true);
+
+    std::string normalizeSnippet(std::string_view input);
+
+    std::string toLikeQuery(std::string_view input);
 
     // Lấy phần mở rộng của đường dẫn (vd: "file.txt" -> "txt")
     [[nodiscard]] inline std::string getFileExtension(const std::filesystem::path &path) {
@@ -54,106 +62,5 @@ namespace Utils {
     // Chuẩn hóa đường dẫn (vd: xử lý ../ ./)
     [[nodiscard]] inline std::filesystem::path normalizePath(const std::filesystem::path &path) {
         return std::filesystem::weakly_canonical(path);
-    }
-
-    inline static std::string sanitizeFtsQuery(std::string_view input, bool wrapInQuotes = true) {
-        if (input.empty()) { return {}; }
-
-        std::string clean{input};
-        bool hasWildcard{};
-
-        // 1. Kiểm tra dấu *
-        if (clean.back() == '*') {
-            hasWildcard = true;
-            clean.pop_back();
-        }
-
-        // 2. Xóa nháy kép
-        std::erase(clean, '\"');
-        if (clean.empty()) { return {}; }
-
-        // 3. Đóng gói
-        if (wrapInQuotes) {
-            // Mode Title: Bọc nháy kép toàn bộ để tìm chính xác cụm từ
-            return "\"" + clean + (hasWildcard ? "*\"" : "\"");
-        }
-
-        // Mode Content: Không bọc nháy kép để tìm linh hoạt (từng từ rời rạc)
-        // Nhưng vẫn thêm * nếu người dùng yêu cầu
-        return clean + (hasWildcard ? "*" : "");
-    }
-
-    inline static void trimS(std::string &source) {
-        auto isSpace = [](unsigned char ch) { return std::isspace(ch); };
-        auto trimmedView = source | std::views::drop_while(isSpace) | std::views::reverse |
-                           std::views::drop_while(isSpace) | std::views::reverse;
-        source = {trimmedView.begin(), trimmedView.end()};
-    }
-
-    inline static std::string toLikeQuery(std::string_view input) {
-        if (input.empty()) { return {}; }
-
-        std::string clean{input};
-        std::erase(clean, '\"');
-
-        trimS(clean);
-
-        return clean + "%"; // Tìm kiếm theo kiểu "bắt đầu bằng"
-    }
-
-    // NOLINTBEGIN (readability-magic-numbers)
-    [[nodiscard]] inline bool looksLikeCppCode(std::string_view text) noexcept {
-        if (text.size() < 30) { return false; }
-
-        int score{};
-
-        if (text.contains("#include <") || text.contains("#include \"")) {
-            score += 3;
-            if (score >= 5) { return true; }
-        }
-        if (text.contains("namespace ") || text.contains("class ") || text.contains("struct ")) {
-            score += 3;
-            if (score >= 5) { return true; }
-        }
-        if (text.contains("::")) {
-            score += 2;
-            if (score >= 5) { return true; }
-        }
-        if (text.contains("->")) {
-            score += 1;
-            if (score >= 5) { return true; }
-        }
-
-        return score >= 5;
-    }
-
-    // NOLINTEND
-
-    inline static std::string normalizeSnippet(std::string_view input) {
-        std::string out;
-        out.reserve(input.size());
-
-        bool inWhitespace = false;
-
-        for (char ch : input) {
-            auto c = static_cast<unsigned char>(ch);
-            if (std::isspace(c) != 0) {
-                if (!inWhitespace) {
-                    out.push_back(' ');
-                    inWhitespace = true;
-                }
-            } else {
-                out.push_back(static_cast<char>(c));
-                inWhitespace = false;
-            }
-        }
-
-        // trim đầu
-        if (!out.empty() && out.front() == ' ') { out.erase(out.begin()); }
-
-        // trim cuối
-        while (!out.empty() && out.back() == ' ') { out.pop_back(); }
-
-        return out;
     }
 } // namespace Utils
