@@ -64,7 +64,7 @@ class ResourceService {
         void removeTagFromResource(sqlite3_int64 resourceId, const std::string &tag);
         std::vector<std::pair<sqlite3_int64, std::string>> getAllTags();
         std::vector<Resource> getResourcesByTag(const std::string &tag);
-        std::vector<FullResource> getFullResourcesByTag(const std::string &tag);
+        std::vector<UnifiedSearchResult> getFullResourcesByTag(const std::string &tag);
 
         // ========= Utility =========
         [[nodiscard]] bool isExistTitle(std::string_view title, ResourceType type) const;

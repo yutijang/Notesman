@@ -65,7 +65,8 @@ class NotesAppCore {
 
         [[nodiscard]] std::vector<UnifiedSearchResult>
             searchByTitleFull(const std::string &keyword) const;
-        [[nodiscard]] std::vector<FullResource> getFullResourcesByTag(const std::string &tag) const;
+        [[nodiscard]] std::vector<UnifiedSearchResult>
+            getFullResourcesByTag(const std::string &tag) const;
         [[nodiscard]] std::vector<Resource>
             getResourcesByTags(const std::vector<std::string> &tags) const;
 

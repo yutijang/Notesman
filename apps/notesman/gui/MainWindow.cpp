@@ -221,10 +221,13 @@ void MainWindow::setCore(NotesAppCore* core) {
 }
 
 void MainWindow::viewPlaintextResource(int id, ResourceType type, const QString &title) {
+    if (!m_resourceViewService) { qFatal("m_resourceViewService is null"); }
+
     const Theme theme = m_appController->currentTheme();
 
     auto* dlg = new ResourceViewerDialog{static_cast<sqlite3_int64>(id), title, type, theme,
                                          *m_resourceViewService,         this};
+
     dlg->exec();
 }
 

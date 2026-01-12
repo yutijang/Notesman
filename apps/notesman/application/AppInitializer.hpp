@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #ifdef _WIN32
     #include <windows.h>
     #include <functional>
@@ -45,16 +46,22 @@ class AppInitializer final : public QObject {
         void dbClosed(bool isUpload); // true = for upload, false = for download
         void dbOpened();
 
-    public slots:
-        bool initializeCore();
-
     private slots:
         void onSecondInstanceMessage();
 
     private: // NOLINT(readability-redundant-access-specifiers)
+        enum class InitFailureReason : std::uint8_t {
+            ok,
+            userCancelled,
+            openFailed,
+            readFailed,
+            verifyFailed
+        };
+
+        InitFailureReason initializeCore();
+
         void setupInitializerConnections();
         void checkUpdateFlag();
-        void shutdownApplication();
 
 #ifdef Q_OS_WIN
         void waitForProcessExitAsync(DWORD pid, const std::function<void()> &onExited);

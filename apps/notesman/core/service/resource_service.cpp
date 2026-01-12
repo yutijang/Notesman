@@ -220,14 +220,26 @@ std::vector<Resource> ResourceService::getResourcesByTag(const std::string &tag)
     return m_tagRepo.getResourcesViaOneTag(tag);
 }
 
-std::vector<FullResource> ResourceService::getFullResourcesByTag(const std::string &tag) {
-    std::vector<FullResource> results;
+std::vector<UnifiedSearchResult> ResourceService::getFullResourcesByTag(const std::string &tag) {
+    std::vector<UnifiedSearchResult> results;
+
     auto resources = m_tagRepo.getResourcesViaOneTag(tag);
     results.reserve(resources.size());
 
     for (const auto &res : resources) {
+        UnifiedSearchResult u{};
+        u.res = res;
+
         auto full = getFullResource(res.id);
-        if (full.has_value()) { results.push_back(std::move(*full)); }
+        if (full.has_value()) {
+            u.tags = full->tags;
+            if (!u.tags.empty()) { u.displaySubText = Utils::joinTags(u.tags); }
+        }
+
+        u.rawSnippet = std::nullopt;
+        u.flags = ResourceFlags::matchTag;
+
+        results.push_back(std::move(u));
     }
 
     return results;

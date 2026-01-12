@@ -75,7 +75,7 @@ std::vector<UnifiedSearchResult> NotesAppCore::searchByTitleFull(const std::stri
     return m_resService.searchByTitleFull(keyword);
 }
 
-std::vector<FullResource> NotesAppCore::getFullResourcesByTag(const std::string &tag) const {
+std::vector<UnifiedSearchResult> NotesAppCore::getFullResourcesByTag(const std::string &tag) const {
     return m_resService.getFullResourcesByTag(tag);
 }
 

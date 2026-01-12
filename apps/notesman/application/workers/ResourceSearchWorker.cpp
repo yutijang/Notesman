@@ -1,7 +1,5 @@
-#include <optional>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 #include <QObject>
 #include <QStringView>
@@ -33,32 +31,14 @@ void ResourceSearchWorker::doSearch() {
             std::erase(cleanTag, '\"');
             Utils::trimS(cleanTag);
 
-            auto fullRes = m_core->getFullResourcesByTag(cleanTag);
-            results.reserve(fullRes.size());
-
-            for (auto &fres : fullRes) {
-                UnifiedSearchResult ures;
-                ures.res = std::move(fres.resource);
-                ures.tags = std::move(fres.tags);
-
-                if (!ures.tags.empty()) {
-                    ures.displaySubText = Utils::joinTags(ures.tags);
-                } else {
-                    ures.displaySubText = {};
-                }
-
-                ures.rawSnippet = std::nullopt;
-                ures.flags = ResourceFlags::matchTag;
-
-                results.push_back(std::move(ures));
-            }
+            results = m_core->getFullResourcesByTag(cleanTag);
         } else if (m_mode == "all") {
             // 1. Chuẩn bị chuỗi cho LIKE (Bảng Tag)
             const std::string likeKW = Utils::toLikeQuery(stdKeyword);
 
             // 2. Chuẩn bị chuỗi cho MATCH (Bảng FTS Title/Content)
             // Dùng false để tìm kiếm linh hoạt hơn trong chế độ tìm tổng hợp
-            const std::string ftsKW = Utils::sanitizeFtsQuery(stdKeyword + "*", false);
+            const std::string ftsKW = Utils::sanitizeFtsQuery(stdKeyword, false);
 
             // 3. Gọi hàm hợp nhất trong Core
             // Hàm này sẽ bind likeKW vào các tham số LIKE và ftsKW vào các tham số MATCH

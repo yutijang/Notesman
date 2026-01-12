@@ -115,12 +115,25 @@ void AppInitializer::run() {
     m_controller->setMainWindow(m_mainWindow.get());
     m_mainWindow->setAppController(m_controller.get());
 
-    if (!initializeCore()) {
+    // Phải tạo connect trước khi emit signal coreReady trong initializeCore()
+    // vì Qt không queue lại signal cũ
+    setupInitializerConnections();
+
+    const auto initCheck = initializeCore();
+    if (initCheck != InitFailureReason::ok) {
+        switch (initCheck) {
+            case InitFailureReason::ok: // clang(-Wswitch)
+            case InitFailureReason::userCancelled: break;
+            case InitFailureReason::openFailed   : Log::err("Failed to open database file."); break;
+            case InitFailureReason::readFailed   : Log::err("Failed to read database header."); break;
+            case InitFailureReason::verifyFailed:
+                Log::err("Database integrity check failed or Database version is outdated");
+                break;
+        }
+
         QTimer::singleShot(0, qApp, &QCoreApplication::quit);
         return;
     }
-
-    setupInitializerConnections();
 
     m_controller->loadSettings();
 
@@ -137,7 +150,7 @@ void AppInitializer::run() {
     checkUpdateFlag();
 }
 
-bool AppInitializer::initializeCore() {
+AppInitializer::InitFailureReason AppInitializer::initializeCore() {
     const QString dbFullPath = CorePaths::databaseFile();
     const std::filesystem::path dbPath = dbFullPath.toStdString();
 
@@ -149,7 +162,7 @@ bool AppInitializer::initializeCore() {
         if (reply == QMessageBox::Yes) {
             createDatabase();
         } else {
-            return false;
+            return InitFailureReason::userCancelled;
         }
     }
 
@@ -157,7 +170,7 @@ bool AppInitializer::initializeCore() {
     if (!dbFile.is_open()) {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"),
                                tr("Failed to open database file."));
-        return false;
+        return InitFailureReason::openFailed;
     }
 
     constexpr const int len{16};
@@ -166,7 +179,7 @@ bool AppInitializer::initializeCore() {
     if (!dbFile || dbFile.gcount() != len) {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"),
                                tr("Failed to read database header."));
-        return false;
+        return InitFailureReason::readFailed;
     }
 
     std::string_view headerView(header.data(), header.size());
@@ -181,15 +194,14 @@ bool AppInitializer::initializeCore() {
         if (reply == QMessageBox::Yes) {
             createDatabase();
         } else {
-            shutdownApplication();
-            return false;
+            return InitFailureReason::userCancelled;
         }
     }
 
     try {
         m_db = std::make_unique<SQLiteDB>(dbPath.string());
 
-        if (!verifyDatabase()) { return false; }
+        if (!verifyDatabase()) { return InitFailureReason::verifyFailed; }
 
         m_resRepo = std::make_unique<ResourceRepository>(*m_db);
         m_fileRepo = std::make_unique<FileRepository>(*m_db);
@@ -211,10 +223,11 @@ bool AppInitializer::initializeCore() {
         emit coreReady(m_core.get());
 
     } catch (const std::exception &ex) {
+        Log::err(ex.what());
         DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(ex.what()));
     }
 
-    return true;
+    return InitFailureReason::ok;
 }
 
 void AppInitializer::createDatabase() {
@@ -224,6 +237,7 @@ void AppInitializer::createDatabase() {
     // Đọc nội dung file .sql
     QFile schemaFile(schemaResourcePath);
     if (!schemaFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        Log::err("Schema resource not found: {}", schemaResourcePath.toStdString());
         DialogUtils::showError(m_mainWindow.get(), tr("Error"),
                                tr("Schema resource not found: %1").arg(schemaResourcePath));
 
@@ -236,6 +250,7 @@ void AppInitializer::createDatabase() {
     std::string error;
 
     if (!DatabaseCreator::create(dbPathUtf8, schemaSql, error)) {
+        Log::err("Error create database: {}", error);
         DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(error));
         return;
     }
@@ -385,6 +400,7 @@ void AppInitializer::handleUpdateCleanup(const QStringList &args) {
     if (std::filesystem::exists(tempDirPath)) {
         std::filesystem::remove_all(tempDirPath, ec);
         if (ec) {
+            Log::err("Failed to remove temp_update: {}", ec.message());
             DialogUtils::showError(
                 m_mainWindow.get(), tr("Error"),
                 tr("Failed to remove temp_update: %1").arg(QString::fromStdString(ec.message())));
@@ -438,9 +454,3 @@ void AppInitializer::waitForProcessExitAsync(DWORD pid, const std::function<void
     timer->start();
 }
 #endif
-
-void AppInitializer::shutdownApplication() {
-    if (m_mainWindow) { m_mainWindow->close(); }
-
-    QTimer::singleShot(0, qApp, &QCoreApplication::quit);
-}
