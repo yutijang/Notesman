@@ -36,6 +36,7 @@
 #include "CorePaths.hpp"
 #include "Logger.hpp"
 #include "UpdateManager.hpp"
+#include "helper.hpp"
 #include "model.hpp"
 
 AppController::AppController(QObject* parent) : QObject(parent) {}

@@ -7,6 +7,7 @@
 #include <sqlite3.h>
 
 #include "text_content_repository.hpp"
+#include "Logger.hpp"
 #include "sqldb_raii.hpp"
 #include "sqlite_utils.hpp"
 

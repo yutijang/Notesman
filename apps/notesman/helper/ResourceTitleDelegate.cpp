@@ -9,6 +9,10 @@
 #include <QStyledItemDelegate>
 #include <QPalette>
 #include <QSvgRenderer>
+#include <QFont>
+#include <QColor>
+#include <memory>
+#include <utility>
 #include <qminmax.h>
 
 #include "ResourceTitleDelegate.hpp"

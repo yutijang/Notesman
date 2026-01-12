@@ -22,6 +22,7 @@
 #include "tag_repository.hpp"
 #include "file_service.hpp"
 #include "resource_service.hpp"
+#include "file_text_content_repository.hpp"
 
 // #include "file_text_content_repository.hpp"
 

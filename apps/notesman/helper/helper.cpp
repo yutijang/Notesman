@@ -8,6 +8,9 @@
 #include <filesystem>
 #include <ranges>
 #include <cctype>
+#include <string_view>
+#include <system_error>
+#include <vector>
 
 #include "helper.hpp"
 #include "model.hpp"

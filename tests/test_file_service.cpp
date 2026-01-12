@@ -2,9 +2,12 @@
 #include <filesystem>
 #include <string>
 #include <optional>
+#include <string_view>
 #include <sqlite3.h>
 #include <catch2/catch_test_macros.hpp>
+
 #include "file_repository.hpp"
+#include "file_text_content_repository.hpp"
 #include "model.hpp"
 #include "file_service.hpp"
 #include "resource_repository.hpp"

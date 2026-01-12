@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <cstdint>
+#include <vector>
 
 enum class ResourceType : std::uint8_t;
 

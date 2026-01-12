@@ -44,6 +44,7 @@
 #include "AppSettings.hpp"
 #include "Logger.hpp"
 #include "file_text_content_repository.hpp"
+#include "db_version.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";

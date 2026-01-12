@@ -2,7 +2,9 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <sqlite3.h>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <vector>
 

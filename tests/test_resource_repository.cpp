@@ -1,6 +1,8 @@
+#include <string>
 #include <utility>
 #include <catch2/catch_test_macros.hpp>
 #include <sqlite3.h>
+
 #include "model.hpp"
 #include "resource_repository.hpp"
 #include "sqldb_raii.hpp"

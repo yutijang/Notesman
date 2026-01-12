@@ -1,10 +1,12 @@
-#include "MainWindow.hpp"
 #include <memory>
 #include <QApplication>
 #include <QTabWidget>
 #include <QCoreApplication>
+#include <QObject>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
+
+#include "MainWindow.hpp"
 
 // Helper để quản lý vòng đời QApplication trong test
 struct QtTestFixture {

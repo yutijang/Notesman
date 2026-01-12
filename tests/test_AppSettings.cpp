@@ -1,5 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
+
 #include "AppSettings.hpp"
+#include "Language.hpp"
+#include "Theme.hpp"
 
 TEST_CASE("AppSettings - default values", "[AppSettings]") {
     AppSettings settings;

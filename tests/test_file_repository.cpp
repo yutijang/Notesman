@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <sqlite3.h>
+#include <stdexcept>
+
 #include "file_repository.hpp"
 #include "sqldb_raii.hpp"
 

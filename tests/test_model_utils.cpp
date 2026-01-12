@@ -3,6 +3,7 @@
 #include <string_view>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/catch_test_macros.hpp>
+
 #include "model.hpp"
 
 TEST_CASE("resourceTypeToString - Standard Mappings", "[Model][Utils][ResourceType]") {

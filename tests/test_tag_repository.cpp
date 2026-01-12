@@ -3,6 +3,7 @@
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <sqlite3.h>
+
 #include "model.hpp"
 #include "sqldb_raii.hpp"
 #include "tag_repository.hpp"
