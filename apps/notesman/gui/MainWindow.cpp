@@ -249,9 +249,7 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
         viewAction->setIcon(QIcon(":/icons/view.ico"));
         QObject::connect(viewAction, &QAction::triggered, this,
                          [this, id, type, title]() { viewPlaintextResource(id, type, title); });
-    }
-
-    if (!(type == ResourceType::plainText)) {
+    } else if (type != ResourceType::plainText) {
         QAction* openAction = menu.addAction(tr("Open path"));
         QObject::connect(openAction, &QAction::triggered, this, [path]() {
             if (path.isEmpty()) {
