@@ -1,10 +1,12 @@
 #pragma once
 
+#include <mutex>
 #include <QSettings>
 #include <QString>
 #include <QVariant>
-#include <mutex>
 #include <qstringliteral.h>
+
+#include "app_version.hpp"
 
 class SettingsManager {
     public:
@@ -43,7 +45,7 @@ class SettingsManager {
         }
 
     private:
-        SettingsManager() : m_settings(QStringLiteral("Notesman"), QStringLiteral("configs")) {}
+        SettingsManager() : m_settings(app::meta::NAME, QStringLiteral("configs")) {}
 
         QSettings m_settings;
         mutable std::mutex m_mutex;

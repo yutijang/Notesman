@@ -6,6 +6,7 @@
 #include <QNetworkReply>
 
 #include "DownloadManager.hpp"
+#include "Logger.hpp"
 
 DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
     m_timeoutTimer.setInterval(30'000); // NOLINT(readability-magic-numbers)
@@ -49,6 +50,7 @@ void DownloadManager::startDownload(const QUrl &url, const QString &outputFilePa
 
     m_outputFile.setFileName(outputFilePath);
     if (!m_outputFile.open(QIODevice::WriteOnly)) {
+        Log::err("Cannot write to file: {}", outputFilePath.toStdString());
         emit downloadFailed(tr("Cannot write to file: %1").arg(outputFilePath));
         m_currentReply->deleteLater();
         m_currentReply = nullptr;

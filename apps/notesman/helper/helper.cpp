@@ -226,11 +226,8 @@ namespace Utils {
             }
         }
 
-        // trim đầu
-        if (!out.empty() && out.front() == ' ') { out.erase(out.begin()); }
-
-        // trim cuối
-        while (!out.empty() && out.back() == ' ') { out.pop_back(); }
+        // trim đầu/trim cuối
+        trimS(out);
 
         return out;
     }

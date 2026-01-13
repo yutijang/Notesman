@@ -221,8 +221,6 @@ void MainWindow::setCore(NotesAppCore* core) {
 }
 
 void MainWindow::viewPlaintextResource(int id, ResourceType type, const QString &title) {
-    if (!m_resourceViewService) { qFatal("m_resourceViewService is null"); }
-
     const Theme theme = m_appController->currentTheme();
 
     auto* dlg = new ResourceViewerDialog{static_cast<sqlite3_int64>(id), title, type, theme,
@@ -607,6 +605,7 @@ void MainWindow::handleWindowsUpdate(const QString &filePath) {
     const QString updaterPath = targetDir + "/" + kUpdaterName;
 
     if (!QFile::exists(updaterPath)) {
+        Log::err("Missing {}. Update failed!", kUpdaterName.toStdString());
         DialogUtils::showError(this, tr("Error"),
                                tr("Missing %1. Update failed!").arg(kUpdaterName));
         return;
@@ -641,6 +640,7 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
 
     if (!AppImageExtractor::extractUpdater(downloadedAppImage, updaterTmpPath) ||
         !QFile::exists(updaterTmpPath)) {
+        Log::err("Cannot extract updater from AppImage. Update failed!");
         DialogUtils::showError(this, tr("Error"),
                                tr("Cannot extract updater from AppImage. Update failed!"));
         return;
@@ -657,6 +657,7 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
 
     pid_t pid = fork();
     if (pid == -1) {
+        Log::err("Cannot start updater process. Update failed!");
         DialogUtils::showError(this, tr("Error"),
                                tr("Cannot start updater process. Update failed!"));
         return;

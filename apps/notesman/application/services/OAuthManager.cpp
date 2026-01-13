@@ -30,6 +30,7 @@
 #include "google_oauth_config.hpp"
 #include "free_port.hpp"
 #include "SettingsManager.hpp"
+#include "app_version.hpp"
 
 namespace {
     unsigned short oauthPort() {
@@ -348,7 +349,7 @@ void OAuthManager::handleUnlinkGMRequested() {
 
     m_codeVerifier.clear();
 
-    auto* job = new QKeychain::DeletePasswordJob("Notesman", this);
+    auto* job = new QKeychain::DeletePasswordJob(app::meta::NAME, this);
     job->setKey(KEY_REFRESH_TOKEN);
 
     QObject::connect(job, &QKeychain::Job::finished, [](QKeychain::Job* j) {
@@ -402,7 +403,7 @@ void OAuthManager::requestNewAccessToken(const QString &refreshToken,
 }
 
 void OAuthManager::saveRefreshToken(const QString &refreshToken) {
-    auto* job = new QKeychain::WritePasswordJob("Notesman", this);
+    auto* job = new QKeychain::WritePasswordJob(app::meta::NAME, this);
     job->setKey(KEY_REFRESH_TOKEN);
     job->setTextData(refreshToken);
 
@@ -419,7 +420,7 @@ void OAuthManager::saveRefreshToken(const QString &refreshToken) {
 }
 
 QString OAuthManager::loadRefreshToken() {
-    QKeychain::ReadPasswordJob job("Notesman", this);
+    QKeychain::ReadPasswordJob job(app::meta::NAME, this);
     job.setKey(KEY_REFRESH_TOKEN);
 
     QEventLoop loop;
