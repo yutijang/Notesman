@@ -361,6 +361,7 @@ jobs:
         with:
           name: notesman-windows-zip
           path: ${{ steps.zip.outputs.zip_name }}
+          retention-days: 1
 
       - name: Get existing release body
         id: get_release

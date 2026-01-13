@@ -348,6 +348,7 @@ jobs:
         with:
           name: notesman-linux-appimage
           path: release/*.AppImage
+          retention-days: 1
 
       - name: Get existing release body
         id: get_release

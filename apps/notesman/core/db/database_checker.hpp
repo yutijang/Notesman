@@ -13,7 +13,7 @@ class DatabaseChecker {
         // Trả về true nếu toàn vẹn, false nếu có lỗi
         bool checkIntegrity(std::vector<std::string> &messages);
 
-        int getDBVersion();
+        std::optional<int> getDBVersion();
 
     private:
         SQLiteDB &m_db;

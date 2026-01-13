@@ -43,15 +43,10 @@ bool DatabaseChecker::checkIntegrity(std::vector<std::string> &messages) {
     return ok;
 }
 
-int DatabaseChecker::getDBVersion() {
-    int version{};
-    sqlite3_stmt* stmt{};
+std::optional<int> DatabaseChecker::getDBVersion() {
+    SQLiteStmt stmt(m_db.get(), "PRAGMA user_version;");
 
-    if (sqlite3_prepare_v2(m_db.get(), "PRAGMA user_version;", -1, &stmt, nullptr) == SQLITE_OK) {
-        if (sqlite3_step(stmt) == SQLITE_ROW) { version = sqlite3_column_int(stmt, 0); }
-    }
+    if (stmt.step() != SQLITE_ROW) { return std::nullopt; }
 
-    sqlite3_finalize(stmt);
-
-    return version;
+    return sqlite3_column_int(stmt.get(), 0);
 }

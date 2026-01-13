@@ -121,14 +121,16 @@ void AppInitializer::run() {
 
     const auto initCheck = initializeCore();
     if (initCheck != InitFailureReason::ok) {
-        switch (initCheck) {
+        switch (initCheck) {            // NOLINT (-Wswitch-default)
             case InitFailureReason::ok: // clang(-Wswitch)
             case InitFailureReason::userCancelled: break;
             case InitFailureReason::openFailed   : Log::err("Failed to open database file."); break;
             case InitFailureReason::readFailed   : Log::err("Failed to read database header."); break;
-            case InitFailureReason::verifyFailed:
-                Log::err("Database integrity check failed or Database version is outdated");
+            case InitFailureReason::getNullDBVersion:
+                Log::err("Error get Database version.");
                 break;
+            case InitFailureReason::verifyDBCorrupted: Log::err("Database corrupted."); break;
+            case InitFailureReason::dbOutdated       : Log::err("Database version is outdated."); break;
         }
 
         QTimer::singleShot(0, qApp, &QCoreApplication::quit);
@@ -201,7 +203,8 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
     try {
         m_db = std::make_unique<SQLiteDB>(dbPath.string());
 
-        if (!verifyDatabase()) { return InitFailureReason::verifyFailed; }
+        const auto dbVerifyResult = verifyDatabase();
+        if (dbVerifyResult != InitFailureReason::ok) { return dbVerifyResult; }
 
         m_resRepo = std::make_unique<ResourceRepository>(*m_db);
         m_fileRepo = std::make_unique<FileRepository>(*m_db);
@@ -261,7 +264,7 @@ void AppInitializer::createDatabase() {
     initializeCore();
 }
 
-bool AppInitializer::verifyDatabase() {
+AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
     DatabaseChecker checker(*m_db);
 
     std::vector<std::string> issues;
@@ -284,10 +287,13 @@ bool AppInitializer::verifyDatabase() {
                "deleting.")
                 .arg(msg));
 
-        return false;
+        return InitFailureReason::verifyDBCorrupted;
     }
 
-    const int currentVersion = checker.getDBVersion();
+    const auto verOpt = checker.getDBVersion();
+    if (!verOpt.has_value()) { return InitFailureReason::getNullDBVersion; }
+
+    const int currentVersion = *verOpt;
     if (currentVersion < app::meta::DB_VERSION) {
         Log::err("Database version is outdated, current verison: {}, required version: {}",
                  currentVersion, app::meta::DB_VERSION);
@@ -303,10 +309,10 @@ bool AppInitializer::verifyDatabase() {
                                   .arg(currentVersion)
                                   .arg(app::meta::DB_VERSION));
 
-        return false;
+        return InitFailureReason::dbOutdated;
     }
 
-    return true;
+    return InitFailureReason::ok;
 }
 
 void AppInitializer::setupInitializerConnections() {
@@ -338,7 +344,18 @@ void AppInitializer::reinitializeDatabaseConnection() {
         const std::string filename = m_db->getFilename();
         m_db->open(filename);
 
-        verifyDatabase();
+        const auto dbVerify = verifyDatabase();
+        if (dbVerify != InitFailureReason::ok) {
+            if (dbVerify == InitFailureReason::getNullDBVersion) {
+                Log::err("Error get Database version.");
+            } else if (dbVerify == InitFailureReason::verifyDBCorrupted) {
+                Log::err("Database corrupted.");
+            } else if (dbVerify == InitFailureReason::verifyDBCorrupted) {
+                Log::err("Database version is outdated.");
+            }
+
+            return;
+        }
 
         emit dbOpened();
     } catch (const std::exception &ex) { Log::fatal("Fatal error: {}", ex.what()); }

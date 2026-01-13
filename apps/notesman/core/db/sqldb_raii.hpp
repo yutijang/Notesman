@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <string>
 #include <stdexcept>
@@ -116,7 +117,10 @@ class SQLiteStmt {
             if (m_stmt) { sqlite3_clear_bindings(m_stmt.get()); }
         }
 
-        [[nodiscard]] int step() noexcept { return sqlite3_step(m_stmt.get()); }
+        [[nodiscard]] int step() noexcept {
+            assert(m_stmt);
+            return sqlite3_step(m_stmt.get());
+        }
 
         [[nodiscard]] std::string getColumnText(int index) const {
             const char* text =

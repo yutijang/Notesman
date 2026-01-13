@@ -37,7 +37,6 @@ class AppInitializer final : public QObject {
         bool ensureSingleInstance();
         void run();
         void createDatabase();
-        bool verifyDatabase();
         void closeDatabaseConnection(bool isUpload);
         void reinitializeDatabaseConnection();
 
@@ -55,10 +54,13 @@ class AppInitializer final : public QObject {
             userCancelled,
             openFailed,
             readFailed,
-            verifyFailed
+            verifyDBCorrupted,
+            getNullDBVersion,
+            dbOutdated
         };
 
         InitFailureReason initializeCore();
+        InitFailureReason verifyDatabase();
 
         void setupInitializerConnections();
         void checkUpdateFlag();
