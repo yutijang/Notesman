@@ -375,7 +375,6 @@ void AppInitializer::checkUpdateFlag() {
 
         const auto updaterPID = static_cast<DWORD>(args[2].toULongLong());
         waitForProcessExitAsync(updaterPID, [this, args]() { handleUpdateCleanup(args); });
-        saveETagOnUpdateSuccess();
     }
 #elif defined(Q_OS_LINUX)
     if (args.size() >= 4 && args[1] == "--update-done") {
@@ -394,20 +393,28 @@ void AppInitializer::checkUpdateFlag() {
         if (fs::exists(binPath)) { fs::remove(binPath); }
 
         displayNotiUpdateComplete();
-        saveETagOnUpdateSuccess();
     }
 #endif
+
+    saveETagOnUpdateSuccess();
 }
 
 void AppInitializer::saveETagOnUpdateSuccess() {
     auto &settings = SettingsManager::instance();
 
-    const auto checkedETag = settings.get("update/pending_etag").toString();
-    if (!checkedETag.isEmpty()) {
-        settings.set("update/applied_etag", checkedETag);
-        settings.set("update/applied_version", app::meta::VERSION);
-        settings.remove("update/pending_etag");
+    const QString pendingETag = settings.get("update/pending_etag").toString();
+    const QString pendingVersion = settings.get("update/pending_version").toString();
+
+    // Chỉ xác nhận thành công nếu version khớp
+    if (!pendingETag.isEmpty() && !pendingVersion.isEmpty() &&
+        pendingVersion == app::meta::VERSION) {
+        settings.set("update/applied_etag", pendingETag);
+        settings.set("update/applied_version", pendingVersion);
     }
+
+    // Dù thành công hay thất bại, pending đều phải bị xóa
+    settings.remove("update/pending_etag");
+    settings.remove("update/pending_version");
 }
 
 void AppInitializer::handleUpdateCleanup(const QStringList &args) {

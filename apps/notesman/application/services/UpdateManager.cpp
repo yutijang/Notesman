@@ -43,23 +43,31 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
 
     auto &settings = SettingsManager::instance();
 
+    // Check for rollback
     const QString appliedVersion = settings.get("update/applied_version").toString();
-
-    qDebug() << "appliedVersion: " << appliedVersion;
-    qDebug() << "app::meta::VERSION: " << app::meta::VERSION;
-    Log::info("appliedVersion: {}", appliedVersion.toStdString());
-    Log::info("app::meta::VERSION: {}", QString(app::meta::VERSION).toStdString());
-
     if (!appliedVersion.isEmpty() && appliedVersion != app::meta::VERSION) {
-        settings.remove("update/applied_etag");
-        settings.remove("update/applied_version");
-        settings.remove("update/pending_etag");
-        settings.remove("update/pending_version");
+        const int compare = compareVersionsQt(app::meta::VERSION, appliedVersion);
+        if (compare < 0) {
+            settings.remove("update/applied_etag");
+            settings.remove("update/applied_version");
+            settings.remove("update/pending_etag");
+            settings.remove("update/pending_version");
 
-        const QString msg = QStringLiteral("Rollback detected: local=%1, applied=%2")
-                                .arg(app::meta::VERSION)
-                                .arg(appliedVersion);
-        Log::warn(msg.toStdString());
+            const QString msg = QStringLiteral("Rollback detected: local=%1, applied=%2")
+                                    .arg(app::meta::VERSION)
+                                    .arg(appliedVersion);
+
+            Log::warn(msg.toStdString());
+        }
+    }
+
+    const QString pendingVersion = settings.get("update/pending_version").toString();
+    if (!pendingVersion.isEmpty()) {
+        const int compare = compareVersionsQt(app::meta::VERSION, pendingVersion);
+        if (compare < 0) {
+            // Có pending update chưa apply
+            Log::info("Pending update detected but not applied yet.");
+        }
     }
 
     const QString appliedETag = settings.get("update/applied_etag").toString();
@@ -89,7 +97,6 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     if (status != QNetworkReply::NoError) {
         emit updateCheckFailed(reply->errorString());
         reply->deleteLater();
-        reply = nullptr;
         return;
     }
 
@@ -101,10 +108,8 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     }
 
     const QByteArray pendingETag = reply->rawHeader("ETag");
-
     const QByteArray data = reply->readAll();
     reply->deleteLater();
-    reply = nullptr;
 
     QJsonParseError parseError;
     const auto jsonDoc = QJsonDocument::fromJson(data, &parseError);
@@ -121,25 +126,34 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     auto &settings = SettingsManager::instance();
 
     const int checkForUpdate = compareVersionsQt(localVer, removeVer);
-    if (checkForUpdate == -1) {
-        auto updateInfo = findAssetInfo(jsonDoc);
-        if (updateInfo.has_value() && updateInfo->isValid()) {
-            if (!pendingETag.isEmpty()) {
-                if (!pendingETag.isEmpty()) { settings.set("update/pending_etag", pendingETag); }
-            }
-
-            updateInfo->tagName = latestVersion;
-            emit updateAvailable(updateInfoToSummary(
-                *updateInfo));            // ---> UpdateManager* AppController::updateManager()
-        } else {
-            emit updateCheckFailed(
-                tr("Error gather info")); // ---> UpdateManager* AppController::updateManager()
-        }
-    } else {
+    // Không có cập nhật mới
+    if (checkForUpdate >= 0) {
         settings.remove("update/pending_etag");
+        settings.remove("update/pending_version");
 
-        emit noUpdateAvailable(); // ---> UpdateManager* AppController::updateManager()
+        emit noUpdateAvailable();
+
+        return;
     }
+
+    // Bắt đầu logic cập nhật
+    if (pendingETag.isEmpty()) {
+        emit updateCheckFailed("Missing ETag");
+        return;
+    }
+
+    auto updateInfo = findAssetInfo(jsonDoc);
+    if (!updateInfo.has_value() || !updateInfo->isValid()) {
+        emit updateCheckFailed(tr("Error gather info"));
+        return;
+    }
+
+    settings.set("update/pending_etag", pendingETag);
+    settings.set("update/pending_version", latestVersion);
+
+    updateInfo->tagName = latestVersion;
+
+    emit updateAvailable(updateInfoToSummary(*updateInfo));
 }
 
 std::optional<UpdateManager::UpdateInfo> UpdateManager::findAssetInfo(const QJsonDocument &qJDoc) {
