@@ -44,17 +44,22 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
     auto &settings = SettingsManager::instance();
 
     const QString appliedVersion = settings.get("update/applied_version").toString();
-    if (!appliedVersion.isEmpty()) {
-        const int compare = compareVersionsQt(app::meta::VERSION, appliedVersion);
-        if (compare < 0) {
-            settings.remove("update/applied_etag");
-            settings.remove("update/applied_version");
 
-            const QString msg = QStringLiteral("Rollback detected: local=%1, applied=%2")
-                                    .arg(app::meta::VERSION)
-                                    .arg(appliedVersion);
-            Log::warn(msg.toStdString());
-        }
+    qDebug() << "appliedVersion: " << appliedVersion;
+    qDebug() << "app::meta::VERSION: " << app::meta::VERSION;
+    Log::info("appliedVersion: {}", appliedVersion.toStdString());
+    Log::info("app::meta::VERSION: {}", QString(app::meta::VERSION).toStdString());
+
+    if (!appliedVersion.isEmpty() && appliedVersion != app::meta::VERSION) {
+        settings.remove("update/applied_etag");
+        settings.remove("update/applied_version");
+        settings.remove("update/pending_etag");
+        settings.remove("update/pending_version");
+
+        const QString msg = QStringLiteral("Rollback detected: local=%1, applied=%2")
+                                .arg(app::meta::VERSION)
+                                .arg(appliedVersion);
+        Log::warn(msg.toStdString());
     }
 
     const QString appliedETag = settings.get("update/applied_etag").toString();

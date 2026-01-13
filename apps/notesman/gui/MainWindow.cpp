@@ -212,7 +212,6 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 // ===================================================
 void MainWindow::setCore(NotesAppCore* core) {
     m_core = core;
-    // showInfo(tr("Database initialized successfully."));
 
     m_resourceViewService = std::make_unique<ResourceViewService>(*m_core);
 
