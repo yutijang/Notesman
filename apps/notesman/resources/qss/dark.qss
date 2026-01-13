@@ -182,6 +182,11 @@ ResultsTable QScrollBar:vertical {
     border-top: 1px solid #505050;
 }
 
+ResultsTable::item:selected:!active {
+    background: #007ACC;
+    color: white;
+}
+
 /* ======================== */
 
 QScrollBar:vertical, QScrollBar:horizontal {

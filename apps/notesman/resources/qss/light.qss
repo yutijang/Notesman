@@ -158,9 +158,9 @@ ResultsTable QHeaderView[show-last-border="false"]::section:last {
     border-right: none;
 }
 
-QTableWidget::item:selected:!active {
-    background: transparent;
-    color: inherit;
+ResultsTable::item:selected:!active {
+    background: #007ACC;
+    color: white;
 }
 
 QScrollBar:vertical, QScrollBar:horizontal {    
