@@ -278,10 +278,12 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
             if (ok) {
                 SettingsManager::instance().set("database/db_version", info.version);
 
+                const QString fileSize = QString::fromStdString(
+                    Utils::normalizationDBFileSize(static_cast<std::uint64_t>(info.size)));
                 emit onDownloadDBBtnRequest(
                     false,
                     tr("Database downloaded successfully, with size of data.db is: %1")
-                        .arg(info.size),
+                        .arg(fileSize),
                     UiConst::SettingsTabNotiLevel::good);
             } else {
                 emit onDownloadDBBtnRequest(false,
@@ -356,7 +358,7 @@ QString GoogleDriveService::calculateFileMD5(const QString &filePath) {
 }
 
 GoogleDriveService::DriveFileInfo GoogleDriveService::parseFileInfo(const QJsonObject &obj) {
-    GoogleDriveService::DriveFileInfo info;
+    DriveFileInfo info;
 
     info.id = obj["id"].toString();
     info.name = obj["name"].toString();

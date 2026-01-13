@@ -250,9 +250,7 @@ void AppInitializer::createDatabase() {
     const std::string schemaSql = schemaFile.readAll().toStdString();
     const std::string dbPathUtf8 = dbPath.toUtf8().constData();
 
-    std::string error;
-
-    if (!DatabaseCreator::create(dbPathUtf8, schemaSql, error)) {
+    if (std::string error; !DatabaseCreator::create(dbPathUtf8, schemaSql, error)) {
         Log::err("Error create database: {}", error);
         DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(error));
         return;
@@ -267,8 +265,7 @@ void AppInitializer::createDatabase() {
 AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
     DatabaseChecker checker(*m_db);
 
-    std::vector<std::string> issues;
-    if (!checker.checkIntegrity(issues)) {
+    if (std::vector<std::string> issues; !checker.checkIntegrity(issues)) {
         QString msg = tr("Database integrity check failed:\n");
         for (const auto &e : issues) { msg += QString::fromStdString(e) + "\n"; }
 
@@ -293,8 +290,7 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
     const auto verOpt = checker.getDBVersion();
     if (!verOpt.has_value()) { return InitFailureReason::getNullDBVersion; }
 
-    const int currentVersion = *verOpt;
-    if (currentVersion < app::meta::DB_VERSION) {
+    if (const int currentVersion = *verOpt; currentVersion < app::meta::DB_VERSION) {
         Log::err("Database version is outdated, current verison: {}, required version: {}",
                  currentVersion, app::meta::DB_VERSION);
         DialogUtils::showInfo(m_mainWindow.get(), tr("Incompatible Database"),
@@ -344,8 +340,7 @@ void AppInitializer::reinitializeDatabaseConnection() {
         const std::string filename = m_db->getFilename();
         m_db->open(filename);
 
-        const auto dbVerify = verifyDatabase();
-        if (dbVerify != InitFailureReason::ok) {
+        if (const auto dbVerify = verifyDatabase(); dbVerify != InitFailureReason::ok) {
             if (dbVerify == InitFailureReason::getNullDBVersion) {
                 Log::err("Error get Database version.");
             } else if (dbVerify == InitFailureReason::verifyDBCorrupted) {
@@ -383,9 +378,8 @@ void AppInitializer::checkUpdateFlag() {
         const fs::path oldAppPath(args[2].toStdString());
         const fs::path selfPath = fs::read_symlink("/proc/self/exe");
 
-        std::error_code ec;
-        if (fs::exists(oldAppPath) &&
-            fs::weakly_canonical(oldAppPath, ec) != fs::weakly_canonical(selfPath, ec)) {
+        if (std::error_code ec; fs::exists(oldAppPath) && fs::weakly_canonical(oldAppPath, ec) !=
+                                                              fs::weakly_canonical(selfPath, ec)) {
             fs::remove(oldAppPath);
         }
 
