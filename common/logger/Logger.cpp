@@ -1,4 +1,10 @@
-#include <windows.h>
+#if defined(_WIN32)
+    #include <windows.h>
+#else
+    #include <unistd.h>
+    #include <limits.h>
+#endif
+
 #include <filesystem>
 #include <mutex>
 #include <memory>
@@ -14,16 +20,30 @@ namespace {
     std::once_flag gOnce;
 
     std::filesystem::path getExeDir() {
+#if defined(_WIN32)
         wchar_t buf[MAX_PATH];
         GetModuleFileNameW(nullptr, buf, MAX_PATH);
         return std::filesystem::path(buf).parent_path();
+#else
+        char buf[PATH_MAX];
+        ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+        if (len <= 0) { return std::filesystem::current_path(); }
+        buf[len] = '\0';
+        return std::filesystem::path(buf).parent_path();
+#endif
     }
 
+#ifdef _DEBUG
     bool hasConsole() {
+    #if defined(_WIN32)
         DWORD mode{};
         HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
         return h != INVALID_HANDLE_VALUE && h != nullptr && (GetConsoleMode(h, &mode) != 0);
+    #else
+        return ::isatty(STDOUT_FILENO);
+    #endif
     }
+#endif
 } // namespace
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
