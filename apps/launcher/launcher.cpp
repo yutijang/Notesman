@@ -254,7 +254,11 @@ static void callMainCore(const wchar_t* filenameCore) {
     PROCESS_INFORMATION pi;
     zeroMemoryW(&pi, sizeof(pi));
 
+#ifdef _DEBUG
+    DWORD flags = 0; // inherit console nếu có
+#else
     DWORD flags = CREATE_NO_WINDOW | DETACHED_PROCESS;
+#endif
 
     if (CreateProcessW(nullptr, cmdLine, nullptr, nullptr, FALSE, flags, nullptr, nullptr, &si,
                        &pi) == 0) {
