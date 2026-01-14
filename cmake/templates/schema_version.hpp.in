@@ -4,6 +4,6 @@
 
 namespace app::meta {
     // clang-format off
-    inline constexpr int DB_VERSION = @DB_VERSION_VALUE@;
+    inline constexpr int SCHEMA_VERSION = @SCHEMA_VERSION_VALUE@;
     // clang-format on
 } // namespace app::meta

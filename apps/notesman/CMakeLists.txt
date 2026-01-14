@@ -34,8 +34,8 @@ configure_file(
 )
 
 configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/templates/db_version.hpp.in
-    ${NOTESMAN_GENERATED_DIR}/db_version.hpp
+    ${CMAKE_SOURCE_DIR}/cmake/templates/schema_version.hpp.in
+    ${NOTESMAN_GENERATED_DIR}/schema_version.hpp
     @ONLY
 )
 

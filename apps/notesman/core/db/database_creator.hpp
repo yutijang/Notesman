@@ -6,7 +6,7 @@
 
 #include "sqldb_raii.hpp"
 #include "Logger.hpp"
-#include "db_version.hpp"
+#include "schema_version.hpp"
 
 class DatabaseCreator {
     public:
@@ -28,7 +28,7 @@ class DatabaseCreator {
                     }
 
                     char* versionSql =
-                        sqlite3_mprintf("PRAGMA user_version = %d;", app::meta::DB_VERSION);
+                        sqlite3_mprintf("PRAGMA user_version = %d;", app::meta::SCHEMA_VERSION);
                     rc = sqlite3_exec(db.get(), versionSql, nullptr, nullptr, &errMsg);
                     sqlite3_free(versionSql);
 

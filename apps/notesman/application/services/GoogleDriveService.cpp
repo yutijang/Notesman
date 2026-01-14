@@ -211,7 +211,7 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
             }
 
             const qint64 localSavedVersion =
-                SettingsManager::instance().get("db_version").toLongLong();
+                SettingsManager::instance().get("sync/data_file_version").toLongLong();
 
             if (info.version > localSavedVersion && localSavedVersion != 0) {
                 // Chờ xử lý
@@ -227,7 +227,7 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
         auto finish = [this, info](bool success) {
             if (success) {
                 findAndGatherDatabaseFileInfo([this](const DriveFileInfo &newInfo) {
-                    SettingsManager::instance().set("database/db_version", newInfo.version);
+                    SettingsManager::instance().set("sync/data_file_version", newInfo.version);
                     emit onUploadDBBtnRequest(false, tr("Compacted and uploaded new file!"),
                                               UiConst::SettingsTabNotiLevel::good);
                     emit reconnectDBRequest();
@@ -276,7 +276,7 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
 
         downloadDatabase(info.id, [this, info](bool ok) {
             if (ok) {
-                SettingsManager::instance().set("database/db_version", info.version);
+                SettingsManager::instance().set("sync/data_file_version", info.version);
 
                 const QString fileSize = QString::fromStdString(
                     Utils::normalizationDBFileSize(static_cast<std::uint64_t>(info.size)));

@@ -44,7 +44,7 @@
 #include "AppSettings.hpp"
 #include "Logger.hpp"
 #include "file_text_content_repository.hpp"
-#include "db_version.hpp"
+#include "schema_version.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -290,9 +290,9 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
     const auto verOpt = checker.getDBVersion();
     if (!verOpt.has_value()) { return InitFailureReason::getNullDBVersion; }
 
-    if (const int currentVersion = *verOpt; currentVersion < app::meta::DB_VERSION) {
+    if (const int currentVersion = *verOpt; currentVersion < app::meta::SCHEMA_VERSION) {
         Log::err("Database version is outdated, current verison: {}, required version: {}",
-                 currentVersion, app::meta::DB_VERSION);
+                 currentVersion, app::meta::SCHEMA_VERSION);
         DialogUtils::showInfo(m_mainWindow.get(), tr("Incompatible Database"),
                               tr("Database version (%1) is outdated (Required: %2).\n\n"
                                  "To fix this problem:\n"
@@ -303,7 +303,7 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
                                  "If you have important information, please make a backup of "
                                  "data.db before deleting.")
                                   .arg(currentVersion)
-                                  .arg(app::meta::DB_VERSION));
+                                  .arg(app::meta::SCHEMA_VERSION));
 
         return InitFailureReason::dbOutdated;
     }

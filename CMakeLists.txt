@@ -6,7 +6,7 @@ foreach(line IN LISTS VERSION_LINES)
   if(line MATCHES "^APP=(.+)$")
     set(PROJECT_VERSION_VALUE "${CMAKE_MATCH_1}")
   elseif(line MATCHES "^DB=([0-9]+)$")
-    set(DB_VERSION_VALUE "${CMAKE_MATCH_1}")
+    set(SCHEMA_VERSION_VALUE "${CMAKE_MATCH_1}")
   endif()
 endforeach()
 
@@ -14,7 +14,7 @@ if(NOT DEFINED PROJECT_VERSION_VALUE)
   message(FATAL_ERROR "APP version not found in version.txt")
 endif()
 
-if(NOT DEFINED DB_VERSION_VALUE)
+if(NOT DEFINED SCHEMA_VERSION_VALUE)
   message(FATAL_ERROR "DB version not found in version.txt")
 endif()
 
