@@ -2,6 +2,7 @@
     #include <windows.h>
 #endif
 
+#include <algorithm>
 #include <memory>
 #include <fstream>
 #include <ios>
@@ -359,38 +360,46 @@ void AppInitializer::reinitializeDatabaseConnection() {
 void AppInitializer::checkUpdateFlag() {
     const QStringList args = QApplication::arguments();
 
+    if (bool isUpdateDone =
+            std::ranges::any_of(args, [](const QString &arg) { return arg == "--update-done"; });
+        !isUpdateDone) {
+        return;
+    }
+
 #if defined(Q_OS_WIN)
-    if (args.size() >= 5 && args[1] == "--update-done") { // NOLINT(readability-magic-numbers)
-
-        // arguments received from stage 2
-        // argv[1] = --update-done
-        // argv[2] = PID stage2 (process called: temp_update/updater.exxe)
-        // argv[3] = temp_update dir path
-        // argv[4] = zip path
-
-        const auto updaterPID = static_cast<DWORD>(args[2].toULongLong());
-        waitForProcessExitAsync(updaterPID, [this, args]() { handleUpdateCleanup(args); });
+    if (args.size() < 5) { // NOLINT(readability-magic-numbers)
+        return;
     }
+    // arguments received from stage 2
+    // argv[1] = --update-done
+    // argv[2] = PID stage2 (process called: temp_update/updater.exxe)
+    // argv[3] = temp_update dir path
+    // argv[4] = zip path
+
+    const auto updaterPID = static_cast<DWORD>(args[2].toULongLong());
+    waitForProcessExitAsync(updaterPID, [this, args]() {
+        handleUpdateCleanup(args);
+        saveETagOnUpdateSuccess();
+    });
 #elif defined(Q_OS_LINUX)
-    if (args.size() >= 4 && args[1] == "--update-done") {
-        namespace fs = std::filesystem;
+    if (args.size() < 4) { return; }
 
-        const fs::path oldAppPath(args[2].toStdString());
-        const fs::path selfPath = fs::read_symlink("/proc/self/exe");
+    namespace fs = std::filesystem;
 
-        if (std::error_code ec; fs::exists(oldAppPath) && fs::weakly_canonical(oldAppPath, ec) !=
-                                                              fs::weakly_canonical(selfPath, ec)) {
-            fs::remove(oldAppPath);
-        }
+    const fs::path oldAppPath(args[2].toStdString());
+    const fs::path selfPath = fs::read_symlink("/proc/self/exe");
 
-        const fs::path binPath(args[3].toStdString());
-        if (fs::exists(binPath)) { fs::remove(binPath); }
-
-        displayNotiUpdateComplete();
+    if (std::error_code ec; fs::exists(oldAppPath) && fs::weakly_canonical(oldAppPath, ec) !=
+                                                          fs::weakly_canonical(selfPath, ec)) {
+        fs::remove(oldAppPath);
     }
-#endif
 
+    const fs::path binPath(args[3].toStdString());
+    if (fs::exists(binPath)) { fs::remove(binPath); }
+
+    displayNotiUpdateComplete();
     saveETagOnUpdateSuccess();
+#endif
 }
 
 void AppInitializer::saveETagOnUpdateSuccess() {
@@ -404,6 +413,12 @@ void AppInitializer::saveETagOnUpdateSuccess() {
         pendingVersion == app::meta::VERSION) {
         settings.set("update/applied_etag", pendingETag);
         settings.set("update/applied_version", pendingVersion);
+
+        Log::info("Update applied successfully. Version: {}, ETag: {}",
+                  pendingVersion.toStdString(), pendingETag.toStdString());
+    } else {
+        Log::warn("Update mismatch: Expected {}, but binary version is {}",
+                  pendingVersion.toStdString(), QString(app::meta::VERSION).toStdString());
     }
 
     // Dù thành công hay thất bại, pending đều phải bị xóa

@@ -153,7 +153,7 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     }
 
     settings.set("update/pending_etag", pendingETag);
-    settings.set("update/pending_version", latestVersion);
+    settings.set("update/pending_version", removeVer);
 
     updateInfo->tagName = latestVersion;
 
