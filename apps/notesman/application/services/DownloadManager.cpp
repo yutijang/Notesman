@@ -9,7 +9,7 @@
 #include "Logger.hpp"
 
 DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
-    m_timeoutTimer.setInterval(30'000); // NOLINT(readability-magic-numbers)
+    m_timeoutTimer.setInterval(10'000); // NOLINT(readability-magic-numbers)
     m_timeoutTimer.setSingleShot(true);
 
     QObject::connect(&m_timeoutTimer, &QTimer::timeout, this, [this] {
@@ -24,6 +24,8 @@ DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
         if (!m_outputFile.fileName().isEmpty()) { m_outputFile.remove(); }
 
         m_timeoutTimer.stop();
+
+        Log::info("Stop download update because internet connection is too slow");
 
         emit downloadFailCauseTimeoutRequest();
         emit downloadFailed(
@@ -41,6 +43,7 @@ DownloadManager::~DownloadManager() {
 
 void DownloadManager::startDownload(const QUrl &url, const QString &outputFilePath) {
     if (m_currentReply != nullptr) {
+        Log::info("Another download is already in progress.");
         emit downloadFailed(tr("Another download is already in progress."));
         return;
     }
