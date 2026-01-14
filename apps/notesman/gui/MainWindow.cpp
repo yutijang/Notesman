@@ -517,6 +517,7 @@ void MainWindow::onDownloadStarted() {
         flags |= Qt::MSWindowsFixedSizeDialogHint;
 #endif
         m_progressDialog->setWindowFlags(flags);
+        m_progressDialog->setWindowTitle(tr("Updater"));
 
         m_progressDialog->setWindowModality(Qt::WindowModal);
         m_progressDialog->setAutoClose(true);
