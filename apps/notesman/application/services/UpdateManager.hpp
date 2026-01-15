@@ -47,8 +47,8 @@ class UpdateManager final : public QObject {
 
     private: // NOLINT(readability-redundant-access-specifiers)
         static std::optional<UpdateInfo> findAssetInfo(const QJsonDocument &qJDoc);
-        static QString normalizeVersionQt(const QString &version);
-        static int compareVersionsQt(const QString &vLocal, const QString &vRemote);
+        static QStringView normalizeVersionQt(QStringView version);
+        static int compareVersionsQt(QAnyStringView vLocal, QAnyStringView vRemote);
         static QString extractHash(const QString &digest);
 
         static UpdateInfoSummary updateInfoToSummary(const UpdateInfo &updateInfo);

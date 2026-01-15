@@ -121,13 +121,12 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     }
 
     const auto releaseObj = jsonDoc.object();
-    const QString latestVersion = releaseObj.value("tag_name").toString();
-    const QString removeVer = normalizeVersionQt(latestVersion);
-    const QString localVer = app::meta::VERSION;
+    const QStringView latestVersion = releaseObj.value("tag_name").toString();
+    const auto removeVer = normalizeVersionQt(latestVersion);
 
     auto &settings = SettingsManager::instance();
 
-    const int checkForUpdate = compareVersionsQt(localVer, removeVer);
+    const int checkForUpdate = compareVersionsQt(app::meta::VERSION, removeVer);
     // Không có cập nhật mới
     if (checkForUpdate >= 0) {
         settings.remove("update/pending_etag");
@@ -153,9 +152,9 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     }
 
     settings.set("update/pending_etag", pendingETag);
-    settings.set("update/pending_version", removeVer);
+    settings.set("update/pending_version", removeVer.toString());
 
-    updateInfo->tagName = latestVersion;
+    updateInfo->tagName = latestVersion.toString();
 
     emit updateAvailable(updateInfoToSummary(*updateInfo));
 }
@@ -200,25 +199,22 @@ std::optional<UpdateManager::UpdateInfo> UpdateManager::findAssetInfo(const QJso
     return downloadInfo;
 }
 
-QString UpdateManager::normalizeVersionQt(const QString &version) {
-    if (version.startsWith("v", Qt::CaseInsensitive)) { return version.mid(1); }
+QStringView UpdateManager::normalizeVersionQt(QStringView version) {
+    if (version.startsWith(u'v', Qt::CaseInsensitive)) { return version.mid(1); }
     return version;
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-int UpdateManager::compareVersionsQt(const QString &vLocal, const QString &vRemote) {
-    QVersionNumber localVersion = QVersionNumber::fromString(vLocal);
-    QVersionNumber remoteVersion = QVersionNumber::fromString(vRemote);
+int UpdateManager::compareVersionsQt(QAnyStringView vLocal, QAnyStringView vRemote) {
+    const auto localVersion = QVersionNumber::fromString(vLocal);
+    const auto remoteVersion = QVersionNumber::fromString(vRemote);
 
     if (localVersion.isNull() || remoteVersion.isNull()) {
-        Log::err("Invalid version format");
+        Log::err("Invalid version format, local: {}, remote: {}", vLocal.toString().toStdString(),
+                 vRemote.toString().toStdString());
         return 0;
     }
 
-    if (localVersion < remoteVersion) { return -1; }
-    if (localVersion > remoteVersion) { return 1; }
-
-    return 0;
+    return QVersionNumber::compare(localVersion, remoteVersion);
 }
 
 QString UpdateManager::extractHash(const QString &digest) {
