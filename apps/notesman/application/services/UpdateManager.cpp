@@ -121,7 +121,7 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     }
 
     const auto releaseObj = jsonDoc.object();
-    const QStringView latestVersion = releaseObj.value("tag_name").toString();
+    const QString latestVersion = releaseObj.value("tag_name").toString();
     const auto removeVer = normalizeVersionQt(latestVersion);
 
     auto &settings = SettingsManager::instance();
@@ -154,7 +154,7 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     settings.set("update/pending_etag", pendingETag);
     settings.set("update/pending_version", removeVer.toString());
 
-    updateInfo->tagName = latestVersion.toString();
+    updateInfo->tagName = latestVersion;
 
     emit updateAvailable(updateInfoToSummary(*updateInfo));
 }
