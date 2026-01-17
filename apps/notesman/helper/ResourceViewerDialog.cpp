@@ -187,7 +187,6 @@ void ResourceViewerDialog::setupActions() {
     rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     toolbar->addWidget(rightSpacer);
 
-    // NOLINTNEXTLINE (-Wswitch-default)
     switch (m_type) {
         case ResourceType::plainText:
             m_editor->setReadOnly(false);

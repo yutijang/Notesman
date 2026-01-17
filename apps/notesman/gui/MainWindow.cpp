@@ -383,8 +383,6 @@ void MainWindow::retranslateUi() {
     // ========= AppController =========
     m_appController->updateTranslatedStrings();
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch-default"
     // Dịch lại thông báo đang hiển thị (nếu còn hiệu lực)
     switch (m_settingsMessageState) {
         case UiConst::SettingsMessageState::updated:
@@ -397,7 +395,6 @@ void MainWindow::retranslateUi() {
             break;
         case UiConst::SettingsMessageState::none: break;
     }
-#pragma clang diagnostic pop
     // =================================
 }
 

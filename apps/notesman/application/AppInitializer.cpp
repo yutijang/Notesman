@@ -122,7 +122,7 @@ void AppInitializer::run() {
 
     const auto initCheck = initializeCore();
     if (initCheck != InitFailureReason::ok) {
-        switch (initCheck) {            // NOLINT (-Wswitch-default)
+        switch (initCheck) {
             case InitFailureReason::ok: // clang(-Wswitch)
             case InitFailureReason::userCancelled: break;
             case InitFailureReason::openFailed   : Log::err("Failed to open database file."); break;

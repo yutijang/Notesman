@@ -21,7 +21,7 @@
 
 namespace {
     QString pathForType(ResourceType type) noexcept {
-        switch (type) { // NOLINT (-Wswitch-default)
+        switch (type) {
             case ResourceType::plainText: return QStringLiteral(":/icons/type-text.svg");
             case ResourceType::cCppCode : return QStringLiteral(":/icons/type-cpp.svg");
             case ResourceType::htmlDoc  : return QStringLiteral(":/icons/type-html.svg");
