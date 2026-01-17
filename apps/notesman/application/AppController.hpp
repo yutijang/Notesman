@@ -93,6 +93,7 @@ class AppController final : public QObject {
 
     public slots:
         void handleGetAllDataRequest();
+        void handleLoadResourceByTypeRequest(ResourceType type);
         void handleDefaultSettingsRequest();
         void handleApplySettingsRequest(const SettingsData &data);
         void handleAddNoteRequest(const QString &title, const QString &textContent,
@@ -108,7 +109,10 @@ class AppController final : public QObject {
 
         void handleGetDBInfoRequested();
 
-    private:
+    private slots:
+        void displayInfoGMUserLinked(const QString &email);
+
+    private: // NOLINT(readability-redundant-access-specifiers)
         void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;
         void finalizeUnlink();
 

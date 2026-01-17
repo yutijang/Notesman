@@ -187,17 +187,7 @@ void AppController::oauthManager() {
 
         if (m_oauthManager != nullptr) {
             QObject::connect(m_oauthManager.get(), &OAuthManager::gmailLinked, this,
-                             [this](const QString &email) {
-                                 m_currentLinkedEmail = email;
-
-                                 const auto htmlTextEmail =
-                                     tr("Hello, ") +
-                                     QString("<span style=\"color:%1;\"><i>%2</i></span>")
-                                         .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8",
-                                              m_currentLinkedEmail);
-
-                                 emit gmailLinkedForView(htmlTextEmail);
-                             });
+                             &AppController::displayInfoGMUserLinked);
             QObject::connect(m_oauthManager.get(), &OAuthManager::gmailUnlinked, this,
                              &AppController::gmailUnlinked);
 
@@ -238,7 +228,7 @@ void AppController::oauthManager() {
 void AppController::handleGetAllDataRequest() {
     if (m_core == nullptr) { return; }
 
-    const auto &allRes = m_core->getAllUnified();
+    auto allRes = m_core->getAllUnified();
     if (allRes.empty()) {
         if (m_mainWindow != nullptr) {
             m_mainWindow->updateStatus(tr("Database is empty"));
@@ -247,6 +237,20 @@ void AppController::handleGetAllDataRequest() {
     }
 
     emit displayResultForGetAll(allRes);
+}
+
+void AppController::handleLoadResourceByTypeRequest(ResourceType type) {
+    if (m_core == nullptr) { return; }
+
+    auto res = m_core->getAllResourcesByType(type);
+    if (res.empty()) {
+        if (m_mainWindow != nullptr) {
+            m_mainWindow->updateStatus(tr("Database is empty"));
+            return;
+        }
+    }
+
+    emit displayResultForGetAll(res);
 }
 
 void AppController::handleDefaultSettingsRequest() {
@@ -492,4 +496,14 @@ void AppController::updateTranslatedStrings() {
 
 void AppController::handleGetDBInfoRequested() {
     if (m_GDService != nullptr) { m_GDService->getDBInfo(); }
+}
+
+void AppController::displayInfoGMUserLinked(const QString &email) {
+    m_currentLinkedEmail = email;
+
+    const auto htmlTextEmail =
+        tr("Hello, ") + QString("<span style=\"color:%1;\"><i>%2</i></span>")
+                            .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
+
+    emit gmailLinkedForView(htmlTextEmail);
 }

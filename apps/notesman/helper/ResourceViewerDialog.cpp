@@ -207,6 +207,7 @@ void ResourceViewerDialog::setupActions() {
             actionReload->setEnabled(false);
             break;
         case ResourceType::unknown:
+        case ResourceType::count:
             m_editor->setReadOnly(false);
             actionSave->setEnabled(false);
             actionReload->setEnabled(false);

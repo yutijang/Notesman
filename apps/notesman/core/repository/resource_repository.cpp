@@ -1,3 +1,4 @@
+#include <ranges>
 #include <stdexcept>
 #include <optional>
 #include <string>
@@ -17,8 +18,10 @@ sqlite3_int64 ResourceRepository::insert(const Resource &res) {
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT),
                       m_db.get());
 
-    const char* typeStr = resourceTypeToString(res.type);
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, typeStr, -1, SQLITE_TRANSIENT), m_db.get());
+    const auto typeStr = resourceTypeToString(res.type);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, typeStr.data(),
+                                        static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
+                      m_db.get());
 
     if (res.type == ResourceType::plainText || res.file_hash.empty()) {
         sqlite::checkBind(sqlite3_bind_null(stmt.get(), 3), m_db.get());
@@ -134,9 +137,11 @@ void ResourceRepository::update(const Resource &res) {
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT),
                       m_db.get());
-    sqlite::checkBind(
-        sqlite3_bind_text(stmt.get(), 2, resourceTypeToString(res.type), -1, SQLITE_TRANSIENT),
-        m_db.get());
+
+    const auto typeStr = resourceTypeToString(res.type);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, typeStr.data(),
+                                        static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
+                      m_db.get());
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 3, res.id), m_db.get());
     sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "Update");
 }
@@ -203,9 +208,11 @@ bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, title.data(), static_cast<int>(title.size()),
                                         SQLITE_TRANSIENT),
                       m_db.get());
-    sqlite::checkBind(
-        sqlite3_bind_text(stmt.get(), 2, resourceTypeToString(type), -1, SQLITE_TRANSIENT),
-        m_db.get());
+
+    const auto typeStr = resourceTypeToString(type);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, typeStr.data(),
+                                        static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
+                      m_db.get());
 
     if (stmt.step() == SQLITE_ROW) { return sqlite3_column_int(stmt.get(), 0) != 0; }
 
@@ -392,4 +399,56 @@ Resource ResourceRepository::resourceFromStmt(SQLiteStmt &stmt) {
     res.updated_at = stmt.getColumnText(5); // NOLINT(readability-magic-numbers)
 
     return res;
+}
+
+std::vector<UnifiedSearchResult> ResourceRepository::getAllResourcesByType(ResourceType type) {
+    static constexpr const char* sql = R"(
+        SELECT r.id, r.title, r.updated_at,
+            GROUP_CONCAT(t.name, ', ') AS tag_list
+        FROM resources AS r
+        LEFT JOIN resource_tags AS rt
+            ON rt.resource_id = r.id
+        LEFT JOIN tags AS t
+            ON t.id = rt.tag_id
+        WHERE r.type = ?
+        GROUP BY r.id
+        ORDER BY r.updated_at DESC;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    const auto typeStr = resourceTypeToString(type);
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, typeStr.data(),
+                                        static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
+                      m_db.get());
+
+    std::vector<UnifiedSearchResult> results;
+    int rc{};
+    while ((rc = stmt.step()) == SQLITE_ROW) {
+        UnifiedSearchResult item{};
+
+        item.res.id = stmt.getColumnInt64(0);
+        item.res.title = stmt.getColumnText(1);
+        item.res.type = type;
+        item.res.updated_at = stmt.getColumnText(2);
+
+        if (std::string tagStr = stmt.getColumnText(3); !tagStr.empty()) {
+            item.tags = splitTags(tagStr, ", ");
+        }
+
+        results.push_back(std::move(item));
+    }
+
+    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "getAllResourcesByType");
+
+    return results;
+}
+
+std::vector<std::string> ResourceRepository::splitTags(std::string_view s,
+                                                       std::string_view delimiter) {
+    auto view =
+        s | std::ranges::views::split(std::string_view{delimiter}) |
+        std::ranges::views::transform([](auto &&r) { return std::string(r.begin(), r.end()); });
+
+    return {view.begin(), view.end()};
 }

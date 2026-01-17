@@ -307,3 +307,14 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
 void ResourceService::updateText(sqlite3_int64 resourceId, std::string_view newText) {
     m_textRepo.updateText(resourceId, newText);
 }
+
+std::vector<UnifiedSearchResult> ResourceService::getAllResourcesByType(ResourceType type) {
+    auto out = m_resRepo.getAllResourcesByType(type);
+
+    for (auto &res : out) {
+        res.displaySubText = res.res.updated_at + " Tags: " + Utils::joinTags(res.tags);
+        res.flags = ResourceFlags::none;
+    }
+
+    return out;
+}

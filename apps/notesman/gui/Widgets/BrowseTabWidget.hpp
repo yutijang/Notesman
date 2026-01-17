@@ -13,6 +13,7 @@ class QPushButton;
 class QLabel;
 class QRadioButton;
 class ResultsTable;
+class QComboBox;
 
 class BrowseTabWidget final : public QWidget {
         Q_OBJECT
@@ -35,7 +36,9 @@ class BrowseTabWidget final : public QWidget {
         void contextMenuRequested(const QPoint &pos, int id, ResourceType type,
                                   const QString &title, const QString &path);
         void statusUpdateRequest(const QString &msg, int timeout);
-        void getAllDataRequested();
+        void loadAllDataRequested();
+
+        void loadResourceByTypeRequested(ResourceType type);
 
     public slots:
         void handleResultsSearchRequested(const std::vector<UnifiedSearchResult> &results);
@@ -60,6 +63,21 @@ class BrowseTabWidget final : public QWidget {
         void onCellDoubleClicked(int row);
         void onCustomContextMenuRequested(const QPoint &pos);
 
+        static ResourceType currentResourceType(const QComboBox* combo);
+        static void populateResourceTypeCombo(QComboBox* combo);
+
+        static QString resourceTypeToDisplayText(ResourceType type);
+
+        // Group search layout
+        QHBoxLayout* setupSearchInpLayoutGroup();
+        QHBoxLayout* setupRadioLayoutGroup();
+
+        // Group utility
+        QWidget* setuputilityContainerGroup();
+
+        // Group result table
+        void setupResultTableGroup();
+
         QLineEdit* m_searchInp{};
         QPushButton* m_searchBtn{};
         QLabel* m_searchByLbl{};
@@ -68,8 +86,10 @@ class BrowseTabWidget final : public QWidget {
         QRadioButton* m_tagRad{};
         QRadioButton* m_allRad{};
         ResultsTable* m_resultsTbl{};
+        QComboBox* m_getResTypeCom{};
+        QPushButton* m_loadResTypeBtn{};
 
         // Group
         QPushButton* m_clearTableBtn{};
-        QPushButton* m_getAllBtn{};
+        QPushButton* m_loadAllBtn{};
 };

@@ -81,6 +81,8 @@ class NotesAppCore {
         [[nodiscard]] bool isFileIndexed(const std::filesystem::path &filepath) const;
         static std::string computeFileHash(const std::filesystem::path &filePath);
 
+        std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);
+
     private:
         SQLiteDB &m_db;
         ResourceRepository &m_resRepo;

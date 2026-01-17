@@ -112,3 +112,7 @@ bool NotesAppCore::isFileIndexed(const std::filesystem::path &filepath) const {
 std::string NotesAppCore::computeFileHash(const std::filesystem::path &filePath) {
     return FileService::computeFileHash(filePath);
 }
+
+std::vector<UnifiedSearchResult> NotesAppCore::getAllResourcesByType(ResourceType type) {
+    return m_resService.getAllResourcesByType(type);
+}

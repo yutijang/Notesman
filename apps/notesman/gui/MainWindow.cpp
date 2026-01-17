@@ -288,8 +288,10 @@ void MainWindow::setAppController(AppController* controller) {
 
     QObject::connect(this, &MainWindow::settingsUiRefreshRequest, m_settingsTab,
                      &SettingsTabWidget::handleUiRefreshRequest);
-    QObject::connect(m_browseTab, &BrowseTabWidget::getAllDataRequested, m_appController,
+    QObject::connect(m_browseTab, &BrowseTabWidget::loadAllDataRequested, m_appController,
                      &AppController::handleGetAllDataRequest);
+    QObject::connect(m_browseTab, &BrowseTabWidget::loadResourceByTypeRequested, m_appController,
+                     &AppController::handleLoadResourceByTypeRequest);
     QObject::connect(m_appController, &AppController::displayResultForGetAll, m_browseTab,
                      &BrowseTabWidget::displayResults);
     QObject::connect(m_settingsTab, &SettingsTabWidget::defaultSettingsRequested, m_appController,

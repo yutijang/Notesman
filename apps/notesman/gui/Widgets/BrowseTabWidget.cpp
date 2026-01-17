@@ -19,6 +19,7 @@
 #include <QObject>
 #include <QTableWidget>
 #include <QtGlobal>
+#include <QComboBox>
 
 #include "BrowseTabWidget.hpp"
 #include "Logger.hpp"
@@ -43,79 +44,14 @@ void BrowseTabWidget::setupUI() {
     searchGroupLayout->setSpacing(5);          // NOLINT(readability-magic-numbers)
     searchGroupLayout->setContentsMargins(0, 0, 0, 0);
 
-    auto* searchInpLayout = new QHBoxLayout();
-    m_searchInp = new QLineEdit();
-    m_searchInp->setPlaceholderText(tr("Enter keyword..."));
-    m_searchBtn = new QPushButton(tr("Search"));
-    m_searchBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    m_searchInp->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    m_searchBtn->setIcon(QIcon(":/icons/search_button.ico"));
-    searchInpLayout->addWidget(m_searchInp);
-    searchInpLayout->addWidget(m_searchBtn);
-    searchInpLayout->setSpacing(3);
-    searchGroupLayout->addLayout(searchInpLayout);
-
-    auto* radioLayout = new QHBoxLayout();
-    radioLayout->addStretch(1);
-    m_searchByLbl = new QLabel(tr("Search by: "));
-    m_titleRad = new QRadioButton(tr("Title"));
-    m_contentRad = new QRadioButton(tr("Content"));
-    m_tagRad = new QRadioButton("Tag");
-    m_allRad = new QRadioButton(tr("All"));
-    m_titleRad->setChecked(true);
-    auto* searchByGroup = new QButtonGroup(this);
-    searchByGroup->addButton(m_titleRad);
-    searchByGroup->addButton(m_contentRad);
-    searchByGroup->addButton(m_tagRad);
-    searchByGroup->addButton(m_allRad);
-    radioLayout->addWidget(m_searchByLbl);
-    radioLayout->addWidget(m_titleRad);
-    radioLayout->addWidget(m_contentRad);
-    radioLayout->addWidget(m_tagRad);
-    radioLayout->addWidget(m_allRad);
-    radioLayout->setSpacing(20); // NOLINT(readability-magic-numbers)
-    radioLayout->addStretch(1);
-    searchGroupLayout->addLayout(radioLayout);
+    searchGroupLayout->addLayout(setupSearchInpLayoutGroup());
+    searchGroupLayout->addLayout(setupRadioLayoutGroup());
     searchGroupLayout->addStretch(1);
 
-    // Group ======
-    auto* utilityGroupLayout = new QVBoxLayout();
-    auto* utilityBox = new QGroupBox();
-    utilityBox->setMinimumSize(0, 108);               // NOLINT(readability-magic-numbers)
-
-    auto* utilityBoxLayout = new QVBoxLayout(utilityBox);
-    utilityBoxLayout->setSpacing(5);                  // NOLINT(readability-magic-numbers)
-    utilityBoxLayout->setContentsMargins(5, 5, 5, 5); // NOLINT(readability-magic-numbers)
-
-    m_clearTableBtn = new QPushButton(tr("Clear"));
-    m_clearTableBtn->setMinimumWidth(UiConst::BUTTON_WIDTH);
-    utilityBoxLayout->addWidget(m_clearTableBtn, 0, Qt::AlignCenter);
-    m_getAllBtn = new QPushButton(tr("Get All"));
-    m_getAllBtn->setMinimumWidth(UiConst::BUTTON_WIDTH);
-    utilityBoxLayout->addWidget(m_getAllBtn, 0, Qt::AlignCenter);
-    utilityBoxLayout->addStretch(1);
-
-    utilityGroupLayout->addWidget(utilityBox);
-    utilityGroupLayout->addStretch(1);
-    // Group ======
-
     topLayout->addLayout(searchGroupLayout, 2);
-    topLayout->addLayout(utilityGroupLayout, 3);
+    topLayout->addWidget(setuputilityContainerGroup(), 3);
 
-    m_resultsTbl = new ResultsTable(this);
-    m_resultsTbl->verticalHeader()->setDefaultSectionSize(48); // NOLINT(readability-magic-numbers)
-    m_resultsTbl->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    m_resultsTbl->setContextMenuPolicy(Qt::CustomContextMenu);
-    m_resultsTbl->setColumnCount(2);
-    m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title")});
-    m_resultsTbl->horizontalHeader()->setStretchLastSection(true);
-    m_resultsTbl->verticalHeader()->setVisible(false);
-    m_resultsTbl->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    m_resultsTbl->setColumnWidth(0, 50); // NOLINT(readability-magic-numbers)
-    m_resultsTbl->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_resultsTbl->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_resultsTbl->setSortingEnabled(true);
-    m_resultsTbl->setItemDelegateForColumn(1, new ResourceTitleDelegate(m_resultsTbl));
+    setupResultTableGroup();
 
     mainLayout->addLayout(topLayout);
     mainLayout->addWidget(m_resultsTbl, 1);
@@ -136,8 +72,12 @@ void BrowseTabWidget::setupConnections() {
     QObject::connect(m_clearTableBtn, &QPushButton::clicked, this,
                      &BrowseTabWidget::onClearButtonClicked);
 
-    QObject::connect(m_getAllBtn, &QPushButton::clicked, this,
-                     &BrowseTabWidget::getAllDataRequested);
+    QObject::connect(m_loadAllBtn, &QPushButton::clicked, this,
+                     &BrowseTabWidget::loadAllDataRequested);
+
+    QObject::connect(m_loadResTypeBtn, &QPushButton::clicked, [this] {
+        emit loadResourceByTypeRequested(currentResourceType(m_getResTypeCom));
+    });
 }
 
 void BrowseTabWidget::retranslateUi() {
@@ -150,8 +90,11 @@ void BrowseTabWidget::retranslateUi() {
 
     m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title")});
 
+    m_loadResTypeBtn->setText(tr("Load"));
+    m_loadAllBtn->setText(tr("Load All"));
     m_clearTableBtn->setText(tr("Clear"));
-    m_getAllBtn->setText(tr("Get All"));
+
+    populateResourceTypeCombo(m_getResTypeCom);
 }
 
 void BrowseTabWidget::updateColumnWidths() {
@@ -287,7 +230,7 @@ void BrowseTabWidget::onClearButtonClicked() {
 }
 
 void BrowseTabWidget::onGetAllButtonClicked() {
-    emit getAllDataRequested();
+    emit loadAllDataRequested();
 }
 
 void BrowseTabWidget::onSearchButtonClicked() {
@@ -307,4 +250,126 @@ void BrowseTabWidget::handleResultsSearchRequested(
     const std::vector<UnifiedSearchResult> &results) {
     displayResults(results);
     updateColumnWidths();
+}
+
+ResourceType BrowseTabWidget::currentResourceType(const QComboBox* combo) {
+    return static_cast<ResourceType>(combo->currentData().toInt());
+}
+
+void BrowseTabWidget::populateResourceTypeCombo(QComboBox* combo) {
+    combo->clear();
+
+    for (const auto &meta : K_RESOURCE_TYPE_TABLE) {
+        combo->addItem(resourceTypeToDisplayText(meta.type), static_cast<int>(meta.type));
+    }
+}
+
+// Group searchInpLayout
+QHBoxLayout* BrowseTabWidget::setupSearchInpLayoutGroup() {
+    auto* searchInpLayout = new QHBoxLayout();
+
+    m_searchInp = new QLineEdit();
+    m_searchInp->setPlaceholderText(tr("Enter keyword..."));
+    m_searchBtn = new QPushButton(tr("Search"));
+    m_searchBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    m_searchInp->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    m_searchBtn->setIcon(QIcon(":/icons/search_button.ico"));
+    searchInpLayout->addWidget(m_searchInp);
+    searchInpLayout->addWidget(m_searchBtn);
+    searchInpLayout->setSpacing(3);
+
+    return searchInpLayout;
+}
+
+// Radio search group
+QHBoxLayout* BrowseTabWidget::setupRadioLayoutGroup() {
+    auto* radioLayout = new QHBoxLayout();
+
+    radioLayout->addStretch(1);
+    m_searchByLbl = new QLabel(tr("Search by: "));
+    m_titleRad = new QRadioButton(tr("Title"));
+    m_contentRad = new QRadioButton(tr("Content"));
+    m_tagRad = new QRadioButton("Tag");
+    m_allRad = new QRadioButton(tr("All"));
+    m_titleRad->setChecked(true);
+    auto* searchByGroup = new QButtonGroup(this);
+    searchByGroup->addButton(m_titleRad);
+    searchByGroup->addButton(m_contentRad);
+    searchByGroup->addButton(m_tagRad);
+    searchByGroup->addButton(m_allRad);
+    radioLayout->addWidget(m_searchByLbl);
+    radioLayout->addWidget(m_titleRad);
+    radioLayout->addWidget(m_contentRad);
+    radioLayout->addWidget(m_tagRad);
+    radioLayout->addWidget(m_allRad);
+    radioLayout->setSpacing(20); // NOLINT(readability-magic-numbers)
+    radioLayout->addStretch(1);
+
+    return radioLayout;
+}
+
+QWidget* BrowseTabWidget::setuputilityContainerGroup() {
+    auto* utilityContainer = new QWidget();
+
+    auto* utilityLayout = new QVBoxLayout(utilityContainer);
+    utilityLayout->setSpacing(8);                   // NOLINT(readability-magic-numbers)
+    utilityLayout->setContentsMargins(30, 0, 0, 5); // NOLINT(readability-magic-numbers)
+
+    auto* getResGroupLayout = new QHBoxLayout();
+    m_getResTypeCom = new QComboBox();
+    m_getResTypeCom->setMinimumWidth(150); // NOLINT(readability-magic-numbers)
+    populateResourceTypeCombo(m_getResTypeCom);
+
+    m_loadResTypeBtn = new QPushButton(tr("Load"));
+    m_loadResTypeBtn->setMinimumWidth(UiConst::BUTTON_WIDTH);
+    m_loadAllBtn = new QPushButton(tr("Load All"));
+    m_loadAllBtn->setMinimumWidth(UiConst::BUTTON_WIDTH);
+    m_clearTableBtn = new QPushButton(tr("Clear"));
+    m_clearTableBtn->setMinimumWidth(UiConst::BUTTON_WIDTH);
+
+    m_getResTypeCom->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    m_loadResTypeBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+
+    getResGroupLayout->addWidget(m_getResTypeCom);
+    getResGroupLayout->addWidget(m_loadResTypeBtn);
+    getResGroupLayout->addWidget(m_loadAllBtn);
+    getResGroupLayout->addWidget(m_clearTableBtn);
+    getResGroupLayout->addStretch(1);
+
+    utilityLayout->addLayout(getResGroupLayout);
+    utilityLayout->addStretch(1);
+
+    return utilityContainer;
+}
+
+void BrowseTabWidget::setupResultTableGroup() {
+    m_resultsTbl = new ResultsTable(this);
+    m_resultsTbl->verticalHeader()->setDefaultSectionSize(48); // NOLINT(readability-magic-numbers)
+    m_resultsTbl->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    m_resultsTbl->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_resultsTbl->setColumnCount(2);
+    m_resultsTbl->setHorizontalHeaderLabels({tr("No."), tr("Title")});
+    m_resultsTbl->horizontalHeader()->setStretchLastSection(true);
+    m_resultsTbl->verticalHeader()->setVisible(false);
+    m_resultsTbl->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    m_resultsTbl->setColumnWidth(0, 50); // NOLINT(readability-magic-numbers)
+    m_resultsTbl->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_resultsTbl->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_resultsTbl->setSortingEnabled(true);
+    m_resultsTbl->setItemDelegateForColumn(1, new ResourceTitleDelegate(m_resultsTbl));
+}
+
+QString BrowseTabWidget::resourceTypeToDisplayText(ResourceType type) {
+    switch (type) {
+        case ResourceType::plainText: return tr("Text");
+        case ResourceType::cCppCode : return tr("C/C++ Code");
+        case ResourceType::htmlDoc  : return tr("HTML Document");
+        case ResourceType::pdfDoc   : return tr("PDF Document");
+        case ResourceType::epubDoc  : return tr("EPUB Document");
+        case ResourceType::unknown  :
+        case ResourceType::count    : break;
+    }
+
+    Q_ASSERT(false);
+    return {};
 }

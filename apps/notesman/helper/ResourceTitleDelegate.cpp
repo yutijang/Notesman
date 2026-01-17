@@ -27,7 +27,8 @@ namespace {
             case ResourceType::htmlDoc  : return QStringLiteral(":/icons/type-html.svg");
             case ResourceType::pdfDoc   : return QStringLiteral(":/icons/type-pdf.svg");
             case ResourceType::epubDoc  : return QStringLiteral(":/icons/type-epub.svg");
-            case ResourceType::unknown  : break;
+            case ResourceType::unknown  :
+            case ResourceType::count    : break;
         }
         return {};
     }

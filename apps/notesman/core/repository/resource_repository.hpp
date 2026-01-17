@@ -39,8 +39,11 @@ class ResourceRepository {
         void updateFileHash(sqlite3_int64 resourceID, std::string_view hash);
         [[nodiscard]] bool existsTitle(std::string_view title, ResourceType type) const;
 
+        std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);
+
     private:
         static Resource resourceFromStmt(SQLiteStmt &stmt);
+        static std::vector<std::string> splitTags(std::string_view s, std::string_view delimiter);
 
         SQLiteDB &m_db;
 };

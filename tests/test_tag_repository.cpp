@@ -56,7 +56,10 @@ namespace {
         SQLiteStmt stmt(db.get(), "INSERT INTO resources (title, type) VALUES (?, ?);");
 
         sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt.get(), 2, resourceTypeToString(res.type), -1, SQLITE_TRANSIENT);
+
+        const auto typeStr = resourceTypeToString(res.type);
+        sqlite3_bind_text(stmt.get(), 2, typeStr.data(), static_cast<int>(typeStr.size()),
+                          SQLITE_TRANSIENT);
 
         REQUIRE(stmt.step() == SQLITE_DONE);
 

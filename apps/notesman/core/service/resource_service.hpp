@@ -66,6 +66,8 @@ class ResourceService {
         std::vector<Resource> getResourcesByTag(const std::string &tag);
         std::vector<UnifiedSearchResult> getFullResourcesByTag(const std::string &tag);
 
+        std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);
+
         // ========= Utility =========
         [[nodiscard]] bool isExistTitle(std::string_view title, ResourceType type) const;
 

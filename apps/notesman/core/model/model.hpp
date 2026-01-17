@@ -10,6 +10,8 @@
 #include <optional>
 #include <utility>
 #include <filesystem>
+#include <array>
+#include <cassert>
 #include <sqlite3.h>
 
 #include "helper.hpp"
@@ -21,59 +23,54 @@ enum class ResourceType : std::uint8_t {
     cCppCode,  //> text thuần dạng file / snippet / mã nguồn C/C++ (QTextEdit + highlight)
     htmlDoc,   //> .html (WebView)
     pdfDoc,    //> .pdf (PDF viewer)
-    epubDoc    //> .epub (Epub viewer)
+    epubDoc,   //> .epub (Epub viewer)
+    count
 };
 
-[[nodiscard]] inline const char* resourceTypeToString(ResourceType type) noexcept {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch-default"
-    switch (type) {
-        case ResourceType::plainText: return "text";
-        case ResourceType::cCppCode : return "cpp";
-        case ResourceType::htmlDoc  : return "html";
-        case ResourceType::pdfDoc   : return "pdf";
-        case ResourceType::epubDoc  : return "epub";
-        case ResourceType::unknown  : break;
+struct ResourceTypeMeta {
+        ResourceType type;
+        std::string_view key;
+};
+
+inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceType::count) - 1>
+    K_RESOURCE_TYPE_TABLE{
+        {{.type = ResourceType::plainText, .key = "text"},
+         {.type = ResourceType::cCppCode, .key = "cpp"},
+         {.type = ResourceType::htmlDoc, .key = "html"},
+         {.type = ResourceType::pdfDoc, .key = "pdf"},
+         {.type = ResourceType::epubDoc, .key = "epub"}}
+};
+
+[[nodiscard]] inline std::string_view resourceTypeToString(ResourceType type) noexcept {
+    for (const auto &m : K_RESOURCE_TYPE_TABLE) {
+        if (m.type == type) { return m.key; }
     }
-#pragma clang diagnostic pop
-    std::unreachable(); // compiler hiểu: chỗ này không bao giờ tới
-    // Dùng để tối ưu và cảnh báo logic
-    //     Khi compiler biết “điểm này không thể tới được”,
-    //     nó có thể :
-    //     Bỏ sinh mã máy không cần
-    //     thiết(optimization hint)
-    //         Báo warning nếu có nhánh nào thực tế có thể tới(vì logic sai)
-    //             Tránh phải “return fallback” giả(như return {}; hay return 0;)
+    assert(false && "Invalid ResourceType");
+    std::unreachable();
 }
 
 [[nodiscard]] inline ResourceType resourceTypeFromString(std::string_view str) {
-    if (str == "text") { return ResourceType::plainText; }
-    if (str == "cpp") { return ResourceType::cCppCode; }
-    if (str == "html") { return ResourceType::htmlDoc; }
-    if (str == "pdf") { return ResourceType::pdfDoc; }
-    if (str == "epub") { return ResourceType::epubDoc; }
-    throw std::runtime_error(std::format("Unknown ResourceType string: {}", str));
+    for (const auto &m : K_RESOURCE_TYPE_TABLE) {
+        if (m.key == str) { return m.type; }
+    }
+    throw std::runtime_error(std::format("Unknown ResourceType: {}", str));
 }
 
 [[nodiscard]] inline std::optional<ResourceType> resourceTypeFromExtension(std::string_view ext) {
-    const auto &extMap = []() -> const std::unordered_map<std::string_view, ResourceType> & {
-        static const auto* map = new std::unordered_map<std::string_view, ResourceType>{
-            { "txt", ResourceType::cCppCode},
-            {   "c", ResourceType::cCppCode},
-            { "cpp", ResourceType::cCppCode},
-            {   "h", ResourceType::cCppCode},
-            { "hpp", ResourceType::cCppCode},
-            { "cxx", ResourceType::cCppCode},
-            { "hxx", ResourceType::cCppCode},
-            {"html",  ResourceType::htmlDoc},
-            { "pdf",   ResourceType::pdfDoc},
-            {"epub",  ResourceType::epubDoc}
-        };
-        return *map;
-    }();
+    static const std::unordered_map<std::string_view, ResourceType> extMap{
+        { "txt", ResourceType::plainText},
+        {   "c",  ResourceType::cCppCode},
+        { "cpp",  ResourceType::cCppCode},
+        {   "h",  ResourceType::cCppCode},
+        { "hpp",  ResourceType::cCppCode},
+        { "cxx",  ResourceType::cCppCode},
+        { "hxx",  ResourceType::cCppCode},
+        {"html",   ResourceType::htmlDoc},
+        { "pdf",    ResourceType::pdfDoc},
+        {"epub",   ResourceType::epubDoc}
+    };
 
     if (auto it = extMap.find(ext); it != extMap.end()) { return it->second; }
-
     return std::nullopt;
 }
 
@@ -106,6 +103,7 @@ struct FileEntry {
         bool is_managed{};
 };
 
+// Bitmask
 enum class ResourceFlags : std::uint8_t {
     none = 0,
 
@@ -130,6 +128,10 @@ constexpr ResourceFlags operator|(ResourceFlags a, ResourceFlags b) {
 
 constexpr ResourceFlags operator&(ResourceFlags a, ResourceFlags b) {
     return static_cast<ResourceFlags>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b));
+}
+
+constexpr ResourceFlags operator~(ResourceFlags v) {
+    return static_cast<ResourceFlags>(~static_cast<std::uint8_t>(v));
 }
 
 constexpr ResourceFlags &operator|=(ResourceFlags &lhs, ResourceFlags rhs) noexcept {
