@@ -110,6 +110,8 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter/cpphighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter/CodeEditorLineHighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput/TagInput.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer/IResourceViewer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer/TextViewer.cpp
 )
 
 set(HELPER_SOURCES
@@ -145,6 +147,7 @@ target_include_directories(notes-app-lib-core
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer
     ${CMAKE_CURRENT_SOURCE_DIR}/helper
     ${NOTESMAN_GENERATED_DIR} # OAuth config include dir
 )

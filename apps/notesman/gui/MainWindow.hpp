@@ -107,7 +107,7 @@ class MainWindow : public QMainWindow {
         void setupAddTab();
         void setupSettingsTab();
         void setupIconInfo();
-        void viewPlaintextResource(int id, ResourceType type, const QString &title);
+        void viewResource(int id, ResourceType type, const QString &title, const QString &path);
         void showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
                              const QString &path);
         static void removeSelectedRowsFromTable(ResultsTable* table,

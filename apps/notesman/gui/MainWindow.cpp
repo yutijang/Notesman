@@ -1,9 +1,10 @@
 #include <memory>
 #include <optional>
-#include <qminmax.h>
 #include <ranges>
+#include <utility>
 #include <vector>
 #include <sqlite3.h>
+#include <qminmax.h>
 #include <QMainWindow>
 #include <QTabWidget>
 #include <QWidget>
@@ -34,7 +35,9 @@
 #include <QCoreApplication>
 #include <QStringList>
 
+#include "IResourceViewer.hpp"
 #include "SettingsData.hpp"
+#include "TextViewer.hpp"
 #include "Theme.hpp"
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
@@ -100,7 +103,7 @@ void MainWindow::setupBrowseTab() {
     m_browseTab = new BrowseTabWidget(this);
 
     QObject::connect(m_browseTab, &BrowseTabWidget::resourceDoubleClicked, this,
-                     &MainWindow::viewPlaintextResource);
+                     &MainWindow::viewResource);
 
     QObject::connect(m_browseTab, &BrowseTabWidget::contextMenuRequested, this,
                      &MainWindow::showContextMenu);
@@ -219,11 +222,25 @@ void MainWindow::setCore(NotesAppCore* core) {
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_browseTab), true);
 }
 
-void MainWindow::viewPlaintextResource(int id, ResourceType type, const QString &title) {
-    const Theme theme = m_appController->currentTheme();
+// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
+void MainWindow::viewResource(int id, ResourceType type, const QString &title,
+                              const QString &path) {
+    std::unique_ptr<IResourceViewer> viewer;
 
-    auto* dlg = new ResourceViewerDialog{static_cast<sqlite3_int64>(id), title, type, theme,
-                                         *m_resourceViewService,         this};
+    switch (type) {
+        case ResourceType::plainText:
+        case ResourceType::cCppCode : {
+            const bool editable = (type == ResourceType::plainText && path.isEmpty());
+            const Theme theme = m_appController->currentTheme();
+
+            viewer = std::make_unique<TextViewer>(static_cast<sqlite3_int64>(id), editable,
+                                                  *m_resourceViewService, theme, this);
+            break;
+        }
+        default: return;
+    }
+
+    auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
 
     dlg->exec();
 }
@@ -248,7 +265,7 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
         viewAction = menu.addAction(tr("View Resource"));
         viewAction->setIcon(QIcon(":/icons/view.ico"));
         QObject::connect(viewAction, &QAction::triggered, this,
-                         [this, id, type, title]() { viewPlaintextResource(id, type, title); });
+                         [this, id, type, title, path]() { viewResource(id, type, title, path); });
     } else if (type != ResourceType::plainText) {
         QAction* openAction = menu.addAction(tr("Open path"));
         QObject::connect(openAction, &QAction::triggered, this, [path]() {
