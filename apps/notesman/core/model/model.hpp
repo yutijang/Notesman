@@ -147,6 +147,7 @@ struct UnifiedSearchResult {
         Resource res;
         std::string displaySubText;
         std::optional<std::string> rawSnippet;
+        std::optional<std::string> filePath;
         std::vector<std::string> tags;
         ResourceFlags flags;
 };

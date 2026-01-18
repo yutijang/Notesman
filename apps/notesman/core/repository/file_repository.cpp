@@ -210,3 +210,10 @@ std::optional<sqlite3_int64> FileRepository::getResourceIdByFilepath(std::string
 
     return std::nullopt;
 }
+
+std::optional<std::string> FileRepository::getResolvedPath(sqlite_int64 resourceId) {
+    auto entryOpt = getFileById(resourceId);
+    if (!entryOpt) { return std::nullopt; }
+
+    return entryOpt->stored_path; // theo quy ước: luôn có
+}

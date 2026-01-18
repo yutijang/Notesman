@@ -27,7 +27,8 @@
         <file>icons/unchecked.png</file>
         <file>icons/save.ico</file>
         <file>icons/load.ico</file>
-        <file>icons/syntax.ico</file>        
+        <file>icons/syntax.ico</file>
+        <file>icons/search.ico</file>
         <file>icons/type-text.svg</file>
         <file>icons/type-cpp.svg</file>
         <file>icons/type-pdf.svg</file>

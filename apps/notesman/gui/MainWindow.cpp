@@ -35,6 +35,7 @@
 #include <QCoreApplication>
 #include <QStringList>
 
+#include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"
 #include "SettingsData.hpp"
 #include "TextViewer.hpp"
@@ -235,6 +236,10 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
 
             viewer = std::make_unique<TextViewer>(static_cast<sqlite3_int64>(id), editable,
                                                   *m_resourceViewService, theme, this);
+            break;
+        }
+        case ResourceType::htmlDoc: {
+            viewer = std::make_unique<HtmlViewer>(path, this);
             break;
         }
         default: return;

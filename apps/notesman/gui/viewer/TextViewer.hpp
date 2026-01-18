@@ -5,6 +5,7 @@
 #include <sqlite3.h>
 
 #include "IResourceViewer.hpp"
+#include "ISearchable.hpp"
 #include "ResourceViewService.hpp"
 #include "Theme.hpp"
 
@@ -13,7 +14,8 @@ class PlainTextEdit;
 class CppHighlighter;
 class CodeEditorLineHighlighter;
 
-class TextViewer final : public IResourceViewer {
+class TextViewer final : public IResourceViewer,
+                         public ISearchable {
     public:
         TextViewer(sqlite3_int64 resourceId, bool editable, ResourceViewService &viewService,
                    Theme theme, QWidget* parent = nullptr);
@@ -37,6 +39,13 @@ class TextViewer final : public IResourceViewer {
         void applySyntaxHighlightingTheme();
         void disableSyntaxHighlightingTheme();
 
+        // ISearchable
+        void startSearch() override;
+        void findNext() override;
+        void findPrevious() override;
+
+        // void findNext(const QString &text);
+
         sqlite3_int64 m_resourceId;
         bool m_editable{};
         ResourceViewService &m_viewService;
@@ -48,4 +57,6 @@ class TextViewer final : public IResourceViewer {
         PlainTextEdit* m_editor{};
         CppHighlighter* m_cppHighlighter{};
         CodeEditorLineHighlighter* m_lineHighlighter{};
+
+        QString m_lastSearchText;
 };

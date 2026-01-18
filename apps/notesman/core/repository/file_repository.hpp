@@ -31,6 +31,8 @@ class FileRepository {
 
         [[nodiscard]] bool exists(sqlite3_int64 resourceId) const;
 
+        std::optional<std::string> getResolvedPath(sqlite_int64 resourceId);
+
     private:
         SQLiteDB &m_db;
 };

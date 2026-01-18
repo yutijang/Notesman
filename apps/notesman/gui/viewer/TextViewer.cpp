@@ -8,6 +8,9 @@
 #include <Qt>
 #include <QSizePolicy>
 #include <QObject>
+#include <QLineEdit>
+#include <QInputDialog>
+#include <QTextCursor>
 #include <sqlite3.h>
 
 #include "TextViewer.hpp"
@@ -131,6 +134,63 @@ void TextViewer::setupToolbar(QToolBar* toolbar) {
         });
 
     actionToggleSH->toggled(m_isAppliedSH);
+
+    // ===== Search =====
+    auto* actionSearch = toolbar->addAction(QObject::tr("Search"));
+    actionSearch->setIcon(QIcon(":/icons/search.ico"));
+    actionSearch->setShortcut(QKeySequence::Find);
+    actionSearch->setToolTip(QObject::tr("Search (Ctrl+F)"));
+
+    QObject::connect(actionSearch, &QAction::triggered, toolbar, [this]() { startSearch(); });
+
+    // Find next / previous
+    auto* actFindNext = new QAction(m_rootWidget);
+    actFindNext->setShortcut(Qt::Key_F3);
+    actFindNext->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    QObject::connect(actFindNext, &QAction::triggered, m_rootWidget, [this]() { findNext(); });
+
+    auto* actFindPrev = new QAction(m_rootWidget);
+    actFindPrev->setShortcut(Qt::SHIFT | Qt::Key_F3);
+    actFindPrev->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    QObject::connect(actFindPrev, &QAction::triggered, m_rootWidget, [this]() { findPrevious(); });
+
+    m_rootWidget->addAction(actFindNext);
+    m_rootWidget->addAction(actFindPrev);
+}
+
+void TextViewer::startSearch() {
+    bool ok{};
+    const QString text =
+        QInputDialog::getText(m_rootWidget, QObject::tr("Search"), QObject::tr("Find:"),
+                              QLineEdit::Normal, m_lastSearchText, &ok);
+
+    if (!ok || text.isEmpty()) { return; }
+
+    m_lastSearchText = text;
+    findNext();
+}
+
+void TextViewer::findNext() {
+    if (m_lastSearchText.isEmpty()) { return; }
+
+    if (!m_editor->find(m_lastSearchText)) {
+        // wrap around
+        QTextCursor c = m_editor->textCursor();
+        c.movePosition(QTextCursor::Start);
+        m_editor->setTextCursor(c);
+        m_editor->find(m_lastSearchText);
+    }
+}
+
+void TextViewer::findPrevious() {
+    if (m_lastSearchText.isEmpty()) { return; }
+
+    if (!m_editor->find(m_lastSearchText, QTextDocument::FindBackward)) {
+        QTextCursor c = m_editor->textCursor();
+        c.movePosition(QTextCursor::End);
+        m_editor->setTextCursor(c);
+        m_editor->find(m_lastSearchText, QTextDocument::FindBackward);
+    }
 }
 
 void TextViewer::loadContent() {

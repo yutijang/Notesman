@@ -120,7 +120,14 @@ std::vector<UnifiedSearchResult> ResourceService::searchByTitle(const std::strin
 }
 
 std::vector<UnifiedSearchResult> ResourceService::searchByTitleFull(const std::string &keyword) {
-    return m_resRepo.searchByTitleFTS(keyword);
+    auto results = m_resRepo.searchByTitleFTS(keyword);
+
+    for (auto &match : results) {
+        match.filePath = m_fileRepo.getResolvedPath(match.res.id);
+        if (match.filePath.has_value()) { match.flags |= ResourceFlags::isFile; }
+    }
+
+    return results;
 }
 
 std::vector<std::pair<sqlite3_int64, std::string>>

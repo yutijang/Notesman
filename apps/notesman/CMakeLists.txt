@@ -110,8 +110,8 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter/cpphighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter/CodeEditorLineHighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput/TagInput.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer/IResourceViewer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer/TextViewer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer/HtmlViewer.cpp
 )
 
 set(HELPER_SOURCES

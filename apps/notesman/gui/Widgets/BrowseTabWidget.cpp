@@ -157,6 +157,11 @@ void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &res
         titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceFlags),
                            QVariant::fromValue(static_cast<int>(res.flags)));
 
+        if (hasFlag(res.flags, ResourceFlags::isFile) && res.filePath.has_value()) {
+            titleItem->setData(static_cast<int>(ResultsTable::ItemRole::fullPath),
+                               QString::fromStdString(*res.filePath));
+        }
+
         m_resultsTbl->setItem(row, 1, titleItem);
     }
 
@@ -204,19 +209,17 @@ std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const 
         titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
     if (!idData.isValid()) { return std::nullopt; }
 
-    auto* pathItem = m_resultsTbl->item(row, 2);
-
     const QVariant vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
     bool ok{};
     const int raw = vRes.toInt(&ok);
     if (!ok) { return std::nullopt; }
-
     const auto type = static_cast<ResourceType>(raw);
 
-    RowData r{.id = idData.toInt(),
-              .type = type,
-              .title = titleItem->text(),
-              .path = (pathItem != nullptr) ? pathItem->text() : QString{}};
+    const QVariant pathVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::fullPath));
+    QString path;
+    if (pathVar.isValid() && !pathVar.isNull()) { path = pathVar.toString(); }
+
+    RowData r{.id = idData.toInt(), .type = type, .title = titleItem->text(), .path = path};
 
     return r;
 }
