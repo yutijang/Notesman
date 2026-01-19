@@ -364,13 +364,12 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
         emit addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::good);
     } else {
         std::string contentToIndex;
-        std::filesystem::path path(filePath.toStdWString());
 
-        if (Utils::isIndexable(type, path) == IndexableResult::yes) {
-            contentToIndex = Utils::readFileToString(path);
+        if (Utils::isIndexable(type, filePathFs) == IndexableResult::yes) {
+            contentToIndex = Utils::readFileToString(filePathFs);
         }
 
-        resId = m_core->addFileNote(path, titleStd, type, m_settings->isManagedResources(),
+        resId = m_core->addFileNote(filePathFs, titleStd, type, m_settings->isManagedResources(),
                                     contentToIndex);
 
         emit addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::good);

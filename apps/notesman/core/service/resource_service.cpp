@@ -123,8 +123,9 @@ std::vector<UnifiedSearchResult> ResourceService::searchByTitleFull(const std::s
     auto results = m_resRepo.searchByTitleFTS(keyword);
 
     for (auto &match : results) {
-        match.filePath = m_fileRepo.getResolvedPath(match.res.id);
-        if (match.filePath.has_value()) { match.flags |= ResourceFlags::isFile; }
+        if (hasFlag(match.flags, ResourceFlags::isFile)) {
+            match.filePath = m_fileRepo.getResolvedPath(match.res.id);
+        }
     }
 
     return results;
@@ -155,7 +156,13 @@ std::vector<UnifiedSearchResult>
     ResourceService::searchByContentUnifiedFull(const std::string &keyword) {
     auto results = m_resRepo.searchByContentUnified(keyword);
 
-    for (auto &item : results) { item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet); }
+    for (auto &item : results) {
+        item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet);
+
+        if (hasFlag(item.flags, ResourceFlags::isFile)) {
+            item.filePath = m_fileRepo.getResolvedPath(item.res.id);
+        }
+    }
 
     return results;
 }
@@ -176,6 +183,10 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
             item.displaySubText = Utils::joinTags(item.tags);
         } else if (hasFlag(item.flags, ResourceFlags::matchTitle)) {
             item.displaySubText = item.res.updated_at;
+        }
+
+        if (hasFlag(item.flags, ResourceFlags::isFile)) {
+            item.filePath = m_fileRepo.getResolvedPath(item.res.id);
         }
     }
 
@@ -237,14 +248,19 @@ std::vector<UnifiedSearchResult> ResourceService::getFullResourcesByTag(const st
         UnifiedSearchResult u{};
         u.res = res;
 
+        u.rawSnippet = std::nullopt;
+        u.flags = ResourceFlags::matchTag;
+
         auto full = getFullResource(res.id);
         if (full.has_value()) {
             u.tags = full->tags;
             if (!u.tags.empty()) { u.displaySubText = Utils::joinTags(u.tags); }
-        }
 
-        u.rawSnippet = std::nullopt;
-        u.flags = ResourceFlags::matchTag;
+            if (full->resource.type != ResourceType::plainText) {
+                u.filePath = full->filepath;
+                u.flags |= ResourceFlags::isFile;
+            }
+        }
 
         results.push_back(std::move(u));
     }
@@ -305,6 +321,12 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
         for (auto &p : tagPairs) { u.tags.push_back(p.second); }
 
         u.flags = ResourceFlags::none;
+
+        if (r.type != ResourceType::plainText) {
+            u.filePath = m_fileRepo.getResolvedPath(r.id);
+            u.flags |= ResourceFlags::isFile;
+        }
+
         out.push_back(std::move(u));
     }
 
@@ -321,6 +343,11 @@ std::vector<UnifiedSearchResult> ResourceService::getAllResourcesByType(Resource
     for (auto &res : out) {
         res.displaySubText = res.res.updated_at + " Tags: " + Utils::joinTags(res.tags);
         res.flags = ResourceFlags::none;
+
+        if (type != ResourceType::plainText) {
+            res.filePath = m_fileRepo.getResolvedPath(res.res.id);
+            res.flags |= ResourceFlags::isFile;
+        }
     }
 
     return out;

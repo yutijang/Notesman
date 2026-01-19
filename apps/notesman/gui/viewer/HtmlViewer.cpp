@@ -8,12 +8,11 @@
 #include <QLineEdit>
 #include <QTextCursor>
 #include <QTextDocument>
+#include <QTextBrowser>
 
 #include "HtmlViewer.hpp"
 
 HtmlViewer::HtmlViewer(QString path, QWidget* parent) : m_htmlPath(std::move(path)) {
-    qDebug() << "HtmlViewer path =" << m_htmlPath;
-
     m_rootWidget = new QWidget(parent);
 
     setupView();
@@ -102,16 +101,6 @@ void HtmlViewer::findPrevious() {
     }
 }
 
-bool HtmlViewer::isEditable() const {
-    return false;
-}
-
-bool HtmlViewer::hasUnsavedChanges() const {
-    return isEditable() && m_browser != nullptr;
-}
-
-bool HtmlViewer::onClose(QWidget* parent) {
-    if (!hasUnsavedChanges()) { return true; }
-
+bool HtmlViewer::onClose([[maybe_unused]] QWidget* parent) {
     return true;
 }

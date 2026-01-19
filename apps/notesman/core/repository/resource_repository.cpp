@@ -78,11 +78,14 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
     while (stmt.step() == SQLITE_ROW) {
         Resource res = resourceFromStmt(stmt);
 
-        UnifiedSearchResult ures;
-        ures.res = std::move(res);
-        ures.displaySubText = ures.res.updated_at;
-        ures.rawSnippet = std::nullopt;
-        ures.flags = ResourceFlags::matchTitle;
+        UnifiedSearchResult ures{.res = std::move(res),
+                                 .displaySubText = ures.res.updated_at,
+                                 .rawSnippet = std::nullopt,
+                                 .filePath = std::nullopt,
+                                 .tags = {},
+                                 .flags = ResourceFlags::matchTitle};
+
+        if (ures.res.type != ResourceType::plainText) { ures.flags |= ResourceFlags::isFile; }
 
         result.push_back(std::move(ures));
     }
@@ -308,6 +311,8 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
             flags |= ResourceFlags::isFile;
         }
 
+        if (item.res.type != ResourceType::plainText) { flags |= ResourceFlags::isFile; }
+
         item.flags = flags;
 
         if (hasFlag(item.flags, ResourceFlags::matchContent)) {
@@ -367,15 +372,18 @@ std::vector<UnifiedSearchResult>
     std::vector<UnifiedSearchResult> results;
     int rc{};
     while ((rc = stmt.step()) == SQLITE_ROW) {
-        UnifiedSearchResult item{};
-        item.res = (resourceFromStmt(stmt));
-
-        item.flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet;
-
-        if (item.res.type != ResourceType::plainText) { item.flags |= ResourceFlags::isFile; }
+        Resource res = resourceFromStmt(stmt);
 
         auto snippet = stmt.getColumnText(7); // NOLINT(readability-magic-numbers)
-        item.rawSnippet = snippet;
+
+        UnifiedSearchResult item{.res = std::move(res),
+                                 .displaySubText = {},
+                                 .rawSnippet = snippet,
+                                 .filePath = std::nullopt,
+                                 .tags = {},
+                                 .flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet};
+
+        if (item.res.type != ResourceType::plainText) { item.flags |= ResourceFlags::isFile; }
 
         results.push_back(std::move(item));
     }

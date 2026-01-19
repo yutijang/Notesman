@@ -3,7 +3,6 @@
 #include <QString>
 
 #include "IResourceViewer.hpp"
-#include "ISearchable.hpp"
 
 class QWidget;
 class QTextBrowser;
@@ -15,14 +14,12 @@ class HtmlViewer final : public IResourceViewer,
 
         ~HtmlViewer() override = default;
 
+    private:
         // ===== IResourceViewer =====
         QWidget* widget() override;
-        [[nodiscard]] bool isEditable() const override;
-        [[nodiscard]] bool hasUnsavedChanges() const override;
         bool onClose(QWidget* parent) override;
         void setupToolbar(QToolBar* toolbar) override;
 
-    private:
         // ISearchable
         void startSearch() override;
         void findNext() override;

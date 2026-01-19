@@ -178,25 +178,15 @@ void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
 
     const int row = index.row();
 
-    auto* titleItem = m_resultsTbl->item(row, 1);
-    if (titleItem == nullptr) { return; }
+    auto rowDataOpt = rowData(row);
+    if (!rowDataOpt.has_value()) {
+        Log::warn("Invalid row: {}", row);
+        return;
+    }
 
-    const QVariant vId =
-        titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
-    if (!vId.isValid()) { return; }
-    const int idItem = vId.toInt();
+    const auto &data = *rowDataOpt;
 
-    auto* pathItem = m_resultsTbl->item(row, 2);
-    const QString path = (pathItem != nullptr) ? pathItem->text() : QString{};
-
-    const QVariant vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
-    bool ok{};
-    const int raw = vRes.toInt(&ok);
-    if (!ok) { return; }
-
-    const auto type = static_cast<ResourceType>(raw);
-
-    emit contextMenuRequested(pos, idItem, type, titleItem->text(), path);
+    emit contextMenuRequested(pos, data.id, data.type, data.title, data.path);
 }
 
 std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const {
