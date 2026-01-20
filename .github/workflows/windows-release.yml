@@ -293,12 +293,12 @@ jobs:
               }
           }
 
-      - name: Find and copy poppler.dll and poppler-cpp.dll
+      - name: Find and copy poppler dependents
         shell: pwsh
         run: |
           $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
           $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $dllNames = @("poppler.dll", "poppler-cpp.dll")
+          $dllNames = @("poppler.dll", "poppler-cpp.dll", "iconv-2.dll")
 
           foreach ($dll in $dllNames) {
               $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dll"
