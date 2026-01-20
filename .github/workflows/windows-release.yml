@@ -24,7 +24,7 @@ env:
 jobs:
   build-and-release:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 35
 
     steps:
       - name: Checkout repository
@@ -292,6 +292,32 @@ jobs:
                   exit 1
               }
           }
+
+      - name: Find and copy poppler-cpp DLL (optimized)
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+
+          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\poppler-cpp.dll"
+
+          if (Test-Path $preferredPath) {
+              Write-Host "Found poppler-cpp.dll at preferred location: $preferredPath"
+              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
+              Write-Host "Copied poppler-cpp.dll to ${{ env.RELEASE_DIR }}"
+          } else {
+              Write-Host "Preferred location not found, searching recursively under $vcpkgRoot ..."
+              $popplerFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter "poppler-cpp.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+              if ($null -ne $popplerFile) {
+                  Write-Host "Found poppler-cpp.dll at: $($popplerFile.FullName)"
+                  Copy-Item $popplerFile.FullName ${{ env.RELEASE_DIR }} -Force
+                  Write-Host "Copied miniz.dll to ${{ env.RELEASE_DIR }}"
+              } else {
+                  Write-Error "poppler-cpp.dll not found under $vcpkgRoot"
+                  exit 1
+              }
+          }          
 
       - name: Force Deploy zlib1.dll from vcpkg
         shell: pwsh
