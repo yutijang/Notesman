@@ -40,7 +40,10 @@
                 "fontconfig"
             ]
         },
-        "qtsvg"
+        "qtsvg",
+        {
+            "name": "poppler"
+        }
     ],
     "overrides": [
         {

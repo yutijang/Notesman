@@ -110,8 +110,11 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter/cpphighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter/CodeEditorLineHighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput/TagInput.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer/TextViewer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer/HtmlViewer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/TextViewer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/HtmlViewer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/PdfViewer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/PdfPageWidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewerDialog.cpp
 )
 
 set(HELPER_SOURCES
@@ -120,7 +123,6 @@ set(HELPER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceTitleDelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp    
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/DialogUtils.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceViewerDialog.cpp
 )
 
 if(UNIX)
@@ -147,7 +149,7 @@ target_include_directories(notes-app-lib-core
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/viewer
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer
     ${CMAKE_CURRENT_SOURCE_DIR}/helper
     ${NOTESMAN_GENERATED_DIR} # OAuth config include dir
 )
@@ -165,6 +167,8 @@ target_link_libraries(notes-app-lib-core
     Qt6::Widgets
     Qt6::Network
     Qt6::Svg
+    Qt6::Concurrent
+    PkgConfig::POPPLER_CPP
 )
 
 target_compile_definitions(notes-app-lib-core

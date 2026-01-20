@@ -37,6 +37,7 @@
 
 #include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"
+#include "PdfViewer.hpp"
 #include "SettingsData.hpp"
 #include "TextViewer.hpp"
 #include "Theme.hpp"
@@ -242,7 +243,13 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
             viewer = std::make_unique<HtmlViewer>(path, this);
             break;
         }
-        default: return;
+        case ResourceType::pdfDoc: {
+            viewer = std::make_unique<PdfViewer>(path, this);
+            break;
+        }
+        case ResourceType::unknown:
+        case ResourceType::epubDoc:
+        case ResourceType::count  : break;
     }
 
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};

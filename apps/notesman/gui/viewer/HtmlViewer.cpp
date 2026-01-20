@@ -9,6 +9,8 @@
 #include <QTextCursor>
 #include <QTextDocument>
 #include <QTextBrowser>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include "HtmlViewer.hpp"
 
@@ -49,8 +51,14 @@ void HtmlViewer::setupToolbar(QToolBar* toolbar) {
     auto* actionSearch = toolbar->addAction(QObject::tr("Search"));
     actionSearch->setIcon(QIcon(":/icons/search.ico"));
     actionSearch->setShortcut(QKeySequence::Find);
-
     QObject::connect(actionSearch, &QAction::triggered, toolbar, [this]() { startSearch(); });
+
+    // Open in external browser
+    auto* actionOpenExternal = toolbar->addAction(QObject::tr("Open in Browser"));
+    actionOpenExternal->setIcon(QIcon(":/icons/external_browser.ico"));
+    QObject::connect(actionOpenExternal, &QAction::triggered, toolbar, [this]() {
+        if (!m_htmlPath.isEmpty()) { QDesktopServices::openUrl(QUrl::fromLocalFile(m_htmlPath)); }
+    });
 
     auto* actFindNext = new QAction(m_rootWidget);
     actFindNext->setShortcut(Qt::Key_F3);

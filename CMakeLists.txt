@@ -40,9 +40,12 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 find_package(OpenSSL REQUIRED)
-find_package(Qt6 COMPONENTS Core Gui Widgets Network Svg REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Network Svg Concurrent REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
+
+find_package(PkgConfig)
+pkg_check_modules(POPPLER_CPP REQUIRED IMPORTED_TARGET poppler-cpp)
 
 if(WIN32)
     find_package(miniz CONFIG REQUIRED)    

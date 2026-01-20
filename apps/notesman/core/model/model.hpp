@@ -58,17 +58,30 @@ inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceT
 }
 
 [[nodiscard]] inline std::optional<ResourceType> resourceTypeFromExtension(std::string_view ext) {
-    static const std::unordered_map<std::string_view, ResourceType> extMap{
-        { "txt", ResourceType::plainText},
-        {   "c",  ResourceType::cCppCode},
-        { "cpp",  ResourceType::cCppCode},
-        {   "h",  ResourceType::cCppCode},
-        { "hpp",  ResourceType::cCppCode},
-        { "cxx",  ResourceType::cCppCode},
-        { "hxx",  ResourceType::cCppCode},
-        {"html",   ResourceType::htmlDoc},
-        { "pdf",    ResourceType::pdfDoc},
-        {"epub",   ResourceType::epubDoc}
+    static const std::unordered_map<std::string_view, ResourceType> extMap [[clang::no_destroy]]{
+        {     "txt", ResourceType::plainText},
+        {    "text", ResourceType::plainText},
+        {      "md", ResourceType::plainText},
+        {"markdown", ResourceType::plainText},
+        {     "log", ResourceType::plainText},
+        {     "ini", ResourceType::plainText},
+        {     "cfg", ResourceType::plainText},
+        {    "conf", ResourceType::plainText},
+        {     "csv", ResourceType::plainText},
+        {       "c",  ResourceType::cCppCode},
+        {     "cpp",  ResourceType::cCppCode},
+        {      "cc",  ResourceType::cCppCode},
+        {       "h",  ResourceType::cCppCode},
+        {      "hh",  ResourceType::cCppCode},
+        {     "hpp",  ResourceType::cCppCode},
+        {     "cxx",  ResourceType::cCppCode},
+        {     "hxx",  ResourceType::cCppCode},
+        {    "html",   ResourceType::htmlDoc},
+        {     "htm",   ResourceType::htmlDoc},
+        {   "xhtml",   ResourceType::htmlDoc},
+        {   "shtml",   ResourceType::htmlDoc},
+        {     "pdf",    ResourceType::pdfDoc},
+        {    "epub",   ResourceType::epubDoc}
     };
 
     if (auto it = extMap.find(ext); it != extMap.end()) { return it->second; }
