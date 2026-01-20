@@ -293,31 +293,32 @@ jobs:
               }
           }
 
-      - name: Find and copy poppler-cpp DLL (optimized)
+      - name: Find and copy poppler.dll and poppler-cpp.dll
         shell: pwsh
         run: |
           $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
           $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          $dllNames = @("poppler.dll", "poppler-cpp.dll")
 
-          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\poppler-cpp.dll"
-
-          if (Test-Path $preferredPath) {
-              Write-Host "Found poppler-cpp.dll at preferred location: $preferredPath"
-              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
-              Write-Host "Copied poppler-cpp.dll to ${{ env.RELEASE_DIR }}"
-          } else {
-              Write-Host "Preferred location not found, searching recursively under $vcpkgRoot ..."
-              $popplerFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter "poppler-cpp.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
-
-              if ($null -ne $popplerFile) {
-                  Write-Host "Found poppler-cpp.dll at: $($popplerFile.FullName)"
-                  Copy-Item $popplerFile.FullName ${{ env.RELEASE_DIR }} -Force
-                  Write-Host "Copied miniz.dll to ${{ env.RELEASE_DIR }}"
+          foreach ($dll in $dllNames) {
+              $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dll"
+              if (Test-Path $preferredPath) {
+                  Write-Host "Found $dll at preferred location: $preferredPath"
+                  Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
+                  Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
               } else {
-                  Write-Error "poppler-cpp.dll not found under $vcpkgRoot"
-                  exit 1
+                  Write-Host "Preferred location for $dll not found, searching recursively under $vcpkgRoot ..."
+                  $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dll -ErrorAction SilentlyContinue | Select-Object -First 1
+                  if ($null -ne $dllFile) {
+                      Write-Host "Found $dll at: $($dllFile.FullName)"
+                      Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
+                      Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
+                  } else {
+                      Write-Error "$dll not found under $vcpkgRoot"
+                      exit 1
+                  }
               }
-          }          
+          }
 
       - name: Force Deploy zlib1.dll from vcpkg
         shell: pwsh
