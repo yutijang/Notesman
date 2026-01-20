@@ -298,7 +298,7 @@ jobs:
         run: |
           $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
           $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $dllNames = @("poppler.dll", "poppler-cpp.dll", "iconv-2.dll", "openjp2.dll", "jpeg62.dll", "libpng16.dll", "tiff.dll", "freetype.dll", "liblzma.dll", "brotlidec.dll", "bz2.dll")
+          $dllNames = @("poppler.dll", "poppler-cpp.dll", "iconv-2.dll", "openjp2.dll", "jpeg62.dll", "libpng16.dll", "tiff.dll", "freetype.dll", "liblzma.dll", "brotlidec.dll", "bz2.dll", "brotlicommon.dll")
 
           foreach ($dll in $dllNames) {
               $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dll"
