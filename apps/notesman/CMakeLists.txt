@@ -97,8 +97,7 @@ set(APP_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/application/workers/ResourceSearchWorker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/UpdateManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/DownloadManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/GoogleDriveService.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/ResourceViewService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/GoogleDriveService.cpp    
 )
 
 set(GUI_SOURCES
@@ -115,6 +114,8 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/PdfViewer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/PdfPageWidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewerDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewService.cpp
+    
 )
 
 set(HELPER_SOURCES
