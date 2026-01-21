@@ -79,6 +79,7 @@ class NotesAppCore {
         // ========= Utility =========
         [[nodiscard]] bool isExistTitle(std::string_view title, ResourceType type) const;
         [[nodiscard]] bool isFileIndexed(const std::filesystem::path &filepath) const;
+        [[nodiscard]] bool isExistFile(sqlite3_int64 resourceId) const;
         static std::string computeFileHash(const std::filesystem::path &filePath);
 
         std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);

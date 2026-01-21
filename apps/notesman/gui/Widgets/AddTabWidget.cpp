@@ -76,11 +76,17 @@ void AddTabWidget::setupConnections() {
 }
 
 void AddTabWidget::onAddButtonClicked() {
-    const bool isTextMode = m_textRad->isChecked();
     const QString title = m_titleInp->text().trimmed();
-    const QString filePath = m_filepathInp->text().trimmed();
-    const QString text = m_textEdt->toPlainText();
     const QStringList tags = m_tagInp->getAllTags();
+
+    QString text;
+    QString filePath;
+    const bool isTextMode = m_textRad->isChecked();
+    if (isTextMode) {
+        text = m_textEdt->toPlainText();
+    } else {
+        filePath = m_filepathInp->text().trimmed();
+    }
 
     emit addNoteRequested(title, text, filePath, tags, isTextMode);
 }

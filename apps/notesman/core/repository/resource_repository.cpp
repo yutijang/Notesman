@@ -85,8 +85,6 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
                                  .tags = {},
                                  .flags = ResourceFlags::matchTitle};
 
-        if (ures.res.type != ResourceType::plainText) { ures.flags |= ResourceFlags::isFile; }
-
         result.push_back(std::move(ures));
     }
 
@@ -311,8 +309,6 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
             flags |= ResourceFlags::isFile;
         }
 
-        if (item.res.type != ResourceType::plainText) { flags |= ResourceFlags::isFile; }
-
         item.flags = flags;
 
         if (hasFlag(item.flags, ResourceFlags::matchContent)) {
@@ -382,8 +378,6 @@ std::vector<UnifiedSearchResult>
                                  .filePath = std::nullopt,
                                  .tags = {},
                                  .flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet};
-
-        if (item.res.type != ResourceType::plainText) { item.flags |= ResourceFlags::isFile; }
 
         results.push_back(std::move(item));
     }

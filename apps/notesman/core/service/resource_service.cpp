@@ -60,28 +60,13 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
     fres.resource = *resOpt;
     fres.tags = std::move(tagNames);
 
-    // Nếu tài nguyên là text thuần
-    if (fres.resource.type == ResourceType::plainText) {
-        if (includeContent) {
-            fres.content = m_textRepo.getTextById(resourceId);
-        } else {
-            fres.content = std::nullopt; // Để trống để chờ gán snippet ở Service Search
-        }
-
+    if (isExistFile(resourceId)) {
+        fres.filepath = m_fileRepo.getFileById(resourceId)->stored_path;
+    } else {
         fres.filepath = std::nullopt;
-    } else { // Nếu là file: lấy FileEntry (có thể không tồn tại => trả nullopt)
-        auto entryOpt = m_fileRepo.getFileById(resourceId);
-        if (!entryOpt.has_value()) { return std::nullopt; }
-
-        // Ưu tiên stored_path nếu có, fallback sang original_path
-        if (entryOpt->stored_path.has_value()) {
-            fres.filepath = entryOpt->stored_path;
-        } else {
-            fres.filepath = entryOpt->original_path; // original_path luôn tồn tại theo schema
-        }
-
-        fres.content = std::nullopt;                 // Luôn để trống, snippet sẽ được gán sau
     }
+
+    if (includeContent) { fres.content = m_textRepo.getTextById(resourceId); }
 
     return fres;
 }
@@ -122,9 +107,19 @@ std::vector<UnifiedSearchResult> ResourceService::searchByTitle(const std::strin
 std::vector<UnifiedSearchResult> ResourceService::searchByTitleFull(const std::string &keyword) {
     auto results = m_resRepo.searchByTitleFTS(keyword);
 
-    for (auto &match : results) {
-        if (hasFlag(match.flags, ResourceFlags::isFile)) {
-            match.filePath = m_fileRepo.getResolvedPath(match.res.id);
+    for (auto &item : results) {
+        const auto resId = item.res.id;
+        if (isExistFile(resId)) {
+            item.flags |= ResourceFlags::isFile;
+
+            if (auto fileOpt = m_fileRepo.getFileById(resId)) {
+                item.filePath = fileOpt->stored_path;
+                if (fileOpt->is_managed) {
+                    item.flags |= ResourceFlags::isManaged;
+                } else {
+                    item.flags |= ResourceFlags::isExternal;
+                }
+            }
         }
     }
 
@@ -159,8 +154,18 @@ std::vector<UnifiedSearchResult>
     for (auto &item : results) {
         item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet);
 
-        if (hasFlag(item.flags, ResourceFlags::isFile)) {
-            item.filePath = m_fileRepo.getResolvedPath(item.res.id);
+        const auto resId = item.res.id;
+        if (isExistFile(resId)) {
+            item.flags |= ResourceFlags::isFile;
+
+            if (auto fileOpt = m_fileRepo.getFileById(resId)) {
+                item.filePath = fileOpt->stored_path;
+                if (fileOpt->is_managed) {
+                    item.flags |= ResourceFlags::isManaged;
+                } else {
+                    item.flags |= ResourceFlags::isExternal;
+                }
+            }
         }
     }
 
@@ -172,21 +177,32 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
     auto results = m_resRepo.searchUnified(likeKW, ftsKW);
 
     for (auto &item : results) {
+        const auto resId = item.res.id;
+
+        if (isExistFile(resId)) {
+            item.flags |= ResourceFlags::isFile;
+
+            if (auto fileOpt = m_fileRepo.getFileById(resId)) {
+                item.filePath = fileOpt->stored_path;
+                if (fileOpt->is_managed) {
+                    item.flags |= ResourceFlags::isManaged;
+                } else {
+                    item.flags |= ResourceFlags::isExternal;
+                }
+            }
+        }
+
         if (hasFlag(item.flags, ResourceFlags::matchContent) && item.rawSnippet.has_value()) {
             item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet);
         } else if (hasFlag(item.flags, ResourceFlags::matchTag)) {
             std::vector<std::string> tagNames;
-            auto tags = m_tagRepo.getTagsByResourceId(item.res.id);
+            auto tags = m_tagRepo.getTagsByResourceId(resId);
             tagNames.reserve(tags.size());
             for (const auto &[id, name] : tags) { tagNames.push_back(name); }
             item.tags = tagNames;
             item.displaySubText = Utils::joinTags(item.tags);
         } else if (hasFlag(item.flags, ResourceFlags::matchTitle)) {
             item.displaySubText = item.res.updated_at;
-        }
-
-        if (hasFlag(item.flags, ResourceFlags::isFile)) {
-            item.filePath = m_fileRepo.getResolvedPath(item.res.id);
         }
     }
 
@@ -256,9 +272,18 @@ std::vector<UnifiedSearchResult> ResourceService::getFullResourcesByTag(const st
             u.tags = full->tags;
             if (!u.tags.empty()) { u.displaySubText = Utils::joinTags(u.tags); }
 
-            if (full->resource.type != ResourceType::plainText) {
-                u.filePath = full->filepath;
+            const auto resId = full->resource.id;
+            if (isExistFile(resId)) {
                 u.flags |= ResourceFlags::isFile;
+                u.filePath = full->filepath;
+
+                if (auto fileOpt = m_fileRepo.getFileById(resId)) {
+                    if (fileOpt->is_managed) {
+                        u.flags |= ResourceFlags::isManaged;
+                    } else {
+                        u.flags |= ResourceFlags::isExternal;
+                    }
+                }
             }
         }
 
@@ -309,6 +334,8 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
         UnifiedSearchResult u{};
         u.res = r;
 
+        const auto resId = r.id;
+
         // SubText: ngày cập nhật
         if (!r.updated_at.empty()) {
             u.displaySubText = r.updated_at;
@@ -317,14 +344,22 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
         }
 
         // Tags
-        auto tagPairs = m_tagRepo.getTagsByResourceId(r.id);
+        auto tagPairs = m_tagRepo.getTagsByResourceId(resId);
         for (auto &p : tagPairs) { u.tags.push_back(p.second); }
 
         u.flags = ResourceFlags::none;
 
-        if (r.type != ResourceType::plainText) {
-            u.filePath = m_fileRepo.getResolvedPath(r.id);
+        if (isExistFile(resId)) {
             u.flags |= ResourceFlags::isFile;
+
+            if (auto fileOpt = m_fileRepo.getFileById(resId)) {
+                u.filePath = fileOpt->stored_path;
+                if (fileOpt->is_managed) {
+                    u.flags |= ResourceFlags::isManaged;
+                } else {
+                    u.flags |= ResourceFlags::isExternal;
+                }
+            }
         }
 
         out.push_back(std::move(u));
@@ -351,4 +386,8 @@ std::vector<UnifiedSearchResult> ResourceService::getAllResourcesByType(Resource
     }
 
     return out;
+}
+
+bool ResourceService::isExistFile(sqlite3_int64 resourceId) const {
+    return m_fileRepo.exists(resourceId);
 }

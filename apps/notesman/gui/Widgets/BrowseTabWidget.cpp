@@ -20,6 +20,8 @@
 #include <QTableWidget>
 #include <QtGlobal>
 #include <QComboBox>
+#include <QtAssert>
+#include <QtTypes>
 
 #include "BrowseTabWidget.hpp"
 #include "Logger.hpp"

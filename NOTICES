@@ -22,3 +22,8 @@
 | ZSTD              | BSD-3-Clause                   | licenses/zstd_license.txt              |
 | spdlog            | MIT                            | licenses/spdlog_license.txt            |
 | miniz             | MIT                            | licenses/miniz_license.txt             |
+| poppler           | GPL-2.0                        | licenses/GPL-2.0.txt                   |
+| boost-container   | Boost Software License 1.0     | licenses/boost-container_license.txt   |
+| libiconv          | LGPL-2.1                       | licenses/libiconv_license.txt          |
+| openjpeg          | BSD-2-Clause                   | licenses/openjpeg_license.txt          |
+| tiff              | libtiff License                | licenses/tiff_license.txt              |

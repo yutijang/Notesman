@@ -29,6 +29,8 @@ class FileRepository {
         std::optional<std::string> getFilepathByResourceId(sqlite3_int64 resourceId);
         std::optional<sqlite3_int64> getResourceIdByFilepath(std::string_view filepath);
 
+        // kiểm tra có bản ghi file gắn với resource này hay không
+        // xác định 1 tài nguyên có phải là dạng file hay không
         [[nodiscard]] bool exists(sqlite3_int64 resourceId) const;
 
         std::optional<std::string> getResolvedPath(sqlite_int64 resourceId);

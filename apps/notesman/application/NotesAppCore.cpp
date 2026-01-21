@@ -116,3 +116,7 @@ std::string NotesAppCore::computeFileHash(const std::filesystem::path &filePath)
 std::vector<UnifiedSearchResult> NotesAppCore::getAllResourcesByType(ResourceType type) {
     return m_resService.getAllResourcesByType(type);
 }
+
+bool NotesAppCore::isExistFile(sqlite3_int64 resourceId) const {
+    return m_resService.isExistFile(resourceId);
+}

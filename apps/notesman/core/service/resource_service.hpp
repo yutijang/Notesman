@@ -70,6 +70,7 @@ class ResourceService {
 
         // ========= Utility =========
         [[nodiscard]] bool isExistTitle(std::string_view title, ResourceType type) const;
+        [[nodiscard]] bool isExistFile(sqlite3_int64 resourceId) const;
 
     private:
         FullResource buildFullFromResource(const Resource &res);

@@ -91,7 +91,7 @@ namespace Utils {
     }
 
     IndexableResult isIndexable(ResourceType type, const std::filesystem::path &path) {
-        if (type != ResourceType::cCppCode && type != ResourceType::htmlDoc) {
+        if (type == ResourceType::pdfDoc || type == ResourceType::epubDoc) {
             return IndexableResult::noUnsupportedType;
         }
 
