@@ -74,6 +74,7 @@ class ResourceService {
 
     private:
         FullResource buildFullFromResource(const Resource &res);
+        void validateIsFile(UnifiedSearchResult &item);
 
         SQLiteDB &m_db;
         ResourceRepository &m_resRepo;
