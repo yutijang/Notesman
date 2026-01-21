@@ -27,3 +27,7 @@
 | libiconv          | LGPL-2.1                       | licenses/libiconv_license.txt          |
 | openjpeg          | BSD-2-Clause                   | licenses/openjpeg_license.txt          |
 | tiff              | libtiff License                | licenses/tiff_license.txt              |
+| fontconfig        | fontconfig License             | licenses/fontconfig_license.txt        |
+| libxkbcommon      | MIT/X11 License                | licenses/libxkbcommon_license.txt      |
+| util-linux        | BSD-3-Clause                   | licenses/util-linux_license.txt        |
+| libxcb            | MIT                            | licenses/libxcb_license.txt            |
