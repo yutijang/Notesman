@@ -43,7 +43,7 @@ jobs:
           if (-not (Get-Command clang-cl -ErrorAction SilentlyContinue)) { choco install llvm -y --no-progress --limit-output }
 
       - name: Install pkg-config
-        run: choco install pkgconfiglite -y
+        run: choco install pkgconfiglite --allow-empty-checksums -y
 
       - name: Setup ccache cache
         uses: actions/cache@v4
