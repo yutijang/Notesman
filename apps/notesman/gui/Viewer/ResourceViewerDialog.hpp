@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <QDialog>
 #include <QString>
@@ -27,6 +28,11 @@ class ResourceViewerDialog final : public QDialog {
         void setupUi(const QString &title);
         void setupActions();
         void restoreGeometryLogic();
+
+        enum class DialogAnchor : std::uint8_t { center, left, right, top, bottom };
+
+        [[nodiscard]] QRect ensureOnScreen(const QRect &rect) const;
+        QRect calcFallbackRect(QWidget* parent, DialogAnchor anchor) const;
 
         bool m_geometryRestored{};
         std::unique_ptr<IResourceViewer> m_viewer;

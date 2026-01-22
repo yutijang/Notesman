@@ -33,15 +33,19 @@ ResourceViewerDialog::ResourceViewerDialog(const QString &title,
     setAttribute(Qt::WA_DeleteOnClose);
     setupUi(title);
     setupActions();
+
+    adjustSize();                      // settle layout + toolbar
+    setMinimumSize(minimumSizeHint()); // CỰC KỲ QUAN TRỌNG
 }
 
 void ResourceViewerDialog::showEvent(QShowEvent* event) {
-    if (!m_geometryRestored) {
-        restoreGeometryLogic();
-        m_geometryRestored = true;
-    }
-
     QDialog::showEvent(event);
+
+    if (m_geometryRestored) { return; }
+
+    adjustSize();
+    restoreGeometryLogic();
+    m_geometryRestored = true;
 }
 
 void ResourceViewerDialog::closeEvent(QCloseEvent* event) {
@@ -102,36 +106,76 @@ void ResourceViewerDialog::setupActions() {
 void ResourceViewerDialog::restoreGeometryLogic() {
     auto &settings = SettingsManager::instance();
 
-    const int x = settings.get("window/dialog_viewer_posX", -1).toInt();
-    const int y = settings.get("window/dialog_viewer_posY", -1).toInt();
-    const int w = settings.get("window/dialog_viewer_width", -1).toInt();
-    const int h = settings.get("window/dialog_viewer_height", -1).toInt();
+    const int savedX = settings.get("window/dialog_viewer_posX", -1).toInt();
+    const int savedY = settings.get("window/dialog_viewer_posY", -1).toInt();
+    const int savedW = settings.get("window/dialog_viewer_width", -1).toInt();
+    const int savedH = settings.get("window/dialog_viewer_height", -1).toInt();
 
     static constexpr QSize kDefaultSize{800, 800};
 
-    QSize targetSize = kDefaultSize;
-
-    if (w > 0 && h > 0) {
-        targetSize.setWidth(std::max(w, kDefaultSize.width()));
-        targetSize.setHeight(std::max(h, kDefaultSize.height()));
+    QSize finalSize = kDefaultSize;
+    if (savedW > 0 && savedH > 0) {
+        finalSize.setWidth(std::max(savedW, kDefaultSize.width()));
+        finalSize.setHeight(std::max(savedH, kDefaultSize.height()));
     }
 
-    resize(targetSize);
+    resize(finalSize);
 
     QScreen* scr = screen();
     if (scr == nullptr) { scr = QGuiApplication::primaryScreen(); }
+    Q_ASSERT(scr);
 
     const QRect screenGeom = scr->availableGeometry();
 
     QRect dlgRect = frameGeometry();
 
-    if (x >= 0 && y >= 0) {
-        dlgRect.moveTopLeft({x, y});
-    } else {
-        dlgRect.moveCenter(screenGeom.center());
+    if (savedX >= 0 && savedY >= 0) {
+        dlgRect.moveTopLeft({savedX, savedY});
+        dlgRect = ensureOnScreen(dlgRect);
+        move(dlgRect.topLeft());
+        return;
     }
 
-    if (!screenGeom.intersects(dlgRect)) { dlgRect.moveCenter(screenGeom.center()); }
+    constexpr DialogAnchor kDefaultFallbackAnchor = DialogAnchor::center;
+    if (QWidget* parent = parentWidget()) {
+        dlgRect = calcFallbackRect(parent, kDefaultFallbackAnchor);
+        move(dlgRect.topLeft());
+        return;
+    }
 
+    dlgRect.moveCenter(screenGeom.center());
     move(dlgRect.topLeft());
+}
+
+QRect ResourceViewerDialog::ensureOnScreen(const QRect &rect) const {
+    QScreen* scr = screen();
+    if (scr == nullptr) { scr = QGuiApplication::primaryScreen(); }
+    Q_ASSERT(scr);
+
+    const QRect screenGeom = scr->availableGeometry();
+
+    if (screenGeom.intersects(rect)) { return rect; }
+
+    QRect fixed = rect;
+    fixed.moveCenter(screenGeom.center());
+    return fixed;
+}
+
+QRect ResourceViewerDialog::calcFallbackRect(QWidget* parent, DialogAnchor anchor) const {
+    Q_ASSERT(parent);
+
+    const QRect parentFrame = parent->frameGeometry();
+    const QSize dialogFrameSize = frameGeometry().size();
+
+    QRect r(QPoint{0, 0}, dialogFrameSize);
+
+    switch (anchor) {
+        case DialogAnchor::left  : r.moveTopRight(parentFrame.topLeft()); break;
+        case DialogAnchor::right : r.moveTopLeft(parentFrame.topRight()); break;
+        case DialogAnchor::top   : r.moveBottomLeft(parentFrame.topLeft()); break;
+        case DialogAnchor::bottom: r.moveTopLeft(parentFrame.bottomLeft()); break;
+        case DialogAnchor::center: r.moveCenter(parentFrame.center()); break;
+    }
+
+    return ensureOnScreen(r);
 }
