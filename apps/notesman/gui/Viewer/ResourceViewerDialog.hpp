@@ -8,6 +8,7 @@
 #include "IResourceViewer.hpp"
 
 class QWidget;
+class QShowEvent;
 class QCloseEvent;
 
 class ResourceViewerDialog final : public QDialog {
@@ -19,6 +20,7 @@ class ResourceViewerDialog final : public QDialog {
         ~ResourceViewerDialog() override = default;
 
     protected:
+        void showEvent(QShowEvent* event) override;
         void closeEvent(QCloseEvent* event) override;
 
     private:

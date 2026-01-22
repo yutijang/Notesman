@@ -4,7 +4,6 @@
 #include <QSettings>
 #include <QString>
 #include <QVariant>
-#include <qstringliteral.h>
 
 #include "app_version.hpp"
 
