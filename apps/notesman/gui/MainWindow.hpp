@@ -11,7 +11,6 @@
 #include <QStringList>
 
 #include "UiConstants.hpp"
-#include "Theme.hpp"
 #include "SettingsData.hpp"
 #include "UpdateInfoSummary.hpp"
 #include "model.hpp"
@@ -49,7 +48,7 @@ class MainWindow : public QMainWindow {
 
         void setAppController(AppController* controller);
         void retranslateUi();
-        void applySyntaxHighlightingTheme(Theme theme);
+        void applySyntaxHighlightingTheme(UiConst::Theme theme);
         void onUpdateAvailable(const UpdateInfoSummary &infoSummary);
         void onNoUpdateAvailable();
         void onUpdateCheckFailed(const QString &error);
@@ -94,7 +93,7 @@ class MainWindow : public QMainWindow {
         void changeEvent(QEvent* event) override;
 
     private slots:
-        void handleSyntaxHighlightingUpdate(Theme theme);
+        void handleSyntaxHighlightingUpdate(UiConst::Theme theme);
         void handleSyntaxHighlightingFromAddTabRequested(bool checked);
         void onAbout();
         void handleSettingsStateChange(UiConst::SettingsMessageState state);

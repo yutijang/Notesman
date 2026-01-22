@@ -12,9 +12,7 @@
 #include "AppSettings.hpp"
 #include "DownloadManager.hpp"
 #include "GoogleDriveService.hpp"
-#include "Language.hpp"
 #include "OAuthManager.hpp"
-#include "Theme.hpp"
 #include "UpdateManager.hpp"
 #include "model.hpp"
 #include "UiConstants.hpp"
@@ -38,10 +36,10 @@ class AppController final : public QObject {
         [[nodiscard]] const AppSettings* settings() const noexcept { return m_settings.get(); }
 
         [[nodiscard]] bool isDarkTheme() const noexcept {
-            return m_settings->theme() == Theme::dark;
+            return m_settings->theme() == UiConst::Theme::dark;
         }
 
-        [[nodiscard]] Theme currentTheme() const noexcept { return m_settings->theme(); }
+        [[nodiscard]] UiConst::Theme currentTheme() const noexcept { return m_settings->theme(); }
 
         [[nodiscard]] QString lastUpdateInfoAssetHash() const noexcept {
             return m_lastUpdateInfoSummary.assetHash;
@@ -54,8 +52,8 @@ class AppController final : public QObject {
             return m_settings->resourceDir();
         }
 
-        void applyLanguage(Language lang);
-        void applyTheme(Theme theme);
+        void applyLanguage(UiConst::Language lang);
+        void applyTheme(UiConst::Theme theme);
         void setMainWindow(MainWindow* window);
         void setCore(NotesAppCore* core);
 
@@ -74,7 +72,7 @@ class AppController final : public QObject {
             const QString &message, UiConst::SettingsMessageState state,
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
         void initialSettingsLoaded(const SettingsData &settings);
-        void requestSyntaxHighlightingUpdate(Theme theme);
+        void requestSyntaxHighlightingUpdate(UiConst::Theme theme);
         void addTabNotiRequest(const QString &message, UiConst::SettingsTabNotiLevel notiType =
                                                            UiConst::SettingsTabNotiLevel::normal);
         void resetAddTabInputsRequest();

@@ -17,7 +17,6 @@
 #include "CodeEditorLineHighlighter.hpp"
 #include "PlainTextEdit.hpp"
 #include "ResourceViewService.hpp"
-#include "Theme.hpp"
 #include "cpphighlighter.hpp"
 #include "cpphighlightertheme.hpp"
 #include "UiConstants.hpp"
@@ -25,7 +24,7 @@
 #include "helper.hpp"
 
 TextViewer::TextViewer(sqlite3_int64 resourceId, bool editable, ResourceViewService &viewService,
-                       Theme theme, QWidget* parent)
+                       UiConst::Theme theme, QWidget* parent)
     : m_resourceId(resourceId), m_editable(editable), m_viewService(viewService),
       m_currentTheme(theme) {
     m_rootWidget = new QWidget(parent);
@@ -222,7 +221,7 @@ void TextViewer::applySyntaxHighlightingTheme() {
 
     // Chọn theme tô màu
     const CppHighlighterTheme hlTheme =
-        (m_currentTheme == Theme::light) ? createLightTheme() : createDarkTheme();
+        (m_currentTheme == UiConst::Theme::light) ? createLightTheme() : createDarkTheme();
 
     auto* doc = m_editor->document();
 
@@ -253,7 +252,7 @@ void TextViewer::applyLineHighlighter() {
     if (m_lineHighlighter != nullptr) { return; }
 
     m_lineHighlighter = new CodeEditorLineHighlighter(m_editor);
-    if (m_currentTheme == Theme::light) {
+    if (m_currentTheme == UiConst::Theme::light) {
         m_lineHighlighter->setColors(QColor("#dBdBdB"), QColor("#efefef"));
     } else {
         m_lineHighlighter->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
@@ -264,7 +263,7 @@ void TextViewer::setupHighlighter() {
     if (m_editor == nullptr) { return; }
 
     const CppHighlighterTheme hlTheme =
-        (m_currentTheme == Theme::dark) ? createDarkTheme() : createLightTheme();
+        (m_currentTheme == UiConst::Theme::dark) ? createDarkTheme() : createLightTheme();
 
     auto* doc = m_editor->document();
 

@@ -1,27 +1,26 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "AppSettings.hpp"
-#include "Language.hpp"
-#include "Theme.hpp"
+#include "UiConstants.hpp"
 
 TEST_CASE("AppSettings - default values", "[AppSettings]") {
     AppSettings settings;
 
     SECTION("default language should be English") {
-        REQUIRE(settings.language() == Language::english);
+        REQUIRE(settings.language() == UiConst::Language::english);
     }
 
     SECTION("default theme should be Light") {
-        REQUIRE(settings.theme() == Theme::light);
+        REQUIRE(settings.theme() == UiConst::Theme::light);
     }
 }
 
 TEST_CASE("AppSettings - change settings", "[AppSettings]") {
     AppSettings settings;
 
-    settings.setLanguage(Language::vietnamese);
-    settings.setTheme(Theme::dark);
+    settings.setLanguage(UiConst::Language::vietnamese);
+    settings.setTheme(UiConst::Theme::dark);
 
-    REQUIRE(settings.language() == Language::vietnamese);
-    REQUIRE(settings.theme() == Theme::dark);
+    REQUIRE(settings.language() == UiConst::Language::vietnamese);
+    REQUIRE(settings.theme() == UiConst::Theme::dark);
 }

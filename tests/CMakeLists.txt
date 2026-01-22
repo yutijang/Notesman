@@ -11,8 +11,7 @@ find_package(Qt6 COMPONENTS Test Widgets REQUIRED)
 
 # Tạo executable cho test
 add_executable(notes-core-tests
-    # test_main.cpp
-    test_AppSettings.cpp
+    # test_main.cpp    
     test_model_utils.cpp
     test_sqldb_raii.cpp
     test_resource_repository.cpp
@@ -50,6 +49,7 @@ set_target_properties(notes-core-tests PROPERTIES
 add_executable(gui-tests
     test_main.cpp
     test_mainwindow_tabs.cpp
+    test_AppSettings.cpp
 )
 
 # Thêm đường dẫn include để thấy header của notes-app-lib
@@ -60,10 +60,10 @@ target_include_directories(gui-tests
         ${PROJECT_SOURCE_DIR}/apps/notesman/core/model
         ${PROJECT_SOURCE_DIR}/apps/notesman/core/repository
         ${PROJECT_SOURCE_DIR}/apps/notesman/core/service
-        ${PROJECT_SOURCE_DIR}/apps/notesman/core/settings
         ${PROJECT_SOURCE_DIR}/apps/notesman/gui
         ${PROJECT_SOURCE_DIR}/apps/notesman/application
         ${PROJECT_SOURCE_DIR}/apps/notesman/helper
+        ${PROJECT_SOURCE_DIR}/gui/Settings
 )
 
 target_link_libraries(gui-tests

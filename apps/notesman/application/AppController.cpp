@@ -23,13 +23,11 @@
 #include "AppSettings.hpp"
 #include "DownloadManager.hpp"
 #include "GoogleDriveService.hpp"
-#include "Language.hpp"
 #include "MainWindow.hpp"
 #include "NotesAppCore.hpp"
 #include "OAuthManager.hpp"
 #include "ResourceSearchWorker.hpp"
 #include "SettingsData.hpp"
-#include "Theme.hpp"
 #include "UiConstants.hpp"
 #include "UpdateInfoSummary.hpp"
 #include "DialogUtils.hpp"
@@ -82,10 +80,10 @@ void AppController::updateSettings(const AppSettings &newSettings) {
     saveSettings();
 }
 
-void AppController::applyLanguage(Language lang) {
+void AppController::applyLanguage(UiConst::Language lang) {
     if (m_translator) { qApp->removeTranslator(m_translator.get()); }
 
-    if (lang == Language::vietnamese) {
+    if (lang == UiConst::Language::vietnamese) {
         m_translator = std::make_unique<QTranslator>();
         if (m_translator->load(":/i18n/app_vi.qm")) {
             qApp->installTranslator(m_translator.get());
@@ -103,14 +101,14 @@ void AppController::applyLanguage(Language lang) {
     // emit languageChanged();
 }
 
-void AppController::applyTheme(Theme theme) {
+void AppController::applyTheme(UiConst::Theme theme) {
     QString qssPath;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wswitch-default"
     switch (theme) {
-        case Theme::light: qssPath = ":/qss/light.qss"; break;
-        case Theme::dark : qssPath = ":/qss/dark.qss"; break;
+        case UiConst::Theme::light: qssPath = ":/qss/light.qss"; break;
+        case UiConst::Theme::dark : qssPath = ":/qss/dark.qss"; break;
     }
 #pragma clang diagnostic pop
 

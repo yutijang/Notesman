@@ -6,7 +6,7 @@
 
 #include "IResourceViewer.hpp"
 #include "ResourceViewService.hpp"
-#include "Theme.hpp"
+#include "UiConstants.hpp"
 
 class QWidget;
 class PlainTextEdit;
@@ -18,7 +18,7 @@ class TextViewer final : public IResourceViewer,
                          public ISearchable {
     public:
         TextViewer(sqlite3_int64 resourceId, bool editable, ResourceViewService &viewService,
-                   Theme theme, QWidget* parent = nullptr);
+                   UiConst::Theme theme, QWidget* parent = nullptr);
 
         ~TextViewer() override = default;
 
@@ -48,7 +48,7 @@ class TextViewer final : public IResourceViewer,
         bool m_editable{};
         ResourceViewService &m_viewService;
         QString m_originalContent;
-        Theme m_currentTheme{};
+        UiConst::Theme m_currentTheme{};
         bool m_isAppliedSH{};
 
         QWidget* m_rootWidget{};

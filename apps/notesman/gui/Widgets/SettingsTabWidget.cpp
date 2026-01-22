@@ -19,8 +19,6 @@
 #include <QStringList>
 
 #include "SettingsTabWidget.hpp"
-#include "Language.hpp"
-#include "Theme.hpp"
 #include "UiConstants.hpp"
 #include "SettingsData.hpp"
 #include "DialogUtils.hpp"
@@ -129,15 +127,15 @@ void SettingsTabWidget::onApplyBtnClicked() {
     SettingsData data{};
 
     if (m_langEnRad->isChecked()) {
-        data.language = Language::english;
+        data.language = UiConst::Language::english;
     } else if (m_langViRad->isChecked()) {
-        data.language = Language::vietnamese;
+        data.language = UiConst::Language::vietnamese;
     }
 
     if (m_themeLightRad->isChecked()) {
-        data.theme = Theme::light;
+        data.theme = UiConst::Theme::light;
     } else if (m_themeDarkRad->isChecked()) {
-        data.theme = Theme::dark;
+        data.theme = UiConst::Theme::dark;
     }
 
     data.isManagedResource = m_resManCom->currentData().toBool();
@@ -405,16 +403,16 @@ void SettingsTabWidget::showNotification(const QString &message,
 
 void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     // Giao diện
-    if (settings.theme == Theme::light) {
+    if (settings.theme == UiConst::Theme::light) {
         m_themeLightRad->setChecked(true);
-    } else if (settings.theme == Theme::dark) {
+    } else if (settings.theme == UiConst::Theme::dark) {
         m_themeDarkRad->setChecked(true);
     }
 
     // Ngôn ngữ
-    if (settings.language == Language::english) {
+    if (settings.language == UiConst::Language::english) {
         m_langEnRad->setChecked(true);
-    } else if (settings.language == Language::vietnamese) {
+    } else if (settings.language == UiConst::Language::vietnamese) {
         m_langViRad->setChecked(true);
     }
 

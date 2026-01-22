@@ -50,7 +50,6 @@ add_library(notes-core STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/file_text_content_repository.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service/file_service.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service/resource_service.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/settings/AppSettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/db/database_checker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/helper.cpp
 )
@@ -61,7 +60,6 @@ target_include_directories(notes-core
     ${CMAKE_CURRENT_SOURCE_DIR}/core/model
     ${CMAKE_CURRENT_SOURCE_DIR}/core/repository
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/settings 
     ${CMAKE_CURRENT_SOURCE_DIR}/helper
     ${NOTESMAN_GENERATED_DIR} # db version
 )
@@ -115,6 +113,7 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/PdfPageWidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewerDialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Settings/AppSettings.cpp
     
 )
 
@@ -151,6 +150,7 @@ target_include_directories(notes-app-lib-core
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Settings
     ${CMAKE_CURRENT_SOURCE_DIR}/helper
     ${NOTESMAN_GENERATED_DIR} # OAuth config include dir
 )

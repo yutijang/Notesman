@@ -40,7 +40,6 @@
 #include "PdfViewer.hpp"
 #include "SettingsData.hpp"
 #include "TextViewer.hpp"
-#include "Theme.hpp"
 #include "UiConstants.hpp"
 #include "BrowseTabWidget.hpp"
 #include "AddTabWidget.hpp"
@@ -233,7 +232,7 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
         case ResourceType::plainText:
         case ResourceType::cCppCode : {
             const bool editable = (type == ResourceType::plainText && path.isEmpty());
-            const Theme theme = m_appController->currentTheme();
+            const UiConst::Theme theme = m_appController->currentTheme();
 
             viewer = std::make_unique<TextViewer>(static_cast<sqlite3_int64>(id), editable,
                                                   *m_resourceViewService, theme, this);
@@ -416,12 +415,12 @@ void MainWindow::retranslateUi() {
     // =================================
 }
 
-void MainWindow::applySyntaxHighlightingTheme(Theme theme) {
+void MainWindow::applySyntaxHighlightingTheme(UiConst::Theme theme) {
     if (m_addTab->textEdit() == nullptr) { return; }
 
     // Chọn theme tô màu
     const CppHighlighterTheme hlTheme =
-        (theme == Theme::light) ? createLightTheme() : createDarkTheme();
+        (theme == UiConst::Theme::light) ? createLightTheme() : createDarkTheme();
 
     // Nếu chưa có highlighter thì tạo mới
     if (m_cppHighlighter == nullptr) {
@@ -443,7 +442,7 @@ void MainWindow::applySyntaxHighlightingTheme(Theme theme) {
     }
 
     m_lineHighlighter = new CodeEditorLineHighlighter(m_addTab->textEdit());
-    if (theme == Theme::light) {
+    if (theme == UiConst::Theme::light) {
         m_lineHighlighter->setColors(QColor("#dBdBdB"), QColor("#efefef"));
     } else {
         m_lineHighlighter->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
@@ -748,13 +747,13 @@ void MainWindow::updateStatus(const QString &message, int timeout) {
     statusBar()->showMessage(message, timeout);
 }
 
-void MainWindow::handleSyntaxHighlightingUpdate(Theme theme) {
+void MainWindow::handleSyntaxHighlightingUpdate(UiConst::Theme theme) {
     applySyntaxHighlightingTheme(theme);
 }
 
 void MainWindow::handleSyntaxHighlightingFromAddTabRequested(bool checked) {
     if (checked) {
-        const Theme curTheme = m_appController->currentTheme();
+        const UiConst::Theme curTheme = m_appController->currentTheme();
         applySyntaxHighlightingTheme(curTheme);
     } else {
         disableSyntaxHighlightingTheme();
