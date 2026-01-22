@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <QCloseEvent>
@@ -17,6 +18,7 @@
 #include <QObject>
 #include <QtGlobal>
 #include <QtAssert>
+#include <QGuiApplication>
 
 #include "ResourceViewerDialog.hpp"
 #include "DialogUtils.hpp"
@@ -34,32 +36,9 @@ ResourceViewerDialog::ResourceViewerDialog(const QString &title,
 }
 
 void ResourceViewerDialog::showEvent(QShowEvent* event) {
-    auto &settings = SettingsManager::instance();
-
-    // Đọc vị trí lưu
-    const int x = settings.get("window/dialog_viewer_posX", -1).toInt();
-    const int y = settings.get("window/dialog_viewer_posY", -1).toInt();
-    const int w = settings.get("window/dialog_viewer_width", -1).toInt();
-    const int h = settings.get("window/dialog_viewer_height", -1).toInt();
-
-    static constexpr int dialogWidth{640};
-    const int mainH{800};
-    const int frameH = this->style()->pixelMetric(QStyle::PM_TitleBarHeight) +
-                       (this->style()->pixelMetric(QStyle::PM_DefaultFrameWidth) * 2);
-    const int dialogHeight = mainH - frameH + 30;
-
-    if (x != -1 && y != -1) {
-        this->move(x, y);
-    } else {
-        const QScreen* screen = this->screen();
-        const QRect geom = screen->availableGeometry();
-        this->move(geom.center() - frameGeometry().center());
-    }
-
-    if (w >= dialogWidth && h >= dialogHeight) {
-        this->resize(w, h);
-    } else {
-        this->resize(dialogWidth + 30, dialogHeight);
+    if (!m_geometryRestored) {
+        restoreGeometryLogic();
+        m_geometryRestored = true;
     }
 
     QDialog::showEvent(event);
@@ -118,4 +97,41 @@ void ResourceViewerDialog::setupActions() {
     }
 
     layout()->setMenuBar(toolbar);
+}
+
+void ResourceViewerDialog::restoreGeometryLogic() {
+    auto &settings = SettingsManager::instance();
+
+    const int x = settings.get("window/dialog_viewer_posX", -1).toInt();
+    const int y = settings.get("window/dialog_viewer_posY", -1).toInt();
+    const int w = settings.get("window/dialog_viewer_width", -1).toInt();
+    const int h = settings.get("window/dialog_viewer_height", -1).toInt();
+
+    static constexpr QSize kDefaultSize{800, 800};
+
+    QSize targetSize = kDefaultSize;
+
+    if (w > 0 && h > 0) {
+        targetSize.setWidth(std::max(w, kDefaultSize.width()));
+        targetSize.setHeight(std::max(h, kDefaultSize.height()));
+    }
+
+    resize(targetSize);
+
+    QScreen* scr = screen();
+    if (scr == nullptr) { scr = QGuiApplication::primaryScreen(); }
+
+    const QRect screenGeom = scr->availableGeometry();
+
+    QRect dlgRect = frameGeometry();
+
+    if (x >= 0 && y >= 0) {
+        dlgRect.moveTopLeft({x, y});
+    } else {
+        dlgRect.moveCenter(screenGeom.center());
+    }
+
+    if (!screenGeom.intersects(dlgRect)) { dlgRect.moveCenter(screenGeom.center()); }
+
+    move(dlgRect.topLeft());
 }

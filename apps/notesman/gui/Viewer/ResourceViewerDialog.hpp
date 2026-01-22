@@ -26,6 +26,8 @@ class ResourceViewerDialog final : public QDialog {
     private:
         void setupUi(const QString &title);
         void setupActions();
+        void restoreGeometryLogic();
 
+        bool m_geometryRestored{};
         std::unique_ptr<IResourceViewer> m_viewer;
 };
