@@ -25,8 +25,6 @@
 #include "resource_service.hpp"
 #include "file_text_content_repository.hpp"
 
-// #include "file_text_content_repository.hpp"
-
 class AppInitializer final : public QObject {
         Q_OBJECT
 

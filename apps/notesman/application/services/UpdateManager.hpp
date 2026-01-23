@@ -6,6 +6,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QtTypes>
+#include <QAnyStringView>
+#include <QStringView>
 
 #include "UpdateInfoSummary.hpp"
 

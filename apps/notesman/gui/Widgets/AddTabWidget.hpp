@@ -53,6 +53,7 @@ class AddTabWidget final : public QWidget {
         void setupConnections();
         void clearFields();
         void onToggleCodeHighlighter(bool checked);
+        static QString buildResourceFileFilter();
 
         QVBoxLayout* setupTitleGroup();
         QWidget* setupResouceGroup();

@@ -120,9 +120,9 @@ void AddTabWidget::onBrowseFile() {
 
     const QString kDefaultDir = settings.get("addTab/lastBrowseDir", QDir::homePath()).toString();
 
-    const QString filePath = QFileDialog::getOpenFileName(
-        this, tr("Select Resource File"), kDefaultDir,
-        tr("All Files (*);;Text Files (*.txt *.md);;C++ Source (*.cpp *.h)"));
+    const QString fileFilter = buildResourceFileFilter();
+    const QString filePath =
+        QFileDialog::getOpenFileName(this, tr("Select Resource File"), kDefaultDir, fileFilter);
 
     if (filePath.isEmpty()) { return; }
 
@@ -363,4 +363,38 @@ void AddTabWidget::resetAddTabInputs() const {
 
 void AddTabWidget::onToggleCodeHighlighter(bool checked) {
     emit applySyntaxHighlighterRequest(checked);
+}
+
+QString AddTabWidget::buildResourceFileFilter() {
+    QMap<ResourceType, QStringList> groups;
+    QStringList allExtensions;
+
+    for (const auto &[ext, type] : K_EXT_MAP) {
+        QString pattern = "*." + QString::fromUtf8(ext.data(), static_cast<int>(ext.size()));
+        groups[type] << pattern;
+        allExtensions << pattern;
+    }
+
+    QStringList filters;
+
+    if (!allExtensions.isEmpty()) {
+        filters << tr("All Supported Files (%1)").arg(allExtensions.join(' '));
+    }
+
+    for (auto it = groups.begin(); it != groups.end(); ++it) {
+        QString label;
+        switch (it.key()) {
+            case ResourceType::plainText: label = tr("Text Files"); break;
+            case ResourceType::cCppCode : label = tr("C/C++ Source"); break;
+            case ResourceType::htmlDoc  : label = tr("HTML Documents"); break;
+            case ResourceType::pdfDoc   : label = tr("PDF Documents"); break;
+            case ResourceType::epubDoc  : label = tr("Epub Books"); break;
+            default                     : label = tr("Other Files"); break;
+        }
+        filters << QString("%1 (%2)").arg(label, it.value().join(' '));
+    }
+
+    filters << tr("All Files (*)");
+
+    return filters.join(";;");
 }

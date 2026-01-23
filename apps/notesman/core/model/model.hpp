@@ -42,6 +42,32 @@ inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceT
          {.type = ResourceType::epubDoc, .key = "epub"}}
 };
 
+inline const std::unordered_map<std::string_view, ResourceType> K_EXT_MAP{
+    {     "txt", ResourceType::plainText},
+    {    "text", ResourceType::plainText},
+    {      "md", ResourceType::plainText},
+    {"markdown", ResourceType::plainText},
+    {     "log", ResourceType::plainText},
+    {     "ini", ResourceType::plainText},
+    {     "cfg", ResourceType::plainText},
+    {    "conf", ResourceType::plainText},
+    {     "csv", ResourceType::plainText},
+    {       "c",  ResourceType::cCppCode},
+    {     "cpp",  ResourceType::cCppCode},
+    {      "cc",  ResourceType::cCppCode},
+    {       "h",  ResourceType::cCppCode},
+    {      "hh",  ResourceType::cCppCode},
+    {     "hpp",  ResourceType::cCppCode},
+    {     "cxx",  ResourceType::cCppCode},
+    {     "hxx",  ResourceType::cCppCode},
+    {    "html",   ResourceType::htmlDoc},
+    {     "htm",   ResourceType::htmlDoc},
+    {   "xhtml",   ResourceType::htmlDoc},
+    {   "shtml",   ResourceType::htmlDoc},
+    {     "pdf",    ResourceType::pdfDoc},
+    {    "epub",   ResourceType::epubDoc}
+};
+
 [[nodiscard]] inline std::string_view resourceTypeToString(ResourceType type) noexcept {
     for (const auto &m : K_RESOURCE_TYPE_TABLE) {
         if (m.type == type) { return m.key; }
@@ -58,33 +84,7 @@ inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceT
 }
 
 [[nodiscard]] inline std::optional<ResourceType> resourceTypeFromExtension(std::string_view ext) {
-    static const std::unordered_map<std::string_view, ResourceType> extMap [[clang::no_destroy]]{
-        {     "txt", ResourceType::plainText},
-        {    "text", ResourceType::plainText},
-        {      "md", ResourceType::plainText},
-        {"markdown", ResourceType::plainText},
-        {     "log", ResourceType::plainText},
-        {     "ini", ResourceType::plainText},
-        {     "cfg", ResourceType::plainText},
-        {    "conf", ResourceType::plainText},
-        {     "csv", ResourceType::plainText},
-        {       "c",  ResourceType::cCppCode},
-        {     "cpp",  ResourceType::cCppCode},
-        {      "cc",  ResourceType::cCppCode},
-        {       "h",  ResourceType::cCppCode},
-        {      "hh",  ResourceType::cCppCode},
-        {     "hpp",  ResourceType::cCppCode},
-        {     "cxx",  ResourceType::cCppCode},
-        {     "hxx",  ResourceType::cCppCode},
-        {    "html",   ResourceType::htmlDoc},
-        {     "htm",   ResourceType::htmlDoc},
-        {   "xhtml",   ResourceType::htmlDoc},
-        {   "shtml",   ResourceType::htmlDoc},
-        {     "pdf",    ResourceType::pdfDoc},
-        {    "epub",   ResourceType::epubDoc}
-    };
-
-    if (auto it = extMap.find(ext); it != extMap.end()) { return it->second; }
+    if (auto it = K_EXT_MAP.find(ext); it != K_EXT_MAP.end()) { return it->second; }
     return std::nullopt;
 }
 

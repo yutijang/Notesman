@@ -14,6 +14,7 @@ class QLabel;
 class QRadioButton;
 class ResultsTable;
 class QComboBox;
+class QHBoxLayout;
 
 class BrowseTabWidget final : public QWidget {
         Q_OBJECT
