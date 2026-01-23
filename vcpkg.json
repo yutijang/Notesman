@@ -6,6 +6,9 @@
         "openssl",
         "catch2",
         "spdlog",
+        "qtsvg",
+        "poppler",
+        "md4c",
         {
             "name": "miniz",
             "platform": "windows"
@@ -39,10 +42,6 @@
                 "xkb",
                 "fontconfig"
             ]
-        },
-        "qtsvg",
-        {
-            "name": "poppler"
         }
     ],
     "overrides": [

@@ -358,6 +358,7 @@ QString BrowseTabWidget::resourceTypeToDisplayText(ResourceType type) {
     switch (type) {
         case ResourceType::plainText: return tr("Text");
         case ResourceType::cCppCode : return tr("C/C++ Code");
+        case ResourceType::markdown : return tr("Markdown Document");
         case ResourceType::htmlDoc  : return tr("HTML Document");
         case ResourceType::pdfDoc   : return tr("PDF Document");
         case ResourceType::epubDoc  : return tr("EPUB Document");

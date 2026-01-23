@@ -47,6 +47,8 @@ find_package(SQLite3 REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(POPPLER_CPP REQUIRED IMPORTED_TARGET poppler-cpp)
 
+find_package(md4c CONFIG REQUIRED)
+
 if(WIN32)
     find_package(miniz CONFIG REQUIRED)    
 endif()

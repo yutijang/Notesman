@@ -170,6 +170,7 @@ target_link_libraries(notes-app-lib-core
     Qt6::Svg
     Qt6::Concurrent
     PkgConfig::POPPLER_CPP
+    md4c::md4c
 )
 
 target_compile_definitions(notes-app-lib-core

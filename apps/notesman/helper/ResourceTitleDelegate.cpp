@@ -1,3 +1,5 @@
+#include <memory>
+#include <utility>
 #include <QPainter>
 #include <QApplication>
 #include <QStyleOptionViewItem>
@@ -11,9 +13,7 @@
 #include <QSvgRenderer>
 #include <QFont>
 #include <QColor>
-#include <memory>
-#include <utility>
-#include <qminmax.h>
+#include <QtMinMax>
 
 #include "ResourceTitleDelegate.hpp"
 #include "model.hpp"
@@ -24,6 +24,7 @@ namespace {
         switch (type) {
             case ResourceType::plainText: return QStringLiteral(":/icons/type-text.svg");
             case ResourceType::cCppCode : return QStringLiteral(":/icons/type-cpp.svg");
+            case ResourceType::markdown : return QStringLiteral(":/icons/type-text.svg");
             case ResourceType::htmlDoc  : return QStringLiteral(":/icons/type-html.svg");
             case ResourceType::pdfDoc   : return QStringLiteral(":/icons/type-pdf.svg");
             case ResourceType::epubDoc  : return QStringLiteral(":/icons/type-epub.svg");

@@ -21,6 +21,7 @@ enum class ResourceType : std::uint8_t {
     unknown,
     plainText, //> text thuần ghi trực tiếp vào database,
                // ghi chú text thường (QTextEdit, có hoặc không highlight)
+    markdown,
     cCppCode,  //> text thuần dạng file / snippet / mã nguồn C/C++ (QTextEdit + highlight)
     htmlDoc,   //> .html (WebView)
     pdfDoc,    //> .pdf (PDF viewer)
@@ -37,33 +38,44 @@ inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceT
     K_RESOURCE_TYPE_TABLE{
         {{.type = ResourceType::plainText, .key = "text"},
          {.type = ResourceType::cCppCode, .key = "cpp"},
+         {.type = ResourceType::markdown, .key = "markdown"},
          {.type = ResourceType::htmlDoc, .key = "html"},
          {.type = ResourceType::pdfDoc, .key = "pdf"},
          {.type = ResourceType::epubDoc, .key = "epub"}}
 };
 
 inline const std::unordered_map<std::string_view, ResourceType> K_EXT_MAP{
+    // Plain text
     {     "txt", ResourceType::plainText},
     {    "text", ResourceType::plainText},
-    {      "md", ResourceType::plainText},
-    {"markdown", ResourceType::plainText},
     {     "log", ResourceType::plainText},
     {     "ini", ResourceType::plainText},
     {     "cfg", ResourceType::plainText},
     {    "conf", ResourceType::plainText},
     {     "csv", ResourceType::plainText},
+
+    // Markdown (parse → html)
+    {      "md",  ResourceType::markdown},
+    {"markdown",  ResourceType::markdown},
+    {     "mdx",  ResourceType::markdown},
+
+    // C / C++
     {       "c",  ResourceType::cCppCode},
     {     "cpp",  ResourceType::cCppCode},
     {      "cc",  ResourceType::cCppCode},
+    {     "cxx",  ResourceType::cCppCode},
     {       "h",  ResourceType::cCppCode},
     {      "hh",  ResourceType::cCppCode},
     {     "hpp",  ResourceType::cCppCode},
-    {     "cxx",  ResourceType::cCppCode},
     {     "hxx",  ResourceType::cCppCode},
+
+    // HTML
     {    "html",   ResourceType::htmlDoc},
     {     "htm",   ResourceType::htmlDoc},
     {   "xhtml",   ResourceType::htmlDoc},
     {   "shtml",   ResourceType::htmlDoc},
+
+    // Binary documents
     {     "pdf",    ResourceType::pdfDoc},
     {    "epub",   ResourceType::epubDoc}
 };
