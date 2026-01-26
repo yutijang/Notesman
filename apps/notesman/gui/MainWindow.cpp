@@ -239,7 +239,27 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
             break;
         }
         case ResourceType::htmlDoc: {
-            viewer = std::make_unique<HtmlViewer>(path, this);
+            QString absolutePath;
+
+            QFileInfo fi(path);
+
+            if (fi.isAbsolute()) {
+                absolutePath = fi.absoluteFilePath();
+            } else {
+                QDir baseDir(QString::fromStdString(
+                    m_appController->resourceDir().lexically_normal().string()));
+
+                QString relativePath = path;
+
+                if (relativePath.startsWith("resources/") ||
+                    relativePath.startsWith("resources\\")) {
+                    relativePath = relativePath.mid(QString("resources/").length());
+                }
+
+                absolutePath = baseDir.absoluteFilePath(relativePath);
+            }
+
+            viewer = std::make_unique<HtmlViewer>(absolutePath, this);
             break;
         }
         case ResourceType::pdfDoc: {
@@ -247,8 +267,9 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
             break;
         }
         case ResourceType::unknown:
+        case ResourceType::markdown:
         case ResourceType::epubDoc:
-        case ResourceType::count  : break;
+        case ResourceType::count   : break;
     }
 
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};

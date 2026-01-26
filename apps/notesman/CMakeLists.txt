@@ -114,7 +114,7 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewerDialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewService.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Settings/AppSettings.cpp
-    
+    $<$<PLATFORM_ID:Windows>:${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/WebView2Widget.cpp>    
 )
 
 set(HELPER_SOURCES
@@ -171,6 +171,19 @@ target_link_libraries(notes-app-lib-core
     Qt6::Concurrent
     PkgConfig::POPPLER_CPP
     md4c::md4c
+)
+
+if (WIN32)
+  target_link_libraries(notes-app-lib-core
+    PRIVATE
+      unofficial::webview2::webview2 user32 ole32 oleaut32 shlwapi
+  )
+endif()
+
+target_compile_definitions(notes-app-lib-core
+  PRIVATE
+    $<$<PLATFORM_ID:Windows>:UNICODE>
+    $<$<PLATFORM_ID:Windows>:_UNICODE>
 )
 
 target_compile_definitions(notes-app-lib-core

@@ -42,11 +42,19 @@
                 "xkb",
                 "fontconfig"
             ]
+        },
+        {
+            "name": "webview2",
+            "platform": "windows"
         }
     ],
     "overrides": [
         {
             "name": "qtbase",
+            "version": "6.8.3"
+        },
+        {
+            "name": "qtsvg",
             "version": "6.8.3"
         }
     ]

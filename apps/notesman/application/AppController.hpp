@@ -52,6 +52,10 @@ class AppController final : public QObject {
             return m_settings->resourceDir();
         }
 
+        [[nodiscard]] bool isManagedResources() const noexcept {
+            return m_settings->isManagedResources();
+        }
+
         void applyLanguage(UiConst::Language lang);
         void applyTheme(UiConst::Theme theme);
         void setMainWindow(MainWindow* window);

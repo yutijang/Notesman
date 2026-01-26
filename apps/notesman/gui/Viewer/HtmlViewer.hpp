@@ -6,6 +6,7 @@
 
 class QWidget;
 class QTextBrowser;
+class WebView2Widget;
 
 class HtmlViewer final : public IResourceViewer,
                          public ISearchable {
@@ -31,7 +32,11 @@ class HtmlViewer final : public IResourceViewer,
         QString m_htmlPath;
 
         QWidget* m_rootWidget{};
-        QTextBrowser* m_browser{};
+        // QTextBrowser* m_browser{};
+
+#ifdef Q_OS_WIN
+        WebView2Widget* m_view{};
+#endif
 
         QString m_lastSearchText;
 };

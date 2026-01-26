@@ -50,7 +50,8 @@ pkg_check_modules(POPPLER_CPP REQUIRED IMPORTED_TARGET poppler-cpp)
 find_package(md4c CONFIG REQUIRED)
 
 if(WIN32)
-    find_package(miniz CONFIG REQUIRED)    
+    find_package(miniz CONFIG REQUIRED)
+    find_package(unofficial-webview2 CONFIG REQUIRED)
 endif()
 
 # --- QtKeychain ---------------------------------------------
