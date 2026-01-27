@@ -111,5 +111,9 @@ if(WIN32)
     add_subdirectory(common/security_utils)
 endif()
 
+if(UNIX AND NOT APPLE)
+    add_subdirectory(apps/notesman/webkitgtk_viewer)
+endif()
+
 enable_testing()
 add_subdirectory(tests)

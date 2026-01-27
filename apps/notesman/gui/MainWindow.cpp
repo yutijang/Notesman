@@ -259,7 +259,7 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
                 absolutePath = baseDir.absoluteFilePath(relativePath);
             }
 
-            viewer = std::make_unique<HtmlViewer>(absolutePath, this);
+            viewer = std::make_unique<HtmlViewer>(title, absolutePath, this);
             break;
         }
         case ResourceType::pdfDoc: {
@@ -271,6 +271,10 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
         case ResourceType::epubDoc:
         case ResourceType::count   : break;
     }
+
+    if (!viewer) { return; }
+
+    if (viewer->usesExternalWindow()) { return; }
 
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
 

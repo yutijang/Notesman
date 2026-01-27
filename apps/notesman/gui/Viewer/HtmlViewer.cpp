@@ -18,24 +18,22 @@
     #include "WebView2Widget.hpp"
 #endif
 
-HtmlViewer::HtmlViewer(QString path, QWidget* parent) : m_htmlPath(std::move(path)) {
+HtmlViewer::HtmlViewer(QString title, QString path, QWidget* parent)
+    : m_htmlPath(std::move(path)), m_title(std::move(title)) {
+#ifdef Q_OS_WIN
     m_rootWidget = new QWidget(parent);
+#else
+    m_rootWidget = nullptr;
+#endif
 
+#ifdef Q_OS_WIN
     setupView();
-    loadFile();
+    loadFile(); // chỉ launch process
+#elif defined(Q_OS_LINUX)
+    loadFile(); // chỉ launch process
+#endif
 }
 
-/*
-void HtmlViewer::setupView() {
-    m_browser = new QTextBrowser(m_rootWidget);
-    m_browser->setOpenExternalLinks(true);
-    m_browser->setOpenLinks(true);
-
-    auto* layout = new QVBoxLayout(m_rootWidget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(m_browser);
-}
-*/
 void HtmlViewer::setupView() {
     auto* layout = new QVBoxLayout(m_rootWidget);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -47,58 +45,36 @@ void HtmlViewer::setupView() {
 }
 
 void HtmlViewer::loadFile() {
-    /*
-    if (m_htmlPath.isEmpty()) {
-        m_browser->setHtml(QObject::tr("<p><i>No HTML file</i></p>"));
-        return;
-    }
-
-    const QUrl url = QUrl::fromLocalFile(m_htmlPath);
-    m_browser->setSource(url);
-*/
 #ifdef Q_OS_WIN
     if (!m_htmlPath.isEmpty()) { m_view->loadFile(m_htmlPath); }
+#endif
+
+#ifdef Q_OS_LINUX
+    if (m_htmlPath.isEmpty()) { return; }
+
+    m_process = new QProcess(m_rootWidget);
+
+    const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
+
+    const QString uri = QUrl::fromLocalFile(m_htmlPath).toString();
+    const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
+
+    m_process->start(program, {uri, wTitle});
 #endif
 }
 
 QWidget* HtmlViewer::widget() {
+#ifdef Q_OS_LINUX
+    return nullptr;
+#else
     return m_rootWidget;
+#endif
 }
-
-/*
-void HtmlViewer::setupToolbar(QToolBar* toolbar) {
-    if (toolbar == nullptr) { return; }
-
-    auto* actionSearch = toolbar->addAction(QObject::tr("Search"));
-    actionSearch->setIcon(QIcon(":/icons/search.ico"));
-    actionSearch->setShortcut(QKeySequence::Find);
-    QObject::connect(actionSearch, &QAction::triggered, toolbar, [this]() { startSearch(); });
-
-    // Open in external browser
-    auto* actionOpenExternal = toolbar->addAction(QObject::tr("Open in Browser"));
-    actionOpenExternal->setIcon(QIcon(":/icons/external_browser.ico"));
-    QObject::connect(actionOpenExternal, &QAction::triggered, toolbar, [this]() {
-        if (!m_htmlPath.isEmpty()) { QDesktopServices::openUrl(QUrl::fromLocalFile(m_htmlPath)); }
-    });
-
-    auto* actFindNext = new QAction(m_rootWidget);
-    actFindNext->setShortcut(Qt::Key_F3);
-    actFindNext->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    QObject::connect(actFindNext, &QAction::triggered, m_rootWidget, [this]() { findNext(); });
-
-    auto* actFindPrev = new QAction(m_rootWidget);
-    actFindPrev->setShortcut(Qt::SHIFT | Qt::Key_F3);
-    actFindPrev->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    QObject::connect(actFindPrev, &QAction::triggered, m_rootWidget, [this]() { findPrevious(); });
-
-    m_rootWidget->addAction(actFindNext);
-    m_rootWidget->addAction(actFindPrev);
-}
-*/
 
 void HtmlViewer::setupToolbar(QToolBar* toolbar) {
     if (toolbar == nullptr) { return; }
 
+#ifdef Q_OS_WIN
     if (m_view == nullptr) { return; }
 
     auto* actSearch = toolbar->addAction(QObject::tr("Search"));
@@ -125,6 +101,7 @@ void HtmlViewer::setupToolbar(QToolBar* toolbar) {
 
     m_rootWidget->addAction(actNext);
     m_rootWidget->addAction(actPrev);
+#endif
 }
 
 void HtmlViewer::startSearch() {
@@ -139,29 +116,19 @@ void HtmlViewer::startSearch() {
     findNext();
 }
 
-void HtmlViewer::findNext() {
-    //     if (m_lastSearchText.isEmpty()) { return; }
+void HtmlViewer::findNext() {}
 
-    //     if (!m_browser->find(m_lastSearchText)) {
-    //         // wrap around
-    //         QTextCursor c = m_browser->textCursor();
-    //         c.movePosition(QTextCursor::Start);
-    //         m_browser->setTextCursor(c);
-    //         m_browser->find(m_lastSearchText);
-    //     }
-}
-
-void HtmlViewer::findPrevious() {
-    //     if (m_lastSearchText.isEmpty()) { return; }
-
-    //     if (!m_browser->find(m_lastSearchText, QTextDocument::FindBackward)) {
-    //         QTextCursor c = m_browser->textCursor();
-    //         c.movePosition(QTextCursor::End);
-    //         m_browser->setTextCursor(c);
-    //         m_browser->find(m_lastSearchText, QTextDocument::FindBackward);
-    //     }
-}
+void HtmlViewer::findPrevious() {}
 
 bool HtmlViewer::onClose([[maybe_unused]] QWidget* parent) {
+#ifdef Q_OS_LINUX
+    if (m_process != nullptr) {
+        m_process->terminate();
+        m_process->waitForFinished(500);
+        delete m_process;
+        m_process = nullptr;
+    }
+#endif
+
     return true;
 }

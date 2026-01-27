@@ -8,12 +8,20 @@ class QWidget;
 class QTextBrowser;
 class WebView2Widget;
 
+#ifdef Q_OS_LINUX
+class QProcess;
+#endif
+
 class HtmlViewer final : public IResourceViewer,
                          public ISearchable {
     public:
-        explicit HtmlViewer(QString path, QWidget* parent = nullptr);
+        explicit HtmlViewer(QString title, QString path, QWidget* parent = nullptr);
 
         ~HtmlViewer() override = default;
+
+#ifdef Q_OS_LINUX
+        [[nodiscard]] bool usesExternalWindow() const override { return true; }
+#endif
 
     private:
         // ===== IResourceViewer =====
@@ -30,12 +38,15 @@ class HtmlViewer final : public IResourceViewer,
         void loadFile();
 
         QString m_htmlPath;
+        QString m_title;
 
         QWidget* m_rootWidget{};
         // QTextBrowser* m_browser{};
 
-#ifdef Q_OS_WIN
+#if defined(Q_OS_WIN)
         WebView2Widget* m_view{};
+#elif defined(Q_OS_LINUX)
+        QProcess* m_process{};
 #endif
 
         QString m_lastSearchText;

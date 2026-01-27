@@ -10,6 +10,8 @@ class IResourceViewer {
         virtual QWidget* widget() = 0;
         virtual bool onClose(QWidget* parent) = 0;
         virtual void setupToolbar(QToolBar* toolbar) = 0;
+
+        [[nodiscard]] virtual bool usesExternalWindow() const { return false; }
 };
 
 // Giao diện dành cho các Viewer có thể chỉnh sửa
