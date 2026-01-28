@@ -345,7 +345,33 @@ jobs:
                       exit 1
                   }
               }
-          }          
+          }
+
+      - name: Find and copy WebView2Loader DLL
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+
+          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\WebView2Loader.dll"
+
+          if (Test-Path $preferredPath) {
+              Write-Host "Found WebView2Loader.dll at preferred location: $preferredPath"
+              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
+              Write-Host "Copied WebView2Loader.dll to ${{ env.RELEASE_DIR }}"
+          } else {
+              Write-Host "Preferred location not found, searching recursively under $vcpkgRoot ..."
+              $WebView2LoaderFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter "WebView2Loader.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+              if ($null -ne $WebView2LoaderFile) {
+                  Write-Host "Found WebView2Loader.dll at: $($WebView2LoaderFile.FullName)"
+                  Copy-Item $WebView2LoaderFile.FullName ${{ env.RELEASE_DIR }} -Force
+                  Write-Host "Copied WebView2Loader.dll to ${{ env.RELEASE_DIR }}"
+              } else {
+                  Write-Error "WebView2Loader.dll not found under $vcpkgRoot"
+                  exit 1
+              }
+          }
 
       - name: Force Deploy zlib1.dll from vcpkg
         shell: pwsh
