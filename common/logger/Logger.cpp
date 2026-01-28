@@ -2,17 +2,23 @@
     #include <windows.h>
 #else
     #include <unistd.h>
-    #include <limits.h>
+    #include <climits>
+    #include <linux/limits.h>
+    #include <sys/types.h>
 #endif
 
-#include <filesystem>
+#include <cstdlib>
+#include <vector>
 #include <mutex>
 #include <memory>
 #include <string>
+#include <filesystem>
+#include <system_error>
 #include <spdlog/common.h>
 #include <spdlog/logger.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 #include "Logger.hpp"
 
@@ -44,6 +50,23 @@ namespace {
     #endif
     }
 #endif
+
+    std::filesystem::path getLogDir() {
+#if defined(_WIN32)
+        return getExeDir() / "logs";
+#else
+        if (const char* xdg = std::getenv("XDG_STATE_HOME")) {
+            return std::filesystem::path(xdg) / "notesman" / "logs";
+        }
+
+        if (const char* home = std::getenv("HOME")) {
+            return std::filesystem::path(home) / ".local/state/notesman/logs";
+        }
+
+        return std::filesystem::temp_directory_path() / "notesman/logs";
+#endif
+    }
+
 } // namespace
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
@@ -52,8 +75,14 @@ void Log::init(const std::string &loggerName, const std::string &fileName) {
         std::vector<spdlog::sink_ptr> sinks;
 
         // ---- FILE SINK (BẮT BUỘC) ----
-        auto logPath = getExeDir() / fileName;
-        std::filesystem::create_directories(logPath.parent_path());
+        auto logPath = getLogDir() / std::filesystem::path(fileName).filename();
+
+        std::error_code ec;
+        std::filesystem::create_directories(logPath.parent_path(), ec);
+        if (ec) {
+            // fallback
+            logPath = std::filesystem::temp_directory_path() / "notesman_error.log";
+        }
 
         auto fileSink =
             std::make_shared<spdlog::sinks::basic_file_sink_mt>(logPath.string(), false);

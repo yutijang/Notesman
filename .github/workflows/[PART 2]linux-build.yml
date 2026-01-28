@@ -138,6 +138,9 @@ jobs:
           cp bin/updater "$APPDIR/usr/bin/updater"
           chmod +x "$APPDIR/usr/bin/updater"
 
+          cp bin/webkitgtk_viewer "$APPDIR/usr/bin/webkitgtk_viewer"
+          chmod +x "$APPDIR/usr/bin/webkitgtk_viewer"
+
           # ---- Qt runtime from vcpkg ----
           cp "$VCPKG_DIR/lib"/lib*.so* "$APPDIR/usr/lib/"
 
