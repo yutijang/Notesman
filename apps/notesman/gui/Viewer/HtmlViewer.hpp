@@ -15,7 +15,12 @@ class QProcess;
 class HtmlViewer final : public IResourceViewer,
                          public ISearchable {
     public:
+        // load từ file
         explicit HtmlViewer(QString title, QString path, QWidget* parent = nullptr);
+
+        // load từ memory
+        explicit HtmlViewer(QString title, QString htmlContent, bool fromMemory,
+                            QWidget* parent = nullptr);
 
         ~HtmlViewer() override = default;
 
@@ -36,9 +41,12 @@ class HtmlViewer final : public IResourceViewer,
 
         void setupView();
         void loadFile();
+        void loadFromMemory();
 
         QString m_htmlPath;
+        QString m_htmlContent;
         QString m_title;
+        bool m_fromMemory{};
 
         QWidget* m_rootWidget{};
         // QTextBrowser* m_browser{};

@@ -15,6 +15,7 @@ class WebView2Widget final : public QWidget {
 
         void loadFile(const QString &path);
         void find(const QString &text, bool backward = false);
+        void loadHtml(const QString &html);
 
     protected:
         void resizeEvent(QResizeEvent* e) override;
@@ -25,6 +26,9 @@ class WebView2Widget final : public QWidget {
 
         bool m_initialized{};
         QString m_pendingFile;
+
+        bool m_hasPendingHtml{};
+        QString m_pendingHtml;
 
         Microsoft::WRL::ComPtr<ICoreWebView2Environment> m_env;
         Microsoft::WRL::ComPtr<ICoreWebView2Controller> m_controller;

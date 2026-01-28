@@ -62,6 +62,7 @@
 #include "ResourceViewerDialog.hpp"
 #include "SettingsManager.hpp"
 #include "Logger.hpp"
+#include "MarkdownToHtml.hpp"
 
 #if defined(Q_OS_LINUX)
     #include <sys/stat.h>
@@ -238,28 +239,18 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
                                                   *m_resourceViewService, theme, this);
             break;
         }
-        case ResourceType::htmlDoc: {
-            QString absolutePath;
+        case ResourceType::htmlDoc:
+        case ResourceType::markdown: {
+            QString absolutePath = resolveResPath(path);
 
-            QFileInfo fi(path);
-
-            if (fi.isAbsolute()) {
-                absolutePath = fi.absoluteFilePath();
+            if (type == ResourceType::markdown) {
+                const QString html = MarkdownToHtml::convertFileToHtml(absolutePath);
+                if (html.isEmpty()) { return; }
+                viewer = std::make_unique<HtmlViewer>(title, html, true, this);
             } else {
-                QDir baseDir(QString::fromStdString(
-                    m_appController->resourceDir().lexically_normal().string()));
-
-                QString relativePath = path;
-
-                if (relativePath.startsWith("resources/") ||
-                    relativePath.startsWith("resources\\")) {
-                    relativePath = relativePath.mid(QString("resources/").length());
-                }
-
-                absolutePath = baseDir.absoluteFilePath(relativePath);
+                viewer = std::make_unique<HtmlViewer>(title, absolutePath, this);
             }
 
-            viewer = std::make_unique<HtmlViewer>(title, absolutePath, this);
             break;
         }
         case ResourceType::pdfDoc: {
@@ -267,9 +258,9 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
             break;
         }
         case ResourceType::unknown:
-        case ResourceType::markdown:
+
         case ResourceType::epubDoc:
-        case ResourceType::count   : break;
+        case ResourceType::count  : break;
     }
 
     if (!viewer) { return; }
@@ -872,4 +863,27 @@ void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
 
 qint64 MainWindow::getCurrentPid() {
     return QCoreApplication::applicationPid();
+}
+
+QString MainWindow::resolveResPath(const QString &path) {
+    QString absolutePath;
+
+    QFileInfo fi(path);
+
+    if (fi.isAbsolute()) {
+        absolutePath = fi.absoluteFilePath();
+    } else {
+        QDir baseDir(
+            QString::fromStdString(m_appController->resourceDir().lexically_normal().string()));
+
+        QString relativePath = path;
+
+        if (relativePath.startsWith("resources/") || relativePath.startsWith("resources\\")) {
+            relativePath = relativePath.mid(QString("resources/").length());
+        }
+
+        absolutePath = baseDir.absoluteFilePath(relativePath);
+    }
+
+    return absolutePath;
 }

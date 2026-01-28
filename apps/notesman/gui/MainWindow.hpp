@@ -116,6 +116,7 @@ class MainWindow : public QMainWindow {
         void runUpdate(const QString &filePath);
         static qint64 getCurrentPid();
         void disableSyntaxHighlightingTheme();
+        QString resolveResPath(const QString &path);
 
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(const QString &filePath);

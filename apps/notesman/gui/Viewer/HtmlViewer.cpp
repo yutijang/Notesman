@@ -28,10 +28,17 @@ HtmlViewer::HtmlViewer(QString title, QString path, QWidget* parent)
 
 #ifdef Q_OS_WIN
     setupView();
-    loadFile(); // chỉ launch process
+    loadFile();
 #elif defined(Q_OS_LINUX)
     loadFile(); // chỉ launch process
 #endif
+}
+
+HtmlViewer::HtmlViewer(QString title, QString htmlContent, bool fromMemory, QWidget* parent)
+    : m_htmlContent(std::move(htmlContent)), m_title(std::move(title)), m_fromMemory(fromMemory) {
+    m_rootWidget = new QWidget(parent);
+    setupView();
+    loadFromMemory();
 }
 
 void HtmlViewer::setupView() {
@@ -63,6 +70,12 @@ void HtmlViewer::loadFile() {
 #endif
 }
 
+void HtmlViewer::loadFromMemory() {
+#ifdef Q_OS_WIN
+    if (!m_htmlContent.isEmpty()) { m_view->loadHtml(m_htmlContent); }
+#endif
+}
+
 QWidget* HtmlViewer::widget() {
 #ifdef Q_OS_LINUX
     return nullptr;
@@ -78,6 +91,7 @@ void HtmlViewer::setupToolbar(QToolBar* toolbar) {
     if (m_view == nullptr) { return; }
 
     auto* actSearch = toolbar->addAction(QObject::tr("Search"));
+    actSearch->setIcon(QIcon(":/icons/search.ico"));
     actSearch->setShortcut(QKeySequence::Find);
     QObject::connect(actSearch, &QAction::triggered, toolbar, [this]() {
         bool ok{};
@@ -105,20 +119,25 @@ void HtmlViewer::setupToolbar(QToolBar* toolbar) {
 }
 
 void HtmlViewer::startSearch() {
-    bool ok{};
-    const QString text =
-        QInputDialog::getText(m_rootWidget, QObject::tr("Search"), QObject::tr("Find:"),
-                              QLineEdit::Normal, m_lastSearchText, &ok);
-
-    if (!ok || text.isEmpty()) { return; }
-
-    m_lastSearchText = text;
-    findNext();
+#ifdef Q_OS_WIN
+// HtmlViewer không chịu trách nhiệm search
+// Mọi thứ delegate cho WebView2Widget
+#endif
 }
 
-void HtmlViewer::findNext() {}
+void HtmlViewer::findNext() {
+#ifdef Q_OS_WIN
+// HtmlViewer không chịu trách nhiệm search
+// Mọi thứ delegate cho WebView2Widget
+#endif
+}
 
-void HtmlViewer::findPrevious() {}
+void HtmlViewer::findPrevious() {
+#ifdef Q_OS_WIN
+// HtmlViewer không chịu trách nhiệm search
+// Mọi thứ delegate cho WebView2Widget
+#endif
+}
 
 bool HtmlViewer::onClose([[maybe_unused]] QWidget* parent) {
 #ifdef Q_OS_LINUX

@@ -107,13 +107,14 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter/cpphighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter/CodeEditorLineHighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput/TagInput.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Settings/AppSettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/TextViewer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/HtmlViewer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/PdfViewer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/PdfPageWidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewerDialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewService.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Settings/AppSettings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/MarkdownToHtml.cpp
     $<$<PLATFORM_ID:Windows>:${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/WebView2Widget.cpp>    
 )
 
@@ -171,6 +172,7 @@ target_link_libraries(notes-app-lib-core
     Qt6::Concurrent
     PkgConfig::POPPLER_CPP
     md4c::md4c
+    md4c::md4c-html
 )
 
 if (WIN32)
