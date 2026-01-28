@@ -42,11 +42,8 @@ jobs:
           if (-not (Get-Command ccache -ErrorAction SilentlyContinue)) { choco install ccache -y --no-progress --limit-output }
           if (-not (Get-Command clang-cl -ErrorAction SilentlyContinue)) { choco install llvm -y --no-progress --limit-output }
 
-      - name: Install pkg-config via MSYS2
-        run: |
-          choco install msys2 -y
-          C:\msys64\usr\bin\pacman.exe -Sy --noconfirm pkgconf
-          echo "C:\msys64\usr\bin" >> $env:GITHUB_PATH
+      - name: Install pkg-config
+        run: choco install pkgconfiglite --allow-empty-checksums -y
 
       - name: Setup ccache cache
         uses: actions/cache@v4
