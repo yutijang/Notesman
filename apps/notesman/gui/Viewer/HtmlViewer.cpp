@@ -74,6 +74,23 @@ void HtmlViewer::loadFromMemory() {
 #ifdef Q_OS_WIN
     if (!m_htmlContent.isEmpty()) { m_view->loadHtml(m_htmlContent); }
 #endif
+
+#ifdef Q_OS_LINUX
+    if (m_htmlContent.isEmpty()) { return; }
+
+    m_process = new QProcess(m_rootWidget);
+
+    const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
+
+    const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
+
+    m_process->start(program, {"--stdin", wTitle});
+
+    if (!m_process->waitForStarted()) { return; }
+
+    m_process->write(m_htmlContent.toUtf8());
+    m_process->closeWriteChannel();
+#endif
 }
 
 QWidget* HtmlViewer::widget() {
@@ -143,7 +160,7 @@ bool HtmlViewer::onClose([[maybe_unused]] QWidget* parent) {
 #ifdef Q_OS_LINUX
     if (m_process != nullptr) {
         m_process->terminate();
-        m_process->waitForFinished(500);
+        m_process->waitForFinished(500); // NOLINT(readability-magic-numbers)
         delete m_process;
         m_process = nullptr;
     }

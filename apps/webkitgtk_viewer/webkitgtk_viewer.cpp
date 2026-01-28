@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 #include <glib.h>
@@ -22,6 +25,18 @@ static gchar* toFileUri(const char* path) {
     return uri;
 }
 
+static gchar* readStdinAll() {
+    GString* buf = g_string_new(nullptr);
+    gchar tmp[4096];
+
+    while (feof(stdin) == 0) {
+        std::size_t n = fread(tmp, 1, sizeof(tmp), stdin);
+        if (n > 0) { g_string_append_len(buf, tmp, static_cast<gssize>(n)); }
+    }
+
+    return g_string_free(buf, FALSE);
+}
+
 int main(int argc, char** argv) {
     gtk_init(&argc, &argv);
 
@@ -41,14 +56,20 @@ int main(int argc, char** argv) {
 
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
 
-    gchar* uri = toFileUri(argv[1]);
-    if (uri == nullptr) {
-        g_printerr("Invalid path or URI\n");
-        return 1;
-    }
+    if (argc >= 2 && strcmp(argv[1], "--stdin") == 0) {
+        gchar* html = readStdinAll();
+        webkit_web_view_load_html(WEBKIT_WEB_VIEW(webview), html, nullptr);
+        g_free(html);
+    } else {
+        gchar* uri = toFileUri(argv[1]);
+        if (uri == nullptr) {
+            g_printerr("Invalid path or URI\n");
+            return 1;
+        }
 
-    webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), uri);
-    g_free(uri);
+        webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), uri);
+        g_free(uri);
+    }
 
     gtk_widget_show_all(window);
     gtk_main();
