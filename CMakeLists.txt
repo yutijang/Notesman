@@ -112,7 +112,7 @@ if(WIN32)
 endif()
 
 if(UNIX AND NOT APPLE)
-    add_subdirectory(apps/notesman/webkitgtk_viewer)
+    add_subdirectory(apps/webkitgtk_viewer)
 endif()
 
 enable_testing()
