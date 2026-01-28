@@ -5,9 +5,9 @@
     #include <climits>
     #include <linux/limits.h>
     #include <sys/types.h>
+    #include <cstdlib>
 #endif
 
-#include <cstdlib>
 #include <vector>
 #include <mutex>
 #include <memory>
