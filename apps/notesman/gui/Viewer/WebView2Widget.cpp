@@ -13,6 +13,7 @@
 #include <QtAssert>
 #include <QtLogging>
 #include <QFileInfo>
+#include <QStandardPaths>
 
 #include "WebView2Widget.hpp"
 
@@ -57,8 +58,11 @@ void WebView2Widget::initWebView() {
     HWND hwnd = reinterpret_cast<HWND>(winId());
     Q_ASSERT(hwnd);
 
+    QString userDataDir =
+        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/WebView2";
+
     CreateCoreWebView2EnvironmentWithOptions(
-        nullptr, nullptr, nullptr,
+        nullptr, userDataDir.toStdWString().c_str(), nullptr,
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [this, hwnd](HRESULT hr, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(hr)) {
