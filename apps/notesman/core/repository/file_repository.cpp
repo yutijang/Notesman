@@ -108,8 +108,9 @@ std::optional<FileEntry> FileRepository::getFileById(sqlite_int64 resourceId) {
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) {
-        FileEntry entry;
+    const int rc = stmt.step();
+    if (rc == SQLITE_ROW) {
+        FileEntry entry{};
 
         entry.resource_id = stmt.getColumnInt64(0);
 
@@ -123,6 +124,8 @@ std::optional<FileEntry> FileRepository::getFileById(sqlite_int64 resourceId) {
 
         return entry;
     }
+
+    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "getFileById");
 
     return std::nullopt;
 }

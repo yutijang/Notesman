@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <source_location>
+#include <string_view>
 
 #include "Logger.hpp"
 

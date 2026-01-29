@@ -82,6 +82,7 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
                                  .displaySubText = ures.res.updated_at,
                                  .rawSnippet = std::nullopt,
                                  .filePath = std::nullopt,
+                                 .url = std::nullopt,
                                  .tags = {},
                                  .flags = ResourceFlags::matchTitle};
 
@@ -376,6 +377,7 @@ std::vector<UnifiedSearchResult>
                                  .displaySubText = {},
                                  .rawSnippet = snippet,
                                  .filePath = std::nullopt,
+                                 .url = std::nullopt,
                                  .tags = {},
                                  .flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet};
 
@@ -387,8 +389,8 @@ std::vector<UnifiedSearchResult>
     return results;
 }
 
-Resource ResourceRepository::resourceFromStmt(SQLiteStmt &stmt) {
-    Resource res;
+Resource ResourceRepository::resourceFromStmt(const SQLiteStmt &stmt) {
+    Resource res{};
 
     res.id = stmt.getColumnInt64(0);
     res.title = stmt.getColumnText(1);

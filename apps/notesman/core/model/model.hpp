@@ -21,11 +21,12 @@ enum class ResourceType : std::uint8_t {
     unknown,
     plainText, //> text thuần ghi trực tiếp vào database,
                // ghi chú text thường (QTextEdit, có hoặc không highlight)
-    markdown,
     cCppCode,  //> text thuần dạng file / snippet / mã nguồn C/C++ (QTextEdit + highlight)
+    markdown,
     htmlDoc,   //> .html (WebView)
     pdfDoc,    //> .pdf (PDF viewer)
     epubDoc,   //> .epub (Epub viewer)
+    url,
     count
 };
 
@@ -41,7 +42,8 @@ inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceT
          {.type = ResourceType::markdown, .key = "markdown"},
          {.type = ResourceType::htmlDoc, .key = "html"},
          {.type = ResourceType::pdfDoc, .key = "pdf"},
-         {.type = ResourceType::epubDoc, .key = "epub"}}
+         {.type = ResourceType::epubDoc, .key = "epub"},
+         {.type = ResourceType::url, .key = "url"}}
 };
 
 inline const std::unordered_map<std::string_view, ResourceType> K_EXT_MAP{
@@ -119,6 +121,7 @@ struct FullResource {
         Resource resource;
         std::optional<std::string> content;
         std::optional<std::string> filepath;
+        std::optional<std::string> url;
         std::vector<std::string> tags;
 };
 
@@ -129,35 +132,45 @@ struct FileEntry {
         bool is_managed{};
 };
 
+struct UrlEntry {
+        sqlite3_int64 resource_id{}; // id của resource
+        std::string url;             // raw url người dùng nhập
+        std::string normalized_url;  // canonical form
+        std::string domain;          // ví dụ: w3schools.com
+};
+
+using RFBits = std::uint16_t;        // ResourceFlagBits
+
 // Bitmask
-enum class ResourceFlags : std::uint8_t {
+enum class ResourceFlags : RFBits {
     none = 0,
 
     // ===== Nguồn khớp tìm kiếm =====
     matchTitle = 1U << 0,   // Khớp từ title
     matchContent = 1U << 1, // Khớp từ nội dung text / file_text
     matchTag = 1U << 2,     // Khớp từ tag
+    matchDomain = 1U << 3,
 
     // ===== Trạng thái nội dung =====
-    hasSnippet = 1U << 3,     // Có snippet hợp lệ (FTS snippet)
-    hasFullContent = 1U << 4, // Có content đầy đủ trong DB (text_content)
+    hasSnippet = 1U << 4,     // Có snippet hợp lệ (FTS snippet)
+    hasFullContent = 1U << 5, // Có content đầy đủ trong DB (text_content)
 
     // ===== Trạng thái file =====
-    isFile = 1U << 5,    // Là tài nguyên file
-    isManaged = 1U << 6, // File được app quản lý (copied vào storage)
-    isExternal = 1U << 7 // File liên kết ngoài (linked)
+    isFile = 1U << 6,    // Là tài nguyên file
+    isManaged = 1U << 7, // File được app quản lý (copied vào storage)
+    isExternal = 1U << 8 // File liên kết ngoài (linked)
 };
 
 constexpr ResourceFlags operator|(ResourceFlags a, ResourceFlags b) {
-    return static_cast<ResourceFlags>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b));
+    return static_cast<ResourceFlags>(static_cast<RFBits>(a) | static_cast<RFBits>(b));
 }
 
 constexpr ResourceFlags operator&(ResourceFlags a, ResourceFlags b) {
-    return static_cast<ResourceFlags>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b));
+    return static_cast<ResourceFlags>(static_cast<RFBits>(a) & static_cast<RFBits>(b));
 }
 
 constexpr ResourceFlags operator~(ResourceFlags v) {
-    return static_cast<ResourceFlags>(~static_cast<std::uint8_t>(v));
+    return static_cast<ResourceFlags>(~static_cast<RFBits>(v));
 }
 
 constexpr ResourceFlags &operator|=(ResourceFlags &lhs, ResourceFlags rhs) noexcept {
@@ -166,7 +179,7 @@ constexpr ResourceFlags &operator|=(ResourceFlags &lhs, ResourceFlags rhs) noexc
 }
 
 constexpr bool hasFlag(ResourceFlags value, ResourceFlags flag) {
-    return (static_cast<std::uint8_t>(value) & static_cast<std::uint8_t>(flag)) != 0;
+    return (static_cast<RFBits>(value) & static_cast<RFBits>(flag)) != 0;
 }
 
 struct UnifiedSearchResult {
@@ -174,6 +187,7 @@ struct UnifiedSearchResult {
         std::string displaySubText;
         std::optional<std::string> rawSnippet;
         std::optional<std::string> filePath;
+        std::optional<std::string> url;
         std::vector<std::string> tags;
         ResourceFlags flags;
 };

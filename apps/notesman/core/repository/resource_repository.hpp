@@ -42,7 +42,7 @@ class ResourceRepository {
         std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);
 
     private:
-        static Resource resourceFromStmt(SQLiteStmt &stmt);
+        static Resource resourceFromStmt(const SQLiteStmt &stmt);
         static std::vector<std::string> splitTags(std::string_view s, std::string_view delimiter);
 
         SQLiteDB &m_db;

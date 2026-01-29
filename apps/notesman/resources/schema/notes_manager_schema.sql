@@ -4,10 +4,10 @@ CREATE TABLE IF NOT EXISTS resources (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     title       TEXT NOT NULL COLLATE NOCASE,
     type        TEXT NOT NULL,          -- 'text', 'cpp', 'pdf', 'epub'
-	  file_hash   TEXT UNIQUE NULL,       -- Kiểm tra trùng lặp file
+    file_hash   TEXT UNIQUE NULL,       -- Kiểm tra trùng lặp file
     created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	UNIQUE (title, type)
+    UNIQUE (title, type)
 );
 
 CREATE TABLE IF NOT EXISTS text_content (
@@ -36,6 +36,25 @@ CREATE TABLE IF NOT EXISTS resource_tags (
     FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS resource_urls (
+    resource_id    INTEGER PRIMARY KEY,
+
+    url            TEXT NOT NULL,              -- URL gốc người dùng nhập
+    normalized_url TEXT NOT NULL,              -- URL chuẩn hoá để chống trùng
+
+    domain         TEXT NOT NULL,              -- ví dụ: w3schools.com
+    path           TEXT,                       -- /cpp/array
+
+    created_at     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (resource_id)
+        REFERENCES resources(id)
+        ON DELETE CASCADE,
+
+    UNIQUE (normalized_url)
+);
+
 
 -- -- --
 CREATE VIRTUAL TABLE text_content_fts USING fts5(
@@ -83,6 +102,9 @@ CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
 -- Index cho bảng liên kết nhiều-nhiều resource_tags
 CREATE INDEX IF NOT EXISTS idx_resource_tags_resource_id ON resource_tags(resource_id);
 CREATE INDEX IF NOT EXISTS idx_resource_tags_tag_id ON resource_tags(tag_id);
+
+-- Index cho domain (search chính xác)
+CREATE INDEX IF NOT EXISTS idx_resource_urls_domain ON resource_urls(domain);
 
 -- -- --
 
@@ -201,4 +223,53 @@ BEGIN
     UPDATE resources
     SET updated_at = CURRENT_TIMESTAMP
     WHERE id = NEW.resource_id;
+END;
+
+---
+-- FTS cho path (không cho domain)
+CREATE VIRTUAL TABLE IF NOT EXISTS resource_url_path_fts USING fts5(
+    path,
+    content='resource_urls',
+    content_rowid='resource_id',
+    tokenize = 'unicode61 remove_diacritics 1'
+);
+
+-- Trigger đồng bộ
+-- INSERT
+CREATE TRIGGER IF NOT EXISTS resource_url_path_ai
+AFTER INSERT ON resource_urls
+BEGIN
+  INSERT INTO resource_url_path_fts(rowid, path)
+  VALUES (new.resource_id, new.path);
+END;
+
+-- UPDATE
+CREATE TRIGGER IF NOT EXISTS resource_url_path_au
+AFTER UPDATE OF path ON resource_urls
+BEGIN
+  INSERT INTO resource_url_path_fts(resource_url_path_fts, rowid, path)
+  VALUES('delete', old.resource_id, old.path);
+
+  INSERT INTO resource_url_path_fts(rowid, path)
+  VALUES(new.resource_id, new.path);
+END;
+
+-- DELETE
+CREATE TRIGGER IF NOT EXISTS resource_url_path_ad
+AFTER DELETE ON resource_urls
+BEGIN
+  INSERT INTO resource_url_path_fts(resource_url_path_fts, rowid, path)
+  VALUES('delete', old.resource_id, old.path);
+END;
+
+-- Trigger cập nhật updated_at
+CREATE TRIGGER IF NOT EXISTS resource_urls_touch_resource
+AFTER UPDATE OF url, normalized_url ON resource_urls
+FOR EACH ROW
+WHEN COALESCE(NEW.url,'') <> COALESCE(OLD.url,'')
+  OR COALESCE(NEW.normalized_url,'') <> COALESCE(OLD.normalized_url,'')
+BEGIN
+  UPDATE resources
+  SET updated_at = CURRENT_TIMESTAMP
+  WHERE id = NEW.resource_id;
 END;
