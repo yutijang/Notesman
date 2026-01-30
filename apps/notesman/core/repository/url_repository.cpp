@@ -132,6 +132,99 @@ std::vector<UrlEntry> UrlRepository::getAllUrls() const {
     return results;
 }
 
+std::optional<sqlite3_int64>
+    UrlRepository::getResourceIdByNormalizedUrl(std::string_view normalizedUrl) const {
+    static constexpr const char* sql = R"(
+        SELECT
+            resource_id
+        FROM resource_urls
+        WHERE normalized_url = ?
+        LIMIT 1;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, normalizedUrl.data(),
+                                        static_cast<int>(normalizedUrl.size()), SQLITE_TRANSIENT),
+                      m_db.get());
+
+    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnInt64(0); }
+
+    return std::nullopt;
+}
+
+std::vector<sqlite3_int64> UrlRepository::getResourceIdsByDomain(std::string_view domain) const {
+    static constexpr const char* sql = R"(
+        SELECT
+            resource_id
+        FROM resource_urls
+        WHERE domain = ?;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, domain.data(),
+                                        static_cast<int>(domain.size()), SQLITE_TRANSIENT),
+                      m_db.get());
+
+    std::vector<sqlite3_int64> results;
+    while (stmt.step() == SQLITE_ROW) { results.emplace_back(stmt.getColumnInt64(0)); }
+
+    return results;
+}
+
+std::optional<std::string> UrlRepository::getUrlByResourceIdOnly(sqlite3_int64 resourceId) const {
+    static constexpr const char* sql = R"(
+        SELECT
+            url
+        FROM resource_urls
+        WHERE resource_id = ?
+        LIMIT 1;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
+
+    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnText(0); }
+
+    return std::nullopt;
+}
+
+std::optional<std::string> UrlRepository::getDomainByResourceId(sqlite3_int64 resourceId) const {
+    static constexpr const char* sql = R"(
+        SELECT
+            domain
+        FROM resource_urls
+        WHERE resource_id = ?
+        LIMIT 1;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
+
+    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnText(0); }
+
+    return std::nullopt;
+}
+
+bool UrlRepository::exists(sqlite3_int64 resourceId) const {
+    static constexpr const char* sql = R"(
+        SELECT 1
+        FROM resource_urls
+        WHERE resource_id = ?
+        LIMIT 1;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
+
+    return stmt.step() == SQLITE_ROW;
+}
+
+// === helper ===
 UrlEntry UrlRepository::urlEntryFromStmt(const SQLiteStmt &stmt) {
     UrlEntry entry{};
 
@@ -142,3 +235,5 @@ UrlEntry UrlRepository::urlEntryFromStmt(const SQLiteStmt &stmt) {
 
     return entry;
 }
+
+// =========

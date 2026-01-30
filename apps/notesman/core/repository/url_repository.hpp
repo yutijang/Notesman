@@ -27,15 +27,19 @@ class UrlRepository {
         std::optional<sqlite3_int64>
             getResourceIdByNormalizedUrl(std::string_view normalizedUrl) const;
 
+        // Lấy toàn bộ resource_id có URL thuộc cùng domain
         [[nodiscard]]
         std::vector<sqlite3_int64> getResourceIdsByDomain(std::string_view domain) const;
 
+        // Với một resource_id đã biết, nếu resource đó là URL thì lấy raw URL người dùng đã nhập.
         [[nodiscard]]
         std::optional<std::string> getUrlByResourceIdOnly(sqlite3_int64 resourceId) const;
 
+        // Với một resource_id, nếu resource đó là URL thì lấy domain của URL
         [[nodiscard]]
         std::optional<std::string> getDomainByResourceId(sqlite3_int64 resourceId) const;
 
+        // Kiểm tra resource_id này có entry URL hay không
         [[nodiscard]] bool exists(sqlite3_int64 resourceId) const;
 
     private:

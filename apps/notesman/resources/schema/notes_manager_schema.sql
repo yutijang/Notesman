@@ -41,20 +41,17 @@ CREATE TABLE IF NOT EXISTS resource_urls (
     resource_id    INTEGER PRIMARY KEY,
 
     url            TEXT NOT NULL,              -- URL gốc người dùng nhập
-    normalized_url TEXT NOT NULL,              -- URL chuẩn hoá để chống trùng
+    normalized_url TEXT NOT NULL UNIQUE,       -- URL chuẩn hoá để chống trùng
 
     domain         TEXT NOT NULL,              -- ví dụ: w3schools.com
-    path           TEXT,                       -- /cpp/array
+    url_path       TEXT,                       -- /cpp/array
 
     created_at     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (resource_id)
         REFERENCES resources(id)
-        ON DELETE CASCADE,
-
-    UNIQUE (normalized_url)
+        ON DELETE CASCADE
 );
-
 
 -- -- --
 CREATE VIRTUAL TABLE text_content_fts USING fts5(
@@ -228,7 +225,7 @@ END;
 ---
 -- FTS cho path (không cho domain)
 CREATE VIRTUAL TABLE IF NOT EXISTS resource_url_path_fts USING fts5(
-    path,
+    url_path,
     content='resource_urls',
     content_rowid='resource_id',
     tokenize = 'unicode61 remove_diacritics 1'
@@ -239,27 +236,27 @@ CREATE VIRTUAL TABLE IF NOT EXISTS resource_url_path_fts USING fts5(
 CREATE TRIGGER IF NOT EXISTS resource_url_path_ai
 AFTER INSERT ON resource_urls
 BEGIN
-  INSERT INTO resource_url_path_fts(rowid, path)
-  VALUES (new.resource_id, new.path);
+  INSERT INTO resource_url_path_fts(rowid, url_path)
+  VALUES (new.resource_id, new.url_path);
 END;
 
 -- UPDATE
 CREATE TRIGGER IF NOT EXISTS resource_url_path_au
-AFTER UPDATE OF path ON resource_urls
+AFTER UPDATE OF url_path ON resource_urls
 BEGIN
-  INSERT INTO resource_url_path_fts(resource_url_path_fts, rowid, path)
-  VALUES('delete', old.resource_id, old.path);
+  INSERT INTO resource_url_path_fts(resource_url_path_fts, rowid, url_path)
+  VALUES('delete', old.resource_id, old.url_path);
 
-  INSERT INTO resource_url_path_fts(rowid, path)
-  VALUES(new.resource_id, new.path);
+  INSERT INTO resource_url_path_fts(rowid, url_path)
+  VALUES(new.resource_id, new.url_path);
 END;
 
 -- DELETE
 CREATE TRIGGER IF NOT EXISTS resource_url_path_ad
 AFTER DELETE ON resource_urls
 BEGIN
-  INSERT INTO resource_url_path_fts(resource_url_path_fts, rowid, path)
-  VALUES('delete', old.resource_id, old.path);
+  INSERT INTO resource_url_path_fts(resource_url_path_fts, rowid, url_path)
+  VALUES('delete', old.resource_id, old.url_path);
 END;
 
 -- Trigger cập nhật updated_at
