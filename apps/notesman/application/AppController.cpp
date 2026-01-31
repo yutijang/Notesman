@@ -297,7 +297,7 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
     }
 }
 
-// NOLINTNEXTLINE
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void AppController::handleAddNoteRequest(const QString &title, const QString &textContent,
                                          const QString &filePath, const QStringList &tags,
                                          bool isTextMode) {

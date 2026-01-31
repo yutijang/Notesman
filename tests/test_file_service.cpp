@@ -68,7 +68,7 @@ TEST_CASE("FileService::computeFileHash produces deterministic value", "[FileSer
     FileRepository fileRepo(db);
     ResourceRepository resRepo(db);
     FileTextContentRepository fileTextRepo(db);
-    FileService service(db, fileRepo, resRepo, fileTextRepo);
+    FileService service(fileRepo, resRepo, fileTextRepo);
 
     auto file = createTempFile("hash.txt", "hello");
     auto hash1 = FileService::computeFileHash(file);
@@ -94,7 +94,7 @@ TEST_CASE("FileService::addFileResource inserts and reuses existing resource", "
     FileRepository fileRepo(db);
     ResourceRepository resRepo(db);
     FileTextContentRepository fileTextRepo(db);
-    FileService service(db, fileRepo, resRepo, fileTextRepo);
+    FileService service(fileRepo, resRepo, fileTextRepo);
 
     // file đầu tiên → thêm mới
     auto file1 = createTempFile("file1.txt", "abc");
@@ -126,7 +126,7 @@ TEST_CASE("FileService::findResourceByFile finds by existing hash", "[FileServic
     FileRepository fileRepo(db);
     ResourceRepository resRepo(db);
     FileTextContentRepository fileTextRepo(db);
-    FileService service(db, fileRepo, resRepo, fileTextRepo);
+    FileService service(fileRepo, resRepo, fileTextRepo);
 
     auto file = createTempFile("find.txt", "abc");
     auto hash = FileService::computeFileHash(file);
@@ -160,7 +160,7 @@ TEST_CASE("FileService::refreshFileHash updates existing resource", "[FileServic
     FileRepository fileRepo(db);
     ResourceRepository resRepo(db);
     FileTextContentRepository fileTextRepo(db);
-    FileService service(db, fileRepo, resRepo, fileTextRepo);
+    FileService service(fileRepo, resRepo, fileTextRepo);
 
     // Tạo resource ID = 1
     sqlite3_exec(db.get(),

@@ -48,8 +48,10 @@ add_library(notes-core STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/file_repository.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/tag_repository.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/file_text_content_repository.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/repository/url_repository.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service/file_service.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/service/resource_service.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/service/url_service.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/db/database_checker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/helper.cpp
 )
@@ -173,6 +175,7 @@ target_link_libraries(notes-app-lib-core
     PkgConfig::POPPLER_CPP
     md4c::md4c
     md4c::md4c-html
+    Boost::url
 )
 
 if (WIN32)

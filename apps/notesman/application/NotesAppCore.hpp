@@ -9,32 +9,31 @@
 #include <sqlite3.h>
 
 #include "model.hpp"
-#include "file_repository.hpp"
 #include "file_service.hpp"
-#include "resource_repository.hpp"
 #include "resource_service.hpp"
-#include "sqldb_raii.hpp"
-#include "tag_repository.hpp"
 #include "text_content_repository.hpp"
+#include "url_service.hpp"
 
 class NotesAppCore {
     public:
-        NotesAppCore(SQLiteDB &db, ResourceRepository &resRepo, FileRepository &fileRepo,
-                     TextContentRepository &textRepo, TagRepository &tagRepo,
-                     FileService &fileService, ResourceService &resService)
-            : m_db(db), m_resRepo(resRepo), m_fileRepo(fileRepo), m_textRepo(textRepo),
-              m_tagRepo(tagRepo), m_fileService(fileService), m_resService(resService) {}
+        NotesAppCore(TextContentRepository &textRepo, FileService &fileService,
+                     UrlService &urlService, ResourceService &resService)
+            : m_textRepo(textRepo), m_fileService(fileService), m_urlService(urlService),
+              m_resService(resService) {}
 
         ~NotesAppCore() = default;
 
         // ========= CRUD =========
-        [[nodiscard]] sqlite3_int64 addTextNote(const std::string &title,
-                                                const std::string &content,
-                                                ResourceType type) const;
-        [[nodiscard]] sqlite3_int64 addFileNote(const std::filesystem::path &filepath,
-                                                const std::string &title, ResourceType type,
-                                                bool isManaged,
-                                                const std::string &contentToIndex) const;
+        [[nodiscard]]
+        sqlite3_int64 addTextNote(const std::string &title, const std::string &content,
+                                  ResourceType type) const;
+        [[nodiscard]]
+        sqlite3_int64 addFileNote(const std::filesystem::path &filepath, const std::string &title,
+                                  ResourceType type, bool isManaged,
+                                  const std::string &contentToIndex) const;
+        [[nodiscard]]
+        std::optional<sqlite3_int64> addUrlResource(std::string_view title, ResourceType type,
+                                                    std::string_view rawUrl) const;
         [[nodiscard]] std::optional<FullResource> getFullResource(sqlite3_int64 resourceId) const;
         [[nodiscard]] std::vector<FullResource> getAllFull() const;
 
@@ -46,9 +45,10 @@ class NotesAppCore {
         void deleteResources(const std::vector<sqlite3_int64> &resourceIds);
 
         // ========= Search =========
-        [[nodiscard]] std::vector<UnifiedSearchResult>
-            searchByTitle(const std::string &keyword) const;
-        [[nodiscard]] std::vector<std::pair<sqlite3_int64, std::string>>
+        [[nodiscard]]
+        std::vector<UnifiedSearchResult> searchByTitle(const std::string &keyword) const;
+        [[nodiscard]]
+        std::vector<std::pair<sqlite3_int64, std::string>>
             searchByContent(const std::string &keyword) const;
 
         // Tạm thời không sử dụng
@@ -56,19 +56,21 @@ class NotesAppCore {
         //     searchByContentFull(const std::string &keyword) const;
         // // =========
 
-        [[nodiscard]] std::vector<UnifiedSearchResult>
+        [[nodiscard]]
+        std::vector<UnifiedSearchResult>
             searchByContentUnifiedFull(const std::string &keyword) const;
 
         // For mode all
-        [[nodiscard]] std::vector<UnifiedSearchResult>
-            searchUnifiedFull(std::string_view likeKW, std::string_view ftsKW) const;
+        [[nodiscard]]
+        std::vector<UnifiedSearchResult> searchUnifiedFull(std::string_view likeKW,
+                                                           std::string_view ftsKW) const;
 
-        [[nodiscard]] std::vector<UnifiedSearchResult>
-            searchByTitleFull(const std::string &keyword) const;
-        [[nodiscard]] std::vector<UnifiedSearchResult>
-            getFullResourcesByTag(const std::string &tag) const;
-        [[nodiscard]] std::vector<Resource>
-            getResourcesByTags(const std::vector<std::string> &tags) const;
+        [[nodiscard]]
+        std::vector<UnifiedSearchResult> searchByTitleFull(const std::string &keyword) const;
+        [[nodiscard]]
+        std::vector<UnifiedSearchResult> getFullResourcesByTag(const std::string &tag) const;
+        [[nodiscard]]
+        std::vector<Resource> getResourcesByTags(const std::vector<std::string> &tags) const;
 
         // ========= Tags =========
         void addTag(sqlite3_int64 resourceId, const std::string &tag);
@@ -85,11 +87,8 @@ class NotesAppCore {
         std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);
 
     private:
-        SQLiteDB &m_db;
-        ResourceRepository &m_resRepo;
-        FileRepository &m_fileRepo;
         TextContentRepository &m_textRepo;
-        TagRepository &m_tagRepo;
         FileService &m_fileService;
+        UrlService &m_urlService;
         ResourceService &m_resService;
 };

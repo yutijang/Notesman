@@ -67,6 +67,7 @@ class AddTabWidget final : public QWidget {
         QLabel* m_resTypeLbl{};
         QRadioButton* m_textRad{};
         QRadioButton* m_fileRad{};
+        QRadioButton* m_urlRad{};
         QWidget* m_fileContainer{};
         QLabel* m_filepathLbl{};
         QLineEdit* m_filepathInp{};

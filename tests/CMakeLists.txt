@@ -33,6 +33,7 @@ target_include_directories(notes-core-tests
 target_link_libraries(notes-core-tests
     PRIVATE
         notes-core              # thư viện logic chính
+        Boost::url
         Catch2::Catch2WithMain  # target có sẵn main() của Catch2 v3
 )
 

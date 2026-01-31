@@ -12,6 +12,7 @@
 #include <openssl/sha.h>
 #include <sqlite3.h>
 
+#include "Logger.hpp"
 #include "file_repository.hpp"
 #include "file_service.hpp"
 #include "model.hpp"
@@ -62,7 +63,6 @@ std::string FileService::computeFileHash(const std::filesystem::path &filePath) 
 }
 
 // Thêm file vào DB kèm hash
-// NOLINTNEXTLINE
 sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath,
                                            const std::string &title, ResourceType type,
                                            bool isManaged, const std::string &contentToIndex) {
@@ -101,7 +101,7 @@ std::optional<sqlite3_int64>
     FileService::findResourceByFile(const std::filesystem::path &filepath) {
     // Kiểm tra trước với original_path
     auto byOriginal = m_fileRepo.getResourceIdByOriginalPath(filepath);
-    if (byOriginal.has_value()) { return *byOriginal; }
+    if (byOriginal.has_value()) { return byOriginal; }
 
     // Kiểm tra theo hash
     std::string hash = computeFileHash(filepath);
@@ -115,11 +115,13 @@ std::optional<sqlite3_int64>
 void FileService::refreshFileHash(sqlite3_int64 resourceId) {
     auto fileEntryOpt = m_fileRepo.getFileById(resourceId);
     if (!fileEntryOpt.has_value()) {
+        Log::err("No file entry for resource ID: {}", resourceId);
         throw std::runtime_error("No file entry for resource ID: " + std::to_string(resourceId));
     }
 
     const auto &entry = *fileEntryOpt;
     if (!entry.stored_path.has_value()) {
+        Log::err("File has no stored_path for resource ID: {}", resourceId);
         throw std::runtime_error("File has no stored_path for resource ID: " +
                                  std::to_string(resourceId));
     }
@@ -128,7 +130,6 @@ void FileService::refreshFileHash(sqlite3_int64 resourceId) {
     m_resRepo.updateFileHash(resourceId, newHash);
 }
 
-// NOLINTNEXTLINE
 std::filesystem::path FileService::copyToStorage(const std::filesystem::path &srcPath,
                                                  const std::string &hash) {
     namespace fs = std::filesystem;
@@ -141,8 +142,8 @@ std::filesystem::path FileService::copyToStorage(const std::filesystem::path &sr
     try {
         fs::copy_file(srcPath, dest, fs::copy_options::skip_existing);
     } catch (const std::filesystem::filesystem_error &e) {
-        std::cerr << "Filesystem error:" << e.what();
-        throw; // hoặc return error
+        Log::err("Filesystem error: {}", e.what());
+        throw std::runtime_error("Filesystem error: " + std::string(e.what()));
     }
 
     return dest;

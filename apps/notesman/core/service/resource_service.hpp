@@ -14,14 +14,15 @@
 #include "text_content_repository.hpp"
 #include "tag_repository.hpp"
 #include "file_service.hpp"
+#include "url_service.hpp"
 
 class ResourceService {
     public:
         ResourceService(SQLiteDB &db, ResourceRepository &resRepo, FileRepository &fileRepo,
                         TextContentRepository &textRepo, TagRepository &tagRepo,
-                        FileService &fileService) noexcept
+                        FileService &fileService, UrlService &urlService) noexcept
             : m_db(db), m_resRepo(resRepo), m_fileRepo(fileRepo), m_textRepo(textRepo),
-              m_tagRepo(tagRepo), m_fileService(fileService) {}
+              m_tagRepo(tagRepo), m_fileService(fileService), m_urlService(urlService) {}
 
         // ========== CRUD ==========
         sqlite3_int64 addTextResource(const std::string &title, const std::string &content,
@@ -29,6 +30,8 @@ class ResourceService {
         sqlite3_int64 addFileResource(const std::string &filepath, const std::string &title,
                                       ResourceType type, bool isManaged,
                                       const std::string &contentToIndex);
+        std::optional<sqlite3_int64> addUrlResource(std::string_view title, ResourceType type,
+                                                    std::string_view rawUrl);
         std::optional<FullResource> getFullResource(sqlite3_int64 resourceId,
                                                     bool includeContent = true);
         std::vector<FullResource> getAllFull();
@@ -82,4 +85,5 @@ class ResourceService {
         TextContentRepository &m_textRepo;
         TagRepository &m_tagRepo;
         FileService &m_fileService;
+        UrlService &m_urlService;
 };

@@ -23,6 +23,11 @@ sqlite3_int64 NotesAppCore::addFileNote(const std::filesystem::path &filepath,
     return m_fileService.addFileResource(filepath, title, type, isManaged, contentToIndex);
 }
 
+std::optional<sqlite3_int64> NotesAppCore::addUrlResource(std::string_view title, ResourceType type,
+                                                          std::string_view rawUrl) const {
+    return m_resService.addUrlResource(title, type, rawUrl);
+}
+
 std::optional<FullResource> NotesAppCore::getFullResource(sqlite3_int64 resourceId) const {
     return m_resService.getFullResource(resourceId);
 }

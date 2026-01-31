@@ -6,16 +6,15 @@
 #include <sqlite3.h>
 
 #include "model.hpp"
-#include "sqldb_raii.hpp"
 #include "file_repository.hpp"
 #include "resource_repository.hpp"
 #include "file_text_content_repository.hpp"
 
 class FileService {
     public:
-        FileService(SQLiteDB &db, FileRepository &fileRepo, ResourceRepository &resRepo,
+        FileService(FileRepository &fileRepo, ResourceRepository &resRepo,
                     FileTextContentRepository &fileTextRepo) noexcept
-            : m_db(db), m_fileRepo(fileRepo), m_resRepo(resRepo), m_fileTextRepo(fileTextRepo) {}
+            : m_fileRepo(fileRepo), m_resRepo(resRepo), m_fileTextRepo(fileTextRepo) {}
 
         // Tính hash file (SHA256)
         static std::string computeFileHash(const std::filesystem::path &filePath);
@@ -37,10 +36,9 @@ class FileService {
 
     private:
         // Helper: copy file vào storage (nếu isManaged = true)
-        std::filesystem::path copyToStorage(const std::filesystem::path &srcPath,
-                                            const std::string &hash);
+        static std::filesystem::path copyToStorage(const std::filesystem::path &srcPath,
+                                                   const std::string &hash);
 
-        SQLiteDB &m_db;
         FileRepository &m_fileRepo;
         ResourceRepository &m_resRepo;
         FileTextContentRepository &m_fileTextRepo;

@@ -24,6 +24,8 @@
 #include "file_service.hpp"
 #include "resource_service.hpp"
 #include "file_text_content_repository.hpp"
+#include "url_repository.hpp"
+#include "url_service.hpp"
 
 class AppInitializer final : public QObject {
         Q_OBJECT
@@ -77,6 +79,8 @@ class AppInitializer final : public QObject {
         std::unique_ptr<FileTextContentRepository> m_fileTextRepo;
         std::unique_ptr<TagRepository> m_tagRepo;
         std::unique_ptr<FileService> m_fileService;
+        std::unique_ptr<UrlRepository> m_urlRepo;
+        std::unique_ptr<UrlService> m_urlService;
         std::unique_ptr<ResourceService> m_resService;
         std::unique_ptr<MainWindow> m_mainWindow;
         std::unique_ptr<AppController> m_controller;

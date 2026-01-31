@@ -16,6 +16,7 @@
 #include <Qt>
 #include <QStringList>
 #include <QFileInfo>
+#include <QMap>
 
 #include "PlainTextEdit.hpp"
 #include "TagInput.hpp"
@@ -130,7 +131,9 @@ void AddTabWidget::onBrowseFile() {
 
     QFileInfo fileInfo(filePath);
 
-    m_titleInp->setText(fileInfo.completeBaseName());
+    if (m_titleInp->text().trimmed().isEmpty()) {
+        m_titleInp->setText(fileInfo.completeBaseName());
+    }
 
     if (fileInfo.exists()) { settings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path()); }
 
@@ -202,14 +205,17 @@ QWidget* AddTabWidget::setupResouceGroup() {
     auto* resTypeGroup = new QButtonGroup(this);
     m_textRad = new QRadioButton(tr("Text"));
     m_fileRad = new QRadioButton("File");
+    m_urlRad = new QRadioButton(tr("Url"));
     m_textRad->setChecked(true);
 
     resTypeGroup->addButton(m_textRad);
     resTypeGroup->addButton(m_fileRad);
+    resTypeGroup->addButton(m_urlRad);
 
     resTypeLayout->addWidget(m_resTypeLbl);
     resTypeLayout->addWidget(m_textRad);
     resTypeLayout->addWidget(m_fileRad);
+    resTypeLayout->addWidget(m_urlRad);
 
     return resTypeContainer;
 }

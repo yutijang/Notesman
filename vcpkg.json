@@ -9,6 +9,7 @@
         "qtsvg",
         "poppler",
         "md4c",
+        "boost-url",
         {
             "name": "miniz",
             "platform": "windows"

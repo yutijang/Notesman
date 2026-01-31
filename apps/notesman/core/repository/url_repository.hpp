@@ -13,10 +13,12 @@ class UrlRepository {
     public:
         explicit UrlRepository(SQLiteDB &db) noexcept : m_db(db) {}
 
-        void insertUrl(sqlite3_int64 resourceId, std::string_view url,
-                       std::string_view normalizedUrl, std::string_view domain);
-        void updateUrl(sqlite3_int64 resourceId, std::string_view url,
-                       std::string_view normalizedUrl, std::string_view domain);
+        void insertUrl(sqlite3_int64 resourceId, std::string_view rawUrl,
+                       std::string_view normalizedUrl, std::string_view domain,
+                       std::string_view urlPath);
+        void updateUrl(sqlite3_int64 resourceId, std::string_view rawUrl,
+                       std::string_view normalizedUrl, std::string_view domain,
+                       std::string_view urlPath);
 
         [[nodiscard]]
         std::optional<UrlEntry> getUrlByResourceId(sqlite3_int64 resourceId) const;

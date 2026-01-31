@@ -54,6 +54,8 @@ if(WIN32)
     find_package(unofficial-webview2 CONFIG REQUIRED)
 endif()
 
+find_package(boost_url CONFIG REQUIRED)
+
 # --- QtKeychain ---------------------------------------------
 include(FetchContent)
 

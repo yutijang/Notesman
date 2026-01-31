@@ -111,7 +111,6 @@ void BrowseTabWidget::updateColumnWidths() {
 }
 
 // signals custom
-// NOLINTNEXTLINE
 void BrowseTabWidget::onCellDoubleClicked(int row) {
     auto rowDataOpt = rowData(row);
     if (!rowDataOpt.has_value()) {
@@ -362,6 +361,7 @@ QString BrowseTabWidget::resourceTypeToDisplayText(ResourceType type) {
         case ResourceType::htmlDoc  : return tr("HTML Document");
         case ResourceType::pdfDoc   : return tr("PDF Document");
         case ResourceType::epubDoc  : return tr("EPUB Document");
+        case ResourceType::url      : return tr("Web Document");
         case ResourceType::unknown  :
         case ResourceType::count    : break;
     }

@@ -11,15 +11,17 @@
 #include "sqlite_utils.hpp"
 
 void UrlRepository::insertUrl(sqlite3_int64 resourceId, std::string_view url,
-                              std::string_view normalizedUrl, std::string_view domain) {
+                              std::string_view normalizedUrl, std::string_view domain,
+                              std::string_view urlPath) {
     static constexpr const char* sql = R"(
         INSERT INTO resource_urls (
             resource_id,
             url,
             normalized_url,
-            domain
+            domain,
+            url_path
         )
-        VALUES (?, ?, ?, ?);
+        VALUES (?, ?, ?, ?, ?);
     )";
 
     SQLiteStmt stmt(m_db.get(), sql);
@@ -38,18 +40,24 @@ void UrlRepository::insertUrl(sqlite3_int64 resourceId, std::string_view url,
                                         static_cast<int>(domain.size()), SQLITE_TRANSIENT),
                       m_db.get());
 
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 5, urlPath.data(),
+                                        static_cast<int>(urlPath.size()), SQLITE_TRANSIENT),
+                      m_db.get());
+
     sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE,
                       "insertUrl, resource id: " + std::to_string(resourceId));
 }
 
 void UrlRepository::updateUrl(sqlite3_int64 resourceId, std::string_view url,
-                              std::string_view normalizedUrl, std::string_view domain) {
+                              std::string_view normalizedUrl, std::string_view domain,
+                              std::string_view urlPath) {
     static constexpr const char* sql = R"(
         UPDATE resource_urls
         SET
             url = ?,
             normalized_url = ?,
-            domain = ?
+            domain = ?,
+            url_path = ?
         WHERE resource_id = ?;
     )";
 
@@ -67,7 +75,11 @@ void UrlRepository::updateUrl(sqlite3_int64 resourceId, std::string_view url,
                                         static_cast<int>(domain.size()), SQLITE_TRANSIENT),
                       m_db.get());
 
-    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 4, resourceId), m_db.get());
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 4, urlPath.data(),
+                                        static_cast<int>(urlPath.size()), SQLITE_TRANSIENT),
+                      m_db.get());
+
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 5, resourceId), m_db.get());
 
     const int rc = stmt.step();
     if (rc == SQLITE_CONSTRAINT) {

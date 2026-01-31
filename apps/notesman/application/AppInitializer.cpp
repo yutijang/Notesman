@@ -1,3 +1,5 @@
+#include "url_repository.hpp"
+#include "url_service.hpp"
 #ifdef Q_OS_WIN
     #include <windows.h>
 #endif
@@ -212,12 +214,13 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
         m_textRepo = std::make_unique<TextContentRepository>(*m_db);
         m_fileTextRepo = std::make_unique<FileTextContentRepository>(*m_db);
         m_tagRepo = std::make_unique<TagRepository>(*m_db);
-        m_fileService =
-            std::make_unique<FileService>(*m_db, *m_fileRepo, *m_resRepo, *m_fileTextRepo);
-        m_resService = std::make_unique<ResourceService>(*m_db, *m_resRepo, *m_fileRepo,
-                                                         *m_textRepo, *m_tagRepo, *m_fileService);
-        m_core = std::make_unique<NotesAppCore>(*m_db, *m_resRepo, *m_fileRepo, *m_textRepo,
-                                                *m_tagRepo, *m_fileService, *m_resService);
+        m_urlRepo = std::make_unique<UrlRepository>(*m_db);
+        m_fileService = std::make_unique<FileService>(*m_fileRepo, *m_resRepo, *m_fileTextRepo);
+        m_urlService = std::make_unique<UrlService>(*m_urlRepo, *m_resRepo);
+        m_resService = std::make_unique<ResourceService>(
+            *m_db, *m_resRepo, *m_fileRepo, *m_textRepo, *m_tagRepo, *m_fileService, *m_urlService);
+        m_core = std::make_unique<NotesAppCore>(*m_textRepo, *m_fileService, *m_urlService,
+                                                *m_resService);
 
         if (m_controller) {
             m_controller->loadSettings();

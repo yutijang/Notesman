@@ -17,7 +17,7 @@
 #include "Logger.hpp"
 #include "helper.hpp"
 
-// NOLINTNEXTLINE
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 sqlite3_int64 ResourceService::addTextResource(const std::string &title, const std::string &content,
                                                ResourceType type) {
     if (type != ResourceType::plainText) {
@@ -42,6 +42,12 @@ sqlite3_int64 ResourceService::addFileResource(const std::string &filepath,
                                                const std::string &title, ResourceType type,
                                                bool isManaged, const std::string &contentToIndex) {
     return m_fileService.addFileResource(filepath, title, type, isManaged, contentToIndex);
+}
+
+std::optional<sqlite3_int64> ResourceService::addUrlResource(std::string_view title,
+                                                             ResourceType type,
+                                                             std::string_view rawUrl) {
+    return m_urlService.addUrlResource(title, type, rawUrl);
 }
 
 std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resourceId,

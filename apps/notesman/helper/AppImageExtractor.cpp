@@ -11,7 +11,7 @@
 
 #include "AppImageExtractor.hpp"
 
-// NOLINTNEXTLINE
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 bool AppImageExtractor::extractUpdater(const QString &appImagePath, const QString &outputPath) {
     if (!QFile::exists(appImagePath)) { return false; }
 

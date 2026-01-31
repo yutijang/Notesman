@@ -10,7 +10,7 @@
 
 class DatabaseCreator {
     public:
-        // NOLINTNEXTLINE
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         static bool create(const std::string &dbPath, const std::string &schemaSql,
                            std::string &error) {
             try {

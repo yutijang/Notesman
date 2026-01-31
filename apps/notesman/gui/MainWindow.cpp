@@ -272,7 +272,6 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
     dlg->exec();
 }
 
-// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
                                  const QString &path) {
     if (m_browseTab == nullptr) {
