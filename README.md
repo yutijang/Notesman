@@ -46,6 +46,11 @@ In TO-DO List
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/yutijang/Notesman?tab=License-1-ov-file)
 
 ## Qt Source (LGPLv3)
-- Download: https://download.qt.io/official_releases/qt/6.8/6.8.0/single/qt-everywhere-src-6.8.0.tar.xz
-- Build: `./configure -prefix /opt/qt6 && make -j$(nproc) && make install` (Ubuntu); tương tự Windows via MSYS2.
-- Relink: Sau build Qt mới, `cmake -DQt6_DIR=/opt/qt6/lib/cmake/Qt6 ..` rồi rebuild app.
+**Note on Qt6 Libraries (LGPLv3 Compliance):** This application links to Qt6 dynamically. To use a custom-built version of the Qt libraries:
+1. Build your custom Qt6 from source using the same toolchain (e.g., `clang-cl` or `clang++`).
+2. Re-configure the project by setting `CMAKE_PREFIX_PATH` to your custom installation:
+```yaml
+cmake -B build -DCMAKE_PREFIX_PATH=/path/to/custom/qt
+cmake --build build
+```
+3. Alternatively, for a quick test, replace the existing Qt dynamic libraries (`.dll` or `.so`) in the application's executable directory with your custom ones.
