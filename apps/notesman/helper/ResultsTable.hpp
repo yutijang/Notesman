@@ -25,6 +25,7 @@ class ResultsTable final : public QTableWidget {
             resourceType,   // Kiểu tài nguyên
             displaySubText, // Chứa nội dung dòng thứ 2 của mỗi hàng item
             fullPath,       // Cho Tooltip hoặc Mở file
+            url,
             tagList,
             resourceFlags
         };

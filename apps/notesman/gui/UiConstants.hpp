@@ -12,4 +12,5 @@ namespace UiConst {
     enum class SettingsTabNotiLevel : std::uint8_t { good, normal, caution, warning };
     enum class Theme : std::uint8_t { light, dark };
     enum class Language : std::uint8_t { english, vietnamese };
+    enum class AddResMode : std::uint8_t { text, file, url };
 } // namespace UiConst

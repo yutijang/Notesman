@@ -99,8 +99,8 @@ class AppController final : public QObject {
         void handleDefaultSettingsRequest();
         void handleApplySettingsRequest(const SettingsData &data);
         void handleAddNoteRequest(const QString &title, const QString &textContent,
-                                  const QString &filePath, const QStringList &tags,
-                                  bool isTextMode);
+                                  const QString &filePath, const QString &url,
+                                  const QStringList &tags, UiConst::AddResMode mode);
         void handleSearchRequest(const QString &keyword, const QString &mode);
         void handleCheckUpdateRequested();
         void onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo);
@@ -117,6 +117,12 @@ class AppController final : public QObject {
     private: // NOLINT(readability-redundant-access-specifiers)
         void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;
         void finalizeUnlink();
+        sqlite_int64 handleTextMode(const std::string &title, const QString &textContent,
+                                    ResourceType &outType);
+        sqlite_int64 handleFileMode(const std::string &title, const std::filesystem::path &filePath,
+                                    ResourceType &outType);
+        sqlite_int64 handleUrlMode(const std::string &title, const QString &url,
+                                   ResourceType &outType);
 
         std::unique_ptr<AppSettings> m_settings;
         std::unique_ptr<QTranslator> m_translator;

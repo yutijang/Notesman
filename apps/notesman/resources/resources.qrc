@@ -32,9 +32,11 @@
         <file>icons/external_browser.ico</file>
         <file>icons/type-text.svg</file>
         <file>icons/type-cpp.svg</file>
-        <file>icons/type-pdf.svg</file>
+        <file>icons/type-md.svg</file>
         <file>icons/type-html.svg</file>
+        <file>icons/type-pdf.svg</file>
         <file>icons/type-epub.svg</file>
+        <file>icons/type-url.svg</file>
     </qresource>
 
     <qresource prefix="/">

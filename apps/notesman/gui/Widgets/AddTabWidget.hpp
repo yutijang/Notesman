@@ -31,8 +31,8 @@ class AddTabWidget final : public QWidget {
         [[nodiscard]] PlainTextEdit* textEdit() const noexcept { return m_textEdt; }
 
     signals:
-        void addNoteRequested(QString title, QString textContent, QString filePath,
-                              QStringList tags, bool isTextMode);
+        void addNoteRequested(QString title, QString textContent, QString filePath, QString url,
+                              QStringList tags, UiConst::AddResMode mode);
         void applySyntaxHighlighterRequest(bool checked);
 
     public slots:
@@ -44,16 +44,15 @@ class AddTabWidget final : public QWidget {
     private slots:
         void onAddButtonClicked();
         void onClearButtonClicked();
-        void onTextRadioToggled(bool checked);
         void onBrowseFile();
         void updateAddAndClearButtons();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupUi();
         void setupConnections();
-        void clearFields();
         void onToggleCodeHighlighter(bool checked);
         static QString buildResourceFileFilter();
+        void onAddResTypeModeChanged(int id);
 
         QVBoxLayout* setupTitleGroup();
         QWidget* setupResouceGroup();
@@ -69,8 +68,10 @@ class AddTabWidget final : public QWidget {
         QRadioButton* m_fileRad{};
         QRadioButton* m_urlRad{};
         QWidget* m_fileContainer{};
-        QLabel* m_filepathLbl{};
+        QLabel* m_filepathInpLbl{};
         QLineEdit* m_filepathInp{};
+        QLabel* m_urlInpLbl{};
+        QLineEdit* m_urlInp{};
         PlainTextEdit* m_textEdt{};
         QPushButton* m_addBtn{};
         QPushButton* m_browseBtn{};
@@ -80,4 +81,5 @@ class AddTabWidget final : public QWidget {
         QLabel* m_notiFilepathLbl{};
         QWidget* m_textEditorContainer{};
         QCheckBox* m_toggleCodeHighlighterChkb{};
+        QButtonGroup* m_addResTypeGroup{};
 };

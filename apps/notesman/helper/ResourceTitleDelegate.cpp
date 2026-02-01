@@ -24,10 +24,11 @@ namespace {
         switch (type) {
             case ResourceType::plainText: return QStringLiteral(":/icons/type-text.svg");
             case ResourceType::cCppCode : return QStringLiteral(":/icons/type-cpp.svg");
-            case ResourceType::markdown : return QStringLiteral(":/icons/type-text.svg");
+            case ResourceType::markdown : return QStringLiteral(":/icons/type-md.svg");
             case ResourceType::htmlDoc  : return QStringLiteral(":/icons/type-html.svg");
             case ResourceType::pdfDoc   : return QStringLiteral(":/icons/type-pdf.svg");
             case ResourceType::epubDoc  : return QStringLiteral(":/icons/type-epub.svg");
+            case ResourceType::url      : return QStringLiteral(":/icons/type-url.svg");
             case ResourceType::unknown  :
             case ResourceType::count    : break;
         }

@@ -225,8 +225,8 @@ void MainWindow::setCore(NotesAppCore* core) {
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-void MainWindow::viewResource(int id, ResourceType type, const QString &title,
-                              const QString &path) {
+void MainWindow::viewResource(int id, ResourceType type, const QString &title, const QString &path,
+                              const QString &url) {
     std::unique_ptr<IResourceViewer> viewer;
 
     switch (type) {
@@ -253,6 +253,10 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
 
             break;
         }
+        case ResourceType::url: {
+            qDebug() << url;
+            break;
+        }
         case ResourceType::pdfDoc: {
             viewer = std::make_unique<PdfViewer>(path, this);
             break;
@@ -273,7 +277,7 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title,
 }
 
 void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
-                                 const QString &path) {
+                                 const QString &path, const QString &url) {
     if (m_browseTab == nullptr) {
         Log::warn("BrowseTabWidget not initialized!");
         return;
@@ -289,8 +293,9 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
     QAction* viewAction{};
     viewAction = menu.addAction(tr("View Resource"));
     viewAction->setIcon(QIcon(":/icons/view.ico"));
-    QObject::connect(viewAction, &QAction::triggered, this,
-                     [this, id, type, title, path]() { viewResource(id, type, title, path); });
+    QObject::connect(viewAction, &QAction::triggered, this, [this, id, type, title, path, url]() {
+        viewResource(id, type, title, path, url);
+    });
 
     menu.addSeparator();
 

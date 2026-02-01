@@ -106,9 +106,10 @@ class MainWindow : public QMainWindow {
         void setupAddTab();
         void setupSettingsTab();
         void setupIconInfo();
-        void viewResource(int id, ResourceType type, const QString &title, const QString &path);
+        void viewResource(int id, ResourceType type, const QString &title, const QString &path,
+                          const QString &url);
         void showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
-                             const QString &path);
+                             const QString &path, const QString &url);
         static void removeSelectedRowsFromTable(ResultsTable* table,
                                                 const QModelIndexList &selectedRows);
         static sqlite3_int64 extractIdFromRow(ResultsTable* resultTable, int row);

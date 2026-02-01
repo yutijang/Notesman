@@ -54,14 +54,18 @@ void AddTabWidget::setupUi() {
     mainLayout->addWidget(controlPanel, 4);
     mainLayout->addWidget(setupTextEditorGroup(), 6); // NOLINT(readability-magic-numbers)
 
-    onTextRadioToggled(true);
+    onAddResTypeModeChanged(static_cast<int>(UiConst::AddResMode::text));
+
     updateAddAndClearButtons();
 }
 
 void AddTabWidget::setupConnections() {
     QObject::connect(m_addBtn, &QPushButton::clicked, this, &AddTabWidget::onAddButtonClicked);
     QObject::connect(m_clearBtn, &QPushButton::clicked, this, &AddTabWidget::onClearButtonClicked);
-    QObject::connect(m_textRad, &QRadioButton::toggled, this, &AddTabWidget::onTextRadioToggled);
+
+    QObject::connect(m_addResTypeGroup, &QButtonGroup::idClicked, this,
+                     &AddTabWidget::onAddResTypeModeChanged);
+
     QObject::connect(m_toggleCodeHighlighterChkb, &QCheckBox::toggled, this,
                      &AddTabWidget::onToggleCodeHighlighter);
 
@@ -70,6 +74,8 @@ void AddTabWidget::setupConnections() {
     QObject::connect(m_textEdt, &PlainTextEdit::textChanged, this,
                      &AddTabWidget::updateAddAndClearButtons);
     QObject::connect(m_filepathInp, &QLineEdit::textChanged, this,
+                     &AddTabWidget::updateAddAndClearButtons);
+    QObject::connect(m_urlInp, &QLineEdit::textChanged, this,
                      &AddTabWidget::updateAddAndClearButtons);
 
     QObject::connect(m_browseBtn, &QPushButton::clicked, this, &AddTabWidget::onBrowseFile);
@@ -82,38 +88,32 @@ void AddTabWidget::onAddButtonClicked() {
 
     QString text;
     QString filePath;
-    const bool isTextMode = m_textRad->isChecked();
-    if (isTextMode) {
-        text = m_textEdt->toPlainText();
-    } else {
-        filePath = m_filepathInp->text().trimmed();
+    QString url;
+
+    const auto mode = static_cast<UiConst::AddResMode>(m_addResTypeGroup->checkedId());
+    switch (mode) {
+        case UiConst::AddResMode::text: {
+            text = m_textEdt->toPlainText();
+            break;
+        }
+        case UiConst::AddResMode::file: {
+            filePath = m_filepathInp->text().trimmed();
+            break;
+        }
+        case UiConst::AddResMode::url: {
+            url = m_urlInp->text().trimmed();
+            break;
+        }
     }
 
-    emit addNoteRequested(title, text, filePath, tags, isTextMode);
+    emit addNoteRequested(title, text, filePath, url, tags, mode);
 }
 
 void AddTabWidget::onClearButtonClicked() {
     const auto reply = DialogUtils::showQuestion(
         this, tr("Caution"), tr("Would you like to clear content in all data field?"));
 
-    if (reply == QMessageBox::Yes) { clearFields(); }
-}
-
-void AddTabWidget::clearFields() {
-    m_titleInp->clear();
-    m_textEdt->clear();
-    m_filepathInp->clear();
-    m_tagInp->clearTags();
-}
-
-void AddTabWidget::onTextRadioToggled(bool checked) {
-    if (checked) {
-        m_fileContainer->hide();
-        m_textEditorContainer->show();
-    } else {
-        m_fileContainer->show();
-        m_textEditorContainer->hide();
-    }
+    if (reply == QMessageBox::Yes) { resetAddTabInputs(); }
 }
 
 void AddTabWidget::onBrowseFile() {
@@ -151,18 +151,33 @@ void AddTabWidget::onBrowseFile() {
 
 // Logic enable/disable when m_titleInp, m_textEdt, m_filepathInp has content
 void AddTabWidget::updateAddAndClearButtons() {
-    const bool isTextMode = m_textRad->isChecked();
+    const bool hasTitle = !m_titleInp->text().trimmed().isEmpty();
 
-    if (isTextMode) {
-        const bool hasTitle = !m_titleInp->text().trimmed().isEmpty();
-        const bool hasText = !m_textEdt->toPlainText().trimmed().isEmpty();
-        m_addBtn->setEnabled(hasTitle && hasText);
-        m_clearBtn->setEnabled(hasTitle || hasText);
-    } else {
-        const bool hasTitle = !m_titleInp->text().trimmed().isEmpty();
-        const bool hasFilePath = !m_filepathInp->text().trimmed().isEmpty();
-        m_addBtn->setEnabled(hasTitle && hasFilePath);
-        m_clearBtn->setEnabled(hasTitle || hasFilePath);
+    const auto mode = static_cast<UiConst::AddResMode>(m_addResTypeGroup->checkedId());
+    switch (mode) {
+        case UiConst::AddResMode::text: {
+            const bool hasText = !m_textEdt->toPlainText().trimmed().isEmpty();
+
+            m_addBtn->setEnabled(hasTitle && hasText);
+            m_clearBtn->setEnabled(hasTitle || hasText);
+            break;
+        }
+
+        case UiConst::AddResMode::file: {
+            const bool hasFilePath = !m_filepathInp->text().trimmed().isEmpty();
+
+            m_addBtn->setEnabled(hasTitle && hasFilePath);
+            m_clearBtn->setEnabled(hasTitle || hasFilePath);
+            break;
+        }
+
+        case UiConst::AddResMode::url: {
+            const bool hasUrl = !m_urlInp->text().trimmed().isEmpty();
+
+            m_addBtn->setEnabled(hasTitle && hasUrl);
+            m_clearBtn->setEnabled(hasTitle || hasUrl);
+            break;
+        }
     }
 }
 
@@ -171,8 +186,10 @@ void AddTabWidget::retranslateUi() {
     m_titleInp->setPlaceholderText(tr("Enter title for resource..."));
     m_resTypeLbl->setText(tr("Resource type:"));
     m_textRad->setText(tr("Text"));
-    m_filepathLbl->setText(tr("File path"));
+    m_filepathInpLbl->setText(tr("File path"));
     m_filepathInp->setPlaceholderText(tr("Enter file path..."));
+
+    m_urlInp->setPlaceholderText(tr("Enter url of web page..."));
 
     if (m_tagInp != nullptr) { m_tagInp->retranslateUi(); }
 
@@ -202,15 +219,15 @@ QWidget* AddTabWidget::setupResouceGroup() {
     resTypeLayout->setSpacing(20);                 // NOLINT(readability-magic-numbers)
     m_resTypeLbl = new QLabel(tr("Resource type:"));
 
-    auto* resTypeGroup = new QButtonGroup(this);
+    m_addResTypeGroup = new QButtonGroup(this);
     m_textRad = new QRadioButton(tr("Text"));
     m_fileRad = new QRadioButton("File");
     m_urlRad = new QRadioButton(tr("Url"));
     m_textRad->setChecked(true);
 
-    resTypeGroup->addButton(m_textRad);
-    resTypeGroup->addButton(m_fileRad);
-    resTypeGroup->addButton(m_urlRad);
+    m_addResTypeGroup->addButton(m_textRad, static_cast<int>(UiConst::AddResMode::text));
+    m_addResTypeGroup->addButton(m_fileRad, static_cast<int>(UiConst::AddResMode::file));
+    m_addResTypeGroup->addButton(m_urlRad, static_cast<int>(UiConst::AddResMode::url));
 
     resTypeLayout->addWidget(m_resTypeLbl);
     resTypeLayout->addWidget(m_textRad);
@@ -240,9 +257,13 @@ QWidget* AddTabWidget::setupFilePathGroup() {
     fileVBoxLayout->setContentsMargins(0, 0, 0, 0);
     fileVBoxLayout->setSpacing(3); // Khoảng cách nhỏ giữa label và input
 
-    m_filepathLbl = new QLabel(tr("File path"));
+    m_filepathInpLbl = new QLabel(tr("File path"));
     m_filepathInp = new QLineEdit();
     m_filepathInp->setPlaceholderText(tr("Enter file path..."));
+
+    m_urlInpLbl = new QLabel(tr("Url"));
+    m_urlInp = new QLineEdit();
+    m_urlInp->setPlaceholderText(tr("Enter url of web page..."));
 
     m_browseBtn = new QPushButton("...");
     m_browseBtn->setMaximumWidth(UiConst::BUTTON_NEXT_INPUT_WIDTH);
@@ -255,6 +276,8 @@ QWidget* AddTabWidget::setupFilePathGroup() {
     fileHBoxLayout->addWidget(m_filepathInp);
     fileHBoxLayout->addWidget(m_browseBtn);
 
+    fileHBoxLayout->addWidget(m_urlInp);
+
     m_notiFilepathLbl = new QLabel("");
     m_notiFilepathLbl->setVisible(false);
     m_notiFilepathLbl->setObjectName("checkFilePath");
@@ -265,7 +288,8 @@ QWidget* AddTabWidget::setupFilePathGroup() {
 
     m_notiFilepathLbl->setContentsMargins(0, 0, 0, 0);
 
-    fileVBoxLayout->addWidget(m_filepathLbl);
+    fileVBoxLayout->addWidget(m_filepathInpLbl);
+    fileVBoxLayout->addWidget(m_urlInpLbl);
     fileVBoxLayout->addLayout(fileHBoxLayout); // Add sub-layout
     fileVBoxLayout->addWidget(m_notiFilepathLbl);
 
@@ -363,6 +387,7 @@ void AddTabWidget::resetAddTabInputs() const {
     m_tagInp->clearTags();
     m_textEdt->clear();
     m_filepathInp->clear();
+    m_urlInp->clear();
 
     m_titleInp->setFocus();
 }
@@ -403,4 +428,43 @@ QString AddTabWidget::buildResourceFileFilter() {
     filters << tr("All Files (*)");
 
     return filters.join(";;");
+}
+
+void AddTabWidget::onAddResTypeModeChanged(int id) {
+    const auto mode = static_cast<UiConst::AddResMode>(id);
+
+    switch (mode) {
+        case UiConst::AddResMode::text: {
+            m_fileContainer->hide();
+            m_textEditorContainer->show();
+
+            break;
+        }
+        case UiConst::AddResMode::file: {
+            m_fileContainer->show();
+            m_textEditorContainer->hide();
+
+            m_filepathInpLbl->show();
+            m_filepathInp->show();
+            m_browseBtn->show();
+
+            m_urlInpLbl->hide();
+            m_urlInp->hide();
+
+            break;
+        }
+        case UiConst::AddResMode::url: {
+            m_fileContainer->show();
+            m_textEditorContainer->hide();
+
+            m_urlInpLbl->show();
+            m_urlInp->show();
+
+            m_filepathInpLbl->hide();
+            m_filepathInp->hide();
+            m_browseBtn->hide();
+
+            break;
+        }
+    }
 }

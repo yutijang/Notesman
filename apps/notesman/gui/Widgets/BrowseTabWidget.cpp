@@ -110,19 +110,6 @@ void BrowseTabWidget::updateColumnWidths() {
     m_resultsTbl->setColumnWidth(1, remaining / 3);
 }
 
-// signals custom
-void BrowseTabWidget::onCellDoubleClicked(int row) {
-    auto rowDataOpt = rowData(row);
-    if (!rowDataOpt.has_value()) {
-        Log::warn("Invalid row: {}", row);
-        return;
-    }
-
-    const auto &data = *rowDataOpt;
-
-    emit resourceDoubleClicked(data.id, data.type, data.title, data.path);
-}
-
 void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &results) {
     if (results.empty()) { return; }
 
@@ -163,6 +150,11 @@ void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &res
                                QString::fromStdString(*res.filePath));
         }
 
+        if (res.url) {
+            titleItem->setData(static_cast<int>(ResultsTable::ItemRole::url),
+                               QString::fromStdString(*res.url));
+        }
+
         m_resultsTbl->setItem(row, 1, titleItem);
     }
 
@@ -171,6 +163,19 @@ void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &res
 
     emit statusUpdateRequest(tr("Found %1 results").arg(QString::number(results.size())),
                              UiConst::NOTI_TIMEOUT);
+}
+
+// signals custom
+void BrowseTabWidget::onCellDoubleClicked(int row) {
+    auto rowDataOpt = rowData(row);
+    if (!rowDataOpt.has_value()) {
+        Log::warn("Invalid row: {}", row);
+        return;
+    }
+
+    const auto &data = *rowDataOpt;
+
+    emit resourceDoubleClicked(data.id, data.type, data.title, data.path, data.url);
 }
 
 void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
@@ -187,7 +192,7 @@ void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
 
     const auto &data = *rowDataOpt;
 
-    emit contextMenuRequested(pos, data.id, data.type, data.title, data.path);
+    emit contextMenuRequested(pos, data.id, data.type, data.title, data.path, data.url);
 }
 
 std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const {
@@ -196,9 +201,9 @@ std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const 
     auto* titleItem = m_resultsTbl->item(row, 1);
     if (titleItem == nullptr) { return std::nullopt; }
 
-    const QVariant idData =
-        titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
-    if (!idData.isValid()) { return std::nullopt; }
+    const QVariant idVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId));
+    if (!idVar.isValid()) { return std::nullopt; }
+    const auto id = static_cast<int>(idVar.toLongLong());
 
     const QVariant vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
     bool ok{};
@@ -210,7 +215,11 @@ std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const 
     QString path;
     if (pathVar.isValid() && !pathVar.isNull()) { path = pathVar.toString(); }
 
-    RowData r{.id = idData.toInt(), .type = type, .title = titleItem->text(), .path = path};
+    const QVariant urlVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::url));
+    QString url;
+    if (urlVar.isValid() && !urlVar.isNull()) { url = urlVar.toString(); }
+
+    RowData r{.id = id, .type = type, .title = titleItem->text(), .path = path, .url = url};
 
     return r;
 }

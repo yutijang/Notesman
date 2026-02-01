@@ -33,9 +33,9 @@ class BrowseTabWidget final : public QWidget {
     signals:
         void searchRequested(const QString &keyword, const QString &mode);
         void resourceDoubleClicked(int id, ResourceType type, const QString &title,
-                                   const QString &path);
+                                   const QString &path, const QString &url);
         void contextMenuRequested(const QPoint &pos, int id, ResourceType type,
-                                  const QString &title, const QString &path);
+                                  const QString &title, const QString &path, const QString &url);
         void statusUpdateRequest(const QString &msg, int timeout);
         void loadAllDataRequested();
 
@@ -55,6 +55,7 @@ class BrowseTabWidget final : public QWidget {
                 ResourceType type;
                 QString title;
                 QString path;
+                QString url;
         };
 
         [[nodiscard]] std::optional<RowData> rowData(int row) const;

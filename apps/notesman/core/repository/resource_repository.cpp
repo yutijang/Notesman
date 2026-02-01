@@ -407,9 +407,15 @@ Resource ResourceRepository::resourceFromStmt(const SQLiteStmt &stmt) {
 
 std::vector<UnifiedSearchResult> ResourceRepository::getAllResourcesByType(ResourceType type) {
     static constexpr const char* sql = R"(
-        SELECT r.id, r.title, r.updated_at,
+        SELECT
+            r.id,
+            r.title,
+            r.updated_at,
+            ru.url AS raw_url,
             GROUP_CONCAT(t.name, ', ') AS tag_list
         FROM resources AS r
+        LEFT JOIN resource_urls AS ru
+            ON ru.resource_id = r.id
         LEFT JOIN resource_tags AS rt
             ON rt.resource_id = r.id
         LEFT JOIN tags AS t
@@ -436,7 +442,9 @@ std::vector<UnifiedSearchResult> ResourceRepository::getAllResourcesByType(Resou
         item.res.type = type;
         item.res.updated_at = stmt.getColumnText(2);
 
-        if (std::string tagStr = stmt.getColumnText(3); !tagStr.empty()) {
+        if (std::string url = stmt.getColumnText(3); !url.empty()) { item.url = url; }
+
+        if (std::string tagStr = stmt.getColumnText(4); !tagStr.empty()) {
             item.tags = splitTags(tagStr, ", ");
         }
 

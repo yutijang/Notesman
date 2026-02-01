@@ -299,27 +299,33 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void AppController::handleAddNoteRequest(const QString &title, const QString &textContent,
-                                         const QString &filePath, const QStringList &tags,
-                                         bool isTextMode) {
-    ResourceType type = ResourceType::plainText;
-    const std::filesystem::path filePathFs{filePath.toStdWString()};
-
-    if (!isTextMode && m_settings->isManagedResources()) {
+                                         const QString &filePath, const QString &url,
+                                         const QStringList &tags, UiConst::AddResMode mode) {
+    if (mode == UiConst::AddResMode::file && m_settings->isManagedResources()) {
         const auto &resDir = m_settings->resourceDir();
         const bool needStrictCheck = !m_settings->isDefaultResourceDir();
 
-        if (needStrictCheck) {
-            if (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir)) {
-                emit addTabNotiRequest(tr("Resource directory does not exist. "
-                                          "Please fix it in Settings before adding resources."),
-                                       UiConst::SettingsTabNotiLevel::warning);
+        if (needStrictCheck &&
+            (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir))) {
+            emit addTabNotiRequest(tr("Resource directory does not exist. "
+                                      "Please fix it in Settings before adding resources."),
+                                   UiConst::SettingsTabNotiLevel::warning);
 
-                return;
-            }
+            return;
         }
     }
 
-    if (!isTextMode) {
+    const std::filesystem::path filePathFs{filePath.toStdWString()};
+    ResourceType type{};
+    if (mode == UiConst::AddResMode::text) {
+        if (textContent.isEmpty()) {
+            emit addTabNotiRequest(tr("Content cannot be empty!"),
+                                   UiConst::SettingsTabNotiLevel::warning);
+            return;
+        }
+
+        type = ResourceType::plainText;
+    } else if (mode == UiConst::AddResMode::file) {
         if (filePath.isEmpty()) {
             emit addTabNotiRequest(tr("File path is empty."),
                                    UiConst::SettingsTabNotiLevel::warning);
@@ -340,6 +346,14 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
         }
 
         type = *typeOpt;
+    } else if (mode == UiConst::AddResMode::url) {
+        if (url.isEmpty()) {
+            emit addTabNotiRequest(tr("Url cannot be empty!"),
+                                   UiConst::SettingsTabNotiLevel::warning);
+            return;
+        }
+
+        type = ResourceType::url;
     }
 
     const auto titleStd = title.toStdString();
@@ -349,29 +363,16 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
         return;
     }
 
-    if (isTextMode && textContent.isEmpty()) {
-        emit addTabNotiRequest(tr("Content cannot be empty!"),
-                               UiConst::SettingsTabNotiLevel::warning);
-        return;
-    }
-
     sqlite_int64 resId{};
-    if (isTextMode) {
-        resId = m_core->addTextNote(titleStd, textContent.toUtf8().toStdString(), type);
-
-        emit addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::good);
-    } else {
-        std::string contentToIndex;
-
-        if (Utils::isIndexable(type, filePathFs) == IndexableResult::yes) {
-            contentToIndex = Utils::readFileToString(filePathFs);
-        }
-
-        resId = m_core->addFileNote(filePathFs, titleStd, type, m_settings->isManagedResources(),
-                                    contentToIndex);
-
-        emit addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::good);
+    if (mode == UiConst::AddResMode::text) {
+        resId = handleTextMode(titleStd, textContent, type);
+    } else if (mode == UiConst::AddResMode::file) {
+        resId = handleFileMode(titleStd, filePathFs, type);
+    } else if (mode == UiConst::AddResMode::url) {
+        resId = handleUrlMode(titleStd, url, type);
     }
+
+    if (resId == 0) { return; }
 
     addTagsToResource(resId, tags);
 
@@ -503,4 +504,43 @@ void AppController::displayInfoGMUserLinked(const QString &email) {
                             .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
 
     emit gmailLinkedForView(htmlTextEmail);
+}
+
+sqlite_int64 AppController::handleTextMode(const std::string &title, const QString &textContent,
+                                           ResourceType &outType) {
+    auto resId = m_core->addTextNote(title, textContent.toUtf8().toStdString(), outType);
+    emit addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::good);
+    return resId;
+}
+
+sqlite_int64 AppController::handleFileMode(const std::string &title,
+                                           const std::filesystem::path &filePath,
+                                           ResourceType &outType) {
+    std::string contentToIndex;
+
+    if (Utils::isIndexable(outType, filePath) == IndexableResult::yes) {
+        contentToIndex = Utils::readFileToString(filePath);
+    }
+
+    auto resId = m_core->addFileNote(filePath, title, outType, m_settings->isManagedResources(),
+                                     contentToIndex);
+
+    emit addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::good);
+
+    return resId;
+}
+
+sqlite_int64 AppController::handleUrlMode(const std::string &title, const QString &url,
+                                          ResourceType &outType) {
+    sqlite3_int64 resId{};
+
+    auto resIdOtp = m_core->addUrlNote(title, outType, url.toStdString());
+    if (!resIdOtp) {
+        emit addTabNotiRequest(tr("Url added fail!"), UiConst::SettingsTabNotiLevel::warning);
+    } else {
+        resId = *resIdOtp;
+        emit addTabNotiRequest(tr("Url added successfully!"), UiConst::SettingsTabNotiLevel::good);
+    }
+
+    return resId;
 }

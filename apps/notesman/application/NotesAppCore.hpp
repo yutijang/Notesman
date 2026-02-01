@@ -32,8 +32,8 @@ class NotesAppCore {
                                   ResourceType type, bool isManaged,
                                   const std::string &contentToIndex) const;
         [[nodiscard]]
-        std::optional<sqlite3_int64> addUrlResource(std::string_view title, ResourceType type,
-                                                    std::string_view rawUrl) const;
+        std::optional<sqlite3_int64> addUrlNote(std::string_view title, ResourceType type,
+                                                std::string_view rawUrl) const;
         [[nodiscard]] std::optional<FullResource> getFullResource(sqlite3_int64 resourceId) const;
         [[nodiscard]] std::vector<FullResource> getAllFull() const;
 
