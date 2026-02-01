@@ -97,7 +97,7 @@ set(APP_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/application/workers/ResourceSearchWorker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/UpdateManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/DownloadManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/GoogleDriveService.cpp    
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/services/GoogleDriveService.cpp
 )
 
 set(GUI_SOURCES
@@ -117,14 +117,14 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewerDialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewService.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/MarkdownToHtml.cpp
-    $<$<PLATFORM_ID:Windows>:${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/WebView2Widget.cpp>    
+    $<$<PLATFORM_ID:Windows>:${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/WebView2Widget.cpp>
 )
 
 set(HELPER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/FontLoader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResultsTable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceTitleDelegate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp    
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/DialogUtils.cpp
 )
 
@@ -241,7 +241,7 @@ target_link_libraries(${PROJECT_NAME}
 if(WIN32)
   set(GENERATED_RC_DIR
       "${CMAKE_BINARY_DIR}/generated/notesman"
-  )  
+  )
   file(MAKE_DIRECTORY "${GENERATED_RC_DIR}")
 
   set(NOTESMAN_VERSION_RC
@@ -274,7 +274,7 @@ if(WIN32)
     WIN32_EXECUTABLE $<IF:$<CONFIG:Release>,TRUE,FALSE>
     OUTPUT_NAME "NotesmanCore"
     SUFFIX ".dll"
-  )    
+  )
 endif()
 
 target_compile_definitions(${PROJECT_NAME}

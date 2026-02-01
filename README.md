@@ -49,8 +49,8 @@ In TO-DO List
 **Note on Qt6 Libraries (LGPLv3 Compliance):** This application links to Qt6 dynamically. To use a custom-built version of the Qt libraries:
 1. Build your custom Qt6 from source using the same toolchain (e.g., `clang-cl` or `clang++`).
 2. Re-configure the project by setting `CMAKE_PREFIX_PATH` to your custom installation:
-```yaml
-cmake -B build -DCMAKE_PREFIX_PATH=/path/to/custom/qt
-cmake --build build
-```
+   ```yaml
+   cmake -B build -DCMAKE_PREFIX_PATH=/path/to/custom/qt
+   cmake --build build
+   ```
 3. Alternatively, for a quick test, replace the existing Qt dynamic libraries (`.dll` or `.so`) in the application's executable directory with your custom ones.
