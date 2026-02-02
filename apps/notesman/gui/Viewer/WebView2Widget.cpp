@@ -154,3 +154,25 @@ void WebView2Widget::loadHtml(const QString &html) {
 
     m_webview->NavigateToString(html.toStdWString().c_str());
 }
+
+void WebView2Widget::loadUrl(const QUrl &url) {
+    if (!url.isValid()) {
+        qWarning() << "Invalid URL:" << url;
+        return;
+    }
+
+    if (url.scheme() != "http" && url.scheme() != "https") {
+        qWarning() << "Unsupported URL scheme:" << url;
+        return;
+    }
+
+    const QString urlStr = url.toString(QUrl::FullyEncoded);
+
+    if (m_webview == nullptr) {
+        // WebView2 chưa sẵn sàng
+        m_pendingFile = urlStr;
+        return;
+    }
+
+    m_webview->Navigate(urlStr.toStdWString().c_str());
+}

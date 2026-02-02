@@ -41,6 +41,23 @@ HtmlViewer::HtmlViewer(QString title, QString htmlContent, bool fromMemory, QWid
     loadFromMemory();
 }
 
+HtmlViewer::HtmlViewer(QString title, const QUrl &url, QWidget* parent)
+    : m_title(std::move(title)) {
+#ifdef Q_OS_WIN
+    m_rootWidget = new QWidget(parent);
+    setupView();
+    m_view->loadUrl(url);
+#elif defined(Q_OS_LINUX)
+    m_rootWidget = nullptr;
+
+    m_process = new QProcess;
+    const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
+    const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
+
+    m_process->start(program, {url.toString(), wTitle});
+#endif
+}
+
 void HtmlViewer::setupView() {
     auto* layout = new QVBoxLayout(m_rootWidget);
     layout->setContentsMargins(0, 0, 0, 0);

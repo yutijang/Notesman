@@ -254,7 +254,15 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
             break;
         }
         case ResourceType::url: {
-            qDebug() << url;
+            if (url.isEmpty()) { return; }
+
+            const QUrl qurl = QUrl::fromUserInput(url);
+            if (!qurl.isValid()) {
+                qWarning() << "Invalid URL resource:" << url;
+                return;
+            }
+
+            viewer = std::make_unique<HtmlViewer>(title, qurl, this);
             break;
         }
         case ResourceType::pdfDoc: {

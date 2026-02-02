@@ -22,6 +22,9 @@ class HtmlViewer final : public IResourceViewer,
         explicit HtmlViewer(QString title, QString htmlContent, bool fromMemory,
                             QWidget* parent = nullptr);
 
+        // url
+        explicit HtmlViewer(QString title, const QUrl &url, QWidget* parent = nullptr);
+
         ~HtmlViewer() override = default;
 
 #ifdef Q_OS_LINUX

@@ -14,8 +14,9 @@ class WebView2Widget final : public QWidget {
         ~WebView2Widget() override;
 
         void loadFile(const QString &path);
-        void find(const QString &text, bool backward = false);
         void loadHtml(const QString &html);
+        void loadUrl(const QUrl &url);
+        void find(const QString &text, bool backward = false);
 
     protected:
         void resizeEvent(QResizeEvent* e) override;
