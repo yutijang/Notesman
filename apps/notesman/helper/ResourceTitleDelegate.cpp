@@ -111,7 +111,7 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
     if (!subText.isEmpty()) {
         QString subTextForDisplay = tr("Latest modified: %1").arg(subText);
 
-        if (hasFlag(flags, ResourceFlags::matchContent)) {
+        if (hasAnyFlags(flags, ResourceFlags::matchText | ResourceFlags::matchFileText)) {
             subTextForDisplay = subText;
         } else if (hasFlag(flags, ResourceFlags::matchTag)) {
             subTextForDisplay = tr("Tags: %1").arg(subText);

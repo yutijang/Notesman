@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QUrl>
 
 #include "IResourceViewer.hpp"
 
@@ -23,7 +24,7 @@ class HtmlViewer final : public IResourceViewer,
                             QWidget* parent = nullptr);
 
         // url
-        explicit HtmlViewer(QString title, const QUrl &url, QWidget* parent = nullptr);
+        explicit HtmlViewer(QString title, QUrl url, QWidget* parent = nullptr);
 
         ~HtmlViewer() override = default;
 
@@ -45,14 +46,17 @@ class HtmlViewer final : public IResourceViewer,
         void setupView();
         void loadFile();
         void loadFromMemory();
+        void loadUrl();
+
+        [[nodiscard]] bool supportsSearch() const;
 
         QString m_htmlPath;
         QString m_htmlContent;
         QString m_title;
+        QUrl m_url;
         bool m_fromMemory{};
 
         QWidget* m_rootWidget{};
-        // QTextBrowser* m_browser{};
 
 #if defined(Q_OS_WIN)
         WebView2Widget* m_view{};

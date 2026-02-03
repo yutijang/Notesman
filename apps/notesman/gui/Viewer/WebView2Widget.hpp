@@ -5,6 +5,7 @@
 #include <WebView2.h>
 #include <QWidget>
 #include <QString>
+#include <QUrl>
 
 class WebView2Widget final : public QWidget {
         Q_OBJECT
@@ -30,6 +31,8 @@ class WebView2Widget final : public QWidget {
 
         bool m_hasPendingHtml{};
         QString m_pendingHtml;
+
+        QUrl m_pendingUrl;
 
         Microsoft::WRL::ComPtr<ICoreWebView2Environment> m_env;
         Microsoft::WRL::ComPtr<ICoreWebView2Controller> m_controller;

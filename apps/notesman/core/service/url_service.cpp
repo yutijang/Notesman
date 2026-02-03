@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <boost/url/param.hpp>
-#include <cctype>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -113,8 +112,9 @@ std::optional<sqlite3_int64> UrlService::addUrlResource(std::string_view title, 
     auto normalizedUrl = normalizeUrl(rawUrl);
     if (!normalizedUrl) { return std::nullopt; }
 
-    auto resIdOpt = m_urlRepo.getResourceIdByNormalizedUrl(*normalizedUrl);
-    if (resIdOpt.has_value()) { return resIdOpt; }
+    if (auto resIdOpt = m_urlRepo.getResourceIdByNormalizedUrl(*normalizedUrl)) {
+        return *resIdOpt;
+    }
 
     // NOLINTNEXTLINE (-Wmissing-designated-field-initializers)
     sqlite3_int64 resourceId = m_resRepo.insert({.title = std::string(title), .type = type});
@@ -142,13 +142,17 @@ void UrlService::updateUrl(sqlite3_int64 resourceId, std::string_view rawUrl) {
     m_urlRepo.updateUrl(resourceId, rawUrl, *normalizedUrl, partsOpt->domain, partsOpt->path);
 }
 
+std::optional<std::string> UrlService::getUrlByResourceIdOnly(sqlite3_int64 resourceId) const {
+    return m_urlRepo.getUrlByResourceIdOnly(resourceId);
+}
+
 // ========= Utils =========
 bool UrlService::isValidUrl(std::string_view urlRaw) {
     return urls::parse_absolute_uri(urlRaw).has_value();
 }
 
 std::optional<std::string> UrlService::normalizeUrl(std::string_view rawUrl) {
-    auto parsed = urls::parse_absolute_uri(rawUrl);
+    auto parsed = urls::parse_uri_reference(rawUrl);
     if (!parsed) {
         Log::err("Invalid URL");
         return std::nullopt;

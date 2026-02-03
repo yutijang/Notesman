@@ -62,8 +62,9 @@ class NotesAppCore {
 
         // For mode all
         [[nodiscard]]
-        std::vector<UnifiedSearchResult> searchUnifiedFull(std::string_view likeKW,
-                                                           std::string_view ftsKW) const;
+        std::vector<UnifiedSearchResult> searchUnifiedFull(std::string_view tagLikeKW,
+                                                           std::string_view ftsKW,
+                                                           std::string_view domainLikeKW) const;
 
         [[nodiscard]]
         std::vector<UnifiedSearchResult> searchByTitleFull(const std::string &keyword) const;

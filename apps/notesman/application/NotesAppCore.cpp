@@ -71,9 +71,10 @@ std::vector<UnifiedSearchResult>
     return m_resService.searchByContentUnifiedFull(keyword);
 }
 
-std::vector<UnifiedSearchResult> NotesAppCore::searchUnifiedFull(std::string_view likeKW,
-                                                                 std::string_view ftsKW) const {
-    return m_resService.searchUnifiedFull(likeKW, ftsKW);
+std::vector<UnifiedSearchResult>
+    NotesAppCore::searchUnifiedFull(std::string_view tagLikeKW, std::string_view ftsKW,
+                                    std::string_view domainLikeKW) const {
+    return m_resService.searchUnifiedFull(tagLikeKW, ftsKW, domainLikeKW);
 }
 
 std::vector<UnifiedSearchResult> NotesAppCore::searchByTitleFull(const std::string &keyword) const {

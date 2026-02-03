@@ -364,12 +364,19 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
     }
 
     sqlite_int64 resId{};
-    if (mode == UiConst::AddResMode::text) {
-        resId = handleTextMode(titleStd, textContent, type);
-    } else if (mode == UiConst::AddResMode::file) {
-        resId = handleFileMode(titleStd, filePathFs, type);
-    } else if (mode == UiConst::AddResMode::url) {
-        resId = handleUrlMode(titleStd, url, type);
+    switch (mode) {
+        case UiConst::AddResMode::text: {
+            resId = handleTextMode(titleStd, textContent, type);
+            break;
+        }
+        case UiConst::AddResMode::file: {
+            resId = handleFileMode(titleStd, filePathFs, type);
+            break;
+        }
+        case UiConst::AddResMode::url: {
+            resId = handleUrlMode(titleStd, url, type);
+            break;
+        }
     }
 
     if (resId == 0) { return; }

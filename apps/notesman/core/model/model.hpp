@@ -146,19 +146,21 @@ enum class ResourceFlags : RFBits {
     none = 0,
 
     // ===== Nguồn khớp tìm kiếm =====
-    matchTitle = 1U << 0,   // Khớp từ title
-    matchContent = 1U << 1, // Khớp từ nội dung text / file_text
-    matchTag = 1U << 2,     // Khớp từ tag
-    matchDomain = 1U << 3,
+    matchTag = 1U << 0,      // 1
+    matchTitle = 1U << 1,    // 2
+    matchText = 1U << 2,     // 4  text_content_fts
+    matchFileText = 1U << 3, // 8  file_text_content_fts
+    matchDomain = 1U << 4,   // 16 resource_urls.domain
+    matchUrlPath = 1U << 5,
 
     // ===== Trạng thái nội dung =====
-    hasSnippet = 1U << 4,     // Có snippet hợp lệ (FTS snippet)
-    hasFullContent = 1U << 5, // Có content đầy đủ trong DB (text_content)
+    hasSnippet = 1U << 6,     // Có snippet hợp lệ (FTS snippet)
+    hasFullContent = 1U << 7, // Có content đầy đủ trong DB (text_content)
 
     // ===== Trạng thái file =====
-    isFile = 1U << 6,    // Là tài nguyên file
-    isManaged = 1U << 7, // File được app quản lý (copied vào storage)
-    isExternal = 1U << 8 // File liên kết ngoài (linked)
+    isFile = 1U << 8,     // Là tài nguyên file
+    isManaged = 1U << 9,  // File được app quản lý (copied vào storage)
+    isExternal = 1U << 10 // File liên kết ngoài (linked)
 };
 
 constexpr ResourceFlags operator|(ResourceFlags a, ResourceFlags b) {
@@ -178,8 +180,12 @@ constexpr ResourceFlags &operator|=(ResourceFlags &lhs, ResourceFlags rhs) noexc
     return lhs;
 }
 
-constexpr bool hasFlag(ResourceFlags value, ResourceFlags flag) {
+constexpr bool hasFlag(ResourceFlags value, ResourceFlags flag) noexcept {
     return (static_cast<RFBits>(value) & static_cast<RFBits>(flag)) != 0;
+}
+
+constexpr bool hasAnyFlags(ResourceFlags value, ResourceFlags flags) noexcept {
+    return (static_cast<RFBits>(value) & static_cast<RFBits>(flags)) != 0;
 }
 
 struct UnifiedSearchResult {

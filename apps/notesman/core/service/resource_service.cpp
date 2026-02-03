@@ -1,3 +1,4 @@
+#include <cassert>
 #include <string>
 #include <string_view>
 #include <stdexcept>
@@ -152,14 +153,16 @@ std::vector<UnifiedSearchResult>
     return results;
 }
 
-std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_view likeKW,
-                                                                    std::string_view ftsKW) {
-    auto results = m_resRepo.searchUnified(likeKW, ftsKW);
+std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_view tagLikeKW,
+                                                                    std::string_view ftsKW,
+                                                                    std::string_view domainLikeKW) {
+    auto results = m_resRepo.searchUnified(tagLikeKW, ftsKW, domainLikeKW);
 
     for (auto &item : results) {
         validateIsFile(item);
 
-        if (hasFlag(item.flags, ResourceFlags::matchContent) && item.rawSnippet.has_value()) {
+        if (hasAnyFlags(item.flags, ResourceFlags::matchText | ResourceFlags::matchFileText) &&
+            item.rawSnippet.has_value()) {
             item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet);
         } else if (hasFlag(item.flags, ResourceFlags::matchTag)) {
             std::vector<std::string> tagNames;
@@ -170,6 +173,10 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
             item.displaySubText = Utils::joinTags(item.tags);
         } else if (hasFlag(item.flags, ResourceFlags::matchTitle)) {
             item.displaySubText = item.res.updated_at;
+        } else if (hasAnyFlags(item.flags,
+                               ResourceFlags::matchDomain | ResourceFlags::matchUrlPath)) {
+            assert(item.url.has_value()); // invariant: domain match => URL resource
+            item.displaySubText = *item.url;
         }
     }
 
@@ -178,6 +185,10 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
 
 std::vector<Resource> ResourceService::getResourcesByTags(const std::vector<std::string> &tags) {
     return m_tagRepo.getResourcesViaTags(tags);
+}
+
+std::optional<std::string> ResourceService::getUrlByResourceIdOnly(sqlite3_int64 resourceId) const {
+    return m_urlService.getUrlByResourceIdOnly(resourceId);
 }
 
 void ResourceService::addTagToResource(sqlite3_int64 resourceId, const std::string &tag) {
@@ -270,8 +281,7 @@ FullResource ResourceService::buildFullFromResource(const Resource &res) {
 std::vector<FullResource> ResourceService::getAllFull() {
     std::vector<FullResource> out;
 
-    auto resources = m_resRepo.getAll();
-    if (!resources.empty()) {
+    if (auto resources = m_resRepo.getAll(); !resources.empty()) {
         out.reserve(resources.size());
         for (auto &r : resources) { out.push_back(buildFullFromResource(r)); }
     }
@@ -305,6 +315,12 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
         u.flags = ResourceFlags::none;
 
         validateIsFile(u);
+
+        // Url
+        if (auto rawUrlOpt = getUrlByResourceIdOnly(resId)) {
+            u.url = *rawUrlOpt;
+            u.displaySubText.append(" - Url: " + *rawUrlOpt);
+        }
 
         out.push_back(std::move(u));
     }

@@ -254,14 +254,7 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
             break;
         }
         case ResourceType::url: {
-            if (url.isEmpty()) { return; }
-
             const QUrl qurl = QUrl::fromUserInput(url);
-            if (!qurl.isValid()) {
-                qWarning() << "Invalid URL resource:" << url;
-                return;
-            }
-
             viewer = std::make_unique<HtmlViewer>(title, qurl, this);
             break;
         }
@@ -270,7 +263,6 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
             break;
         }
         case ResourceType::unknown:
-
         case ResourceType::epubDoc:
         case ResourceType::count  : break;
     }

@@ -232,14 +232,24 @@ Quy ước bitmask:
 | 8   | matchContentFile |
 
 */
-std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_view likeKW,
-                                                                   std::string_view ftsKW) {
+std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_view tagLikeKW,
+                                                                   std::string_view ftsKW,
+                                                                   std::string_view domainLikeKW) {
     static constexpr const char* sql = R"(
-        SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at,
-               MIN(m.score) AS final_score,
-               MAX(m.snip) AS snippet,
-               SUM(m.match_reason) AS match_reason
+        SELECT
+            r.id,
+            r.title,
+            r.type,
+            r.file_hash,
+            r.created_at,
+            r.updated_at,
+            ru.url AS url,
+            MIN(m.score) AS final_score,
+            MAX(m.snip) AS snippet,
+            SUM(m.match_reason) AS match_reason
         FROM resources r
+        LEFT JOIN resource_urls ru
+               ON ru.resource_id = r.id
         JOIN (
             -- Khối 1: Tìm theo Tag (Không có snippet văn bản)            
             SELECT rt.resource_id AS row_id, -10.0 AS score, '' AS snip, 1 AS match_reason
@@ -271,6 +281,21 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
                    8 AS match_reason
             FROM file_text_content_fts
             WHERE file_text_content_fts MATCH ?
+
+            UNION ALL
+
+            -- Khối 5: Tìm theo URL PATH (FTS)
+            SELECT rowid AS row_id, bm25(resource_url_path_fts) + 7.0 AS score, '' AS snip,
+                   32 AS match_reason
+            FROM resource_url_path_fts
+            WHERE resource_url_path_fts MATCH ?
+
+            UNION ALL
+
+            -- Khối 6: Tìm theo URL / domain
+            SELECT ru.resource_id AS row_id, -5.0 AS score, '' AS snip, 16 AS match_reason
+            FROM resource_urls ru
+            WHERE ru.url LIKE ?
         ) m ON r.id = m.row_id
         GROUP BY r.id
         ORDER BY final_score ASC, r.updated_at DESC
@@ -279,8 +304,8 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, likeKW.data(),
-                                        static_cast<int>(likeKW.size()), SQLITE_TRANSIENT),
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, tagLikeKW.data(),
+                                        static_cast<int>(tagLikeKW.size()), SQLITE_TRANSIENT),
                       m_db.get());
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, ftsKW.data(), static_cast<int>(ftsKW.size()),
                                         SQLITE_TRANSIENT),
@@ -291,6 +316,12 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 4, ftsKW.data(), static_cast<int>(ftsKW.size()),
                                         SQLITE_TRANSIENT),
                       m_db.get());
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 5, ftsKW.data(), static_cast<int>(ftsKW.size()),
+                                        SQLITE_TRANSIENT),
+                      m_db.get());
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 6, domainLikeKW.data(),
+                                        static_cast<int>(domainLikeKW.size()), SQLITE_TRANSIENT),
+                      m_db.get());
 
     std::vector<UnifiedSearchResult> results;
     int rc{};
@@ -299,26 +330,27 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
         item.res = resourceFromStmt(stmt);
 
         item.flags = ResourceFlags::none;
-        const int reason = sqlite3_column_int(stmt.get(), 8);
+        const int reason = sqlite3_column_int(stmt.get(), 9);
 
         ResourceFlags flags{};
         if ((reason & 1) != 0) { flags |= ResourceFlags::matchTag; }
         if ((reason & 2) != 0) { flags |= ResourceFlags::matchTitle; }
-        if ((reason & 4) != 0) { flags |= ResourceFlags::matchContent; }
-        if ((reason & 8) != 0) { // NOLINT(readability-magic-numbers)
-            flags |= ResourceFlags::matchContent;
-            flags |= ResourceFlags::isFile;
-        }
+        if ((reason & 4) != 0) { flags |= ResourceFlags::matchText; }
+        if ((reason & 8) != 0) { flags |= ResourceFlags::matchFileText; }
+        if ((reason & 16) != 0) { flags |= ResourceFlags::matchDomain; }
+        if ((reason & 32) != 0) { flags |= ResourceFlags::matchUrlPath; }
 
         item.flags = flags;
 
-        if (hasFlag(item.flags, ResourceFlags::matchContent)) {
-            auto snippet = stmt.getColumnText(7); // NOLINT(readability-magic-numbers)
+        if (hasAnyFlags(item.flags, ResourceFlags::matchText | ResourceFlags::matchFileText)) {
+            auto snippet = stmt.getColumnText(8); // NOLINT(readability-magic-numbers)
             if (!snippet.empty()) {
                 item.rawSnippet = snippet;
                 item.flags |= ResourceFlags::hasSnippet;
             }
         }
+
+        item.url = stmt.getColumnText(6);
 
         results.push_back(std::move(item));
     }
@@ -379,7 +411,8 @@ std::vector<UnifiedSearchResult>
                                  .filePath = std::nullopt,
                                  .url = std::nullopt,
                                  .tags = {},
-                                 .flags = ResourceFlags::matchContent | ResourceFlags::hasSnippet};
+                                 .flags = ResourceFlags::matchText | ResourceFlags::matchFileText |
+                                          ResourceFlags::hasSnippet};
 
         results.push_back(std::move(item));
     }

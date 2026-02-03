@@ -14,10 +14,14 @@ class UrlService {
         UrlService(UrlRepository &urlRepo, ResourceRepository &resRepo) noexcept
             : m_urlRepo(urlRepo), m_resRepo(resRepo) {}
 
-        // Core
+        // Core CURD
         std::optional<sqlite3_int64> addUrlResource(std::string_view title, ResourceType type,
                                                     std::string_view rawUrl);
         void updateUrl(sqlite3_int64 resourceId, std::string_view rawUrl);
+
+        // Search
+        [[nodiscard]]
+        std::optional<std::string> getUrlByResourceIdOnly(sqlite3_int64 resourceId) const;
 
     private:
         struct UrlParts {

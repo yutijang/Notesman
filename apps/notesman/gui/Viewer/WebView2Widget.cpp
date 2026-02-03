@@ -1,4 +1,4 @@
-#include <Windows.h>
+#include <windows.h>
 #include <WebView2.h>
 #include <wrl/client.h>
 #include <wrl/event.h>
@@ -30,6 +30,8 @@ static QString escapeJsString(QString s) {
 WebView2Widget::WebView2Widget(QWidget* parent) : QWidget(parent) {
     setAttribute(Qt::WA_NativeWindow);
     setAttribute(Qt::WA_DontCreateNativeAncestors);
+
+    initWebView();
 }
 
 WebView2Widget::~WebView2Widget() {
@@ -39,9 +41,10 @@ WebView2Widget::~WebView2Widget() {
 void WebView2Widget::showEvent(QShowEvent* e) {
     QWidget::showEvent(e);
 
-    if (!m_initialized) {
-        initWebView();
-        m_initialized = true;
+    if (m_pendingUrl.isValid() && (m_webview != nullptr)) {
+        const QString urlStr = m_pendingUrl.toString(QUrl::FullyEncoded);
+        m_webview->Navigate(urlStr.toStdWString().c_str());
+        m_pendingUrl = QUrl{};
     }
 }
 
@@ -50,7 +53,8 @@ void WebView2Widget::resizeEvent(QResizeEvent* e) {
 
     if (m_controller != nullptr) {
         const QRect r = rect();
-        m_controller->put_Bounds(RECT{r.left(), r.top(), r.right(), r.bottom()});
+        RECT rc{r.left(), r.top(), r.left() + r.width(), r.top() + r.height()};
+        m_controller->put_Bounds(rc);
     }
 }
 
@@ -85,6 +89,10 @@ void WebView2Widget::initWebView() {
                             m_controller = controller;
                             controller->get_CoreWebView2(&m_webview);
 
+                            RECT bounds;
+                            GetClientRect(reinterpret_cast<HWND>(winId()), &bounds);
+                            m_controller->put_Bounds(bounds);
+
                             if (m_hasPendingHtml) {
                                 m_webview->NavigateToString(m_pendingHtml.toStdWString().c_str());
                                 m_pendingHtml.clear();
@@ -92,16 +100,64 @@ void WebView2Widget::initWebView() {
                             } else if (!m_pendingFile.isEmpty()) {
                                 m_webview->Navigate(m_pendingFile.toStdWString().c_str());
                                 m_pendingFile.clear();
+                            } else if (m_pendingUrl.isValid()) {
+                                const QString urlStr = m_pendingUrl.toString(QUrl::FullyEncoded);
+                                m_webview->Navigate(urlStr.toStdWString().c_str());
+                                m_pendingUrl = QUrl{};
                             }
 
                             // Settings
                             ComPtr<ICoreWebView2Settings> settings;
                             m_webview->get_Settings(&settings);
                             settings->put_IsScriptEnabled(TRUE);
-                            settings->put_AreDefaultContextMenusEnabled(TRUE);
-                            settings->put_IsZoomControlEnabled(TRUE);
+                            settings->put_AreDefaultContextMenusEnabled(FALSE);
+                            settings->put_IsZoomControlEnabled(FALSE);
+                            settings->put_AreDevToolsEnabled(FALSE);
+                            settings->put_IsStatusBarEnabled(FALSE);
+                            settings->put_IsWebMessageEnabled(FALSE);
 
-                            resizeEvent(nullptr);
+                            ComPtr<ICoreWebView2Settings3> settings3;
+                            if (SUCCEEDED(settings.As(&settings3)) && settings3) {
+                                settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE);
+                            }
+
+                            m_webview->add_NewWindowRequested(
+                                Microsoft::WRL::Callback<
+                                    ICoreWebView2NewWindowRequestedEventHandler>(
+                                    [](ICoreWebView2*,
+                                       ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
+                                        args->put_Handled(TRUE);
+                                        return S_OK;
+                                    })
+                                    .Get(),
+                                nullptr);
+
+                            m_webview->add_NavigationStarting(
+                                Microsoft::WRL::Callback<
+                                    ICoreWebView2NavigationStartingEventHandler>(
+                                    [](ICoreWebView2*,
+                                       ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                                        LPWSTR uri{};
+                                        args->get_Uri(&uri);
+
+                                        if (!uri) { return S_OK; }
+
+                                        QString url = QString::fromWCharArray(uri);
+                                        CoTaskMemFree(uri);
+
+                                        QUrl qurl(url);
+                                        const QString scheme = qurl.scheme();
+
+                                        if (scheme != "file" && scheme != "http" &&
+                                            scheme != "https" && scheme != "about") {
+                                            args->put_Cancel(TRUE);
+                                        }
+
+                                        return S_OK;
+                                    })
+                                    .Get(),
+                                nullptr);
+
                             return S_OK;
                         })
                         .Get());
@@ -112,10 +168,8 @@ void WebView2Widget::initWebView() {
 }
 
 void WebView2Widget::loadFile(const QString &path) {
-    QString absolutePath;
-
     QFileInfo fi(path);
-    if (fi.isAbsolute()) { absolutePath = fi.absoluteFilePath(); }
+    const QString absolutePath = fi.absoluteFilePath();
 
     if (!QFile::exists(absolutePath)) {
         qWarning() << "HTML file not found:" << absolutePath;
@@ -156,6 +210,8 @@ void WebView2Widget::loadHtml(const QString &html) {
 }
 
 void WebView2Widget::loadUrl(const QUrl &url) {
+    qDebug() << "WebView2Widget visible:" << isVisible() << "size:" << size();
+
     if (!url.isValid()) {
         qWarning() << "Invalid URL:" << url;
         return;
@@ -170,7 +226,7 @@ void WebView2Widget::loadUrl(const QUrl &url) {
 
     if (m_webview == nullptr) {
         // WebView2 chưa sẵn sàng
-        m_pendingFile = urlStr;
+        m_pendingUrl = url;
         return;
     }
 

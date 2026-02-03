@@ -30,8 +30,9 @@ class ResourceRepository {
         std::vector<UnifiedSearchResult> searchByTitleFTS(std::string_view keyword);
 
         std::vector<UnifiedSearchResult> searchByContentUnified(std::string_view keyword);
-        std::vector<UnifiedSearchResult> searchUnified(std::string_view likeKW,
-                                                       std::string_view ftsKW);
+        std::vector<UnifiedSearchResult> searchUnified(std::string_view tagLikeKW,
+                                                       std::string_view ftsKW,
+                                                       std::string_view domainLikeKW);
 
         std::optional<Resource> getByFileHash(std::string_view hash);
         std::optional<std::pair<std::string, std::string>> getTimestamps(sqlite3_int64 resourceID);

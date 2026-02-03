@@ -41,12 +41,12 @@ HtmlViewer::HtmlViewer(QString title, QString htmlContent, bool fromMemory, QWid
     loadFromMemory();
 }
 
-HtmlViewer::HtmlViewer(QString title, const QUrl &url, QWidget* parent)
-    : m_title(std::move(title)) {
+HtmlViewer::HtmlViewer(QString title, QUrl url, QWidget* parent)
+    : m_title(std::move(title)), m_url(std::move(url)) {
 #ifdef Q_OS_WIN
     m_rootWidget = new QWidget(parent);
     setupView();
-    m_view->loadUrl(url);
+    loadUrl();
 #elif defined(Q_OS_LINUX)
     m_rootWidget = nullptr;
 
@@ -110,6 +110,12 @@ void HtmlViewer::loadFromMemory() {
 #endif
 }
 
+void HtmlViewer::loadUrl() {
+#ifdef Q_OS_WIN
+    if (!m_url.isEmpty()) { m_view->loadUrl(m_url); }
+#endif
+}
+
 QWidget* HtmlViewer::widget() {
 #ifdef Q_OS_LINUX
     return nullptr;
@@ -123,6 +129,11 @@ void HtmlViewer::setupToolbar(QToolBar* toolbar) {
 
 #ifdef Q_OS_WIN
     if (m_view == nullptr) { return; }
+
+    if (!supportsSearch()) {
+        toolbar->setVisible(false);
+        return;
+    }
 
     auto* actSearch = toolbar->addAction(QObject::tr("Search"));
     actSearch->setIcon(QIcon(":/icons/search.ico"));
@@ -184,4 +195,8 @@ bool HtmlViewer::onClose([[maybe_unused]] QWidget* parent) {
 #endif
 
     return true;
+}
+
+bool HtmlViewer::supportsSearch() const {
+    return !m_url.isValid();
 }

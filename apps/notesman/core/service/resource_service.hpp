@@ -55,10 +55,14 @@ class ResourceService {
         // =========
 
         std::vector<UnifiedSearchResult> searchByContentUnifiedFull(const std::string &keyword);
-        std::vector<UnifiedSearchResult> searchUnifiedFull(std::string_view likeKW,
-                                                           std::string_view ftsKW);
+        std::vector<UnifiedSearchResult> searchUnifiedFull(std::string_view tagLikeKW,
+                                                           std::string_view ftsKW,
+                                                           std::string_view domainLikeKW);
 
         std::vector<Resource> getResourcesByTags(const std::vector<std::string> &tags);
+
+        [[nodiscard]]
+        std::optional<std::string> getUrlByResourceIdOnly(sqlite3_int64 resourceId) const;
 
         // ========== Tags ==========
         void addTagToResource(sqlite3_int64 resourceId, const std::string &tag);

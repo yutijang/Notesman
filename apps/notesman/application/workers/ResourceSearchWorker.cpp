@@ -34,15 +34,18 @@ void ResourceSearchWorker::doSearch() {
             results = m_core->getFullResourcesByTag(cleanTag);
         } else if (m_mode == "all") {
             // 1. Chuẩn bị chuỗi cho LIKE (Bảng Tag)
-            const std::string likeKW = Utils::toLikeQuery(stdKeyword);
+            const std::string tagLikeKW = Utils::toLikeQuery(stdKeyword);
 
             // 2. Chuẩn bị chuỗi cho MATCH (Bảng FTS Title/Content)
             // Dùng false để tìm kiếm linh hoạt hơn trong chế độ tìm tổng hợp
             const std::string ftsKW = Utils::sanitizeFtsQuery(stdKeyword, false);
 
+            // LIKE cho domain
+            const std::string domainLikeKW = Utils::toLikeQuery(stdKeyword);
+
             // 3. Gọi hàm hợp nhất trong Core
             // Hàm này sẽ bind likeKW vào các tham số LIKE và ftsKW vào các tham số MATCH
-            results = m_core->searchUnifiedFull(likeKW, ftsKW);
+            results = m_core->searchUnifiedFull(tagLikeKW, ftsKW, domainLikeKW);
         }
     }
 
