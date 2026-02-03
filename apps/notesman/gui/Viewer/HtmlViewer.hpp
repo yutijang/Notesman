@@ -30,6 +30,8 @@ class HtmlViewer final : public IResourceViewer,
 
 #ifdef Q_OS_LINUX
         [[nodiscard]] bool usesExternalWindow() const override { return true; }
+
+        [[nodiscard]] QProcess* process() const { return m_process; }
 #endif
 
     private:

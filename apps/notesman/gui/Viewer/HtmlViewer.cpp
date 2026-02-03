@@ -50,11 +50,7 @@ HtmlViewer::HtmlViewer(QString title, QUrl url, QWidget* parent)
 #elif defined(Q_OS_LINUX)
     m_rootWidget = nullptr;
 
-    m_process = new QProcess;
-    const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
-    const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
-
-    m_process->start(program, {url.toString(), wTitle});
+    loadUrl();
 #endif
 }
 
@@ -113,6 +109,18 @@ void HtmlViewer::loadFromMemory() {
 void HtmlViewer::loadUrl() {
 #ifdef Q_OS_WIN
     if (!m_url.isEmpty()) { m_view->loadUrl(m_url); }
+#elif defined(Q_OS_LINUX)
+    if (!m_url.isValid()) { return; }
+
+    m_process = new QProcess(m_rootWidget);
+
+    const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
+
+    const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
+
+    const QString uri = m_url.toString(QUrl::FullyEncoded);
+
+    m_process->start(program, {uri, wTitle});
 #endif
 }
 

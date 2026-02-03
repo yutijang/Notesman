@@ -269,7 +269,39 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
 
     if (!viewer) { return; }
 
-    if (viewer->usesExternalWindow()) { return; }
+#ifdef Q_OS_LINUX
+    if (viewer->usesExternalWindow()) {
+        if (m_viewerLocked) { return; }
+
+        m_viewerLocked = true;
+        this->setEnabled(false);
+
+        auto* htmlViewer = dynamic_cast<HtmlViewer*>(viewer.get());
+        if (htmlViewer == nullptr) {
+            m_viewerLocked = false;
+            this->setEnabled(true);
+            return;
+        }
+
+        QProcess* proc = htmlViewer->process();
+        if (proc == nullptr) {
+            m_viewerLocked = false;
+            this->setEnabled(true);
+            return;
+        }
+
+        m_externalViewer = std::move(viewer);
+
+        QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
+                         [this]() {
+                             m_externalViewer.reset(); // delete HtmlViewer
+                             m_viewerLocked = false;
+                             this->setEnabled(true);
+                         });
+
+        return;
+    }
+#endif
 
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
 

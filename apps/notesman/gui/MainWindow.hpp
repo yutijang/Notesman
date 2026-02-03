@@ -10,6 +10,7 @@
 #include <QObject>
 #include <QStringList>
 
+#include "IResourceViewer.hpp"
 #include "UiConstants.hpp"
 #include "SettingsData.hpp"
 #include "UpdateInfoSummary.hpp"
@@ -123,6 +124,9 @@ class MainWindow : public QMainWindow {
         void handleWindowsUpdate(const QString &filePath);
 #elif defined(Q_OS_LINUX)
         void handleLinuxUpdate(const QString &filePath);
+
+        std::unique_ptr<IResourceViewer> m_externalViewer;
+        bool m_viewerLocked{};
 #endif
 
         NotesAppCore* m_core{};
