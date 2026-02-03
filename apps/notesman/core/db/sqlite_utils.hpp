@@ -26,4 +26,18 @@ namespace sqlite {
             throw std::runtime_error(std::string(context) + ": " + msg);
         }
     }
+
+    inline void checkExec(sqlite3* db, const char* sqlString, std::string_view context,
+                          std::source_location loc = std::source_location::current()) {
+        char* errMsg{};
+        int rc = sqlite3_exec(db, sqlString, nullptr, nullptr, &errMsg);
+        if (rc != SQLITE_OK) {
+            std::string finalErrMsg = (errMsg != nullptr) ? errMsg : "Unknown error";
+
+            if (errMsg != nullptr) { sqlite3_free(errMsg); }
+
+            Log::err({context, loc}, "SQLite exec failed (rc={}): {}", rc, finalErrMsg);
+            throw std::runtime_error(std::string(context) + ": " + finalErrMsg);
+        }
+    }
 } // namespace sqlite

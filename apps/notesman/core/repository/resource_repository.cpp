@@ -235,129 +235,197 @@ Quy ước bitmask:
 std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_view tagLikeKW,
                                                                    std::string_view ftsKW,
                                                                    std::string_view domainLikeKW) {
-    static constexpr const char* sql = R"(
-        SELECT
-            r.id,
-            r.title,
-            r.type,
-            r.file_hash,
-            r.created_at,
-            r.updated_at,
-            ru.url AS url,
-            MIN(m.score) AS final_score,
-            MAX(m.snip) AS snippet,
-            SUM(m.match_reason) AS match_reason
-        FROM resources r
-        LEFT JOIN resource_urls ru
-               ON ru.resource_id = r.id
-        JOIN (
-            -- Khối 1: Tìm theo Tag (Không có snippet văn bản)            
-            SELECT rt.resource_id AS row_id, -10.0 AS score, '' AS snip, 1 AS match_reason
-            FROM tags t
-            JOIN resource_tags rt ON rt.tag_id = t.id
-            WHERE t.name LIKE ?
+    sqlite::checkExec(m_db.get(), "BEGIN", "begin search tx");
+    try {
+        // ---------------------------------------------------------------------
+        // Phase 0: create temp table
+        // ---------------------------------------------------------------------
+        {
+            static constexpr const char* sqlCreateTmp = R"(
+                CREATE TEMP TABLE IF NOT EXISTS tmp_search_ids (
+                    resource_id INTEGER PRIMARY KEY,
+                    score REAL NOT NULL,
+                    match_reason INTEGER NOT NULL
+                );
+            )";
 
-            UNION ALL
-
-            -- Khối 2: Tìm theo Title (Không có snippet văn bản)
-            SELECT rowid AS row_id, bm25(resources_fts) AS score, '' AS snip, 2 AS match_reason
-            FROM resources_fts
-            WHERE resources_fts MATCH ?
-
-            UNION ALL
-
-            -- Khối 3: Tìm trong nội dung tài nguyên text thuần (Có snippet)
-            SELECT rowid AS row_id, bm25(text_content_fts) + 5.0 AS score,
-                   snippet(text_content_fts, 0, '[', ']', '...', 30) AS snip,
-                   4 AS match_reason
-            FROM text_content_fts
-            WHERE text_content_fts MATCH ?
-
-            UNION ALL
-
-            -- Khối 4: Tìm trong nội dung File (Có snippet)
-            SELECT rowid AS row_id, bm25(file_text_content_fts) + 10.0 AS score,
-                   snippet(file_text_content_fts, 0, '[', ']', '...', 30) AS snip,
-                   8 AS match_reason
-            FROM file_text_content_fts
-            WHERE file_text_content_fts MATCH ?
-
-            UNION ALL
-
-            -- Khối 5: Tìm theo URL PATH (FTS)
-            SELECT rowid AS row_id, bm25(resource_url_path_fts) + 7.0 AS score, '' AS snip,
-                   32 AS match_reason
-            FROM resource_url_path_fts
-            WHERE resource_url_path_fts MATCH ?
-
-            UNION ALL
-
-            -- Khối 6: Tìm theo URL / domain
-            SELECT ru.resource_id AS row_id, -5.0 AS score, '' AS snip, 16 AS match_reason
-            FROM resource_urls ru
-            WHERE ru.url LIKE ?
-        ) m ON r.id = m.row_id
-        GROUP BY r.id
-        ORDER BY final_score ASC, r.updated_at DESC
-        LIMIT 100;
-    )";
-
-    SQLiteStmt stmt(m_db.get(), sql);
-
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, tagLikeKW.data(),
-                                        static_cast<int>(tagLikeKW.size()), SQLITE_TRANSIENT),
-                      m_db.get());
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, ftsKW.data(), static_cast<int>(ftsKW.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 3, ftsKW.data(), static_cast<int>(ftsKW.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 4, ftsKW.data(), static_cast<int>(ftsKW.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 5, ftsKW.data(), static_cast<int>(ftsKW.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 6, domainLikeKW.data(),
-                                        static_cast<int>(domainLikeKW.size()), SQLITE_TRANSIENT),
-                      m_db.get());
-
-    std::vector<UnifiedSearchResult> results;
-    int rc{};
-    while ((rc = stmt.step()) == SQLITE_ROW) {
-        UnifiedSearchResult item{};
-        item.res = resourceFromStmt(stmt);
-
-        item.flags = ResourceFlags::none;
-        const int reason = sqlite3_column_int(stmt.get(), 9);
-
-        ResourceFlags flags{};
-        if ((reason & 1) != 0) { flags |= ResourceFlags::matchTag; }
-        if ((reason & 2) != 0) { flags |= ResourceFlags::matchTitle; }
-        if ((reason & 4) != 0) { flags |= ResourceFlags::matchText; }
-        if ((reason & 8) != 0) { flags |= ResourceFlags::matchFileText; }
-        if ((reason & 16) != 0) { flags |= ResourceFlags::matchDomain; }
-        if ((reason & 32) != 0) { flags |= ResourceFlags::matchUrlPath; }
-
-        item.flags = flags;
-
-        if (hasAnyFlags(item.flags, ResourceFlags::matchText | ResourceFlags::matchFileText)) {
-            auto snippet = stmt.getColumnText(8); // NOLINT(readability-magic-numbers)
-            if (!snippet.empty()) {
-                item.rawSnippet = snippet;
-                item.flags |= ResourceFlags::hasSnippet;
-            }
+            sqlite::checkExec(m_db.get(), sqlCreateTmp, "create tmp_search_ids");
         }
 
-        item.url = stmt.getColumnText(6);
+        // ---------------------------------------------------------------------
+        // Phase 0 next: clear temp table
+        // ---------------------------------------------------------------------
+        {
+            static constexpr const char* sqlClearTmp = R"(
+                DELETE FROM tmp_search_ids;
+            )";
 
-        results.push_back(std::move(item));
+            sqlite::checkExec(m_db.get(), sqlClearTmp, "clear tmp_search_ids");
+        }
+
+        // ---------------------------------------------------------------------
+        // Phase 1: insert matched resource ids
+        // ---------------------------------------------------------------------
+        {
+            static constexpr const char* sqlPhase1 = R"(
+                INSERT INTO tmp_search_ids(resource_id, score, match_reason)
+                SELECT row_id, MIN(score), SUM(match_reason)
+                FROM (
+                    -- Tag
+                    SELECT rt.resource_id AS row_id, -10.0 AS score, 1 AS match_reason
+                    FROM tags t
+                    JOIN resource_tags rt ON rt.tag_id = t.id
+                    WHERE t.name LIKE ?
+
+                    UNION ALL
+                    -- Title
+                    SELECT rowid, bm25(resources_fts), 2
+                    FROM resources_fts
+                    WHERE resources_fts MATCH ?
+
+                    UNION ALL
+                    -- Text content
+                    SELECT rowid, bm25(text_content_fts) + 5.0, 4
+                    FROM text_content_fts
+                    WHERE text_content_fts MATCH ?
+
+                    UNION ALL
+                    -- File text
+                    SELECT rowid, bm25(file_text_content_fts) + 10.0, 8
+                    FROM file_text_content_fts
+                    WHERE file_text_content_fts MATCH ?
+
+                    UNION ALL
+                    -- URL path
+                    SELECT rowid, bm25(resource_url_path_fts) + 7.0, 32
+                    FROM resource_url_path_fts
+                    WHERE resource_url_path_fts MATCH ?
+
+                    UNION ALL
+                    -- Domain
+                    SELECT ru.resource_id, -5.0, 16
+                    FROM resource_urls ru
+                    WHERE ru.url LIKE ?
+                )
+                GROUP BY row_id
+                ORDER BY MIN(score)
+                LIMIT 100;
+            )";
+
+            SQLiteStmt stmt(m_db.get(), sqlPhase1);
+
+            sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, tagLikeKW.data(),
+                                                static_cast<int>(tagLikeKW.size()),
+                                                SQLITE_TRANSIENT),
+                              m_db.get());
+
+            for (int i = 2; i <= 5; ++i) {
+                sqlite::checkBind(sqlite3_bind_text(stmt.get(), i, ftsKW.data(),
+                                                    static_cast<int>(ftsKW.size()),
+                                                    SQLITE_TRANSIENT),
+                                  m_db.get());
+            }
+
+            sqlite::checkBind(sqlite3_bind_text(stmt.get(), 6, domainLikeKW.data(),
+                                                static_cast<int>(domainLikeKW.size()),
+                                                SQLITE_TRANSIENT),
+                              m_db.get());
+
+            int rc = stmt.step();
+            sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "searchUnified phase1");
+        }
+
+        // ---------------------------------------------------------------------
+        // Phase 2: hydrate resource data
+        // ---------------------------------------------------------------------
+        static constexpr const char* sqlPhase2 = R"(
+            SELECT
+                r.id,
+                r.title,
+                r.type,
+                r.file_hash,
+                r.created_at,
+                r.updated_at,
+                ru.url AS url,
+                t.score AS final_score,
+
+                CASE
+                    WHEN (t.match_reason & 4) != 0 THEN (
+                        SELECT snippet(text_content_fts, 0, '[', ']', '...', 30)
+                        FROM text_content_fts
+                        WHERE rowid = r.id
+                        AND text_content_fts MATCH ?
+                    )
+                    WHEN (t.match_reason & 8) != 0 THEN (
+                        SELECT snippet(file_text_content_fts, 0, '[', ']', '...', 30)
+                        FROM file_text_content_fts
+                        WHERE rowid = r.id
+                        AND file_text_content_fts MATCH ?
+                    )
+                    ELSE ''
+                END AS snippet,
+
+                t.match_reason
+            FROM tmp_search_ids t
+            JOIN resources r ON r.id = t.resource_id
+            LEFT JOIN resource_urls ru ON ru.resource_id = r.id
+            ORDER BY t.score ASC, r.updated_at DESC;
+        )";
+
+        SQLiteStmt stmt(m_db.get(), sqlPhase2);
+
+        sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, ftsKW.data(),
+                                            static_cast<int>(ftsKW.size()), SQLITE_TRANSIENT),
+                          m_db.get());
+
+        sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, ftsKW.data(),
+                                            static_cast<int>(ftsKW.size()), SQLITE_TRANSIENT),
+                          m_db.get());
+
+        std::vector<UnifiedSearchResult> results;
+        results.reserve(100);
+        int rc{};
+        while ((rc = stmt.step()) == SQLITE_ROW) {
+            UnifiedSearchResult item{};
+            item.res = resourceFromStmt(stmt);
+
+            const int reason = sqlite3_column_int(stmt.get(), 9);
+
+            ResourceFlags flags{};
+            if ((reason & 1) != 0) { flags |= ResourceFlags::matchTag; }
+            if ((reason & 2) != 0) { flags |= ResourceFlags::matchTitle; }
+            if ((reason & 4) != 0) { flags |= ResourceFlags::matchText; }
+            if ((reason & 8) != 0) { flags |= ResourceFlags::matchFileText; }
+            if ((reason & 16) != 0) { flags |= ResourceFlags::matchDomain; }
+            if ((reason & 32) != 0) { flags |= ResourceFlags::matchUrlPath; }
+
+            item.flags = flags;
+
+            if (hasAnyFlags(item.flags, ResourceFlags::matchText | ResourceFlags::matchFileText)) {
+                // NOLINTNEXTLINE(readability-magic-numbers)
+                if (auto snippet = stmt.getColumnText(8); !snippet.empty()) {
+                    item.rawSnippet = snippet;
+                    item.flags |= ResourceFlags::hasSnippet;
+                }
+            }
+
+            item.url = stmt.getColumnText(6);
+
+            results.push_back(std::move(item));
+        }
+
+        sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "searchUnified phase2");
+
+        sqlite::checkExec(m_db.get(), "COMMIT", "commit search tx");
+
+        return results;
+    } catch (...) {
+        try {
+            sqlite::checkExec(m_db.get(), "ROLLBACK", "rollback search tx");
+        } catch (...) {}
+
+        throw;
     }
-
-    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "FTS Search");
-
-    return results;
 }
 
 std::vector<UnifiedSearchResult>
@@ -399,6 +467,7 @@ std::vector<UnifiedSearchResult>
                       m_db.get());
 
     std::vector<UnifiedSearchResult> results;
+    results.reserve(100);
     int rc{};
     while ((rc = stmt.step()) == SQLITE_ROW) {
         Resource res = resourceFromStmt(stmt);
@@ -417,7 +486,7 @@ std::vector<UnifiedSearchResult>
         results.push_back(std::move(item));
     }
 
-    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "FTS Search");
+    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "searchByContentUnified");
 
     return results;
 }
