@@ -522,6 +522,10 @@ void MainWindow::onAbout() {
 
     msgBox.setStandardButtons(QMessageBox::Ok);
 
+    QPushButton* aboutQtButton = msgBox.addButton(tr("About Qt"), QMessageBox::ActionRole);
+    QObject::connect(aboutQtButton, &QPushButton::clicked, this,
+                     [this]() { QMessageBox::aboutQt(this); });
+
     msgBox.ensurePolished();
     msgBox.adjustSize();
 

@@ -16,6 +16,7 @@
 #include <QStandardPaths>
 
 #include "WebView2Widget.hpp"
+#include "Logger.hpp"
 
 using Microsoft::WRL::ComPtr;
 
@@ -30,8 +31,6 @@ static QString escapeJsString(QString s) {
 WebView2Widget::WebView2Widget(QWidget* parent) : QWidget(parent) {
     setAttribute(Qt::WA_NativeWindow);
     setAttribute(Qt::WA_DontCreateNativeAncestors);
-
-    initWebView();
 }
 
 WebView2Widget::~WebView2Widget() {
@@ -40,6 +39,11 @@ WebView2Widget::~WebView2Widget() {
 
 void WebView2Widget::showEvent(QShowEvent* e) {
     QWidget::showEvent(e);
+
+    if (!m_initialized) {
+        m_initialized = true;
+        initWebView();
+    }
 
     if (m_pendingUrl.isValid() && (m_webview != nullptr)) {
         const QString urlStr = m_pendingUrl.toString(QUrl::FullyEncoded);
@@ -70,7 +74,7 @@ void WebView2Widget::initWebView() {
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [this, hwnd](HRESULT hr, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(hr)) {
-                    qWarning() << "WebView2 env create failed";
+                    Log::warn("WebView2 env create failed");
                     return hr;
                 }
 
@@ -82,7 +86,7 @@ void WebView2Widget::initWebView() {
                         ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
                         [this](HRESULT chr, ICoreWebView2Controller* controller) -> HRESULT {
                             if (FAILED(chr)) {
-                                qWarning() << "WebView2 controller create failed";
+                                Log::warn("WebView2 controller create failed");
                                 return chr;
                             }
 
@@ -158,6 +162,23 @@ void WebView2Widget::initWebView() {
                                     .Get(),
                                 nullptr);
 
+                            ComPtr<ICoreWebView2_4> webview4;
+                            if (FAILED(m_webview.As(&webview4)) || !webview4) {
+                                // Runtime WebView2 quá cũ → không chặn download được
+                                Log::warn("Runtime WebView2 quá cũ → không chặn download được");
+                                return S_OK;
+                            }
+                            webview4->add_DownloadStarting(
+                                Microsoft::WRL::Callback<ICoreWebView2DownloadStartingEventHandler>(
+                                    [](ICoreWebView2*,
+                                       ICoreWebView2DownloadStartingEventArgs* args) -> HRESULT {
+                                        // ❌ Hủy download
+                                        args->put_Cancel(TRUE);
+                                        return S_OK;
+                                    })
+                                    .Get(),
+                                nullptr);
+
                             return S_OK;
                         })
                         .Get());
@@ -172,7 +193,7 @@ void WebView2Widget::loadFile(const QString &path) {
     const QString absolutePath = fi.absoluteFilePath();
 
     if (!QFile::exists(absolutePath)) {
-        qWarning() << "HTML file not found:" << absolutePath;
+        Log::warn("HTML file not found: {}", absolutePath.toStdString());
         return;
     }
 
@@ -210,15 +231,13 @@ void WebView2Widget::loadHtml(const QString &html) {
 }
 
 void WebView2Widget::loadUrl(const QUrl &url) {
-    qDebug() << "WebView2Widget visible:" << isVisible() << "size:" << size();
-
     if (!url.isValid()) {
-        qWarning() << "Invalid URL:" << url;
+        Log::warn("Invalid URL: {}", url.toString().toStdString());
         return;
     }
 
     if (url.scheme() != "http" && url.scheme() != "https") {
-        qWarning() << "Unsupported URL scheme:" << url;
+        Log::warn("Unsupported URL scheme: {}", url.toString().toStdString());
         return;
     }
 

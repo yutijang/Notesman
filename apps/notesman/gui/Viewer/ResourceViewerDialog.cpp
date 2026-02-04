@@ -34,7 +34,7 @@ ResourceViewerDialog::ResourceViewerDialog(const QString &title,
     setupUi(title);
     setupActions();
 
-    adjustSize();                      // settle layout + toolbar
+    // adjustSize();                      // settle layout + toolbar
     setMinimumSize(minimumSizeHint()); // CỰC KỲ QUAN TRỌNG
 }
 
@@ -43,7 +43,7 @@ void ResourceViewerDialog::showEvent(QShowEvent* event) {
 
     if (m_geometryRestored) { return; }
 
-    adjustSize();
+    // adjustSize();
     restoreGeometryLogic();
     m_geometryRestored = true;
 }
