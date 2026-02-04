@@ -194,6 +194,9 @@ jobs:
             }
           }
 
+      # This step intentionally collects a manually curated list of runtime DLLs.
+      # Dependencies are identified from real runtime execution, not inferred.
+      # Any missing DLL is considered a release-breaking error.
       - name: Strict collect and verify all dependency DLLs
         shell: pwsh
         run: |
@@ -220,6 +223,7 @@ jobs:
               @{ pkg = "sqlite3"; filter = "sqlite3.dll" },
               @{ pkg = "miniz"; filter = "miniz.dll" },
               @{ pkg = "openssl"; filter = "lib*.dll" },
+              @{ pkg = "zlib"; filter = "zlib1.dll" },
               @{ pkg = "boost-url"; filter = "boost_url*.dll" }
           )
 
@@ -257,30 +261,6 @@ jobs:
               exit 1
           } else {
               Write-Host "Success: All mandatory DLLs have been collected and verified."
-          }
-
-      - name: Force Deploy zlib1.dll from vcpkg
-        shell: pwsh
-        run: |
-          $searchDir = "${{ github.workspace }}"
-          $releaseDir = "${{ env.RELEASE_DIR }}"
-          
-          Write-Host "Searching for zlib DLLs in workspace: $searchDir"
-          
-          $dll = Get-ChildItem -Path $searchDir -Filter "zlib*.dll" -Recurse -ErrorAction SilentlyContinue | 
-                 Where-Object { $_.FullName -like "*\bin\*" -and $_.FullName -notlike "*\debug\*" } | 
-                 Select-Object -First 1
-
-          if ($null -ne $dll) {
-              Write-Host "Found zlib at: $($dll.FullName)"
-              if (-not (Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force }
-              
-              Copy-Item $dll.FullName (Join-Path $releaseDir "zlib1.dll") -Force
-              Write-Host "Deployed $($dll.Name) as zlib1.dll to $releaseDir"
-          } else {
-              Write-Error "CRITICAL: vcpkg did not build zlib DLL. Check if your vcpkg triplet is set to dynamic (x64-windows)."
-              Get-ChildItem -Path $searchDir -Filter "*.dll" -Recurse | Select-Object FullName
-              exit 1
           }
 
       - name: Download and package VC Redistributable
