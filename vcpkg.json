@@ -10,6 +10,7 @@
         "poppler",
         "md4c",
         "boost-url",
+        "libzip",
         {
             "name": "miniz",
             "platform": "windows"

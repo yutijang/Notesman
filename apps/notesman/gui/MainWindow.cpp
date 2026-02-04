@@ -63,6 +63,7 @@
 #include "SettingsManager.hpp"
 #include "Logger.hpp"
 #include "MarkdownToHtml.hpp"
+#include "EpubResolver.hpp"
 
 #if defined(Q_OS_LINUX)
     #include <sys/stat.h>
@@ -241,7 +242,7 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
         }
         case ResourceType::htmlDoc:
         case ResourceType::markdown: {
-            QString absolutePath = resolveResPath(path);
+            const QString absolutePath = resolveResPath(path);
 
             if (type == ResourceType::markdown) {
                 const QString html = MarkdownToHtml::convertFileToHtml(absolutePath);
@@ -262,8 +263,15 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
             viewer = std::make_unique<PdfViewer>(path, this);
             break;
         }
+        case ResourceType::epubDoc: {
+            auto epubResolvedPathOtp = EpubResolver::resolveToHtml(path);
+            if (epubResolvedPathOtp) {
+                viewer = std::make_unique<HtmlViewer>(title, *epubResolvedPathOtp, this);
+            }
+
+            break;
+        }
         case ResourceType::unknown:
-        case ResourceType::epubDoc:
         case ResourceType::count  : break;
     }
 

@@ -75,7 +75,6 @@ void HtmlViewer::loadFile() {
     m_process = new QProcess(m_rootWidget);
 
     const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
-
     const QString uri = QUrl::fromLocalFile(m_htmlPath).toString();
     const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
 
@@ -94,7 +93,6 @@ void HtmlViewer::loadFromMemory() {
     m_process = new QProcess(m_rootWidget);
 
     const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
-
     const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
 
     m_process->start(program, {"--stdin", wTitle});
@@ -115,9 +113,7 @@ void HtmlViewer::loadUrl() {
     m_process = new QProcess(m_rootWidget);
 
     const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
-
     const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
-
     const QString uri = m_url.toString(QUrl::FullyEncoded);
 
     m_process->start(program, {uri, wTitle});

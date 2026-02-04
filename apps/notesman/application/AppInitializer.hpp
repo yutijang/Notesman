@@ -64,6 +64,7 @@ class AppInitializer final : public QObject {
 
         void setupInitializerConnections();
         void checkUpdateFlag();
+        static void cleanupOldEpubCache(int days);
 
 #ifdef Q_OS_WIN
         void waitForProcessExitAsync(DWORD pid, const std::function<void()> &onExited);

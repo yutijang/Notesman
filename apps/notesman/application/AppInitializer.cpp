@@ -1,5 +1,3 @@
-#include "url_repository.hpp"
-#include "url_service.hpp"
 #ifdef Q_OS_WIN
     #include <windows.h>
 #endif
@@ -48,10 +46,13 @@
 #include "Logger.hpp"
 #include "file_text_content_repository.hpp"
 #include "schema_version.hpp"
+#include "url_repository.hpp"
+#include "url_service.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
     constexpr int TIMEWAIT{100};
+    constexpr int K_EPUB_CACHE_EXPIRED{7};
 } // namespace
 
 bool AppInitializer::ensureSingleInstance() {
@@ -153,6 +154,8 @@ void AppInitializer::run() {
     QTimer::singleShot(0, [this]() { m_controller->oauthManager(); });
 
     checkUpdateFlag();
+
+    cleanupOldEpubCache(K_EPUB_CACHE_EXPIRED);
 }
 
 AppInitializer::InitFailureReason AppInitializer::initializeCore() {
@@ -490,3 +493,16 @@ void AppInitializer::waitForProcessExitAsync(DWORD pid, const std::function<void
     timer->start();
 }
 #endif
+
+void AppInitializer::cleanupOldEpubCache(int days) {
+    const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub");
+    const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+
+    const QDateTime now = QDateTime::currentDateTime();
+
+    for (const auto &fi : entries) {
+        if (fi.lastModified().daysTo(now) > days) {
+            QDir(fi.absoluteFilePath()).removeRecursively();
+        }
+    }
+}

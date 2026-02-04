@@ -55,6 +55,7 @@ if(WIN32)
 endif()
 
 find_package(boost_url CONFIG REQUIRED)
+find_package(libzip CONFIG REQUIRED)
 
 # --- QtKeychain ---------------------------------------------
 include(FetchContent)

@@ -117,6 +117,7 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewerDialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/ResourceViewService.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/MarkdownToHtml.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/EpubResolver.cpp
     $<$<PLATFORM_ID:Windows>:${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/WebView2Widget.cpp>
 )
 
@@ -176,6 +177,7 @@ target_link_libraries(notes-app-lib-core
     md4c::md4c
     md4c::md4c-html
     Boost::url
+    libzip::zip
 )
 
 if (WIN32)
