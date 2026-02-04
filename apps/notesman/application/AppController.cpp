@@ -103,14 +103,24 @@ void AppController::applyLanguage(UiConst::Language lang) {
 
 void AppController::applyTheme(UiConst::Theme theme) {
     QString qssPath;
+    QColor linkColor;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch-default"
     switch (theme) {
-        case UiConst::Theme::light: qssPath = ":/qss/light.qss"; break;
-        case UiConst::Theme::dark : qssPath = ":/qss/dark.qss"; break;
+        case UiConst::Theme::light: {
+            qssPath = ":/qss/light.qss";
+            linkColor = QColor("#0000EE");
+            break;
+        }
+        case UiConst::Theme::dark: {
+            qssPath = ":/qss/dark.qss";
+            linkColor = QColor("#4FC3F7");
+            break;
+        }
     }
-#pragma clang diagnostic pop
+
+    QPalette palette = qApp->palette();
+    palette.setColor(QPalette::Link, linkColor);
+    qApp->setPalette(palette);
 
     QFile qssFile(qssPath);
     if (qssFile.open(QFile::ReadOnly | QFile::Text)) {

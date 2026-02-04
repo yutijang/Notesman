@@ -507,15 +507,12 @@ void MainWindow::onAbout() {
     msgBox.setWindowTitle(tr("About"));
     msgBox.setTextFormat(Qt::RichText);
 
-    const QString kLinkColor = (m_appController->isDarkTheme()) ? "#4FC3F7" : "#0000EE";
-
     msgBox.setText(tr("%1<br>Version: %2<br>Author: %3<br>Website: <a href=\"%4\" "
-                      "style=\"color: %5; text-decoration: underline;\">%4</a>")
+                      "style=\"text-decoration: underline;\">%4</a>")
                        .arg(app::meta::NAME)
                        .arg(app::meta::VERSION)
                        .arg(app::meta::AUTHOR)
-                       .arg(app::meta::WEBSITE)
-                       .arg(kLinkColor));
+                       .arg(app::meta::WEBSITE));
 
     auto* msgLabel = msgBox.findChild<QLabel*>("qt_msgbox_label");
     if (msgLabel != nullptr) { msgLabel->setStyleSheet("padding: 10px 30px 30px 10px;"); }
