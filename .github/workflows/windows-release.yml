@@ -194,183 +194,69 @@ jobs:
             }
           }
 
-      - name: Copy OpenSSL DLLs (Final Optimized)
+      - name: Strict collect and verify all dependency DLLs
         shell: pwsh
         run: |
           $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
           $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          $releaseDir = "${{ env.RELEASE_DIR }}"
+          $packagesDir = Join-Path $vcpkgRoot "packages"
 
-          $opensslPackageBin = Join-Path $vcpkgRoot "packages\openssl_$arch\bin"
+          $artifacts = @(
+              @{ pkg = "webview2"; filter = "WebView2Loader.dll" },
+              @{ pkg = "md4c"; filter = "md4c*.dll" },
+              @{ pkg = "poppler"; filter = "poppler*.dll" },
+              @{ pkg = "libiconv"; filter = "iconv-2.dll" },
+              @{ pkg = "openjpeg"; filter = "openjp2.dll" },
+              @{ pkg = "libjpeg-turbo"; filter = "jpeg62.dll" },
+              @{ pkg = "libpng"; filter = "libpng16.dll" },
+              @{ pkg = "tiff"; filter = "tiff.dll" },
+              @{ pkg = "freetype"; filter = "freetype.dll" },
+              @{ pkg = "liblzma"; filter = "liblzma.dll" },
+              @{ pkg = "brotli"; filter = "brotli*.dll" },
+              @{ pkg = "bzip2"; filter = "bz2.dll" },
+              @{ pkg = "fmt"; filter = "fmt.dll" },
+              @{ pkg = "spdlog"; filter = "spdlog.dll" },
+              @{ pkg = "sqlite3"; filter = "sqlite3.dll" },
+              @{ pkg = "miniz"; filter = "miniz.dll" },
+              @{ pkg = "openssl"; filter = "lib*.dll" },
+              @{ pkg = "boost-url"; filter = "boost_url*.dll" }
+          )
 
-          $dlls = @("libcrypto-3-x64.dll", "libssl-3-x64.dll")
+          $missingArtifacts = @()
 
-          foreach ($dll in $dlls) {
-            $sourceFile = Join-Path $opensslPackageBin $dll
-            if (Test-Path $sourceFile) {
-              Copy-Item $sourceFile ${{ env.RELEASE_DIR }}\ -Force
-              Write-Host "Copied $dll from official Vcpkg package location: $opensslPackageBin"
-            } else {
-              Write-Error "CRITICAL: Required $dll not found in $opensslPackageBin."
+          foreach ($item in $artifacts) {
+              $pkgName = "$($item.pkg)_$arch"
+              $targetBin = Join-Path $packagesDir "$pkgName\bin"
+              $found = $false
+              
+              Write-Host "--------------------------------------------------"
+              Write-Host "Processing package: $pkgName"
+
+              if (Test-Path $targetBin) {
+                  $files = Get-ChildItem -Path $targetBin -Filter $item.filter -ErrorAction SilentlyContinue
+                  
+                  if ($null -ne $files -and $files.Count -gt 0) {
+                      foreach ($file in $files) {
+                          Write-Host "Found and copying: $($file.Name)"
+                          Copy-Item $file.FullName $releaseDir -Force
+                      }
+                      $found = $true
+                  }
+              }
+
+              if (-not $found) {
+                  Write-Error "CRITICAL: Could not find any files matching '$($item.filter)' in $targetBin"
+                  $missingArtifacts += $pkgName
+              }
+          }
+
+          Write-Host "--------------------------------------------------"
+          if ($missingArtifacts.Count -gt 0) {
+              Write-Error "Build failed: The following mandatory packages are missing DLLs: $($missingArtifacts -join ', ')"
               exit 1
-            }
-          }
-
-      - name: Find and copy fmt.dll and spdlog.dll
-        shell: pwsh
-        run: |
-          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
-          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $dllNames = @("fmt.dll", "spdlog.dll")
-
-          foreach ($dll in $dllNames) {
-              $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dll"
-              if (Test-Path $preferredPath) {
-                  Write-Host "Found $dll at preferred location: $preferredPath"
-                  Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
-                  Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
-              } else {
-                  Write-Host "Preferred location for $dll not found, searching recursively under $vcpkgRoot ..."
-                  $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dll -ErrorAction SilentlyContinue | Select-Object -First 1
-                  if ($null -ne $dllFile) {
-                      Write-Host "Found $dll at: $($dllFile.FullName)"
-                      Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
-                      Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
-                  } else {
-                      Write-Error "$dll not found under $vcpkgRoot"
-                      exit 1
-                  }
-              }
-          }
-
-      - name: Find and copy sqlite3.dll
-        shell: pwsh
-        run: |
-          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
-          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $dllName = "sqlite3.dll"
-
-          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dllName"
-          if (Test-Path $preferredPath) {
-              Write-Host "Found $dllName at preferred location: $preferredPath"
-              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
-              Write-Host "Copied $dllName to ${{ env.RELEASE_DIR }}"
           } else {
-              Write-Host "Preferred location for $dllName not found, searching recursively under $vcpkgRoot ..."
-              $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dllName -ErrorAction SilentlyContinue | Select-Object -First 1
-              if ($null -ne $dllFile) {
-                  Write-Host "Found $dllName at: $($dllFile.FullName)"
-                  Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
-                  Write-Host "Copied $dllName to ${{ env.RELEASE_DIR }}"
-              } else {
-                  Write-Error "$dllName not found under $vcpkgRoot"
-                  exit 1
-              }
-          }
-
-      - name: Find and copy miniz DLL (optimized)
-        shell: pwsh
-        run: |
-          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
-          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-
-          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\miniz.dll"
-
-          if (Test-Path $preferredPath) {
-              Write-Host "Found miniz.dll at preferred location: $preferredPath"
-              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
-              Write-Host "Copied miniz.dll to ${{ env.RELEASE_DIR }}"
-          } else {
-              Write-Host "Preferred location not found, searching recursively under $vcpkgRoot ..."
-              $minizFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter "miniz.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
-
-              if ($null -ne $minizFile) {
-                  Write-Host "Found miniz.dll at: $($minizFile.FullName)"
-                  Copy-Item $minizFile.FullName ${{ env.RELEASE_DIR }} -Force
-                  Write-Host "Copied miniz.dll to ${{ env.RELEASE_DIR }}"
-              } else {
-                  Write-Error "miniz.dll not found under $vcpkgRoot"
-                  exit 1
-              }
-          }
-
-      - name: Find and copy poppler dependents
-        shell: pwsh
-        run: |
-          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
-          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $dllNames = @("poppler.dll", "poppler-cpp.dll", "iconv-2.dll", "openjp2.dll", "jpeg62.dll", "libpng16.dll", "tiff.dll", "freetype.dll", "liblzma.dll", "brotlidec.dll", "bz2.dll", "brotlicommon.dll")
-
-          foreach ($dll in $dllNames) {
-              $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dll"
-              if (Test-Path $preferredPath) {
-                  Write-Host "Found $dll at preferred location: $preferredPath"
-                  Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
-                  Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
-              } else {
-                  Write-Host "Preferred location for $dll not found, searching recursively under $vcpkgRoot ..."
-                  $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dll -ErrorAction SilentlyContinue | Select-Object -First 1
-                  if ($null -ne $dllFile) {
-                      Write-Host "Found $dll at: $($dllFile.FullName)"
-                      Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
-                      Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
-                  } else {
-                      Write-Error "$dll not found under $vcpkgRoot"
-                      exit 1
-                  }
-              }
-          }
-
-      - name: Find and copy md4c dependents
-        shell: pwsh
-        run: |
-          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
-          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $dllNames = @("md4c.dll", "md4c-html.dll")
-
-          foreach ($dll in $dllNames) {
-              $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\$dll"
-              if (Test-Path $preferredPath) {
-                  Write-Host "Found $dll at preferred location: $preferredPath"
-                  Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
-                  Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
-              } else {
-                  Write-Host "Preferred location for $dll not found, searching recursively under $vcpkgRoot ..."
-                  $dllFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter $dll -ErrorAction SilentlyContinue | Select-Object -First 1
-                  if ($null -ne $dllFile) {
-                      Write-Host "Found $dll at: $($dllFile.FullName)"
-                      Copy-Item $dllFile.FullName ${{ env.RELEASE_DIR }} -Force
-                      Write-Host "Copied $dll to ${{ env.RELEASE_DIR }}"
-                  } else {
-                      Write-Error "$dll not found under $vcpkgRoot"
-                      exit 1
-                  }
-              }
-          }
-
-      - name: Find and copy WebView2Loader DLL
-        shell: pwsh
-        run: |
-          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
-          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-
-          $preferredPath = Join-Path $vcpkgRoot "installed\$arch\bin\WebView2Loader.dll"
-
-          if (Test-Path $preferredPath) {
-              Write-Host "Found WebView2Loader.dll at preferred location: $preferredPath"
-              Copy-Item $preferredPath ${{ env.RELEASE_DIR }} -Force
-              Write-Host "Copied WebView2Loader.dll to ${{ env.RELEASE_DIR }}"
-          } else {
-              Write-Host "Preferred location not found, searching recursively under $vcpkgRoot ..."
-              $WebView2LoaderFile = Get-ChildItem -Path $vcpkgRoot -Recurse -Filter "WebView2Loader.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
-
-              if ($null -ne $WebView2LoaderFile) {
-                  Write-Host "Found WebView2Loader.dll at: $($WebView2LoaderFile.FullName)"
-                  Copy-Item $WebView2LoaderFile.FullName ${{ env.RELEASE_DIR }} -Force
-                  Write-Host "Copied WebView2Loader.dll to ${{ env.RELEASE_DIR }}"
-              } else {
-                  Write-Error "WebView2Loader.dll not found under $vcpkgRoot"
-                  exit 1
-              }
+              Write-Host "Success: All mandatory DLLs have been collected and verified."
           }
 
       - name: Force Deploy zlib1.dll from vcpkg
