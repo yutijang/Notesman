@@ -17,6 +17,7 @@ class PlainTextEdit;
 class QVBoxLayout;
 class QHBoxLayout;
 class QCheckBox;
+class QButtonGroup;
 
 class AddTabWidget final : public QWidget {
         Q_OBJECT

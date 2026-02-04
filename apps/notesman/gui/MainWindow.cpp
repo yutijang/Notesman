@@ -34,6 +34,7 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 #include <QStringList>
+#include <QPushButton>
 
 #include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"

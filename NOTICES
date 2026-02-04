@@ -17,7 +17,7 @@
 | libjpeg-turbo     | IJG (Independent JPEG Group)   | licenses/libjpeg-turbo_license.txt     |
 | LZ4               | BSD-2-Clause                   | licenses/lz4_license.txt               |
 | OpenGL Registry   | Khronos MIT                    | licenses/opengl-registry_license.txt   |
-| pcre2             | BSD-2-Clause                   | licenses/pcre2_license.txt             |
+| pcre2             | BSD-3-Clause                   | licenses/pcre2_license.txt             |
 | SQLite3           | Public Domain                  | licenses/sqlite3-publicdomain.txt      |
 | ZSTD              | BSD-3-Clause                   | licenses/zstd_license.txt              |
 | spdlog            | MIT                            | licenses/spdlog_license.txt            |
@@ -31,3 +31,6 @@
 | libxkbcommon      | MIT/X11 License                | licenses/libxkbcommon_license.txt      |
 | util-linux        | BSD-3-Clause                   | licenses/util-linux_license.txt        |
 | libxcb            | MIT                            | licenses/libxcb_license.txt            |
+| md4c              | MIT                            | licenses/md4c_license.txt              |
+| Boost.URL         | Boost Software License 1.0     | licenses/boost_url_license.txt         |
+| libzip            | BSD-3-Clause                   | licenses/libzip_license.txt            |

@@ -1,11 +1,21 @@
+#include <optional>
 #include <vector>
 #include <zip.h>
+#include <zipconf.h>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <QXmlStreamReader>
+#include <QString>
+#include <QtTypes>
+#include <QUrl>
+#include <QHash>
+#include <QTextStream>
+#include <Qt>
+#include <QByteArray>
+#include <QRegularExpression>
 
 #include "EpubResolver.hpp"
 

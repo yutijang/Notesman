@@ -224,7 +224,8 @@ jobs:
               @{ pkg = "miniz"; filter = "miniz.dll" },
               @{ pkg = "openssl"; filter = "lib*.dll" },
               @{ pkg = "zlib"; filter = "zlib1.dll" },
-              @{ pkg = "boost-url"; filter = "boost_url*.dll" }
+              @{ pkg = "boost-url"; filter = "boost_url*.dll" },
+              @{ pkg = "lipzip"; filter = "zip.dll" }
           )
 
           $missingArtifacts = @()
