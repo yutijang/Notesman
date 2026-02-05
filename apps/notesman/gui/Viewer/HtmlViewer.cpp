@@ -1,3 +1,4 @@
+#include <memory>
 #include <utility>
 #include <QString>
 #include <QVBoxLayout>
@@ -16,42 +17,45 @@
 
 #ifdef Q_OS_WIN
     #include "WebView2Widget.hpp"
+    #include "WebView2Guard.hpp"
 #endif
 
-HtmlViewer::HtmlViewer(QString title, QString path, QWidget* parent)
-    : m_htmlPath(std::move(path)), m_title(std::move(title)) {
+HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title)) {
 #ifdef Q_OS_WIN
     m_rootWidget = new QWidget(parent);
+    setupView();
 #else
     m_rootWidget = nullptr;
 #endif
-
-#ifdef Q_OS_WIN
-    setupView();
-    loadFile();
-#elif defined(Q_OS_LINUX)
-    loadFile(); // chỉ launch process
-#endif
 }
 
-HtmlViewer::HtmlViewer(QString title, QString htmlContent, bool fromMemory, QWidget* parent)
-    : m_htmlContent(std::move(htmlContent)), m_title(std::move(title)), m_fromMemory(fromMemory) {
-    m_rootWidget = new QWidget(parent);
-    setupView();
-    loadFromMemory();
+std::unique_ptr<HtmlViewer> HtmlViewer::createFromFile(QString title, QString path,
+                                                       QWidget* parent) {
+#ifdef Q_OS_WIN
+    if (!WebView2Guard::instance().available()) { return nullptr; }
+#endif
+    auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
+    v->initFromFile(std::move(path));
+    return v;
 }
 
-HtmlViewer::HtmlViewer(QString title, QUrl url, QWidget* parent)
-    : m_title(std::move(title)), m_url(std::move(url)) {
+std::unique_ptr<HtmlViewer> HtmlViewer::createFromMemory(QString title, QString html,
+                                                         QWidget* parent) {
 #ifdef Q_OS_WIN
-    m_rootWidget = new QWidget(parent);
-    setupView();
-    loadUrl();
-#elif defined(Q_OS_LINUX)
-    m_rootWidget = nullptr;
-
-    loadUrl();
+    if (!WebView2Guard::instance().available()) { return nullptr; }
 #endif
+    auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
+    v->initFromMemory(std::move(html));
+    return v;
+}
+
+std::unique_ptr<HtmlViewer> HtmlViewer::createFromUrl(QString title, QUrl url, QWidget* parent) {
+#ifdef Q_OS_WIN
+    if (!WebView2Guard::instance().available()) { return nullptr; }
+#endif
+    auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
+    v->initFromUrl(std::move(url));
+    return v;
 }
 
 void HtmlViewer::setupView() {
@@ -64,14 +68,17 @@ void HtmlViewer::setupView() {
 #endif
 }
 
-void HtmlViewer::loadFile() {
+void HtmlViewer::initFromFile(QString path) {
+    if (path.isEmpty()) { return; }
+
+    m_htmlPath = std::move(path);
+
 #ifdef Q_OS_WIN
-    if (!m_htmlPath.isEmpty()) { m_view->loadFile(m_htmlPath); }
+    if (m_view == nullptr) { return; }
+    m_view->loadFile(m_htmlPath);
 #endif
 
 #ifdef Q_OS_LINUX
-    if (m_htmlPath.isEmpty()) { return; }
-
     m_process = new QProcess(m_rootWidget);
 
     const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
@@ -82,14 +89,17 @@ void HtmlViewer::loadFile() {
 #endif
 }
 
-void HtmlViewer::loadFromMemory() {
+void HtmlViewer::initFromMemory(QString html) {
+    if (html.isEmpty()) { return; }
+
+    m_htmlContent = std::move(html);
+
 #ifdef Q_OS_WIN
-    if (!m_htmlContent.isEmpty()) { m_view->loadHtml(m_htmlContent); }
+    if (m_view == nullptr) { return; }
+    m_view->loadHtml(m_htmlContent);
 #endif
 
 #ifdef Q_OS_LINUX
-    if (m_htmlContent.isEmpty()) { return; }
-
     m_process = new QProcess(m_rootWidget);
 
     const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
@@ -104,12 +114,15 @@ void HtmlViewer::loadFromMemory() {
 #endif
 }
 
-void HtmlViewer::loadUrl() {
-#ifdef Q_OS_WIN
-    if (!m_url.isEmpty()) { m_view->loadUrl(m_url); }
-#elif defined(Q_OS_LINUX)
-    if (!m_url.isValid()) { return; }
+void HtmlViewer::initFromUrl(QUrl url) {
+    if (!url.isValid()) { return; }
 
+    m_url = std::move(url);
+
+#ifdef Q_OS_WIN
+    if (m_view == nullptr) { return; }
+    m_view->loadUrl(m_url);
+#elif defined(Q_OS_LINUX)
     m_process = new QProcess(m_rootWidget);
 
     const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";

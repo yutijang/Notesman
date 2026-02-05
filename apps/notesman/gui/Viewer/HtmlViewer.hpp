@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <QString>
 #include <QUrl>
 
@@ -17,14 +18,15 @@ class HtmlViewer final : public IResourceViewer,
                          public ISearchable {
     public:
         // load từ file
-        explicit HtmlViewer(QString title, QString path, QWidget* parent = nullptr);
+        static std::unique_ptr<HtmlViewer> createFromFile(QString title, QString path,
+                                                          QWidget* parent);
 
         // load từ memory
-        explicit HtmlViewer(QString title, QString htmlContent, bool fromMemory,
-                            QWidget* parent = nullptr);
+        static std::unique_ptr<HtmlViewer> createFromMemory(QString title, QString html,
+                                                            QWidget* parent);
 
         // url
-        explicit HtmlViewer(QString title, QUrl url, QWidget* parent = nullptr);
+        static std::unique_ptr<HtmlViewer> createFromUrl(QString title, QUrl url, QWidget* parent);
 
         ~HtmlViewer() override = default;
 
@@ -35,6 +37,11 @@ class HtmlViewer final : public IResourceViewer,
 #endif
 
     private:
+        HtmlViewer(QString title, QWidget* parent);
+        void initFromFile(QString path);
+        void initFromMemory(QString html);
+        void initFromUrl(QUrl url);
+
         // ===== IResourceViewer =====
         QWidget* widget() override;
         bool onClose(QWidget* parent) override;
@@ -46,9 +53,6 @@ class HtmlViewer final : public IResourceViewer,
         void findPrevious() override;
 
         void setupView();
-        void loadFile();
-        void loadFromMemory();
-        void loadUrl();
 
         [[nodiscard]] bool supportsSearch() const;
 

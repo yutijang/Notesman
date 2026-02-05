@@ -248,16 +248,25 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
             if (type == ResourceType::markdown) {
                 const QString html = MarkdownToHtml::convertFileToHtml(absolutePath);
                 if (html.isEmpty()) { return; }
-                viewer = std::make_unique<HtmlViewer>(title, html, true, this);
+                viewer = HtmlViewer::createFromMemory(title, html, this);
             } else {
-                viewer = std::make_unique<HtmlViewer>(title, absolutePath, this);
+                viewer = HtmlViewer::createFromFile(title, absolutePath, this);
+            }
+
+            if (!viewer) {
+                Log::err("Invalid WebView2 runtime");
+                return;
             }
 
             break;
         }
         case ResourceType::url: {
             const QUrl qurl = QUrl::fromUserInput(url);
-            viewer = std::make_unique<HtmlViewer>(title, qurl, this);
+            viewer = HtmlViewer::createFromUrl(title, qurl, this);
+            if (!viewer) {
+                Log::err("Invalid WebView2 runtime");
+                return;
+            }
             break;
         }
         case ResourceType::pdfDoc: {
@@ -267,7 +276,11 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
         case ResourceType::epubDoc: {
             auto epubResolvedPathOtp = EpubResolver::resolveToHtml(path);
             if (epubResolvedPathOtp) {
-                viewer = std::make_unique<HtmlViewer>(title, *epubResolvedPathOtp, this);
+                viewer = HtmlViewer::createFromFile(title, *epubResolvedPathOtp, this);
+                if (!viewer) {
+                    Log::err("Invalid WebView2 runtime");
+                    return;
+                }
             }
 
             break;
@@ -277,41 +290,41 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
     }
 
     if (!viewer) { return; }
-
+    {
 #ifdef Q_OS_LINUX
-    if (viewer->usesExternalWindow()) {
-        if (m_viewerLocked) { return; }
+        if (viewer->usesExternalWindow()) {
+            if (m_viewerLocked) { return; }
 
-        m_viewerLocked = true;
-        this->setEnabled(false);
+            m_viewerLocked = true;
+            this->setEnabled(false);
 
-        auto* htmlViewer = dynamic_cast<HtmlViewer*>(viewer.get());
-        if (htmlViewer == nullptr) {
-            m_viewerLocked = false;
-            this->setEnabled(true);
+            auto* htmlViewer = dynamic_cast<HtmlViewer*>(viewer.get());
+            if (htmlViewer == nullptr) {
+                m_viewerLocked = false;
+                this->setEnabled(true);
+                return;
+            }
+
+            QProcess* proc = htmlViewer->process();
+            if (proc == nullptr) {
+                m_viewerLocked = false;
+                this->setEnabled(true);
+                return;
+            }
+
+            m_externalViewer = std::move(viewer);
+
+            QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                             this, [this]() {
+                                 m_externalViewer.reset(); // delete HtmlViewer
+                                 m_viewerLocked = false;
+                                 this->setEnabled(true);
+                             });
+
             return;
         }
-
-        QProcess* proc = htmlViewer->process();
-        if (proc == nullptr) {
-            m_viewerLocked = false;
-            this->setEnabled(true);
-            return;
-        }
-
-        m_externalViewer = std::move(viewer);
-
-        QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
-                         [this]() {
-                             m_externalViewer.reset(); // delete HtmlViewer
-                             m_viewerLocked = false;
-                             this->setEnabled(true);
-                         });
-
-        return;
-    }
 #endif
-
+    }
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
 
     dlg->exec();

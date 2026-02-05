@@ -16,6 +16,7 @@
 #include <QStandardPaths>
 
 #include "WebView2Widget.hpp"
+#include "WebView2Guard.hpp"
 #include "Logger.hpp"
 
 using Microsoft::WRL::ComPtr;
@@ -66,14 +67,20 @@ void WebView2Widget::initWebView() {
     HWND hwnd = reinterpret_cast<HWND>(winId());
     Q_ASSERT(hwnd);
 
+    auto &guard = WebView2Guard::instance();
+    if (!guard.available()) {
+        Log::warn("WebView2 runtime not available");
+        return;
+    }
+
     QString userDataDir =
         QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/WebView2";
 
-    CreateCoreWebView2EnvironmentWithOptions(
-        nullptr, userDataDir.toStdWString().c_str(), nullptr,
+    guard.createEnvironment(
+        userDataDir.toStdWString().c_str(),
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [this, hwnd](HRESULT hr, ICoreWebView2Environment* env) -> HRESULT {
-                if (FAILED(hr)) {
+                if (FAILED(hr) || !env) {
                     Log::warn("WebView2 env create failed");
                     return hr;
                 }
