@@ -63,12 +63,11 @@ class HtmlViewer final : public IResourceViewer,
         bool m_fromMemory{};
 
         QWidget* m_rootWidget{};
+        QString m_lastSearchText;
 
 #if defined(Q_OS_WIN)
         WebView2Widget* m_view{};
 #elif defined(Q_OS_LINUX)
         QProcess* m_process{};
 #endif
-
-        QString m_lastSearchText;
 };

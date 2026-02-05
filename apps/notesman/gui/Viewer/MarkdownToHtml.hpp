@@ -4,5 +4,5 @@
 
 class MarkdownToHtml {
     public:
-        static QString convertFileToHtml(const QString &mdPath);
+        static QString convertFileToHtml(const QString &mdPath, bool isDarkTheme);
 };

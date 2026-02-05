@@ -29,14 +29,12 @@ namespace {
         if (WebView2Guard::instance().available()) { return true; }
         DialogUtils::showError(parent, QObject::tr("Missing Runtime"),
                                QObject::tr("Microsoft WebView2 Runtime is not installed."));
-        return false;
-
 #elif defined(Q_OS_LINUX)
         if (WebKitGTKGuard::instance().available()) { return true; }
         DialogUtils::showError(parent, QObject::tr("Missing Runtime"),
                                QObject::tr("WebKitGTK runtime library is missing."));
-        return false;
 #endif
+        return false;
     }
 } // namespace
 
@@ -44,7 +42,7 @@ HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title
 #ifdef Q_OS_WIN
     m_rootWidget = new QWidget(parent);
     setupView();
-#else
+#elif defined(Q_OS_LINUX)
     m_rootWidget = nullptr;
 #endif
 }
@@ -53,26 +51,29 @@ std::unique_ptr<HtmlViewer> HtmlViewer::createFromFile(QString title, QString pa
                                                        QWidget* parent) {
     if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
 
-    auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
-    v->initFromFile(std::move(path));
-    return v;
+    auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
+    view->initFromFile(std::move(path));
+
+    return view;
 }
 
 std::unique_ptr<HtmlViewer> HtmlViewer::createFromMemory(QString title, QString html,
                                                          QWidget* parent) {
     if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
 
-    auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
-    v->initFromMemory(std::move(html));
-    return v;
+    auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
+    view->initFromMemory(std::move(html));
+
+    return view;
 }
 
 std::unique_ptr<HtmlViewer> HtmlViewer::createFromUrl(QString title, QUrl url, QWidget* parent) {
     if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
 
-    auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
-    v->initFromUrl(std::move(url));
-    return v;
+    auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
+    view->initFromUrl(std::move(url));
+
+    return view;
 }
 
 void HtmlViewer::setupView() {
@@ -93,9 +94,7 @@ void HtmlViewer::initFromFile(QString path) {
 #ifdef Q_OS_WIN
     if (m_view == nullptr) { return; }
     m_view->loadFile(m_htmlPath);
-#endif
-
-#ifdef Q_OS_LINUX
+#elif defined(Q_OS_LINUX)
     m_process = new QProcess(m_rootWidget);
 
     const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
@@ -114,9 +113,7 @@ void HtmlViewer::initFromMemory(QString html) {
 #ifdef Q_OS_WIN
     if (m_view == nullptr) { return; }
     m_view->loadHtml(m_htmlContent);
-#endif
-
-#ifdef Q_OS_LINUX
+#elif defined(Q_OS_LINUX)
     m_process = new QProcess(m_rootWidget);
 
     const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
@@ -151,10 +148,10 @@ void HtmlViewer::initFromUrl(QUrl url) {
 }
 
 QWidget* HtmlViewer::widget() {
-#ifdef Q_OS_LINUX
-    return nullptr;
-#else
+#ifdef Q_OS_WIN
     return m_rootWidget;
+#elif defined(Q_OS_LINUX)
+    return nullptr;
 #endif
 }
 
@@ -199,22 +196,22 @@ void HtmlViewer::setupToolbar(QToolBar* toolbar) {
 
 void HtmlViewer::startSearch() {
 #ifdef Q_OS_WIN
-// HtmlViewer không chịu trách nhiệm search
-// Mọi thứ delegate cho WebView2Widget
+    // HtmlViewer không chịu trách nhiệm search
+    // Mọi thứ delegate cho WebView2Widget
 #endif
 }
 
 void HtmlViewer::findNext() {
 #ifdef Q_OS_WIN
-// HtmlViewer không chịu trách nhiệm search
-// Mọi thứ delegate cho WebView2Widget
+    // HtmlViewer không chịu trách nhiệm search
+    // Mọi thứ delegate cho WebView2Widget
 #endif
 }
 
 void HtmlViewer::findPrevious() {
 #ifdef Q_OS_WIN
-// HtmlViewer không chịu trách nhiệm search
-// Mọi thứ delegate cho WebView2Widget
+    // HtmlViewer không chịu trách nhiệm search
+    // Mọi thứ delegate cho WebView2Widget
 #endif
 }
 

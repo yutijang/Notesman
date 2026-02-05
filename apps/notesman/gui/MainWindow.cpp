@@ -35,6 +35,7 @@
 #include <QCoreApplication>
 #include <QStringList>
 #include <QPushButton>
+#include <QOverload>
 
 #include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"
@@ -246,7 +247,8 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
             const QString absolutePath = resolveResPath(path);
 
             if (type == ResourceType::markdown) {
-                const QString html = MarkdownToHtml::convertFileToHtml(absolutePath);
+                const QString html =
+                    MarkdownToHtml::convertFileToHtml(absolutePath, m_appController->isDarkTheme());
                 if (html.isEmpty()) { return; }
                 viewer = HtmlViewer::createFromMemory(title, html, this);
             } else {

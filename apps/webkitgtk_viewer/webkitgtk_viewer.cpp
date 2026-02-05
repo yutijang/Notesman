@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
 
     if (argc >= 2 && strcmp(argv[1], "--stdin") == 0) {
         gchar* html = readStdinAll();
-        webkit_web_view_load_html(WEBKIT_WEB_VIEW(webview), html, nullptr);
+        webkit_web_view_load_html(WEBKIT_WEB_VIEW(webview), html, "file:///");
         g_free(html);
     } else {
         gchar* uri = toFileUri(argv[1]);
