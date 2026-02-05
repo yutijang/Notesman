@@ -14,11 +14,31 @@
 #include <QUrl>
 
 #include "HtmlViewer.hpp"
+#include "DialogUtils.hpp"
 
 #ifdef Q_OS_WIN
     #include "WebView2Widget.hpp"
     #include "WebView2Guard.hpp"
+#elif defined(Q_OS_LINUX)
+    #include "WebKitGTKGuard.hpp"
 #endif
+
+namespace {
+    bool ensureHtmlRuntimeAvailable(QWidget* parent) {
+#ifdef Q_OS_WIN
+        if (WebView2Guard::instance().available()) { return true; }
+        DialogUtils::showError(parent, QObject::tr("Missing Runtime"),
+                               QObject::tr("Microsoft WebView2 Runtime is not installed."));
+        return false;
+
+#elif defined(Q_OS_LINUX)
+        if (WebKitGTKGuard::instance().available()) { return true; }
+        DialogUtils::showError(parent, QObject::tr("Missing Runtime"),
+                               QObject::tr("WebKitGTK runtime library is missing."));
+        return false;
+#endif
+    }
+} // namespace
 
 HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title)) {
 #ifdef Q_OS_WIN
@@ -31,9 +51,8 @@ HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title
 
 std::unique_ptr<HtmlViewer> HtmlViewer::createFromFile(QString title, QString path,
                                                        QWidget* parent) {
-#ifdef Q_OS_WIN
-    if (!WebView2Guard::instance().available()) { return nullptr; }
-#endif
+    if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
+
     auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
     v->initFromFile(std::move(path));
     return v;
@@ -41,18 +60,16 @@ std::unique_ptr<HtmlViewer> HtmlViewer::createFromFile(QString title, QString pa
 
 std::unique_ptr<HtmlViewer> HtmlViewer::createFromMemory(QString title, QString html,
                                                          QWidget* parent) {
-#ifdef Q_OS_WIN
-    if (!WebView2Guard::instance().available()) { return nullptr; }
-#endif
+    if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
+
     auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
     v->initFromMemory(std::move(html));
     return v;
 }
 
 std::unique_ptr<HtmlViewer> HtmlViewer::createFromUrl(QString title, QUrl url, QWidget* parent) {
-#ifdef Q_OS_WIN
-    if (!WebView2Guard::instance().available()) { return nullptr; }
-#endif
+    if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
+
     auto v = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
     v->initFromUrl(std::move(url));
     return v;

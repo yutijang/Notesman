@@ -120,6 +120,7 @@ set(GUI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/EpubResolver.cpp
     $<$<PLATFORM_ID:Windows>:${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/WebView2Widget.cpp>
     $<$<PLATFORM_ID:Windows>:${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/WebView2Guard.cpp>
+    $<$<PLATFORM_ID:Linux>:${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer/WebKitGTKGuard.cpp>
 )
 
 set(HELPER_SOURCES
