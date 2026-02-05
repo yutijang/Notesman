@@ -46,5 +46,13 @@
     <qresource prefix="/">
         <file>qss/light.qss</file>
         <file>qss/dark.qss</file>
-    </qresource>    
+    </qresource>
+
+    <qresource prefix="/">
+        <file>md_assets/github.min.css</file>
+        <file>md_assets/github-dark.min.css</file>
+        <file>md_assets/github-markdown-dark.min.css</file>
+        <file>md_assets/github-markdown-light.min.css</file>
+        <file>md_assets/highlight.min.js</file>
+    </qresource>
 </RCC>

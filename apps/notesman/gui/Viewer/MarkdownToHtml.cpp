@@ -8,10 +8,18 @@
 
 #include "MarkdownToHtml.hpp"
 
-static void mdHtmlWrite(const MD_CHAR* data, MD_SIZE size, void* userdata) {
-    auto* out = static_cast<QByteArray*>(userdata);
-    out->append(reinterpret_cast<const char*>(data), static_cast<int>(size));
-}
+namespace {
+    QString readResource(const QString &path) {
+        QFile file(path);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) { return {}; }
+        return file.readAll();
+    }
+
+    void mdHtmlWrite(const MD_CHAR* data, MD_SIZE size, void* userdata) {
+        auto* out = static_cast<QByteArray*>(userdata);
+        out->append(reinterpret_cast<const char*>(data), static_cast<int>(size));
+    }
+} // namespace
 
 QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkTheme) {
     QFile f(mdPath);
@@ -35,19 +43,16 @@ QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkThem
     html += R"(<head><meta charset="utf-8">)";
     html += R"(<meta name="viewport" content="width=device-width, initial-scale=1">)";
 
+    html += "<style>";
+
     if (isDarkTheme) {
-        html +=
-            R"(<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-dark.min.css">)";
-        html +=
-            R"(<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">)";
+        html += readResource(":/md_assets/github-markdown-dark.min.css").toUtf8();
+        html += readResource(":/md_assets/github-dark.min.css").toUtf8();
     } else {
-        html +=
-            R"(<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-light.min.css">)";
-        html +=
-            R"(<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">)";
+        html += readResource(":/md_assets/github-markdown-light.min.css").toUtf8();
+        html += readResource(":/md_assets/github.min.css").toUtf8();
     }
 
-    html += "<style>";
     html += "html, body { min-height: 100%; margin: 0; }";
 
     if (isDarkTheme) {
@@ -57,6 +62,9 @@ QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkThem
     } else {
         html += "body { background-color: #ffffff; }";
     }
+
+    html += ".markdown-body { font-family: -apple-system, BlinkMacSystemFont, "
+            "Segoe UI, Helvetica, Arial, sans-serif; }";
 
     html += ".markdown-body { box-sizing: border-box; min-width: 200px; max-width: 980px; ";
     html += "margin: 0 auto; padding: 45px; background-color: transparent !important; }";
@@ -68,8 +76,10 @@ QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkThem
     html += htmlBody;
     html += "</div>";
 
-    html +=
-        R"(<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>)";
+    html += "<script>";
+    html += readResource(":/md_assets/highlight.min.js").toUtf8();
+    html += "</script>";
+
     html += "<script>";
     html += "document.addEventListener('DOMContentLoaded', (event) => {";
     html += "  document.querySelectorAll('pre code').forEach((el) => {";

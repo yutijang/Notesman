@@ -159,10 +159,17 @@ void WebView2Widget::initWebView() {
                                         QUrl qurl(url);
                                         const QString scheme = qurl.scheme();
 
-                                        if (scheme != "file" && scheme != "http" &&
-                                            scheme != "https" && scheme != "about") {
+                                        if (scheme == "http" || scheme == "https") {
                                             args->put_Cancel(TRUE);
+                                            return S_OK;
                                         }
+
+                                        if (scheme == "file" || scheme == "data" ||
+                                            scheme == "about") {
+                                            return S_OK;
+                                        }
+
+                                        args->put_Cancel(TRUE);
 
                                         return S_OK;
                                     })
@@ -179,7 +186,7 @@ void WebView2Widget::initWebView() {
                                 Microsoft::WRL::Callback<ICoreWebView2DownloadStartingEventHandler>(
                                     [](ICoreWebView2*,
                                        ICoreWebView2DownloadStartingEventArgs* args) -> HRESULT {
-                                        // ❌ Hủy download
+                                        // Hủy download
                                         args->put_Cancel(TRUE);
                                         return S_OK;
                                     })
