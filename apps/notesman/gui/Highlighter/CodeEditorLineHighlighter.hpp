@@ -18,12 +18,11 @@ class CodeEditorLineHighlighter final : public QObject {
         // Ghi đè eventFilter để bắt sự kiện FocusIn và FocusOut của QTextEdit
         bool eventFilter(QObject* obj, QEvent* event) override;
 
-    private slots:
-        void highlightCurrentLine(); // Cập nhật highlight khi con trỏ thay đổi
-
-    private:                         // NOLINT(readability-redundant-access-specifiers)
+    private: // NOLINT(readability-redundant-access-specifiers)
         // Phương thức xử lý thay đổi focus và bật/tắt highlight
         void updateHighlighting(bool hasFocus);
+
+        void highlightCurrentLine();                 // Cập nhật highlight khi con trỏ thay đổi
 
         PlainTextEdit* m_editor;
         QColor m_background = QColor("#dBdBdB");     // Màu nền dòng khi CÓ focus

@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <vector>
 #include <sqlite3.h>
 #include <QObject>
@@ -66,7 +67,25 @@ class AppController final : public QObject {
         void oauthManager();
         void updateTranslatedStrings();
 
-    signals:
+        void handleGetAllDataRequest();
+
+        void handleLoadResourceByTypeRequest(ResourceType type);
+        void handleDefaultSettingsRequest();
+        void handleApplySettingsRequest(const SettingsData &data);
+        void handleAddNoteRequest(const QString &title, const QString &textContent,
+                                  const QString &filePath, const QString &url,
+                                  const QStringList &tags, UiConst::AddResMode mode);
+        void handleSearchRequest(const QString &keyword, const QString &mode);
+        void handleCheckUpdateRequested();
+        void onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo);
+        void handleLoginGMRequested();
+        void handleUnlinkGMRequested(bool isDeleteDB);
+        void uploadDbAuto();
+        void downloadDbAuto();
+
+        void handleGetDBInfoRequested();
+
+    Q_SIGNALS:
         // waitting for using
         // void languageChanged();
 
@@ -93,27 +112,6 @@ class AppController final : public QObject {
 
         void deleteDatabaseFileRespondForward(const QString &msg);
 
-    public slots:
-        void handleGetAllDataRequest();
-        void handleLoadResourceByTypeRequest(ResourceType type);
-        void handleDefaultSettingsRequest();
-        void handleApplySettingsRequest(const SettingsData &data);
-        void handleAddNoteRequest(const QString &title, const QString &textContent,
-                                  const QString &filePath, const QString &url,
-                                  const QStringList &tags, UiConst::AddResMode mode);
-        void handleSearchRequest(const QString &keyword, const QString &mode);
-        void handleCheckUpdateRequested();
-        void onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo);
-        void handleLoginGMRequested();
-        void handleUnlinkGMRequested(bool isDeleteDB);
-        void uploadDbAuto();
-        void downloadDbAuto();
-
-        void handleGetDBInfoRequested();
-
-    private slots:
-        void displayInfoGMUserLinked(const QString &email);
-
     private: // NOLINT(readability-redundant-access-specifiers)
         void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;
         void finalizeUnlink();
@@ -123,6 +121,8 @@ class AppController final : public QObject {
                                     ResourceType &outType);
         sqlite_int64 handleUrlMode(const std::string &title, const QString &url,
                                    ResourceType &outType);
+
+        void displayInfoGMUserLinked(const QString &email);
 
         std::unique_ptr<AppSettings> m_settings;
         std::unique_ptr<QTranslator> m_translator;

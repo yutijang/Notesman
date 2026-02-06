@@ -21,19 +21,16 @@ class TagInput final : public QWidget {
 
         void retranslateUi();
 
-    signals:
-        void tagAdded(const QString &tag);
-
-    public slots:
         void clearTags();
 
-    private slots:
-        void onTextChanged(const QString &text);
-        void onTagClicked();
-        void onReturnPressed();
+    Q_SIGNALS:
+        void tagAdded(const QString &tag);
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void createInput();
+        void onTextChanged(const QString &text);
+        void onTagClicked();
+        void onReturnPressed();
 
         QHBoxLayout* m_layout{};
         QLineEdit* m_input{};

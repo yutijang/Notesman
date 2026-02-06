@@ -21,11 +21,10 @@ class ResourceSearchWorker final : public QObject {
             m_mode = mode;
         }
 
-    signals:
-        void searchFinished(const std::vector<UnifiedSearchResult> &results);
-
-    public slots:
         void doSearch();
+
+    Q_SIGNALS:
+        void searchFinished(const std::vector<UnifiedSearchResult> &results);
 
     private:
         NotesAppCore* m_core{};

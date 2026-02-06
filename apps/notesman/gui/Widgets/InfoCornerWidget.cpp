@@ -33,11 +33,11 @@ InfoCornerWidget::InfoCornerWidget(QWidget* parent) : QToolButton(parent) {
 }
 
 void InfoCornerWidget::onCheckUpdate() {
-    emit checkUpdateRequested();
+    Q_EMIT checkUpdateRequested();
 }
 
 void InfoCornerWidget::onAbout() {
-    emit aboutRequested();
+    Q_EMIT aboutRequested();
 }
 
 void InfoCornerWidget::mousePressEvent(QMouseEvent* event) {

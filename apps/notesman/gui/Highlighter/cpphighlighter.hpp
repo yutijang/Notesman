@@ -6,7 +6,6 @@
 #include <QTextDocument>
 #include <QPointer>
 #include <QObject>
-#include <QVector>
 
 #include "cpphighlightertheme.hpp"
 
@@ -28,9 +27,6 @@ class CppHighlighter final : public QSyntaxHighlighter {
                                   int intervalMs = 5); // NOLINT(readability-magic-numbers)
         void stopGradualRehighlight();
 
-    private slots:
-        void onGradualTimerTimeout();
-
     protected:
         void handleSingleLineComment(const QString &text);
         void handleMultilineComment(const QString &text);
@@ -41,6 +37,7 @@ class CppHighlighter final : public QSyntaxHighlighter {
 
     private:
         void initRules();
+        void onGradualTimerTimeout();
 
         struct HighlightRule {
                 QRegularExpression pattern;

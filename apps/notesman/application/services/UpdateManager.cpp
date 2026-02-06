@@ -26,7 +26,7 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
     if (auto* netInfo = QNetworkInformation::instance()) {
         if (netInfo->reachability() == QNetworkInformation::Reachability::Disconnected) {
             Log::info("No internet connection.");
-            emit updateCheckFailed(tr("No internet connection."));
+            Q_EMIT updateCheckFailed(tr("No internet connection."));
             return;
         }
     }
@@ -82,7 +82,8 @@ void UpdateManager::checkForUpdates(const QString &versionCheckUrl) {
     QObject::connect(timeoutTimer, &QTimer::timeout, reply, [this, reply]() {
         if (reply->isRunning()) {
             reply->abort();
-            emit updateCheckFailed(tr("Network connection too slow (timeout exceeded 5 seconds)."));
+            Q_EMIT updateCheckFailed(
+                tr("Network connection too slow (timeout exceeded 5 seconds)."));
         }
     });
     timeoutTimer->start();
@@ -96,14 +97,14 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
 
     const auto status = reply->error();
     if (status != QNetworkReply::NoError) {
-        emit updateCheckFailed(reply->errorString());
+        Q_EMIT updateCheckFailed(reply->errorString());
         reply->deleteLater();
         return;
     }
 
     constexpr int kNotModiCode{304};
     if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == kNotModiCode) {
-        emit noUpdateAvailable();
+        Q_EMIT noUpdateAvailable();
         reply->deleteLater();
         return;
     }
@@ -116,7 +117,7 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     const auto jsonDoc = QJsonDocument::fromJson(data, &parseError);
     if (parseError.error != QJsonParseError::NoError || !jsonDoc.isObject()) {
         Log::err("Invalid update JSON: {}", parseError.errorString().toStdString());
-        emit updateCheckFailed(tr("Invalid update JSON: %1").arg(parseError.errorString()));
+        Q_EMIT updateCheckFailed(tr("Invalid update JSON: %1").arg(parseError.errorString()));
         return;
     }
 
@@ -132,7 +133,7 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
         settings.remove("update/pending_etag");
         settings.remove("update/pending_version");
 
-        emit noUpdateAvailable();
+        Q_EMIT noUpdateAvailable();
 
         return;
     }
@@ -140,14 +141,14 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     // Bắt đầu logic cập nhật
     if (pendingETag.isEmpty()) {
         Log::info("Missing ETag");
-        emit updateCheckFailed("Missing ETag");
+        Q_EMIT updateCheckFailed("Missing ETag");
         return;
     }
 
     auto updateInfo = findAssetInfo(jsonDoc);
     if (!updateInfo.has_value() || !updateInfo->isValid()) {
         Log::info("Error gather update info");
-        emit updateCheckFailed(tr("Error gather update info"));
+        Q_EMIT updateCheckFailed(tr("Error gather update info"));
         return;
     }
 
@@ -156,7 +157,7 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
 
     updateInfo->tagName = latestVersion;
 
-    emit updateAvailable(updateInfoToSummary(*updateInfo));
+    Q_EMIT updateAvailable(updateInfoToSummary(*updateInfo));
 }
 
 std::optional<UpdateManager::UpdateInfo> UpdateManager::findAssetInfo(const QJsonDocument &qJDoc) {

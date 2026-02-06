@@ -98,7 +98,7 @@ void TagInput::addTag(const QString &tag) {
     m_layout->insertWidget(static_cast<int>(m_tags.size()), btn);
     m_tags.append(btn);
     m_input->setFocus();
-    emit tagAdded(tag);
+    Q_EMIT tagAdded(tag);
 }
 
 void TagInput::onTagClicked() {

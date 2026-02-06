@@ -230,7 +230,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
             m_controller->setCore(m_core.get());
         }
 
-        emit coreReady(m_core.get());
+        Q_EMIT coreReady(m_core.get());
 
     } catch (const std::exception &ex) {
         Log::err(ex.what());
@@ -336,7 +336,7 @@ void AppInitializer::closeDatabaseConnection(bool isUpload) {
     if (m_db) {
         m_db->close();
 
-        emit dbClosed(isUpload);
+        Q_EMIT dbClosed(isUpload);
     }
 }
 
@@ -359,7 +359,7 @@ void AppInitializer::reinitializeDatabaseConnection() {
             return;
         }
 
-        emit dbOpened();
+        Q_EMIT dbOpened();
     } catch (const std::exception &ex) { Log::fatal("Fatal error: {}", ex.what()); }
 }
 

@@ -14,14 +14,14 @@ class InfoCornerWidget final : public QToolButton {
 
         void retranslateUi();
 
-    protected:
-        void mousePressEvent(QMouseEvent* event) override;
-
-    signals:
+    Q_SIGNALS:
         void checkUpdateRequested();
         void aboutRequested();
 
-    private slots:
+    protected:
+        void mousePressEvent(QMouseEvent* event) override;
+
+    private:
         void onCheckUpdate();
         void onAbout();
 };

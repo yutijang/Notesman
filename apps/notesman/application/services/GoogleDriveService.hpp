@@ -21,7 +21,15 @@ class GoogleDriveService final : public QObject {
 
         void getDBInfo();
 
-    signals:
+        void uploadDbAuto();
+        void downloadDbAuto();
+
+        void onConnectClosedForUpload(bool isUpload);
+        void onConnectClosedForDownload(bool isUpload);
+
+        void handleDeleteDatabaseFileRequest();
+
+    Q_SIGNALS:
         void onDownloadDBBtnRequest(
             bool isDisable, const QString &message = QString{},
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
@@ -35,15 +43,6 @@ class GoogleDriveService final : public QObject {
         void returnDBInfo(const QStringList &res);
 
         void deleteDatabaseFileRespond(const QString &msg);
-
-    public slots:
-        void uploadDbAuto();
-        void downloadDbAuto();
-
-        void onConnectClosedForUpload(bool isUpload);
-        void onConnectClosedForDownload(bool isUpload);
-
-        void handleDeleteDatabaseFileRequest();
 
     private:
         struct DriveFileInfo {

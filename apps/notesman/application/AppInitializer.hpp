@@ -40,15 +40,12 @@ class AppInitializer final : public QObject {
         void closeDatabaseConnection(bool isUpload);
         void reinitializeDatabaseConnection();
 
-    signals:
+    Q_SIGNALS:
         void coreReady(NotesAppCore* core);
         void dbClosed(bool isUpload); // true = for upload, false = for download
         void dbOpened();
 
-    private slots:
-        void onSecondInstanceMessage();
-
-    private: // NOLINT(readability-redundant-access-specifiers)
+    private:                          // NOLINT(readability-redundant-access-specifiers)
         enum class InitFailureReason : std::uint8_t {
             ok,
             userCancelled,
@@ -65,13 +62,15 @@ class AppInitializer final : public QObject {
         void setupInitializerConnections();
         void checkUpdateFlag();
         static void cleanupOldEpubCache(int days);
+        void onSecondInstanceMessage();
+
+        void handleUpdateCleanup(const QStringList &args);
+        void displayNotiUpdateComplete();
+        static void saveETagOnUpdateSuccess();
 
 #ifdef Q_OS_WIN
         void waitForProcessExitAsync(DWORD pid, const std::function<void()> &onExited);
 #endif
-        void handleUpdateCleanup(const QStringList &args);
-        void displayNotiUpdateComplete();
-        static void saveETagOnUpdateSuccess();
 
         std::unique_ptr<SQLiteDB> m_db;
         std::unique_ptr<ResourceRepository> m_resRepo;

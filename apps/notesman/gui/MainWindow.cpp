@@ -173,7 +173,7 @@ void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) 
     m_settingsMessageState = state;
 
     if (state == UiConst::SettingsMessageState::notChange) {
-        emit settingsStateChangeRequest(AppController::defaultUiSettings());
+        Q_EMIT settingsStateChangeRequest(AppController::defaultUiSettings());
     }
 }
 
@@ -201,7 +201,7 @@ void MainWindow::showEvent(QShowEvent* event) {
         move((geom.width() - width()) / 2, (geom.height() - height()) / 2);
     }
 
-    emit updateColumnWidthsRequest();
+    Q_EMIT updateColumnWidthsRequest();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
@@ -367,7 +367,7 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_appController, &AppController::settingsLoaded, this,
                      [this](const SettingsData &settings) {
                          if (m_tabWidget->currentIndex() == 2) {
-                             emit settingsUiRefreshRequest(settings);
+                             Q_EMIT settingsUiRefreshRequest(settings);
                          }
                      });
 
@@ -375,7 +375,7 @@ void MainWindow::setAppController(AppController* controller) {
         constexpr int settingsTabIndex{2};
         if (index == settingsTabIndex && m_appController) {
             const SettingsData ui = m_appController->currentUiSettings();
-            emit settingsUiRefreshRequest(ui);
+            Q_EMIT settingsUiRefreshRequest(ui);
         }
     });
 
@@ -480,11 +480,11 @@ void MainWindow::retranslateUi() {
     switch (m_settingsMessageState) {
         case UiConst::SettingsMessageState::updated:
             // m_settingsTab->notificationLabel()->setText(tr("Settings updated!"));
-            emit settingsTabShowNotification(tr("Settings updated!"));
+            Q_EMIT settingsTabShowNotification(tr("Settings updated!"));
             break;
         case UiConst::SettingsMessageState::notChange:
             // m_settingsTab->notificationLabel()->setText(tr("Settings default!"));
-            emit settingsTabShowNotification(tr("Settings default!"));
+            Q_EMIT settingsTabShowNotification(tr("Settings default!"));
             break;
         case UiConst::SettingsMessageState::none: break;
     }
@@ -568,12 +568,12 @@ void MainWindow::onAbout() {
 }
 
 void MainWindow::onCheckUpdateClicked() {
-    emit checkUpdateRequest();
+    Q_EMIT checkUpdateRequest();
 }
 
 void MainWindow::onUpdateAvailable(const UpdateInfoSummary &infoSummary) {
     if (!infoSummary.isValid()) {
-        emit updateDecision(false, infoSummary);
+        Q_EMIT updateDecision(false, infoSummary);
         return;
     }
 
@@ -589,7 +589,7 @@ void MainWindow::onUpdateAvailable(const UpdateInfoSummary &infoSummary) {
                                       .arg(app::meta::VERSION)
                                       .arg(newVer));
 
-    emit updateDecision(reply == QMessageBox::Yes, infoSummary);
+    Q_EMIT updateDecision(reply == QMessageBox::Yes, infoSummary);
 }
 
 void MainWindow::onNoUpdateAvailable() {
@@ -651,30 +651,30 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
     }
 
     if (m_appController == nullptr) {
-        emit onDownloadFailed(tr("Internal error: no controller"));
+        Q_EMIT onDownloadFailed(tr("Internal error: no controller"));
         return;
     }
 
     QFileInfo file(filePath);
     if (!file.exists() || !file.isFile()) {
-        emit onDownloadFailed(tr("Downloaded file missing"));
+        Q_EMIT onDownloadFailed(tr("Downloaded file missing"));
         return;
     }
 
     auto downloadedFileHash = NotesAppCore::computeFileHash(filePath.toUtf8().toStdString());
     if (downloadedFileHash.empty()) {
-        emit onDownloadFailed(tr("Cannot compute file hash"));
+        Q_EMIT onDownloadFailed(tr("Cannot compute file hash"));
         return;
     }
 
     const auto assetHash = m_appController->lastUpdateInfoAssetHash();
     if (assetHash.isEmpty()) {
-        emit onDownloadFailed(tr("Invalid expected hash"));
+        Q_EMIT onDownloadFailed(tr("Invalid expected hash"));
         return;
     }
 
     if (QString::fromStdString(downloadedFileHash) != assetHash) {
-        emit onDownloadFailed(tr("Hash mismatch"));
+        Q_EMIT onDownloadFailed(tr("Hash mismatch"));
         return;
     }
 

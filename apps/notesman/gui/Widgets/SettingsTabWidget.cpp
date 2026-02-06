@@ -79,7 +79,7 @@ void SettingsTabWidget::setupConnections() {
                      &SettingsTabWidget::onDownloadButtonClicked);
     QObject::connect(m_checkRemoteDBInfoBtn, &QPushButton::clicked, [this] {
         m_checkRemoteDBInfoBtn->setEnabled(false);
-        emit requestDBInfo();
+        Q_EMIT requestDBInfo();
     });
 
     QObject::connect(m_linkGDBtn, &QPushButton::clicked, this,
@@ -91,7 +91,7 @@ void SettingsTabWidget::setupConnections() {
         m_linkGDBtn->setEnabled(true);
         showNotification(tr("Login was canceled"), UiConst::SettingsMessageState::none,
                          UiConst::SettingsTabNotiLevel::caution);
-        emit cancelLoginRequested();
+        Q_EMIT cancelLoginRequested();
     });
 
     // Gán lại thuộc tính động cho nút browse
@@ -148,7 +148,7 @@ void SettingsTabWidget::onApplyBtnClicked() {
 
     validateResourceDir(data);
 
-    emit applySettingsRequested(data);
+    Q_EMIT applySettingsRequested(data);
 }
 
 void SettingsTabWidget::onDefaultBtnClicked() {
@@ -157,7 +157,7 @@ void SettingsTabWidget::onDefaultBtnClicked() {
                                   tr("Do you want to restore default settings?\nChanges will not "
                                      "be saved until you click Apply."));
 
-    if (reply == QMessageBox::Yes) { emit defaultSettingsRequested(); }
+    if (reply == QMessageBox::Yes) { Q_EMIT defaultSettingsRequested(); }
 }
 
 void SettingsTabWidget::onBrowseBtnClicked() {
@@ -487,7 +487,7 @@ void SettingsTabWidget::onLinkBtnClicked() {
         // Chưa liên kết → yêu cầu AppController bắt đầu OAuth
         m_linkGDBtn->setEnabled(false);
         showLoginStatus();
-        emit requestGoogleLogin();
+        Q_EMIT requestGoogleLogin();
 
         return;
     }
@@ -498,7 +498,7 @@ void SettingsTabWidget::onLinkBtnClicked() {
         tr("Yep, you're unlinking your Google account! It'll be disconnected in a sec.\n\nBy the "
            "way, want to delete the data.db file on your Drive too, or leave it alone?"));
 
-    emit requestGoogleUnlink(reply == QMessageBox::Yes);
+    Q_EMIT requestGoogleUnlink(reply == QMessageBox::Yes);
 }
 
 void SettingsTabWidget::handleLoginFailed(const QString &error) {
@@ -552,7 +552,7 @@ void SettingsTabWidget::onUploadButtonClicked() {
                                      "and will replace the existing one on Drive."),
                                   true);
 
-    if (reply == QMessageBox::Yes) { emit requestUpload(); }
+    if (reply == QMessageBox::Yes) { Q_EMIT requestUpload(); }
 }
 
 void SettingsTabWidget::onDownloadButtonClicked() {
@@ -563,7 +563,7 @@ void SettingsTabWidget::onDownloadButtonClicked() {
            "application."),
         true);
 
-    if (reply == QMessageBox::Yes) { emit requestDownload(); }
+    if (reply == QMessageBox::Yes) { Q_EMIT requestDownload(); }
 }
 
 void SettingsTabWidget::updateCountdownDisplay() {

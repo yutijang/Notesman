@@ -191,8 +191,8 @@ void GoogleDriveService::downloadDatabase(const QString &fileId,
 }
 
 void GoogleDriveService::uploadDbAuto() {
-    emit closeConnectDBRequest(true);
-    emit onUploadDBBtnRequest(true);
+    Q_EMIT closeConnectDBRequest(true);
+    Q_EMIT onUploadDBBtnRequest(true);
 }
 
 void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
@@ -203,10 +203,10 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
 
         if (info.isExists) {
             if (localDBMD5Checksum == info.md5Checksum) {
-                emit onUploadDBBtnRequest(
+                Q_EMIT onUploadDBBtnRequest(
                     false, tr("Database is already in sync, upload/update not necessary."),
                     UiConst::SettingsTabNotiLevel::good);
-                emit reconnectDBRequest();
+                Q_EMIT reconnectDBRequest();
                 return;
             }
 
@@ -228,15 +228,15 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
             if (success) {
                 findAndGatherDatabaseFileInfo([this](const DriveFileInfo &newInfo) {
                     SettingsManager::instance().set("sync/data_file_version", newInfo.version);
-                    emit onUploadDBBtnRequest(false, tr("Compacted and uploaded new file!"),
-                                              UiConst::SettingsTabNotiLevel::good);
-                    emit reconnectDBRequest();
+                    Q_EMIT onUploadDBBtnRequest(false, tr("Compacted and uploaded new file!"),
+                                                UiConst::SettingsTabNotiLevel::good);
+                    Q_EMIT reconnectDBRequest();
                 });
             } else {
-                emit onUploadDBBtnRequest(
+                Q_EMIT onUploadDBBtnRequest(
                     false, tr("Failed to save to Drive (permission, storage, or network)"),
                     UiConst::SettingsTabNotiLevel::caution);
-                emit reconnectDBRequest();
+                Q_EMIT reconnectDBRequest();
             }
         };
 
@@ -249,8 +249,8 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
 }
 
 void GoogleDriveService::downloadDbAuto() {
-    emit closeConnectDBRequest(false);
-    emit onDownloadDBBtnRequest(true);
+    Q_EMIT closeConnectDBRequest(false);
+    Q_EMIT onDownloadDBBtnRequest(true);
 }
 
 void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
@@ -258,19 +258,19 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
 
     findAndGatherDatabaseFileInfo([this](const DriveFileInfo &info) {
         if (!info.isExists) {
-            emit onDownloadDBBtnRequest(false, tr("No database found or access denied"),
-                                        UiConst::SettingsTabNotiLevel::caution);
-            emit reconnectDBRequest();
+            Q_EMIT onDownloadDBBtnRequest(false, tr("No database found or access denied"),
+                                          UiConst::SettingsTabNotiLevel::caution);
+            Q_EMIT reconnectDBRequest();
             return;
         }
 
         const auto localDBMD5Checksum = calculateFileMD5(CorePaths::databaseFile());
 
         if (localDBMD5Checksum == info.md5Checksum) {
-            emit onDownloadDBBtnRequest(false,
-                                        tr("Database is already in sync, download not necessary."),
-                                        UiConst::SettingsTabNotiLevel::good);
-            emit reconnectDBRequest();
+            Q_EMIT onDownloadDBBtnRequest(
+                false, tr("Database is already in sync, download not necessary."),
+                UiConst::SettingsTabNotiLevel::good);
+            Q_EMIT reconnectDBRequest();
             return;
         }
 
@@ -280,18 +280,18 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
 
                 const QString fileSize = QString::fromStdString(
                     Utils::normalizationDBFileSize(static_cast<std::uint64_t>(info.size)));
-                emit onDownloadDBBtnRequest(
+                Q_EMIT onDownloadDBBtnRequest(
                     false,
                     tr("Database downloaded successfully, with size of data.db is: %1")
                         .arg(fileSize),
                     UiConst::SettingsTabNotiLevel::good);
             } else {
-                emit onDownloadDBBtnRequest(false,
-                                            tr("Failed to download database. Please try again"),
-                                            UiConst::SettingsTabNotiLevel::caution);
+                Q_EMIT onDownloadDBBtnRequest(false,
+                                              tr("Failed to download database. Please try again"),
+                                              UiConst::SettingsTabNotiLevel::caution);
             }
 
-            emit reconnectDBRequest();
+            Q_EMIT reconnectDBRequest();
         });
     });
 }
@@ -344,7 +344,7 @@ void GoogleDriveService::getDBInfo() {
             res << formatDateTimeSmart(info.lastModified);
         }
 
-        emit returnDBInfo(res);
+        Q_EMIT returnDBInfo(res);
     });
 }
 
@@ -377,7 +377,7 @@ void GoogleDriveService::handleDeleteDatabaseFileRequest() {
         if (!info.isExists) {
             QString msg =
                 tr("The %1 file does not exist, so there's no need to delete it.").arg("data.db");
-            emit deleteDatabaseFileRespond(msg);
+            Q_EMIT deleteDatabaseFileRespond(msg);
             return;
         }
 
@@ -390,7 +390,7 @@ void GoogleDriveService::handleDeleteDatabaseFileRequest() {
                 Log::err("Error delete data.db");
             }
 
-            emit deleteDatabaseFileRespond(msgRespond);
+            Q_EMIT deleteDatabaseFileRespond(msgRespond);
         });
     });
 }

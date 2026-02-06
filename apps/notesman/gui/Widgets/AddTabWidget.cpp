@@ -106,7 +106,7 @@ void AddTabWidget::onAddButtonClicked() {
         }
     }
 
-    emit addNoteRequested(title, text, filePath, url, tags, mode);
+    Q_EMIT addNoteRequested(title, text, filePath, url, tags, mode);
 }
 
 void AddTabWidget::onClearButtonClicked() {
@@ -393,7 +393,7 @@ void AddTabWidget::resetAddTabInputs() const {
 }
 
 void AddTabWidget::onToggleCodeHighlighter(bool checked) {
-    emit applySyntaxHighlighterRequest(checked);
+    Q_EMIT applySyntaxHighlighterRequest(checked);
 }
 
 QString AddTabWidget::buildResourceFileFilter() {

@@ -27,8 +27,8 @@ DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
 
         Log::info("Stop download update because internet connection is too slow");
 
-        emit downloadFailCauseTimeoutRequest();
-        emit downloadFailed(
+        Q_EMIT downloadFailCauseTimeoutRequest();
+        Q_EMIT downloadFailed(
             tr("Download failed.\nYour internet connection is too slow.\nPlease try again later!"));
     });
 }
@@ -44,7 +44,7 @@ DownloadManager::~DownloadManager() {
 void DownloadManager::startDownload(const QUrl &url, const QString &outputFilePath) {
     if (m_currentReply != nullptr) {
         Log::info("Another download is already in progress.");
-        emit downloadFailed(tr("Another download is already in progress."));
+        Q_EMIT downloadFailed(tr("Another download is already in progress."));
         return;
     }
 
@@ -54,13 +54,13 @@ void DownloadManager::startDownload(const QUrl &url, const QString &outputFilePa
     m_outputFile.setFileName(outputFilePath);
     if (!m_outputFile.open(QIODevice::WriteOnly)) {
         Log::err("Cannot write to file: {}", outputFilePath.toStdString());
-        emit downloadFailed(tr("Cannot write to file: %1").arg(outputFilePath));
+        Q_EMIT downloadFailed(tr("Cannot write to file: %1").arg(outputFilePath));
         m_currentReply->deleteLater();
         m_currentReply = nullptr;
         return;
     }
 
-    emit downloadStarted();
+    Q_EMIT downloadStarted();
     m_timeoutTimer.start();
 
     QObject::connect(m_currentReply, &QNetworkReply::downloadProgress, this,
@@ -72,7 +72,7 @@ void DownloadManager::startDownload(const QUrl &url, const QString &outputFilePa
 }
 
 void DownloadManager::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
-    emit downloadProgress(bytesReceived, bytesTotal);
+    Q_EMIT downloadProgress(bytesReceived, bytesTotal);
     m_timeoutTimer.start();
 }
 
@@ -82,7 +82,7 @@ void DownloadManager::onDownloadFinished() {
     if (m_currentReply->error() == QNetworkReply::NoError) {
         m_outputFile.write(m_currentReply->readAll());
         m_outputFile.close();
-        emit downloadFinished(m_outputFile.fileName());
+        Q_EMIT downloadFinished(m_outputFile.fileName());
     }
 
     m_currentReply->deleteLater();
@@ -92,7 +92,7 @@ void DownloadManager::onDownloadFinished() {
 }
 
 void DownloadManager::onDownloadError(QNetworkReply::NetworkError /*unused*/) {
-    emit downloadFailed(m_currentReply->errorString());
+    Q_EMIT downloadFailed(m_currentReply->errorString());
 
     m_outputFile.close();
     m_outputFile.remove(); // xoá file lỗi

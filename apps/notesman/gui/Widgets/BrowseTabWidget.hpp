@@ -30,7 +30,9 @@ class BrowseTabWidget final : public QWidget {
         // Getter
         [[nodiscard]] ResultsTable* resultsTable() const noexcept { return m_resultsTbl; }
 
-    signals:
+        void handleResultsSearchRequested(const std::vector<UnifiedSearchResult> &results);
+
+    Q_SIGNALS:
         void searchRequested(const QString &keyword, const QString &mode);
         void resourceDoubleClicked(int id, ResourceType type, const QString &title,
                                    const QString &path, const QString &url);
@@ -40,14 +42,6 @@ class BrowseTabWidget final : public QWidget {
         void loadAllDataRequested();
 
         void loadResourceByTypeRequested(ResourceType type);
-
-    public slots:
-        void handleResultsSearchRequested(const std::vector<UnifiedSearchResult> &results);
-
-    private slots:
-        void onClearButtonClicked();
-        void onGetAllButtonClicked();
-        void onSearchButtonClicked();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         struct RowData {
@@ -79,6 +73,10 @@ class BrowseTabWidget final : public QWidget {
 
         // Group result table
         void setupResultTableGroup();
+
+        void onClearButtonClicked();
+        void onGetAllButtonClicked();
+        void onSearchButtonClicked();
 
         QLineEdit* m_searchInp{};
         QPushButton* m_searchBtn{};

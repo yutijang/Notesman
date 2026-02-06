@@ -20,20 +20,15 @@ class OAuthManager final : public QObject {
         void tryAutoLogin();
         QString accessToken();
 
-    signals:
-        void gmailLinked(const QString &email);
-        void gmailUnlinked();
-        void loginFailed(const QString &error = QString{});
-        void loginCancelled();
-
-    public slots:
         void handleUnlinkGMRequested();
         void handleLoginGMRequested();
         void cancelCurrentLogin();
 
-    private slots:
-        void handleRedirect(QTcpSocket* socket);
-        void handlePostFinished(QNetworkReply* reply);
+    Q_SIGNALS:
+        void gmailLinked(const QString &email);
+        void gmailUnlinked();
+        void loginFailed(const QString &error = QString{});
+        void loginCancelled();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         // helper
@@ -54,6 +49,9 @@ class OAuthManager final : public QObject {
         static QString htmlResponde(const QString &title, const QString &header,
                                     const QString &message) noexcept;
         void revokeRefreshToken(const QString &refreshTokenToRevoke);
+
+        void handleRedirect(QTcpSocket* socket);
+        void handlePostFinished(QNetworkReply* reply);
 
         QTcpServer* m_oauthServer{};
         QString m_codeVerifier;

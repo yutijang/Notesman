@@ -39,13 +39,10 @@ class UpdateManager final : public QObject {
         // Kiểm tra cập nhật từ URL server
         void checkForUpdates(const QString &versionCheckUrl);
 
-    signals:
+    Q_SIGNALS:
         void updateAvailable(const UpdateInfoSummary &infoSummary);
         void noUpdateAvailable();
         void updateCheckFailed(const QString &error);
-
-    private slots:
-        void onVersionReplyFinished(QNetworkReply* reply);
 
     private: // NOLINT(readability-redundant-access-specifiers)
         static std::optional<UpdateInfo> findAssetInfo(const QJsonDocument &qJDoc);
@@ -54,6 +51,8 @@ class UpdateManager final : public QObject {
         static QString extractHash(const QString &digest);
 
         static UpdateInfoSummary updateInfoToSummary(const UpdateInfo &updateInfo);
+
+        void onVersionReplyFinished(QNetworkReply* reply);
 
         QNetworkAccessManager m_networkManager;
 };

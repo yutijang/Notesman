@@ -202,6 +202,11 @@ target_compile_definitions(notes-app-lib-core
     $<$<CONFIG:Release>:QT_NO_DEBUG_FATAL_WARNINGS>
 )
 
+target_compile_definitions(notes-app-lib-core
+  PRIVATE
+    QT_NO_KEYWORDS
+)
+
 #===
 add_library(notes-app-lib-qtkeychain STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/OAuthManager.cpp

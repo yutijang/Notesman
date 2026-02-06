@@ -175,7 +175,7 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
     } else if (!error.isEmpty()) {
         Log::warn("OAuth login failed, error: {}", error.toStdString());
 
-        emit loginFailed(tr("OAuth login was canceled"));
+        Q_EMIT loginFailed(tr("OAuth login was canceled"));
     }
 
     // Trả về HTML
@@ -283,7 +283,7 @@ void OAuthManager::fetchUserEmail() {
 
         m_isLogin = true;
 
-        emit gmailLinked(email);
+        Q_EMIT gmailLinked(email);
     });
 }
 
@@ -308,7 +308,7 @@ void OAuthManager::handleLoginGMRequested() {
     if (!m_oauthServer->listen(QHostAddress::LocalHost, oauthPort())) {
         Log::warn("Cannot start local OAuth server");
 
-        emit loginFailed(
+        Q_EMIT loginFailed(
             tr("Port %1 is in use. Please close other apps using this port.").arg(oauthPort()));
         return;
     }
@@ -332,7 +332,7 @@ void OAuthManager::handleLoginGMRequested() {
     m_currentLoginTimer->start(LOGIN_TIMEOUT); // 60 giây
     QObject::connect(m_currentLoginTimer, &QTimer::timeout, this, [this]() {
         if (!m_isLogin) {
-            emit loginFailed(tr("OAuth login failed: timed out"));
+            Q_EMIT loginFailed(tr("OAuth login failed: timed out"));
             cleanupAuthServer();
             m_currentLoginTimer = nullptr;
         }
@@ -369,7 +369,7 @@ void OAuthManager::handleUnlinkGMRequested() {
 
     m_isLogin = false;
 
-    emit gmailUnlinked();
+    Q_EMIT gmailUnlinked();
 }
 
 void OAuthManager::requestNewAccessToken(const QString &refreshToken,

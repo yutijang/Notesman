@@ -26,7 +26,26 @@ class SettingsTabWidget final : public QWidget {
 
         void retranslateUi();
 
-    signals:
+        void showNotification(
+            const QString &message,
+            UiConst::SettingsMessageState state = UiConst::SettingsMessageState::none,
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+        void handleDeleteDBFileRespond(const QString &msg);
+        void handleDBInfoGot(const QStringList &info);
+        void handleLoginFailed(const QString &error = QString{});
+        void handleDownloadDBRequested(
+            bool isDisable, const QString &message = QString{},
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+        void handleUploadDBRequested(
+            bool isDisable, const QString &message = QString{},
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+        void handleAfterUnlinkAccount();
+        void handleAfterLinkAccount(const QString &htmlTextEmail);
+        void handleInitialSettingsLoad(const SettingsData &settings) const;
+        void handleSettingsStateChange(const SettingsData &settings) const;
+        void handleUiRefreshRequest(const SettingsData &settings) const;
+
+    Q_SIGNALS:
         void applySettingsRequested(const SettingsData &data);
         void defaultSettingsRequested();
         void requestGoogleLogin();
@@ -38,37 +57,6 @@ class SettingsTabWidget final : public QWidget {
 
         void requestDBInfo();
 
-    public slots:
-        void showNotification(
-            const QString &message,
-            UiConst::SettingsMessageState state = UiConst::SettingsMessageState::none,
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
-        void handleInitialSettingsLoad(const SettingsData &settings) const;
-        void handleSettingsStateChange(const SettingsData &settings) const;
-        void handleUiRefreshRequest(const SettingsData &settings) const;
-        void handleAfterLinkAccount(const QString &htmlTextEmail);
-        void handleAfterUnlinkAccount();
-        void handleDownloadDBRequested(
-            bool isDisable, const QString &message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
-        void handleUploadDBRequested(
-            bool isDisable, const QString &message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
-        void handleLoginFailed(const QString &error = QString{});
-
-        void handleDBInfoGot(const QStringList &info);
-
-        void handleDeleteDBFileRespond(const QString &msg);
-
-    private slots:
-        void onApplyBtnClicked();
-        void onDefaultBtnClicked();
-        void onBrowseBtnClicked();
-        void loadSettingsToUi(const SettingsData &settings) const;
-        void onLinkBtnClicked();
-        void onUploadButtonClicked();
-        void onDownloadButtonClicked();
-
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupUi();
         void setupConnections();
@@ -76,6 +64,14 @@ class SettingsTabWidget final : public QWidget {
         void hideLoginStatus();
         void showLoginStatus();
         void validateResourceDir(const SettingsData &settings) const;
+
+        void onApplyBtnClicked();
+        void onDefaultBtnClicked();
+        void onBrowseBtnClicked();
+        void loadSettingsToUi(const SettingsData &settings) const;
+        void onLinkBtnClicked();
+        void onUploadButtonClicked();
+        void onDownloadButtonClicked();
 
         [[nodiscard]] QHBoxLayout* setupLanguageGroup();
         [[nodiscard]] QHBoxLayout* setupThemeGroup();

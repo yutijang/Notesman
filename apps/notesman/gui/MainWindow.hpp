@@ -54,7 +54,20 @@ class MainWindow : public QMainWindow {
         void onNoUpdateAvailable();
         void onUpdateCheckFailed(const QString &error);
 
-    signals:
+        void setCore(NotesAppCore* core);
+
+        void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+        void onDownloadStarted();
+        void onDownloadFinished(const QString &filePath);
+        void onDownloadFailed(const QString &errorString);
+        void handleDownloadFailCauseTimeout();
+
+        void updateStatus(const QString &message, int timeout = UiConst::NOTI_TIMEOUT5);
+
+        void handleSyntaxHighlightingUpdate(UiConst::Theme theme);
+        void handleSyntaxHighlightingFromAddTabRequested(bool checked);
+
+    Q_SIGNALS:
         void requestDatabaseCreation();
         void requestUpdateCheck();
         void settingsTabShowNotification(
@@ -78,27 +91,10 @@ class MainWindow : public QMainWindow {
 
         void deleteDatabaseFileRespondForward(const QString &msg);
 
-    public slots:
-        void setCore(NotesAppCore* core);
-        void onCheckUpdateClicked();
-        void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-        void onDownloadStarted();
-        void onDownloadFinished(const QString &filePath);
-        void onDownloadFailed(const QString &errorString);
-        void updateStatus(const QString &message, int timeout = UiConst::NOTI_TIMEOUT5);
-        void handleDownloadFailCauseTimeout();
-
     protected:
         void showEvent(QShowEvent* event) override;
         void closeEvent(QCloseEvent* event) override;
         void changeEvent(QEvent* event) override;
-
-    private slots:
-        void handleSyntaxHighlightingUpdate(UiConst::Theme theme);
-        void handleSyntaxHighlightingFromAddTabRequested(bool checked);
-        void onAbout();
-        void handleSettingsStateChange(UiConst::SettingsMessageState state);
-        void handleContextMenuDeleteAction(ResultsTable* resultTable);
 
     private: // NOLINT(readability-redundant-access-specifiers)
         // Build UI internal
@@ -119,6 +115,12 @@ class MainWindow : public QMainWindow {
         static qint64 getCurrentPid();
         void disableSyntaxHighlightingTheme();
         QString resolveResPath(const QString &path);
+
+        void onCheckUpdateClicked();
+        void onAbout();
+
+        void handleSettingsStateChange(UiConst::SettingsMessageState state);
+        void handleContextMenuDeleteAction(ResultsTable* resultTable);
 
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(const QString &filePath);

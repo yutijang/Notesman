@@ -12,7 +12,7 @@
 
 void ResourceSearchWorker::doSearch() {
     if (m_core == nullptr) {
-        emit searchFinished({});
+        Q_EMIT searchFinished({});
         return;
     }
 
@@ -53,5 +53,5 @@ void ResourceSearchWorker::doSearch() {
         Log::err("Error: {}", ex.what());
     }
 
-    emit searchFinished(results);
+    Q_EMIT searchFinished(results);
 }

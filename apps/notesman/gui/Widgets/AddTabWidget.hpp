@@ -31,22 +31,15 @@ class AddTabWidget final : public QWidget {
         // Getter
         [[nodiscard]] PlainTextEdit* textEdit() const noexcept { return m_textEdt; }
 
-    signals:
-        void addNoteRequested(QString title, QString textContent, QString filePath, QString url,
-                              QStringList tags, UiConst::AddResMode mode);
-        void applySyntaxHighlighterRequest(bool checked);
-
-    public slots:
         void showNotification(
             const QString &message,
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal) const;
         void resetAddTabInputs() const;
 
-    private slots:
-        void onAddButtonClicked();
-        void onClearButtonClicked();
-        void onBrowseFile();
-        void updateAddAndClearButtons();
+    Q_SIGNALS:
+        void addNoteRequested(QString title, QString textContent, QString filePath, QString url,
+                              QStringList tags, UiConst::AddResMode mode);
+        void applySyntaxHighlighterRequest(bool checked);
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupUi();
@@ -54,6 +47,11 @@ class AddTabWidget final : public QWidget {
         void onToggleCodeHighlighter(bool checked);
         static QString buildResourceFileFilter();
         void onAddResTypeModeChanged(int id);
+
+        void onAddButtonClicked();
+        void onClearButtonClicked();
+        void onBrowseFile();
+        void updateAddAndClearButtons();
 
         QVBoxLayout* setupTitleGroup();
         QWidget* setupResouceGroup();

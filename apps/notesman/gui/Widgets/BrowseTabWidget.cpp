@@ -78,7 +78,7 @@ void BrowseTabWidget::setupConnections() {
                      &BrowseTabWidget::loadAllDataRequested);
 
     QObject::connect(m_loadResTypeBtn, &QPushButton::clicked, [this] {
-        emit loadResourceByTypeRequested(currentResourceType(m_getResTypeCom));
+        Q_EMIT loadResourceByTypeRequested(currentResourceType(m_getResTypeCom));
     });
 }
 
@@ -161,8 +161,8 @@ void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &res
     m_resultsTbl->setUpdatesEnabled(true);
     m_resultsTbl->setSortingEnabled(true);
 
-    emit statusUpdateRequest(tr("Found %1 results").arg(QString::number(results.size())),
-                             UiConst::NOTI_TIMEOUT);
+    Q_EMIT statusUpdateRequest(tr("Found %1 results").arg(QString::number(results.size())),
+                               UiConst::NOTI_TIMEOUT);
 }
 
 // signals custom
@@ -175,7 +175,7 @@ void BrowseTabWidget::onCellDoubleClicked(int row) {
 
     const auto &data = *rowDataOpt;
 
-    emit resourceDoubleClicked(data.id, data.type, data.title, data.path, data.url);
+    Q_EMIT resourceDoubleClicked(data.id, data.type, data.title, data.path, data.url);
 }
 
 void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
@@ -192,7 +192,7 @@ void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
 
     const auto &data = *rowDataOpt;
 
-    emit contextMenuRequested(pos, data.id, data.type, data.title, data.path, data.url);
+    Q_EMIT contextMenuRequested(pos, data.id, data.type, data.title, data.path, data.url);
 }
 
 std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const {
@@ -233,7 +233,7 @@ void BrowseTabWidget::onClearButtonClicked() {
 }
 
 void BrowseTabWidget::onGetAllButtonClicked() {
-    emit loadAllDataRequested();
+    Q_EMIT loadAllDataRequested();
 }
 
 void BrowseTabWidget::onSearchButtonClicked() {
@@ -246,7 +246,7 @@ void BrowseTabWidget::onSearchButtonClicked() {
         return "all";
     }(); // Dấu ngoặc () ở cuối để gọi lambda ngay lập tức
 
-    emit searchRequested(m_searchInp->text().trimmed(), mode);
+    Q_EMIT searchRequested(m_searchInp->text().trimmed(), mode);
 }
 
 void BrowseTabWidget::handleResultsSearchRequested(

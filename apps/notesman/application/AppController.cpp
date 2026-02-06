@@ -46,18 +46,18 @@ void AppController::loadSettings() {
     m_settings = std::make_unique<AppSettings>();
 
     if (!std::filesystem::exists(configPath)) {
-        emit settingsLoaded(m_settings->toUiSettings());
+        Q_EMIT settingsLoaded(m_settings->toUiSettings());
         return;
     }
 
     if (!m_settings->load(configPath)) {
         if (!m_settings->save(configPath)) {
-            emit settingsLoaded(m_settings->toUiSettings());
+            Q_EMIT settingsLoaded(m_settings->toUiSettings());
             DialogUtils::showError(m_mainWindow, tr("Error"), tr("Can not save config file"));
         }
     }
 
-    emit initialSettingsLoaded(m_settings->toUiSettings());
+    Q_EMIT initialSettingsLoaded(m_settings->toUiSettings());
 }
 
 void AppController::saveSettings() {
@@ -244,7 +244,7 @@ void AppController::handleGetAllDataRequest() {
         }
     }
 
-    emit displayResultForGetAll(allRes);
+    Q_EMIT displayResultForGetAll(allRes);
 }
 
 void AppController::handleLoadResourceByTypeRequest(ResourceType type) {
@@ -258,12 +258,12 @@ void AppController::handleLoadResourceByTypeRequest(ResourceType type) {
         }
     }
 
-    emit displayResultForGetAll(res);
+    Q_EMIT displayResultForGetAll(res);
 }
 
 void AppController::handleDefaultSettingsRequest() {
-    emit settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::notChange,
-                              UiConst::SettingsTabNotiLevel::caution);
+    Q_EMIT settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::notChange,
+                                UiConst::SettingsTabNotiLevel::caution);
 }
 
 void AppController::handleApplySettingsRequest(const SettingsData &data) {
@@ -291,19 +291,19 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
                 QString("<span style=\"color:%1;\"><i>%2</i></span>")
                     .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
 
-            emit gmailLinkedForView(htmlTextEmail);
+            Q_EMIT gmailLinkedForView(htmlTextEmail);
         }
 
         saveSettings();
         settings->markDirty(false);
 
-        emit requestSyntaxHighlightingUpdate(data.theme);
+        Q_EMIT requestSyntaxHighlightingUpdate(data.theme);
 
-        emit settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::updated,
-                                  UiConst::SettingsTabNotiLevel::good);
+        Q_EMIT settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::updated,
+                                    UiConst::SettingsTabNotiLevel::good);
     } else {
-        emit settingsUpdateStatus(tr("Nothing changed, settings not save"),
-                                  UiConst::SettingsMessageState::none);
+        Q_EMIT settingsUpdateStatus(tr("Nothing changed, settings not save"),
+                                    UiConst::SettingsMessageState::none);
     }
 }
 
@@ -317,9 +317,9 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
 
         if (needStrictCheck &&
             (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir))) {
-            emit addTabNotiRequest(tr("Resource directory does not exist. "
-                                      "Please fix it in Settings before adding resources."),
-                                   UiConst::SettingsTabNotiLevel::warning);
+            Q_EMIT addTabNotiRequest(tr("Resource directory does not exist. "
+                                        "Please fix it in Settings before adding resources."),
+                                     UiConst::SettingsTabNotiLevel::warning);
 
             return;
         }
@@ -329,37 +329,37 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
     ResourceType type{};
     if (mode == UiConst::AddResMode::text) {
         if (textContent.isEmpty()) {
-            emit addTabNotiRequest(tr("Content cannot be empty!"),
-                                   UiConst::SettingsTabNotiLevel::warning);
+            Q_EMIT addTabNotiRequest(tr("Content cannot be empty!"),
+                                     UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
         type = ResourceType::plainText;
     } else if (mode == UiConst::AddResMode::file) {
         if (filePath.isEmpty()) {
-            emit addTabNotiRequest(tr("File path is empty."),
-                                   UiConst::SettingsTabNotiLevel::warning);
+            Q_EMIT addTabNotiRequest(tr("File path is empty."),
+                                     UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
         if (m_core->isFileIndexed(filePathFs)) {
-            emit addTabNotiRequest(tr("File exists in storage! Not add more."),
-                                   UiConst::SettingsTabNotiLevel::warning);
+            Q_EMIT addTabNotiRequest(tr("File exists in storage! Not add more."),
+                                     UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
         const auto typeOpt = resourceTypeFromFile(filePathFs);
         if (!typeOpt.has_value()) {
-            emit addTabNotiRequest(tr("File extension not support!"),
-                                   UiConst::SettingsTabNotiLevel::warning);
+            Q_EMIT addTabNotiRequest(tr("File extension not support!"),
+                                     UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
         type = *typeOpt;
     } else if (mode == UiConst::AddResMode::url) {
         if (url.isEmpty()) {
-            emit addTabNotiRequest(tr("Url cannot be empty!"),
-                                   UiConst::SettingsTabNotiLevel::warning);
+            Q_EMIT addTabNotiRequest(tr("Url cannot be empty!"),
+                                     UiConst::SettingsTabNotiLevel::warning);
             return;
         }
 
@@ -368,8 +368,8 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
 
     const auto titleStd = title.toStdString();
     if (m_core->isExistTitle(titleStd, type)) {
-        emit addTabNotiRequest(tr("Title exists! Please choose another title"),
-                               UiConst::SettingsTabNotiLevel::warning);
+        Q_EMIT addTabNotiRequest(tr("Title exists! Please choose another title"),
+                                 UiConst::SettingsTabNotiLevel::warning);
         return;
     }
 
@@ -393,7 +393,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
 
     addTagsToResource(resId, tags);
 
-    emit resetAddTabInputsRequest();
+    Q_EMIT resetAddTabInputsRequest();
 }
 
 void AppController::addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const {
@@ -427,7 +427,7 @@ void AppController::handleSearchRequest(const QString &keyword, const QString &m
     QObject::connect(
         worker, &ResourceSearchWorker::searchFinished, this,
         [this, mode](const std::vector<UnifiedSearchResult> &results) {
-            emit searchFinishedFromController(results, mode);
+            Q_EMIT searchFinishedFromController(results, mode);
         },
         Qt::QueuedConnection);
 
@@ -480,7 +480,7 @@ void AppController::handleUnlinkGMRequested(bool isDeleteDB) {
             },
             Qt::SingleShotConnection);
 
-        emit deleteDatabaseFileRequest();
+        Q_EMIT deleteDatabaseFileRequest();
     } else {
         finalizeUnlink();
     }
@@ -505,7 +505,7 @@ void AppController::updateTranslatedStrings() {
             tr("Hello, ") + QString("<span style=\"color:%1;\"><i>%2</i></span>")
                                 .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
 
-        emit gmailLinkedForView(htmlTextEmail);
+        Q_EMIT gmailLinkedForView(htmlTextEmail);
     }
 }
 
@@ -520,13 +520,13 @@ void AppController::displayInfoGMUserLinked(const QString &email) {
         tr("Hello, ") + QString("<span style=\"color:%1;\"><i>%2</i></span>")
                             .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
 
-    emit gmailLinkedForView(htmlTextEmail);
+    Q_EMIT gmailLinkedForView(htmlTextEmail);
 }
 
 sqlite_int64 AppController::handleTextMode(const std::string &title, const QString &textContent,
                                            ResourceType &outType) {
     auto resId = m_core->addTextNote(title, textContent.toUtf8().toStdString(), outType);
-    emit addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::good);
+    Q_EMIT addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::good);
     return resId;
 }
 
@@ -542,7 +542,7 @@ sqlite_int64 AppController::handleFileMode(const std::string &title,
     auto resId = m_core->addFileNote(filePath, title, outType, m_settings->isManagedResources(),
                                      contentToIndex);
 
-    emit addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::good);
+    Q_EMIT addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::good);
 
     return resId;
 }
@@ -553,10 +553,11 @@ sqlite_int64 AppController::handleUrlMode(const std::string &title, const QStrin
 
     auto resIdOtp = m_core->addUrlNote(title, outType, url.toStdString());
     if (!resIdOtp) {
-        emit addTabNotiRequest(tr("Url added fail!"), UiConst::SettingsTabNotiLevel::warning);
+        Q_EMIT addTabNotiRequest(tr("Url added fail!"), UiConst::SettingsTabNotiLevel::warning);
     } else {
         resId = *resIdOtp;
-        emit addTabNotiRequest(tr("Url added successfully!"), UiConst::SettingsTabNotiLevel::good);
+        Q_EMIT addTabNotiRequest(tr("Url added successfully!"),
+                                 UiConst::SettingsTabNotiLevel::good);
     }
 
     return resId;
