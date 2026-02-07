@@ -85,6 +85,9 @@ class AppController final : public QObject {
 
         void handleGetDBInfoRequested();
 
+        static void cleanupOldEpubCache(int days);
+        static void cleanupOldMarkdownCache(int days);
+
     Q_SIGNALS:
         // waitting for using
         // void languageChanged();

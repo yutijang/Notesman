@@ -5,6 +5,7 @@
 #include <QString>
 #include <QObject>
 #include <QStringList>
+#include <cstdint>
 
 #include "SettingsData.hpp"
 #include "UiConstants.hpp"
@@ -16,6 +17,7 @@ class QPushButton;
 class QLabel;
 class QHBoxLayout;
 class QVBoxLayout;
+class QGroupBox;
 
 class SettingsTabWidget final : public QWidget {
         Q_OBJECT
@@ -57,7 +59,12 @@ class SettingsTabWidget final : public QWidget {
 
         void requestDBInfo();
 
+        void cleanupEpubCacheRequest(int days);
+        void cleanupMDCacheRequest(int days);
+
     private: // NOLINT(readability-redundant-access-specifiers)
+        enum class CleanupMode : std::uint8_t { epub, markdown };
+
         void setupUi();
         void setupConnections();
         void updateCountdownDisplay();
@@ -80,6 +87,7 @@ class SettingsTabWidget final : public QWidget {
         [[nodiscard]] QHBoxLayout* setupButtonGroup();
         [[nodiscard]] QVBoxLayout* setupAccountLinkGroup();
         [[nodiscard]] QWidget* setupLoginStatusGroup();
+        [[nodiscard]] QGroupBox* setupCleanupGroup();
 
         QRadioButton* m_langEnRad{};
         QRadioButton* m_langViRad{};
@@ -102,6 +110,14 @@ class SettingsTabWidget final : public QWidget {
         QPushButton* m_checkRemoteDBInfoBtn{};
 
         bool m_isLinked{};
+
+        // Cleanup cache EPUB + Markdown
+        QGroupBox* m_cleanupCacheGBox{};
+        QLabel* m_cleanupHtmlFromMDCacheLbl{};
+        QLineEdit* m_expiredEpubInp{};
+        QLineEdit* m_expiredMDInp{};
+        QPushButton* m_cleanupEpubCacheNowBtn{};
+        QPushButton* m_cleanupMDCacheNowBtn{};
 
         QWidget* m_loginStatusWidget{};
         QLabel* m_statusLabel{};

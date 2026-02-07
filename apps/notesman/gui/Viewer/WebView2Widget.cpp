@@ -16,6 +16,7 @@
 #include <QStandardPaths>
 
 #include "WebView2Widget.hpp"
+#include "ContentMode.hpp"
 #include "WebView2Guard.hpp"
 #include "Logger.hpp"
 
@@ -44,12 +45,6 @@ void WebView2Widget::showEvent(QShowEvent* e) {
     if (!m_initialized) {
         m_initialized = true;
         initWebView();
-    }
-
-    if (m_pendingUrl.isValid() && (m_webview != nullptr)) {
-        const QString urlStr = m_pendingUrl.toString(QUrl::FullyEncoded);
-        m_webview->Navigate(urlStr.toStdWString().c_str());
-        m_pendingUrl = QUrl{};
     }
 }
 
@@ -104,11 +99,7 @@ void WebView2Widget::initWebView() {
                             GetClientRect(reinterpret_cast<HWND>(winId()), &bounds);
                             m_controller->put_Bounds(bounds);
 
-                            if (m_hasPendingHtml) {
-                                m_webview->NavigateToString(m_pendingHtml.toStdWString().c_str());
-                                m_pendingHtml.clear();
-                                m_hasPendingHtml = false;
-                            } else if (!m_pendingFile.isEmpty()) {
+                            if (!m_pendingFile.isEmpty()) {
                                 m_webview->Navigate(m_pendingFile.toStdWString().c_str());
                                 m_pendingFile.clear();
                             } else if (m_pendingUrl.isValid()) {
@@ -146,31 +137,51 @@ void WebView2Widget::initWebView() {
                             m_webview->add_NavigationStarting(
                                 Microsoft::WRL::Callback<
                                     ICoreWebView2NavigationStartingEventHandler>(
-                                    [](ICoreWebView2*,
-                                       ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                                    [this](
+                                        ICoreWebView2*,
+                                        ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
                                         LPWSTR uri{};
                                         args->get_Uri(&uri);
 
                                         if (!uri) { return S_OK; }
 
-                                        QString url = QString::fromWCharArray(uri);
+                                        QUrl target = QUrl(QString::fromWCharArray(uri));
                                         CoTaskMemFree(uri);
 
-                                        QUrl qurl(url);
-                                        const QString scheme = qurl.scheme();
+                                        const QString scheme = target.scheme();
 
-                                        if (scheme == "http" || scheme == "https") {
-                                            args->put_Cancel(TRUE);
-                                            return S_OK;
-                                        }
+                                        switch (m_contentMode) {
+                                            case ContentMode::htmlFile:
+                                            case ContentMode::epub    : {
+                                                // chỉ cho file://, data:, about:
+                                                if (scheme == "file" || scheme == "data" ||
+                                                    scheme == "about") {
+                                                    return S_OK;
+                                                }
 
-                                        if (scheme == "file" || scheme == "data" ||
-                                            scheme == "about") {
-                                            return S_OK;
+                                                // CHẶN mọi link ngoài
+                                                args->put_Cancel(TRUE);
+                                                return S_OK;
+                                            }
+
+                                            case ContentMode::url: {
+                                                // chỉ cho http/https
+                                                if (scheme != "http" && scheme != "https") {
+                                                    args->put_Cancel(TRUE);
+                                                    return S_OK;
+                                                }
+
+                                                // chỉ cho cùng host
+                                                if (target.host() != m_baseUrl.host()) {
+                                                    args->put_Cancel(TRUE);
+                                                    return S_OK;
+                                                }
+
+                                                return S_OK;
+                                            }
                                         }
 
                                         args->put_Cancel(TRUE);
-
                                         return S_OK;
                                     })
                                     .Get(),
@@ -229,19 +240,6 @@ void WebView2Widget::find(const QString &text, bool backward) {
                            .arg(escapeJsString(text), backward ? "true" : "false");
 
     m_webview->ExecuteScript(js.toStdWString().c_str(), nullptr);
-}
-
-void WebView2Widget::loadHtml(const QString &html) {
-    if (html.isEmpty()) { return; }
-
-    if (m_webview == nullptr) {
-        // WebView2 CHƯA SẴN SÀNG
-        m_pendingHtml = html;
-        m_hasPendingHtml = true;
-        return;
-    }
-
-    m_webview->NavigateToString(html.toStdWString().c_str());
 }
 
 void WebView2Widget::loadUrl(const QUrl &url) {

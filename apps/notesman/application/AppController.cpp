@@ -18,6 +18,7 @@
 #include <QRegularExpression>
 #include <QStringList>
 #include <Qt>
+#include <QStandardPaths>
 
 #include "AppController.hpp"
 #include "AppSettings.hpp"
@@ -561,4 +562,29 @@ sqlite_int64 AppController::handleUrlMode(const std::string &title, const QStrin
     }
 
     return resId;
+}
+
+void AppController::cleanupOldEpubCache(int days) {
+    const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub");
+    const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+
+    const QDateTime now = QDateTime::currentDateTime();
+
+    for (const auto &fi : entries) {
+        if (fi.lastModified().daysTo(now) > days) {
+            QDir(fi.absoluteFilePath()).removeRecursively();
+        }
+    }
+}
+
+void AppController::cleanupOldMarkdownCache(int days) {
+    const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/markdown");
+    if (!dir.exists()) { return; }
+
+    const auto entries = dir.entryInfoList(QDir::Files);
+    const QDateTime now = QDateTime::currentDateTime();
+
+    for (const auto &fi : entries) {
+        if (fi.lastModified().daysTo(now) > days) { QFile::remove(fi.absoluteFilePath()); }
+    }
 }

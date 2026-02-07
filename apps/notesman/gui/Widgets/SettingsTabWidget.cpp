@@ -17,6 +17,7 @@
 #include <QObject>
 #include <QFileInfo>
 #include <QStringList>
+#include <QIntValidator>
 
 #include "SettingsTabWidget.hpp"
 #include "UiConstants.hpp"
@@ -50,6 +51,7 @@ void SettingsTabWidget::setupUi() {
     contentLayout->addLayout(setupThemeGroup());
     contentLayout->addLayout(setupResourceDirGroup());
     contentLayout->addLayout(setupResourceManagerTypeGroup());
+    contentLayout->addWidget(setupCleanupGroup());
     contentLayout->addWidget(new QWidget);
     contentLayout->addLayout(setupAccountLinkGroup());
     contentLayout->addStretch(1);
@@ -357,6 +359,76 @@ QHBoxLayout* SettingsTabWidget::setupButtonGroup() {
     buttonLayout->setSpacing(10); // NOLINT(readability-magic-numbers)
 
     return buttonLayout;
+}
+
+QGroupBox* SettingsTabWidget::setupCleanupGroup() {
+    m_cleanupCacheGBox = new QGroupBox();
+    m_cleanupCacheGBox->setTitle("Cleanup EPUB && Markdown files cache");
+    m_cleanupCacheGBox->setFlat(true);
+    m_cleanupCacheGBox->setObjectName("CleanupGroupBox");
+    m_cleanupCacheGBox->setMinimumHeight(100);
+
+    auto* mainLayout = new QVBoxLayout(m_cleanupCacheGBox);
+    mainLayout->setContentsMargins(0, 20, 15, 15);
+    mainLayout->setSpacing(15);
+
+    auto createRow = [this](const QString &tagText, CleanupMode mode) {
+        auto* hLayout = new QHBoxLayout();
+
+        auto* tagLbl = new QLabel(tagText);
+        tagLbl->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
+
+        tagLbl->setProperty("class", "TagLabel");
+        if (mode == CleanupMode::epub) {
+            tagLbl->setProperty("mode", "epub");
+        } else if (mode == CleanupMode::markdown) {
+            tagLbl->setProperty("mode", "markdown");
+        }
+
+        auto* descLbl = new QLabel(tr("Auto cleanup after (days):"));
+
+        if (mode == CleanupMode::epub) {
+            m_expiredEpubInp = new QLineEdit();
+            m_expiredEpubInp->setFixedWidth(45);
+            m_expiredEpubInp->setAlignment(Qt::AlignCenter);
+            m_expiredEpubInp->setValidator(new QIntValidator(0, 999, m_expiredEpubInp));
+            m_expiredEpubInp->setPlaceholderText("0");
+
+            m_cleanupEpubCacheNowBtn = new QPushButton(tr("Cleanup now"));
+            QObject::connect(m_cleanupEpubCacheNowBtn, &QPushButton::clicked,
+                             [this] { Q_EMIT cleanupEpubCacheRequest(0); });
+        } else if (mode == CleanupMode::markdown) {
+            m_expiredMDInp = new QLineEdit();
+            m_expiredMDInp->setFixedWidth(45);
+            m_expiredMDInp->setAlignment(Qt::AlignCenter);
+            m_expiredMDInp->setValidator(new QIntValidator(0, 999, m_expiredMDInp));
+            m_expiredMDInp->setPlaceholderText("0");
+
+            m_cleanupMDCacheNowBtn = new QPushButton(tr("Cleanup now"));
+            QObject::connect(m_cleanupEpubCacheNowBtn, &QPushButton::clicked,
+                             [this] { Q_EMIT cleanupMDCacheRequest(0); });
+        }
+
+        hLayout->addWidget(tagLbl);
+        hLayout->addStretch(1);
+        hLayout->addWidget(descLbl);
+        if (mode == CleanupMode::epub) {
+            hLayout->addWidget(m_expiredEpubInp);
+            hLayout->addWidget(m_cleanupEpubCacheNowBtn);
+        } else if (mode == CleanupMode::markdown) {
+            hLayout->addWidget(m_expiredMDInp);
+            hLayout->addWidget(m_cleanupMDCacheNowBtn);
+        }
+
+        return hLayout;
+    };
+
+    mainLayout->addLayout(createRow("EPUB", CleanupMode::epub));
+    mainLayout->addLayout(createRow("MARKDOWN", CleanupMode::markdown));
+
+    m_cleanupCacheGBox->setLayout(mainLayout);
+
+    return m_cleanupCacheGBox;
 }
 
 void SettingsTabWidget::showNotification(const QString &message,

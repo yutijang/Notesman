@@ -3,6 +3,10 @@
 #include <QTemporaryFile>
 #include <QByteArray>
 #include <QDir>
+#include <QFileInfo>
+#include <QUrl>
+#include <QStandardPaths>
+#include <QHash>
 #include <md4c.h>
 #include <md4c-html.h>
 
@@ -22,6 +26,24 @@ namespace {
 } // namespace
 
 QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkTheme) {
+    QFileInfo mdFi(mdPath);
+    if (!mdFi.exists() || !mdFi.isFile()) { return {}; }
+
+    // ---- cache dir ----
+    const QDir cacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+                        "/markdown");
+    if (!cacheDir.exists()) { cacheDir.mkpath("."); }
+
+    // ---- cache file name (path + theme) ----
+    const QByteArray key = (mdFi.absoluteFilePath() + (isDarkTheme ? "|dark" : "|light")).toUtf8();
+    const QString hash = QString::number(qHash(key), 16);
+    const QString htmlPath = cacheDir.absoluteFilePath(hash + ".html");
+
+    QFileInfo htmlFi(htmlPath);
+
+    // ---- reuse cache nếu hợp lệ ----
+    if (htmlFi.exists() && htmlFi.lastModified() >= mdFi.lastModified()) { return htmlPath; }
+
     QFile f(mdPath);
     if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) { return {}; }
 
@@ -36,12 +58,16 @@ QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkThem
 
     if (rc != 0) { return {}; }
 
+    const QUrl baseUrl = QUrl::fromLocalFile(mdFi.absolutePath() + "/");
+
     QByteArray html;
     html += isDarkTheme ? R"(<!DOCTYPE html><html style="color-scheme: dark;">)"
                         : R"(<!DOCTYPE html><html style="color-scheme: light;">)";
 
     html += R"(<head><meta charset="utf-8">)";
     html += R"(<meta name="viewport" content="width=device-width, initial-scale=1">)";
+
+    html += "<base href=\"" + baseUrl.toString(QUrl::FullyEncoded).toUtf8() + "\">";
 
     html += "<style>";
 
@@ -90,5 +116,12 @@ QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkThem
 
     html += "</body></html>";
 
-    return QString::fromUtf8(html);
+    // ---- ghi file cache ----
+    QFile out(htmlPath);
+    if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) { return {}; }
+
+    out.write(html);
+    out.close();
+
+    return htmlPath;
 }

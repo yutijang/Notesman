@@ -37,6 +37,7 @@
 #include <QPushButton>
 #include <QOverload>
 
+#include "ContentMode.hpp"
 #include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"
 #include "PdfViewer.hpp"
@@ -247,12 +248,14 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
             const QString absolutePath = resolveResPath(path);
 
             if (type == ResourceType::markdown) {
-                const QString html =
+                const QString htmlFileFromMd =
                     MarkdownToHtml::convertFileToHtml(absolutePath, m_appController->isDarkTheme());
-                if (html.isEmpty()) { return; }
-                viewer = HtmlViewer::createFromMemory(title, html, this);
+                if (htmlFileFromMd.isEmpty()) { return; }
+                viewer =
+                    HtmlViewer::createFromFile(title, htmlFileFromMd, ContentMode::htmlFile, this);
             } else {
-                viewer = HtmlViewer::createFromFile(title, absolutePath, this);
+                viewer =
+                    HtmlViewer::createFromFile(title, absolutePath, ContentMode::htmlFile, this);
             }
 
             if (!viewer) {
@@ -264,7 +267,7 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
         }
         case ResourceType::url: {
             const QUrl qurl = QUrl::fromUserInput(url);
-            viewer = HtmlViewer::createFromUrl(title, qurl, this);
+            viewer = HtmlViewer::createFromUrl(title, qurl, ContentMode::url, this);
             if (!viewer) {
                 Log::err("Invalid WebView2 runtime");
                 return;
@@ -278,7 +281,8 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
         case ResourceType::epubDoc: {
             auto epubResolvedPathOtp = EpubResolver::resolveToHtml(path);
             if (epubResolvedPathOtp) {
-                viewer = HtmlViewer::createFromFile(title, *epubResolvedPathOtp, this);
+                viewer = HtmlViewer::createFromFile(title, *epubResolvedPathOtp, ContentMode::epub,
+                                                    this);
                 if (!viewer) {
                     Log::err("Invalid WebView2 runtime");
                     return;
@@ -445,6 +449,11 @@ void MainWindow::setAppController(AppController* controller) {
                      &SettingsTabWidget::handleDBInfoGot);
     QObject::connect(m_appController, &AppController::deleteDatabaseFileRespondForward,
                      m_settingsTab, &SettingsTabWidget::handleDeleteDBFileRespond);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupEpubCacheRequest, m_appController,
+                     &AppController::cleanupOldEpubCache);
+    QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupMDCacheRequest, m_appController,
+                     &AppController::cleanupOldMarkdownCache);
 }
 
 void MainWindow::changeEvent(QEvent* event) {

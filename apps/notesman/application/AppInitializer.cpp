@@ -52,7 +52,7 @@
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
     constexpr int TIMEWAIT{100};
-    constexpr int K_EPUB_CACHE_EXPIRED{7};
+    constexpr int K_CACHE_EXPIRED{7};
 } // namespace
 
 bool AppInitializer::ensureSingleInstance() {
@@ -155,7 +155,8 @@ void AppInitializer::run() {
 
     checkUpdateFlag();
 
-    cleanupOldEpubCache(K_EPUB_CACHE_EXPIRED);
+    Q_EMIT cleanupEpubCacheRequest(K_CACHE_EXPIRED);
+    Q_EMIT cleanupMDCacheRequest(K_CACHE_EXPIRED);
 }
 
 AppInitializer::InitFailureReason AppInitializer::initializeCore() {
@@ -330,6 +331,11 @@ void AppInitializer::setupInitializerConnections() {
 
     QObject::connect(this, &AppInitializer::dbClosed, m_controller.get(),
                      &AppController::dbClosedForward);
+
+    QObject::connect(this, &AppInitializer::cleanupEpubCacheRequest, m_controller.get(),
+                     &AppController::cleanupOldEpubCache);
+    QObject::connect(this, &AppInitializer::cleanupMDCacheRequest, m_controller.get(),
+                     &AppController::cleanupOldMarkdownCache);
 }
 
 void AppInitializer::closeDatabaseConnection(bool isUpload) {
@@ -493,16 +499,3 @@ void AppInitializer::waitForProcessExitAsync(DWORD pid, const std::function<void
     timer->start();
 }
 #endif
-
-void AppInitializer::cleanupOldEpubCache(int days) {
-    const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub");
-    const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
-
-    const QDateTime now = QDateTime::currentDateTime();
-
-    for (const auto &fi : entries) {
-        if (fi.lastModified().daysTo(now) > days) {
-            QDir(fi.absoluteFilePath()).removeRecursively();
-        }
-    }
-}

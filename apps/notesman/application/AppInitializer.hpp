@@ -45,7 +45,10 @@ class AppInitializer final : public QObject {
         void dbClosed(bool isUpload); // true = for upload, false = for download
         void dbOpened();
 
-    private:                          // NOLINT(readability-redundant-access-specifiers)
+        void cleanupEpubCacheRequest(int days);
+        void cleanupMDCacheRequest(int days);
+
+    private: // NOLINT(readability-redundant-access-specifiers)
         enum class InitFailureReason : std::uint8_t {
             ok,
             userCancelled,
@@ -61,7 +64,6 @@ class AppInitializer final : public QObject {
 
         void setupInitializerConnections();
         void checkUpdateFlag();
-        static void cleanupOldEpubCache(int days);
         void onSecondInstanceMessage();
 
         void handleUpdateCleanup(const QStringList &args);

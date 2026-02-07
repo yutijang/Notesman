@@ -12,9 +12,12 @@
 #include <QTextBrowser>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QFileInfo>
 
 #include "HtmlViewer.hpp"
+#include "ContentMode.hpp"
 #include "DialogUtils.hpp"
+#include "Logger.hpp"
 
 #ifdef Q_OS_WIN
     #include "WebView2Widget.hpp"
@@ -48,30 +51,21 @@ HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title
 }
 
 std::unique_ptr<HtmlViewer> HtmlViewer::createFromFile(QString title, QString path,
-                                                       QWidget* parent) {
+                                                       ContentMode mode, QWidget* parent) {
     if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
 
     auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
-    view->initFromFile(std::move(path));
+    view->initFromFile(std::move(path), mode);
 
     return view;
 }
 
-std::unique_ptr<HtmlViewer> HtmlViewer::createFromMemory(QString title, QString html,
-                                                         QWidget* parent) {
+std::unique_ptr<HtmlViewer> HtmlViewer::createFromUrl(QString title, QUrl url, ContentMode mode,
+                                                      QWidget* parent) {
     if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
 
     auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
-    view->initFromMemory(std::move(html));
-
-    return view;
-}
-
-std::unique_ptr<HtmlViewer> HtmlViewer::createFromUrl(QString title, QUrl url, QWidget* parent) {
-    if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
-
-    auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
-    view->initFromUrl(std::move(url));
+    view->initFromUrl(std::move(url), mode);
 
     return view;
 }
@@ -86,13 +80,27 @@ void HtmlViewer::setupView() {
 #endif
 }
 
-void HtmlViewer::initFromFile(QString path) {
+void HtmlViewer::initFromFile(QString path, ContentMode mode) {
     if (path.isEmpty()) { return; }
 
     m_htmlPath = std::move(path);
 
 #ifdef Q_OS_WIN
-    if (m_view == nullptr) { return; }
+    if (m_view == nullptr) {
+        Log::fatal("WebView2Widget failed to initialize.");
+        return;
+    }
+
+    QFileInfo fi(m_htmlPath);
+    if (!fi.exists() || !fi.isFile()) {
+        Log::warn("HtmlViewer open: path={}, exists={}, isFile={}",
+                  fi.absoluteFilePath().toStdString(), fi.exists(), fi.isFile());
+        return;
+    }
+
+    const QUrl base = QUrl::fromLocalFile(fi.absolutePath() + "/");
+
+    m_view->setContentMode(mode, base);
     m_view->loadFile(m_htmlPath);
 #elif defined(Q_OS_LINUX)
     m_process = new QProcess(m_rootWidget);
@@ -105,36 +113,23 @@ void HtmlViewer::initFromFile(QString path) {
 #endif
 }
 
-void HtmlViewer::initFromMemory(QString html) {
-    if (html.isEmpty()) { return; }
-
-    m_htmlContent = std::move(html);
-
-#ifdef Q_OS_WIN
-    if (m_view == nullptr) { return; }
-    m_view->loadHtml(m_htmlContent);
-#elif defined(Q_OS_LINUX)
-    m_process = new QProcess(m_rootWidget);
-
-    const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
-    const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
-
-    m_process->start(program, {"--stdin", wTitle});
-
-    if (!m_process->waitForStarted()) { return; }
-
-    m_process->write(m_htmlContent.toUtf8());
-    m_process->closeWriteChannel();
-#endif
-}
-
-void HtmlViewer::initFromUrl(QUrl url) {
+void HtmlViewer::initFromUrl(QUrl url, ContentMode mode) {
     if (!url.isValid()) { return; }
 
     m_url = std::move(url);
 
 #ifdef Q_OS_WIN
-    if (m_view == nullptr) { return; }
+    if (m_view == nullptr) {
+        Log::fatal("WebView2Widget failed to initialize.");
+        return;
+    }
+
+    QUrl base = m_url;
+    base.setPath(QString());
+    base.setQuery(QString());
+    base.setFragment(QString());
+
+    m_view->setContentMode(mode, base);
     m_view->loadUrl(m_url);
 #elif defined(Q_OS_LINUX)
     m_process = new QProcess(m_rootWidget);

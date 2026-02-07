@@ -4,6 +4,7 @@
 #include <QString>
 #include <QUrl>
 
+#include "ContentMode.hpp"
 #include "IResourceViewer.hpp"
 
 class QWidget;
@@ -19,14 +20,11 @@ class HtmlViewer final : public IResourceViewer,
     public:
         // load từ file
         static std::unique_ptr<HtmlViewer> createFromFile(QString title, QString path,
-                                                          QWidget* parent);
-
-        // load từ memory
-        static std::unique_ptr<HtmlViewer> createFromMemory(QString title, QString html,
-                                                            QWidget* parent);
+                                                          ContentMode mode, QWidget* parent);
 
         // url
-        static std::unique_ptr<HtmlViewer> createFromUrl(QString title, QUrl url, QWidget* parent);
+        static std::unique_ptr<HtmlViewer> createFromUrl(QString title, QUrl url, ContentMode mode,
+                                                         QWidget* parent);
 
         ~HtmlViewer() override = default;
 
@@ -38,9 +36,8 @@ class HtmlViewer final : public IResourceViewer,
 
     private:
         HtmlViewer(QString title, QWidget* parent);
-        void initFromFile(QString path);
-        void initFromMemory(QString html);
-        void initFromUrl(QUrl url);
+        void initFromFile(QString path, ContentMode mode);
+        void initFromUrl(QUrl url, ContentMode mode);
 
         // ===== IResourceViewer =====
         QWidget* widget() override;
@@ -57,10 +54,8 @@ class HtmlViewer final : public IResourceViewer,
         [[nodiscard]] bool supportsSearch() const;
 
         QString m_htmlPath;
-        QString m_htmlContent;
         QString m_title;
         QUrl m_url;
-        bool m_fromMemory{};
 
         QWidget* m_rootWidget{};
         QString m_lastSearchText;

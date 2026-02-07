@@ -242,3 +242,35 @@ QToolBar#ResourceViewerToolbar QToolButton:checked {
 QToolBar#ResourceViewerToolbar QToolButton:checked:hover {
     background-color: rgba(0, 120, 215, 50%);
 }
+
+QGroupBox#CleanupGroupBox {
+    border: 1px solid #C0C0C0;
+    border-radius: 4px;
+    margin-top: 0.5em;
+}
+
+QGroupBox#CleanupGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 3px 0 3px;
+}
+
+QLabel.TagLabel {
+    color: white;
+    font-weight: bold;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    padding: 4px 15px 4px 60px;
+    min-width: 100px;
+}
+
+QLabel.TagLabel[mode="epub"] {
+    background-color: #8340F7;
+}
+
+QLabel.TagLabel[mode="markdown"] {
+    background-color: #84716B;
+}
