@@ -79,7 +79,6 @@ void AddTabWidget::setupConnections() {
                      &AddTabWidget::updateAddAndClearButtons);
 
     QObject::connect(m_browseBtn, &QPushButton::clicked, this, &AddTabWidget::onBrowseFile);
-    // connect(m_browseButton, &QPushButton::clicked, [this] { pickupFile(); });
 }
 
 void AddTabWidget::onAddButtonClicked() {

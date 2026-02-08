@@ -85,8 +85,10 @@ class AppController final : public QObject {
 
         void handleGetDBInfoRequested();
 
-        static void cleanupOldEpubCache(int days);
-        static void cleanupOldMarkdownCache(int days);
+        static UiConst::CleanupResult cleanupOldEpubCache(int days);
+        static UiConst::CleanupResult cleanupOldMarkdownCache(int days);
+        static UiConst::CleanupResult cleanupOldEpubCacheNow();
+        static UiConst::CleanupResult cleanupOldMarkdownCacheNow();
 
     Q_SIGNALS:
         // waitting for using

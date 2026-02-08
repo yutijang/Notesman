@@ -274,3 +274,13 @@ QLabel.TagLabel[mode="epub"] {
 QLabel.TagLabel[mode="markdown"] {
     background-color: #84716B;
 }
+
+QSpinBox {
+    background-color: #2d2d2d; 
+    color: #f0f0f0;
+}
+
+QSpinBox:disabled {
+    background-color: #353535;    
+    color: #7a7a7a;
+}

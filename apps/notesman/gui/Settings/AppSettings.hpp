@@ -17,13 +17,27 @@ class AppSettings {
 
         [[nodiscard]] UiConst::Language language() const noexcept { return m_language; }
 
-        [[nodiscard]] std::filesystem::path resourceDir() const noexcept { return m_resourceDir; }
+        [[nodiscard]]
+        std::filesystem::path resourceDir() const noexcept {
+            return m_resourceDir;
+        }
 
         [[nodiscard]] bool isManagedResources() const noexcept { return m_isManagedResource; }
 
-        [[nodiscard]] bool isDefaultResourceDir() const noexcept {
+        [[nodiscard]]
+        bool isDefaultResourceDir() const noexcept {
             return m_resourceDir == std::filesystem::path{K_DEFAULT_RESOURCE_DIR};
         }
+
+        [[nodiscard]] bool isCleanupEpubCache() const noexcept { return m_isEpubCleanupCache; }
+
+        [[nodiscard]] bool isCleanupMDCache() const noexcept { return m_isMDCleanupCache; }
+
+        [[nodiscard]] int daysCleanupEpubCache() const noexcept {
+            return m_expiredCleanupEpubCache;
+        }
+
+        [[nodiscard]] int daysCleanupMDCache() const noexcept { return m_expiredCleanupMDCache; }
 
         // maybe unused
         [[nodiscard]] bool isResourceDirCustomized() const noexcept {
@@ -36,6 +50,10 @@ class AppSettings {
         void setResourceDir(std::filesystem::path path) noexcept;
         void setManagedResources(bool managed) noexcept;
         void setResourceDirCustomized(bool customized) noexcept;
+        void setCleanupEpubCache(bool isEnableCleanup) noexcept;
+        void setCleanupMDCache(bool isEnableCleanup) noexcept;
+        void setExpiredCleanupEpubCache(int days) noexcept;
+        void setExpiredCleanupMDCache(int days) noexcept;
 
         // =====================
 
@@ -54,6 +72,10 @@ class AppSettings {
         std::filesystem::path m_resourceDir{K_DEFAULT_RESOURCE_DIR};
         bool m_isManagedResource{true};
         bool m_isResourceDirCustomized{};
+        bool m_isEpubCleanupCache{true};
+        bool m_isMDCleanupCache{true};
+        int m_expiredCleanupEpubCache{};
+        int m_expiredCleanupMDCache{};
 
         bool m_dirty{}; // trạng thái thay đổi kể từ lần load/save cuối
 };

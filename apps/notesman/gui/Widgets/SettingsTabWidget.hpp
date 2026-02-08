@@ -18,6 +18,8 @@ class QLabel;
 class QHBoxLayout;
 class QVBoxLayout;
 class QGroupBox;
+class QCheckBox;
+class QSpinBox;
 
 class SettingsTabWidget final : public QWidget {
         Q_OBJECT
@@ -59,8 +61,8 @@ class SettingsTabWidget final : public QWidget {
 
         void requestDBInfo();
 
-        void cleanupEpubCacheRequest(int days);
-        void cleanupMDCacheRequest(int days);
+        void cleanupEpubCacheNowRequest();
+        void cleanupMDCacheNowRequest();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         enum class CleanupMode : std::uint8_t { epub, markdown };
@@ -114,10 +116,12 @@ class SettingsTabWidget final : public QWidget {
         // Cleanup cache EPUB + Markdown
         QGroupBox* m_cleanupCacheGBox{};
         QLabel* m_cleanupHtmlFromMDCacheLbl{};
-        QLineEdit* m_expiredEpubInp{};
-        QLineEdit* m_expiredMDInp{};
+        QSpinBox* m_expiredEpubSpbx{};
+        QSpinBox* m_expiredMDSpbx{};
         QPushButton* m_cleanupEpubCacheNowBtn{};
         QPushButton* m_cleanupMDCacheNowBtn{};
+        QCheckBox* m_cleanupEpubAfterChk{};
+        QCheckBox* m_cleanupMDAfterChk{};
 
         QWidget* m_loginStatusWidget{};
         QLabel* m_statusLabel{};

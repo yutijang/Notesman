@@ -60,7 +60,7 @@ bool AppInitializer::ensureSingleInstance() {
     socket.connectToServer(SERVER_NAME);
 
     if (socket.waitForConnected(TIMEWAIT)) {
-#ifdef _WIN32
+#if defined(Q_OS_WIN)
         AllowSetForegroundWindow(ASFW_ANY);
 #endif
         socket.write("activate");
@@ -93,7 +93,7 @@ void AppInitializer::onSecondInstanceMessage() {
     const QByteArray msg = client->readAll();
 
     if (msg == "activate" && m_mainWindow) {
-#ifdef _WIN32
+#if defined(Q_OS_WIN)
         // kích hoạt cửa sổ
         HWND hwnd =
             reinterpret_cast<HWND>(m_mainWindow->winId()); // NOLINT(performance-no-int-to-ptr)
@@ -101,7 +101,7 @@ void AppInitializer::onSecondInstanceMessage() {
             ShowWindow(hwnd, SW_RESTORE);                  // khôi phục nếu đang minimize
         }
         SetForegroundWindow(hwnd);
-#else
+#elif defined(Q_OS_LINUX)
         // Linux
         if (m_mainWindow->isMinimized()) { m_mainWindow->showNormal(); }
         m_mainWindow->raise();
@@ -155,8 +155,12 @@ void AppInitializer::run() {
 
     checkUpdateFlag();
 
-    Q_EMIT cleanupEpubCacheRequest(K_CACHE_EXPIRED);
-    Q_EMIT cleanupMDCacheRequest(K_CACHE_EXPIRED);
+    if (settings->isCleanupEpubCache()) {
+        Q_EMIT cleanupEpubCacheRequest(settings->daysCleanupEpubCache());
+    }
+    if (settings->isCleanupMDCache()) {
+        Q_EMIT cleanupMDCacheRequest(settings->daysCleanupMDCache());
+    }
 }
 
 AppInitializer::InitFailureReason AppInitializer::initializeCore() {

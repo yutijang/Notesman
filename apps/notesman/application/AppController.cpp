@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
-#include <memory>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 #include <sqlite3.h>
@@ -18,6 +18,7 @@
 #include <QRegularExpression>
 #include <QStringList>
 #include <Qt>
+#include <QtTypes>
 #include <QStandardPaths>
 
 #include "AppController.hpp"
@@ -281,6 +282,10 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
 
     settings->setManagedResources(data.isManagedResource);
     settings->setResourceDirCustomized(data.isResourceDirCustomized);
+    settings->setCleanupEpubCache(data.isEpubCleanupCache);
+    settings->setCleanupMDCache(data.isMDCleanupCache);
+    settings->setExpiredCleanupEpubCache(data.expiredCleanupEpubCache);
+    settings->setExpiredCleanupMDCache(data.expiredCleanupMDCache);
 
     if (settings->isDirty()) {
         applyLanguage(data.language);
@@ -564,27 +569,58 @@ sqlite_int64 AppController::handleUrlMode(const std::string &title, const QStrin
     return resId;
 }
 
-void AppController::cleanupOldEpubCache(int days) {
+UiConst::CleanupResult AppController::cleanupOldEpubCache(int days) {
     const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub");
-    const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    if (!dir.exists()) { return UiConst::CleanupResult::pathError; }
 
+    if (dir.isEmpty()) { return UiConst::CleanupResult::alreadyEmpty; }
+
+    const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
     const QDateTime now = QDateTime::currentDateTime();
 
+    if (days <= 0) {
+        for (const auto &fi : entries) { QDir(fi.absoluteFilePath()).removeRecursively(); }
+        return UiConst::CleanupResult::success;
+    }
+
+    const qint64 maxAgeSecs = static_cast<qint64>(days) * 86400;
+
     for (const auto &fi : entries) {
-        if (fi.lastModified().daysTo(now) > days) {
+        if (fi.lastModified().secsTo(now) >= maxAgeSecs) {
             QDir(fi.absoluteFilePath()).removeRecursively();
         }
     }
+
+    return UiConst::CleanupResult::success;
 }
 
-void AppController::cleanupOldMarkdownCache(int days) {
+UiConst::CleanupResult AppController::cleanupOldMarkdownCache(int days) {
     const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/markdown");
-    if (!dir.exists()) { return; }
+    if (!dir.exists()) { return UiConst::CleanupResult::pathError; }
 
-    const auto entries = dir.entryInfoList(QDir::Files);
+    if (dir.isEmpty()) { return UiConst::CleanupResult::alreadyEmpty; }
+
+    const auto entries = dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
     const QDateTime now = QDateTime::currentDateTime();
 
-    for (const auto &fi : entries) {
-        if (fi.lastModified().daysTo(now) > days) { QFile::remove(fi.absoluteFilePath()); }
+    if (days <= 0) {
+        for (const auto &fi : entries) { QFile::remove(fi.absoluteFilePath()); }
+        return UiConst::CleanupResult::success;
     }
+
+    const qint64 maxAgeSecs = static_cast<qint64>(days) * 86400;
+
+    for (const auto &fi : entries) {
+        if (fi.lastModified().secsTo(now) >= maxAgeSecs) { QFile::remove(fi.absoluteFilePath()); }
+    }
+
+    return UiConst::CleanupResult::success;
+}
+
+UiConst::CleanupResult AppController::cleanupOldEpubCacheNow() {
+    return cleanupOldEpubCache(0);
+}
+
+UiConst::CleanupResult AppController::cleanupOldMarkdownCacheNow() {
+    return cleanupOldMarkdownCache(0);
 }

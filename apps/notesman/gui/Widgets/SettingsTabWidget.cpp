@@ -24,6 +24,7 @@
 #include "SettingsData.hpp"
 #include "DialogUtils.hpp"
 #include "SettingsManager.hpp"
+#include "Logger.hpp"
 
 namespace {
     constexpr int LAYOUT_MINWIDTH{370};
@@ -96,6 +97,17 @@ void SettingsTabWidget::setupConnections() {
         Q_EMIT cancelLoginRequested();
     });
 
+    QObject::connect(m_cleanupEpubAfterChk, &QCheckBox::toggled, this, [this](bool isChecked) {
+        if (m_expiredEpubSpbx) { m_expiredEpubSpbx->setEnabled(isChecked); }
+    });
+    QObject::connect(m_cleanupMDAfterChk, &QCheckBox::toggled, this, [this](bool isChecked) {
+        if (m_expiredMDSpbx) { m_expiredMDSpbx->setEnabled(isChecked); }
+    });
+    QObject::connect(m_cleanupEpubCacheNowBtn, &QPushButton::clicked,
+                     [this] { Q_EMIT cleanupEpubCacheNowRequest(); });
+    QObject::connect(m_cleanupMDCacheNowBtn, &QPushButton::clicked,
+                     [this] { Q_EMIT cleanupMDCacheNowRequest(); });
+
     // Gán lại thuộc tính động cho nút browse
     m_resDirBtn->setProperty("targetEdit", QVariant::fromValue(m_resDirInp));
 }
@@ -109,8 +121,14 @@ void SettingsTabWidget::retranslateUi() {
     m_themeDarkRad->setText(tr("Dark"));
     m_resDirLbl->setText(tr("Resource storage directory"));
     m_resManLbl->setText(tr("Notes file management type"));
-    m_resManCom->setItemText(0, tr("Internal"));
-    m_resManCom->setItemText(1, tr("Save path only"));
+
+    auto updateCombo = [this](UiConst::ResManKind kind, const QString &text) {
+        int idx = m_resManCom->findData(QVariant::fromValue(kind));
+        if (idx != -1) { m_resManCom->setItemText(idx, text); }
+    };
+    updateCombo(UiConst::ResManKind::internal, tr("Internal"));
+    updateCombo(UiConst::ResManKind::savePathOnly, tr("Save path only"));
+
     m_applyBtn->setText(tr("Apply"));
     m_defaultBtn->setText(tr("Default"));
     m_linkGDBtn->setText(tr("Link Gmail for backup database to Google Drive"));
@@ -140,7 +158,8 @@ void SettingsTabWidget::onApplyBtnClicked() {
         data.theme = UiConst::Theme::dark;
     }
 
-    data.isManagedResource = m_resManCom->currentData().toBool();
+    auto selectedKind = m_resManCom->currentData().value<UiConst::ResManKind>();
+    data.isManagedResource = (selectedKind == UiConst::ResManKind::internal);
 
     const auto path = m_resDirInp->text().trimmed();
     if (!path.isEmpty()) {
@@ -149,6 +168,12 @@ void SettingsTabWidget::onApplyBtnClicked() {
     }
 
     validateResourceDir(data);
+
+    // Cleanup cache group
+    data.isEpubCleanupCache = m_cleanupEpubAfterChk->isChecked();
+    data.isMDCleanupCache = m_cleanupMDAfterChk->isChecked();
+    data.expiredCleanupEpubCache = m_expiredEpubSpbx->value();
+    data.expiredCleanupMDCache = m_expiredMDSpbx->value();
 
     Q_EMIT applySettingsRequested(data);
 }
@@ -253,8 +278,9 @@ QHBoxLayout* SettingsTabWidget::setupResourceManagerTypeGroup() {
     m_resManLbl = new QLabel(tr("Notes file management type"));
     m_resManCom = new QComboBox();
     m_resManCom->setMaximumWidth(200); // NOLINT(readability-magic-numbers)
-    m_resManCom->addItem(tr("Internal"), QVariant::fromValue(true));
-    m_resManCom->addItem(tr("Save path only"), QVariant::fromValue(false));
+    m_resManCom->addItem(tr("Internal"), QVariant::fromValue(UiConst::ResManKind::internal));
+    m_resManCom->addItem(tr("Save path only"),
+                         QVariant::fromValue(UiConst::ResManKind::savePathOnly));
     resManLayout->addWidget(m_resManLbl);
     resManLayout->addWidget(m_resManCom);
 
@@ -366,14 +392,14 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
     m_cleanupCacheGBox->setTitle("Cleanup EPUB && Markdown files cache");
     m_cleanupCacheGBox->setFlat(true);
     m_cleanupCacheGBox->setObjectName("CleanupGroupBox");
-    m_cleanupCacheGBox->setMinimumHeight(100);
+    m_cleanupCacheGBox->setMinimumHeight(100);     // NOLINT(readability-magic-numbers)
 
     auto* mainLayout = new QVBoxLayout(m_cleanupCacheGBox);
-    mainLayout->setContentsMargins(0, 20, 15, 15);
-    mainLayout->setSpacing(15);
+    mainLayout->setContentsMargins(0, 20, 15, 15); // NOLINT(readability-magic-numbers)
 
     auto createRow = [this](const QString &tagText, CleanupMode mode) {
         auto* hLayout = new QHBoxLayout();
+        hLayout->setSpacing(5);
 
         auto* tagLbl = new QLabel(tagText);
         tagLbl->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
@@ -385,38 +411,42 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
             tagLbl->setProperty("mode", "markdown");
         }
 
-        auto* descLbl = new QLabel(tr("Auto cleanup after (days):"));
-
         if (mode == CleanupMode::epub) {
-            m_expiredEpubInp = new QLineEdit();
-            m_expiredEpubInp->setFixedWidth(45);
-            m_expiredEpubInp->setAlignment(Qt::AlignCenter);
-            m_expiredEpubInp->setValidator(new QIntValidator(0, 999, m_expiredEpubInp));
-            m_expiredEpubInp->setPlaceholderText("0");
+            m_cleanupEpubAfterChk = new QCheckBox(tr("Cleanup files older than"));
+            m_cleanupEpubAfterChk->setChecked(true);
+
+            m_expiredEpubSpbx = new QSpinBox();
+            m_expiredEpubSpbx->setFixedWidth(90); // NOLINT(readability-magic-numbers)
+            m_expiredEpubSpbx->setAlignment(Qt::AlignCenter);
+            m_expiredEpubSpbx->setSuffix(" days");
+            m_expiredEpubSpbx->setRange(1, 365);  // NOLINT(readability-magic-numbers)
 
             m_cleanupEpubCacheNowBtn = new QPushButton(tr("Cleanup now"));
-            QObject::connect(m_cleanupEpubCacheNowBtn, &QPushButton::clicked,
-                             [this] { Q_EMIT cleanupEpubCacheRequest(0); });
+
         } else if (mode == CleanupMode::markdown) {
-            m_expiredMDInp = new QLineEdit();
-            m_expiredMDInp->setFixedWidth(45);
-            m_expiredMDInp->setAlignment(Qt::AlignCenter);
-            m_expiredMDInp->setValidator(new QIntValidator(0, 999, m_expiredMDInp));
-            m_expiredMDInp->setPlaceholderText("0");
+            m_cleanupMDAfterChk = new QCheckBox(tr("Cleanup files older than"));
+            m_cleanupMDAfterChk->setChecked(true);
+
+            m_expiredMDSpbx = new QSpinBox();
+            m_expiredMDSpbx->setFixedWidth(90); // NOLINT(readability-magic-numbers)
+            m_expiredMDSpbx->setAlignment(Qt::AlignCenter);
+            m_expiredMDSpbx->setSuffix(" days");
+            m_expiredMDSpbx->setRange(1, 365);  // NOLINT(readability-magic-numbers)
 
             m_cleanupMDCacheNowBtn = new QPushButton(tr("Cleanup now"));
-            QObject::connect(m_cleanupEpubCacheNowBtn, &QPushButton::clicked,
-                             [this] { Q_EMIT cleanupMDCacheRequest(0); });
         }
 
         hLayout->addWidget(tagLbl);
         hLayout->addStretch(1);
-        hLayout->addWidget(descLbl);
         if (mode == CleanupMode::epub) {
-            hLayout->addWidget(m_expiredEpubInp);
+            hLayout->addWidget(m_cleanupEpubAfterChk);
+            hLayout->addWidget(m_expiredEpubSpbx);
+            hLayout->addSpacing(25);
             hLayout->addWidget(m_cleanupEpubCacheNowBtn);
         } else if (mode == CleanupMode::markdown) {
-            hLayout->addWidget(m_expiredMDInp);
+            hLayout->addWidget(m_cleanupMDAfterChk);
+            hLayout->addWidget(m_expiredMDSpbx);
+            hLayout->addSpacing(25);
             hLayout->addWidget(m_cleanupMDCacheNowBtn);
         }
 
@@ -424,6 +454,7 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
     };
 
     mainLayout->addLayout(createRow("EPUB", CleanupMode::epub));
+    mainLayout->setSpacing(15);
     mainLayout->addLayout(createRow("MARKDOWN", CleanupMode::markdown));
 
     m_cleanupCacheGBox->setLayout(mainLayout);
@@ -496,11 +527,15 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     validateResourceDir(settings);
 
     // Kiểu quản lý tài nguyên
-    if (settings.isManagedResource) {
-        m_resManCom->setCurrentIndex(0); // "Internal"
-    } else {
-        m_resManCom->setCurrentIndex(1); // "Save path only"
-    }
+    auto currentKind = settings.isManagedResource ? UiConst::ResManKind::internal
+                                                  : UiConst::ResManKind::savePathOnly;
+    m_resManCom->setCurrentIndex(m_resManCom->findData(QVariant::fromValue(currentKind)));
+
+    // Cleanup file cache group
+    m_cleanupEpubAfterChk->setChecked(settings.isEpubCleanupCache);
+    m_cleanupMDAfterChk->setChecked(settings.isMDCleanupCache);
+    m_expiredEpubSpbx->setValue(settings.expiredCleanupEpubCache);
+    m_expiredMDSpbx->setValue(settings.expiredCleanupMDCache);
 }
 
 void SettingsTabWidget::validateResourceDir(const SettingsData &settings) const {

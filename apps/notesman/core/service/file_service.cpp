@@ -100,13 +100,11 @@ sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath
 std::optional<sqlite3_int64>
     FileService::findResourceByFile(const std::filesystem::path &filepath) {
     // Kiểm tra trước với original_path
-    auto byOriginal = m_fileRepo.getResourceIdByOriginalPath(filepath);
-    if (byOriginal.has_value()) { return byOriginal; }
+    if (auto byOriginal = m_fileRepo.getResourceIdByOriginalPath(filepath)) { return byOriginal; }
 
     // Kiểm tra theo hash
     std::string hash = computeFileHash(filepath);
-    auto byHash = m_resRepo.getByFileHash(hash);
-    if (byHash.has_value()) { return byHash->id; }
+    if (auto byHash = m_resRepo.getByFileHash(hash)) { return byHash->id; }
 
     return std::nullopt;
 }

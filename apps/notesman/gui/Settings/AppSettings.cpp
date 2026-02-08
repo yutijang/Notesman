@@ -45,6 +45,20 @@ bool AppSettings::load(const std::filesystem::path &path) {
         m_isResourceDirCustomized =
             (kv["resource_dir_is_default"] == "true" || kv["resource_dir_is_default"] == "1");
     }
+    if (kv.contains("is_cleanup_epub_cache")) {
+        m_isEpubCleanupCache =
+            (kv["is_cleanup_epub_cache"] == "true" || kv["is_cleanup_epub_cache"] == "1");
+    }
+    if (kv.contains("is_cleanup_md_cache")) {
+        m_isMDCleanupCache =
+            (kv["is_cleanup_md_cache"] == "true" || kv["is_cleanup_md_cache"] == "1");
+    }
+    if (kv.contains("expired_cleanup_epub_cache")) {
+        m_expiredCleanupEpubCache = std::stoi(kv["expired_cleanup_epub_cache"]);
+    }
+    if (kv.contains("expired_cleanup_md_cache")) {
+        m_expiredCleanupMDCache = std::stoi(kv["expired_cleanup_md_cache"]);
+    }
 
     m_dirty = false;
 
@@ -62,6 +76,10 @@ bool AppSettings::save(const std::filesystem::path &path) const {
     file << "resource_dir=" << m_resourceDir.string() << "\n";
     file << "is_managed=" << (m_isManagedResource ? "true" : "false") << "\n";
     file << "resource_dir_is_default=" << (m_isResourceDirCustomized ? "true" : "false") << "\n";
+    file << "is_cleanup_epub_cache=" << (m_isEpubCleanupCache ? "true" : "false") << "\n";
+    file << "is_cleanup_md_cache=" << (m_isMDCleanupCache ? "true" : "false") << "\n";
+    file << "expired_cleanup_epub_cache=" << m_expiredCleanupEpubCache << "\n";
+    file << "expired_cleanup_md_cache=" << m_expiredCleanupMDCache << "\n";
 
     return true;
 }
@@ -101,12 +119,46 @@ void AppSettings::setResourceDirCustomized(bool customized) noexcept {
     }
 }
 
+void AppSettings::setCleanupEpubCache(bool isEnableCleanup) noexcept {
+    if (m_isEpubCleanupCache != isEnableCleanup) {
+        m_isEpubCleanupCache = isEnableCleanup;
+        m_dirty = true;
+    }
+}
+
+void AppSettings::setCleanupMDCache(bool isEnableCleanup) noexcept {
+    if (m_isMDCleanupCache != isEnableCleanup) {
+        m_isMDCleanupCache = isEnableCleanup;
+        m_dirty = true;
+    }
+}
+
+void AppSettings::setExpiredCleanupEpubCache(int days) noexcept {
+    if (m_expiredCleanupEpubCache != days) {
+        m_expiredCleanupEpubCache = days;
+        m_dirty = true;
+    }
+}
+
+void AppSettings::setExpiredCleanupMDCache(int days) noexcept {
+    if (m_expiredCleanupMDCache != days) {
+        m_expiredCleanupMDCache = days;
+        m_dirty = true;
+    }
+}
+
 SettingsData AppSettings::toUiSettings() const {
-    return {.theme = m_theme,
-            .language = m_language,
-            .resourceDir = m_resourceDir,
-            .isManagedResource = m_isManagedResource,
-            .isResourceDirCustomized = m_isResourceDirCustomized};
+    return {
+        .theme = m_theme,
+        .language = m_language,
+        .resourceDir = m_resourceDir,
+        .isManagedResource = m_isManagedResource,
+        .isResourceDirCustomized = m_isResourceDirCustomized,
+        .isEpubCleanupCache = m_isEpubCleanupCache,
+        .isMDCleanupCache = m_isMDCleanupCache,
+        .expiredCleanupEpubCache = m_expiredCleanupEpubCache,
+        .expiredCleanupMDCache = m_expiredCleanupMDCache,
+    };
 }
 
 SettingsData AppSettings::defaultUiSettings() {

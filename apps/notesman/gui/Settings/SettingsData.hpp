@@ -15,4 +15,8 @@ struct SettingsData {
         std::filesystem::path resourceDir;
         bool isManagedResource{};
         bool isResourceDirCustomized{};
+        bool isEpubCleanupCache{};
+        bool isMDCleanupCache{};
+        int expiredCleanupEpubCache{};
+        int expiredCleanupMDCache{};
 };

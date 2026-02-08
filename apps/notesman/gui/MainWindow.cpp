@@ -450,10 +450,48 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_appController, &AppController::deleteDatabaseFileRespondForward,
                      m_settingsTab, &SettingsTabWidget::handleDeleteDBFileRespond);
 
-    QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupEpubCacheRequest, m_appController,
-                     &AppController::cleanupOldEpubCache);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupMDCacheRequest, m_appController,
-                     &AppController::cleanupOldMarkdownCache);
+    QObject::connect(
+        m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController, [this] {
+            auto result = AppController::cleanupOldEpubCacheNow();
+            switch (result) {
+                case UiConst::CleanupResult::pathError: {
+                    Q_EMIT settingsTabShowNotification(
+                        tr("Cache directory not found or inaccessible."));
+                    break;
+                }
+                case UiConst::CleanupResult::alreadyEmpty: {
+                    Q_EMIT settingsTabShowNotification(
+                        tr("The cache folder is already empty. No action required."));
+                    break;
+                }
+                case UiConst::CleanupResult::success: {
+                    Q_EMIT settingsTabShowNotification(
+                        tr("All temporary cache files have been successfully cleared."));
+                    break;
+                }
+            }
+        });
+    QObject::connect(
+        m_settingsTab, &SettingsTabWidget::cleanupMDCacheNowRequest, m_appController, [this] {
+            auto result = AppController::cleanupOldMarkdownCacheNow();
+            switch (result) {
+                case UiConst::CleanupResult::pathError: {
+                    Q_EMIT settingsTabShowNotification(
+                        tr("\"epub\" cache directory not found or inaccessible."));
+                    break;
+                }
+                case UiConst::CleanupResult::alreadyEmpty: {
+                    Q_EMIT settingsTabShowNotification(
+                        tr("The cache folder is already empty. No action required."));
+                    break;
+                }
+                case UiConst::CleanupResult::success: {
+                    Q_EMIT settingsTabShowNotification(
+                        tr("All temporary cache files have been successfully cleared."));
+                    break;
+                }
+            }
+        });
 }
 
 void MainWindow::changeEvent(QEvent* event) {
@@ -713,7 +751,7 @@ void MainWindow::handleWindowsUpdate(const QString &filePath) {
         return;
     }
 
-    const QString currentPID = QString::number(getCurrentPid());
+    const auto currentPID = QString::number(QCoreApplication::applicationPid());
 
     const auto resDirStd = Utils::getDirectoryOrFileName(m_appController->resourceDir());
     const QString resourceDirName =
@@ -930,10 +968,6 @@ void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
 }
 
 // --- END showContextMenu helper ---
-
-qint64 MainWindow::getCurrentPid() {
-    return QCoreApplication::applicationPid();
-}
 
 QString MainWindow::resolveResPath(const QString &path) {
     QString absolutePath;
