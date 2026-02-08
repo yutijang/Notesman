@@ -66,6 +66,7 @@ class AppSettings {
 
     private:
         static constexpr const char* K_DEFAULT_RESOURCE_DIR = "resources";
+        static constexpr int K_CACHE_EXPIRED{7};
 
         UiConst::Theme m_theme{UiConst::Theme::light};
         UiConst::Language m_language{UiConst::Language::english};
@@ -74,8 +75,8 @@ class AppSettings {
         bool m_isResourceDirCustomized{};
         bool m_isEpubCleanupCache{true};
         bool m_isMDCleanupCache{true};
-        int m_expiredCleanupEpubCache{};
-        int m_expiredCleanupMDCache{};
+        int m_expiredCleanupEpubCache{K_CACHE_EXPIRED};
+        int m_expiredCleanupMDCache{K_CACHE_EXPIRED};
 
         bool m_dirty{}; // trạng thái thay đổi kể từ lần load/save cuối
 };

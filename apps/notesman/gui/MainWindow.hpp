@@ -121,6 +121,8 @@ class MainWindow : public QMainWindow {
         void handleSettingsStateChange(UiConst::SettingsMessageState state);
         void handleContextMenuDeleteAction(ResultsTable* resultTable);
 
+        void notiFromCleanupCacheResult(UiConst::CleanupResult result);
+
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(const QString &filePath);
 #elif defined(Q_OS_LINUX)

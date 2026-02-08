@@ -27,7 +27,6 @@
 #include "Logger.hpp"
 
 namespace {
-    constexpr int LAYOUT_MINWIDTH{370};
     constexpr int COUNTDOWN{60};
 } // namespace
 
@@ -41,7 +40,6 @@ void SettingsTabWidget::setupUi() {
 
     auto* contentWidget = new QWidget();
     auto* contentLayout = new QVBoxLayout(contentWidget);
-    contentWidget->setMinimumWidth(LAYOUT_MINWIDTH);
 
     // Nhãn thông báo cập nhật Settings
     m_notiSettingsChangedLbl = new QLabel();
@@ -65,6 +63,9 @@ void SettingsTabWidget::setupUi() {
     mainLayout->addStretch(1);
     mainLayout->addWidget(contentWidget, 3);
     mainLayout->addStretch(1);
+
+    this->layout()->activate();
+    this->setMinimumWidth(this->sizeHint().width());
 }
 
 void SettingsTabWidget::setupConnections() {
@@ -396,6 +397,7 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
 
     auto* mainLayout = new QVBoxLayout(m_cleanupCacheGBox);
     mainLayout->setContentsMargins(0, 20, 15, 15); // NOLINT(readability-magic-numbers)
+    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
     auto createRow = [this](const QString &tagText, CleanupMode mode) {
         auto* hLayout = new QHBoxLayout();
@@ -411,44 +413,48 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
             tagLbl->setProperty("mode", "markdown");
         }
 
+        QCheckBox* currentChk{};
+        QSpinBox* currentSpbx{};
+        QPushButton* currentBtn{};
+
         if (mode == CleanupMode::epub) {
-            m_cleanupEpubAfterChk = new QCheckBox(tr("Cleanup files older than"));
-            m_cleanupEpubAfterChk->setChecked(true);
-
+            m_cleanupEpubAfterChk = new QCheckBox();
             m_expiredEpubSpbx = new QSpinBox();
-            m_expiredEpubSpbx->setFixedWidth(90); // NOLINT(readability-magic-numbers)
-            m_expiredEpubSpbx->setAlignment(Qt::AlignCenter);
-            m_expiredEpubSpbx->setSuffix(" days");
-            m_expiredEpubSpbx->setRange(1, 365);  // NOLINT(readability-magic-numbers)
+            m_cleanupEpubCacheNowBtn = new QPushButton();
 
-            m_cleanupEpubCacheNowBtn = new QPushButton(tr("Cleanup now"));
+            currentChk = m_cleanupEpubAfterChk;
+            currentSpbx = m_expiredEpubSpbx;
+            currentBtn = m_cleanupEpubCacheNowBtn;
 
         } else if (mode == CleanupMode::markdown) {
-            m_cleanupMDAfterChk = new QCheckBox(tr("Cleanup files older than"));
-            m_cleanupMDAfterChk->setChecked(true);
-
+            m_cleanupMDAfterChk = new QCheckBox();
             m_expiredMDSpbx = new QSpinBox();
-            m_expiredMDSpbx->setFixedWidth(90); // NOLINT(readability-magic-numbers)
-            m_expiredMDSpbx->setAlignment(Qt::AlignCenter);
-            m_expiredMDSpbx->setSuffix(" days");
-            m_expiredMDSpbx->setRange(1, 365);  // NOLINT(readability-magic-numbers)
+            m_cleanupMDCacheNowBtn = new QPushButton();
 
-            m_cleanupMDCacheNowBtn = new QPushButton(tr("Cleanup now"));
+            currentChk = m_cleanupMDAfterChk;
+            currentSpbx = m_expiredMDSpbx;
+            currentBtn = m_cleanupMDCacheNowBtn;
         }
+
+        currentChk->setText(tr("Cleanup files older than"));
+        currentChk->setChecked(true);
+        currentChk->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+        currentSpbx->setFixedWidth(90);
+        currentSpbx->setAlignment(Qt::AlignCenter);
+        currentSpbx->setSuffix(" days");
+        currentSpbx->setRange(1, 365); // NOLINT(readability-magic-numbers)
+
+        currentBtn->setText(tr("Cleanup now"));
 
         hLayout->addWidget(tagLbl);
+        hLayout->addSpacing(10);
         hLayout->addStretch(1);
-        if (mode == CleanupMode::epub) {
-            hLayout->addWidget(m_cleanupEpubAfterChk);
-            hLayout->addWidget(m_expiredEpubSpbx);
-            hLayout->addSpacing(25);
-            hLayout->addWidget(m_cleanupEpubCacheNowBtn);
-        } else if (mode == CleanupMode::markdown) {
-            hLayout->addWidget(m_cleanupMDAfterChk);
-            hLayout->addWidget(m_expiredMDSpbx);
-            hLayout->addSpacing(25);
-            hLayout->addWidget(m_cleanupMDCacheNowBtn);
-        }
+
+        hLayout->addWidget(currentChk);
+        hLayout->addWidget(currentSpbx);
+        hLayout->addSpacing(25);
+        hLayout->addWidget(currentBtn);
 
         return hLayout;
     };

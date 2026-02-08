@@ -450,48 +450,16 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_appController, &AppController::deleteDatabaseFileRespondForward,
                      m_settingsTab, &SettingsTabWidget::handleDeleteDBFileRespond);
 
-    QObject::connect(
-        m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController, [this] {
-            auto result = AppController::cleanupOldEpubCacheNow();
-            switch (result) {
-                case UiConst::CleanupResult::pathError: {
-                    Q_EMIT settingsTabShowNotification(
-                        tr("Cache directory not found or inaccessible."));
-                    break;
-                }
-                case UiConst::CleanupResult::alreadyEmpty: {
-                    Q_EMIT settingsTabShowNotification(
-                        tr("The cache folder is already empty. No action required."));
-                    break;
-                }
-                case UiConst::CleanupResult::success: {
-                    Q_EMIT settingsTabShowNotification(
-                        tr("All temporary cache files have been successfully cleared."));
-                    break;
-                }
-            }
-        });
-    QObject::connect(
-        m_settingsTab, &SettingsTabWidget::cleanupMDCacheNowRequest, m_appController, [this] {
-            auto result = AppController::cleanupOldMarkdownCacheNow();
-            switch (result) {
-                case UiConst::CleanupResult::pathError: {
-                    Q_EMIT settingsTabShowNotification(
-                        tr("\"epub\" cache directory not found or inaccessible."));
-                    break;
-                }
-                case UiConst::CleanupResult::alreadyEmpty: {
-                    Q_EMIT settingsTabShowNotification(
-                        tr("The cache folder is already empty. No action required."));
-                    break;
-                }
-                case UiConst::CleanupResult::success: {
-                    Q_EMIT settingsTabShowNotification(
-                        tr("All temporary cache files have been successfully cleared."));
-                    break;
-                }
-            }
-        });
+    QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController,
+                     [this] {
+                         auto result = AppController::cleanupOldEpubCacheNow();
+                         notiFromCleanupCacheResult(result);
+                     });
+    QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupMDCacheNowRequest, m_appController,
+                     [this] {
+                         auto result = AppController::cleanupOldMarkdownCacheNow();
+                         notiFromCleanupCacheResult(result);
+                     });
 }
 
 void MainWindow::changeEvent(QEvent* event) {
@@ -990,4 +958,24 @@ QString MainWindow::resolveResPath(const QString &path) {
     }
 
     return absolutePath;
+}
+
+void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result) {
+    switch (result) {
+        case UiConst::CleanupResult::pathError: {
+            Q_EMIT settingsTabShowNotification(
+                tr("\"epub\" cache directory not found or inaccessible."));
+            break;
+        }
+        case UiConst::CleanupResult::alreadyEmpty: {
+            Q_EMIT settingsTabShowNotification(
+                tr("The cache folder is already empty. No action required."));
+            break;
+        }
+        case UiConst::CleanupResult::success: {
+            Q_EMIT settingsTabShowNotification(
+                tr("All temporary cache files have been successfully cleared."));
+            break;
+        }
+    }
 }

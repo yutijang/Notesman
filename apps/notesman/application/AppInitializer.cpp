@@ -52,7 +52,6 @@
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
     constexpr int TIMEWAIT{100};
-    constexpr int K_CACHE_EXPIRED{7};
 } // namespace
 
 bool AppInitializer::ensureSingleInstance() {
