@@ -401,7 +401,7 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
 
     auto createRow = [this](const QString &tagText, CleanupMode mode) {
         auto* hLayout = new QHBoxLayout();
-        hLayout->setSpacing(5);
+        hLayout->setSpacing(5); // NOLINT(readability-magic-numbers)
 
         auto* tagLbl = new QLabel(tagText);
         tagLbl->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
@@ -440,27 +440,27 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
         currentChk->setChecked(true);
         currentChk->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-        currentSpbx->setFixedWidth(90);
+        currentSpbx->setFixedWidth(90); // NOLINT(readability-magic-numbers)
         currentSpbx->setAlignment(Qt::AlignCenter);
         currentSpbx->setSuffix(" days");
-        currentSpbx->setRange(1, 365); // NOLINT(readability-magic-numbers)
+        currentSpbx->setRange(1, 365);  // NOLINT(readability-magic-numbers)
 
         currentBtn->setText(tr("Cleanup now"));
 
         hLayout->addWidget(tagLbl);
-        hLayout->addSpacing(10);
+        hLayout->addSpacing(10); // NOLINT(readability-magic-numbers)
         hLayout->addStretch(1);
 
         hLayout->addWidget(currentChk);
         hLayout->addWidget(currentSpbx);
-        hLayout->addSpacing(25);
+        hLayout->addSpacing(25); // NOLINT(readability-magic-numbers)
         hLayout->addWidget(currentBtn);
 
         return hLayout;
     };
 
     mainLayout->addLayout(createRow("EPUB", CleanupMode::epub));
-    mainLayout->setSpacing(15);
+    mainLayout->setSpacing(15); // NOLINT(readability-magic-numbers)
     mainLayout->addLayout(createRow("MARKDOWN", CleanupMode::markdown));
 
     m_cleanupCacheGBox->setLayout(mainLayout);

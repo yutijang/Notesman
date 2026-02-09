@@ -9,6 +9,7 @@
 #include <QString>
 #include <QObject>
 #include <QStringList>
+#include <QLatin1String>
 
 #include "IResourceViewer.hpp"
 #include "UiConstants.hpp"
@@ -121,7 +122,7 @@ class MainWindow : public QMainWindow {
         void handleSettingsStateChange(UiConst::SettingsMessageState state);
         void handleContextMenuDeleteAction(ResultsTable* resultTable);
 
-        void notiFromCleanupCacheResult(UiConst::CleanupResult result);
+        void notiFromCleanupCacheResult(UiConst::CleanupResult result, QLatin1StringView type);
 
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(const QString &filePath);

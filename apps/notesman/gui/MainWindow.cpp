@@ -36,6 +36,7 @@
 #include <QStringList>
 #include <QPushButton>
 #include <QOverload>
+#include <QLatin1String>
 
 #include "ContentMode.hpp"
 #include "HtmlViewer.hpp"
@@ -453,12 +454,12 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController,
                      [this] {
                          auto result = AppController::cleanupOldEpubCacheNow();
-                         notiFromCleanupCacheResult(result);
+                         notiFromCleanupCacheResult(result, QLatin1StringView("EPUB"));
                      });
     QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupMDCacheNowRequest, m_appController,
                      [this] {
                          auto result = AppController::cleanupOldMarkdownCacheNow();
-                         notiFromCleanupCacheResult(result);
+                         notiFromCleanupCacheResult(result, QLatin1StringView("MARKDOWN"));
                      });
 }
 
@@ -960,21 +961,21 @@ QString MainWindow::resolveResPath(const QString &path) {
     return absolutePath;
 }
 
-void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result) {
+void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result, QLatin1StringView type) {
     switch (result) {
         case UiConst::CleanupResult::pathError: {
             Q_EMIT settingsTabShowNotification(
-                tr("\"epub\" cache directory not found or inaccessible."));
+                tr("%1 cache directory not found or inaccessible.").arg(type));
             break;
         }
         case UiConst::CleanupResult::alreadyEmpty: {
             Q_EMIT settingsTabShowNotification(
-                tr("The cache folder is already empty. No action required."));
+                tr("The %1 cache folder is already empty. No action required.").arg(type));
             break;
         }
         case UiConst::CleanupResult::success: {
             Q_EMIT settingsTabShowNotification(
-                tr("All temporary cache files have been successfully cleared."));
+                tr("All temporary %1 cache files have been successfully cleared.").arg(type));
             break;
         }
     }
