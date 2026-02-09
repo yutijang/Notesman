@@ -15,4 +15,5 @@ namespace UiConst {
     enum class ResManKind : std::uint8_t { internal, savePathOnly };
     enum class AddResMode : std::uint8_t { text, file, url };
     enum class CleanupResult : std::uint8_t { pathError, alreadyEmpty, success };
+    enum class CleanupMode : std::uint8_t { epub, markdown };
 } // namespace UiConst

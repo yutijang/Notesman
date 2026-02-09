@@ -454,13 +454,15 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController,
                      [this] {
                          auto result = AppController::cleanupOldEpubCacheNow();
-                         notiFromCleanupCacheResult(result, QLatin1StringView("EPUB"));
+                         notiFromCleanupCacheResult(result, UiConst::CleanupMode::epub);
                      });
     QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupMDCacheNowRequest, m_appController,
                      [this] {
                          auto result = AppController::cleanupOldMarkdownCacheNow();
-                         notiFromCleanupCacheResult(result, QLatin1StringView("MARKDOWN"));
+                         notiFromCleanupCacheResult(result, UiConst::CleanupMode::markdown);
                      });
+    QObject::connect(this, &MainWindow::onCleanupFinished, m_settingsTab,
+                     &SettingsTabWidget::handleButtonAfterCleanup);
 }
 
 void MainWindow::changeEvent(QEvent* event) {
@@ -961,22 +963,27 @@ QString MainWindow::resolveResPath(const QString &path) {
     return absolutePath;
 }
 
-void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result, QLatin1StringView type) {
+void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result,
+                                            UiConst::CleanupMode mode) {
+    QString typeText =
+        (mode == UiConst::CleanupMode::epub) ? QStringLiteral("EPUB") : QStringLiteral("Markdown");
     switch (result) {
         case UiConst::CleanupResult::pathError: {
             Q_EMIT settingsTabShowNotification(
-                tr("%1 cache directory not found or inaccessible.").arg(type));
+                tr("%1 cache directory not found or inaccessible.").arg(typeText));
             break;
         }
         case UiConst::CleanupResult::alreadyEmpty: {
             Q_EMIT settingsTabShowNotification(
-                tr("The %1 cache folder is already empty. No action required.").arg(type));
+                tr("The %1 cache folder is already empty. No action required.").arg(typeText));
             break;
         }
         case UiConst::CleanupResult::success: {
             Q_EMIT settingsTabShowNotification(
-                tr("All temporary %1 cache files have been successfully cleared.").arg(type));
+                tr("All temporary %1 cache files have been successfully cleared.").arg(typeText));
             break;
         }
     }
+
+    Q_EMIT onCleanupFinished(mode);
 }

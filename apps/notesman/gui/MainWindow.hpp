@@ -9,7 +9,6 @@
 #include <QString>
 #include <QObject>
 #include <QStringList>
-#include <QLatin1String>
 
 #include "IResourceViewer.hpp"
 #include "UiConstants.hpp"
@@ -91,6 +90,7 @@ class MainWindow : public QMainWindow {
         void returnDBInfoForward(const QStringList &res);
 
         void deleteDatabaseFileRespondForward(const QString &msg);
+        void onCleanupFinished(UiConst::CleanupMode mode);
 
     protected:
         void showEvent(QShowEvent* event) override;
@@ -122,7 +122,7 @@ class MainWindow : public QMainWindow {
         void handleSettingsStateChange(UiConst::SettingsMessageState state);
         void handleContextMenuDeleteAction(ResultsTable* resultTable);
 
-        void notiFromCleanupCacheResult(UiConst::CleanupResult result, QLatin1StringView type);
+        void notiFromCleanupCacheResult(UiConst::CleanupResult result, UiConst::CleanupMode mode);
 
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(const QString &filePath);

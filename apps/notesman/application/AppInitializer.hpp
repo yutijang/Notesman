@@ -1,15 +1,16 @@
 #pragma once
 
-#include <cstdint>
-#ifdef _WIN32
+#include <QObject>
+
+#ifdef Q_OS_WIN
     #include <windows.h>
     #include <functional>
 #endif
 
+#include <cstdint>
 #include <memory>
 #include <QLocalServer>
 #include <QLocalSocket>
-#include <QObject>
 #include <QString>
 #include <QStringList>
 

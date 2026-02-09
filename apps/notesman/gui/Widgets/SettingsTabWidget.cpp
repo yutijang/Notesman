@@ -18,6 +18,7 @@
 #include <QFileInfo>
 #include <QStringList>
 #include <QIntValidator>
+#include <QLayout>
 
 #include "SettingsTabWidget.hpp"
 #include "UiConstants.hpp"
@@ -104,10 +105,14 @@ void SettingsTabWidget::setupConnections() {
     QObject::connect(m_cleanupMDAfterChk, &QCheckBox::toggled, this, [this](bool isChecked) {
         if (m_expiredMDSpbx) { m_expiredMDSpbx->setEnabled(isChecked); }
     });
-    QObject::connect(m_cleanupEpubCacheNowBtn, &QPushButton::clicked,
-                     [this] { Q_EMIT cleanupEpubCacheNowRequest(); });
-    QObject::connect(m_cleanupMDCacheNowBtn, &QPushButton::clicked,
-                     [this] { Q_EMIT cleanupMDCacheNowRequest(); });
+    QObject::connect(m_cleanupEpubCacheNowBtn, &QPushButton::clicked, [this] {
+        m_cleanupEpubCacheNowBtn->setEnabled(false);
+        Q_EMIT cleanupEpubCacheNowRequest();
+    });
+    QObject::connect(m_cleanupMDCacheNowBtn, &QPushButton::clicked, [this] {
+        m_cleanupMDCacheNowBtn->setEnabled(false);
+        Q_EMIT cleanupMDCacheNowRequest();
+    });
 
     // Gán lại thuộc tính động cho nút browse
     m_resDirBtn->setProperty("targetEdit", QVariant::fromValue(m_resDirInp));
@@ -399,25 +404,21 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
     mainLayout->setContentsMargins(0, 20, 15, 15); // NOLINT(readability-magic-numbers)
     mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    auto createRow = [this](const QString &tagText, CleanupMode mode) {
+    auto createRow = [this](const QString &tagText, UiConst::CleanupMode mode) {
         auto* hLayout = new QHBoxLayout();
         hLayout->setSpacing(5); // NOLINT(readability-magic-numbers)
 
         auto* tagLbl = new QLabel(tagText);
         tagLbl->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
-
         tagLbl->setProperty("class", "TagLabel");
-        if (mode == CleanupMode::epub) {
-            tagLbl->setProperty("mode", "epub");
-        } else if (mode == CleanupMode::markdown) {
-            tagLbl->setProperty("mode", "markdown");
-        }
 
         QCheckBox* currentChk{};
         QSpinBox* currentSpbx{};
         QPushButton* currentBtn{};
 
-        if (mode == CleanupMode::epub) {
+        if (mode == UiConst::CleanupMode::epub) {
+            tagLbl->setProperty("mode", "epub");
+
             m_cleanupEpubAfterChk = new QCheckBox();
             m_expiredEpubSpbx = new QSpinBox();
             m_cleanupEpubCacheNowBtn = new QPushButton();
@@ -425,8 +426,9 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
             currentChk = m_cleanupEpubAfterChk;
             currentSpbx = m_expiredEpubSpbx;
             currentBtn = m_cleanupEpubCacheNowBtn;
+        } else if (mode == UiConst::CleanupMode::markdown) {
+            tagLbl->setProperty("mode", "markdown");
 
-        } else if (mode == CleanupMode::markdown) {
             m_cleanupMDAfterChk = new QCheckBox();
             m_expiredMDSpbx = new QSpinBox();
             m_cleanupMDCacheNowBtn = new QPushButton();
@@ -459,9 +461,9 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
         return hLayout;
     };
 
-    mainLayout->addLayout(createRow("EPUB", CleanupMode::epub));
+    mainLayout->addLayout(createRow("EPUB", UiConst::CleanupMode::epub));
     mainLayout->setSpacing(15); // NOLINT(readability-magic-numbers)
-    mainLayout->addLayout(createRow("MARKDOWN", CleanupMode::markdown));
+    mainLayout->addLayout(createRow("MARKDOWN", UiConst::CleanupMode::markdown));
 
     m_cleanupCacheGBox->setLayout(mainLayout);
 
@@ -731,4 +733,12 @@ void SettingsTabWidget::handleDBInfoGot(const QStringList &info) {
 
 void SettingsTabWidget::handleDeleteDBFileRespond(const QString &msg) {
     DialogUtils::showInfo(this, tr("Information"), msg);
+}
+
+void SettingsTabWidget::handleButtonAfterCleanup(UiConst::CleanupMode mode) {
+    if (mode == UiConst::CleanupMode::epub) {
+        m_cleanupEpubCacheNowBtn->setEnabled(true);
+    } else if (mode == UiConst::CleanupMode::markdown) {
+        m_cleanupMDCacheNowBtn->setEnabled(true);
+    }
 }

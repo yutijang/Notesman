@@ -5,7 +5,6 @@
 #include <QString>
 #include <QObject>
 #include <QStringList>
-#include <cstdint>
 
 #include "SettingsData.hpp"
 #include "UiConstants.hpp"
@@ -49,6 +48,8 @@ class SettingsTabWidget final : public QWidget {
         void handleSettingsStateChange(const SettingsData &settings) const;
         void handleUiRefreshRequest(const SettingsData &settings) const;
 
+        void handleButtonAfterCleanup(UiConst::CleanupMode mode);
+
     Q_SIGNALS:
         void applySettingsRequested(const SettingsData &data);
         void defaultSettingsRequested();
@@ -65,8 +66,6 @@ class SettingsTabWidget final : public QWidget {
         void cleanupMDCacheNowRequest();
 
     private: // NOLINT(readability-redundant-access-specifiers)
-        enum class CleanupMode : std::uint8_t { epub, markdown };
-
         void setupUi();
         void setupConnections();
         void updateCountdownDisplay();

@@ -104,7 +104,7 @@ void OAuthManager::processTokenJson(const QJsonObject &json) {
 }
 
 void OAuthManager::openBrowser(const QUrl &url) {
-#ifdef _WIN32
+#if defined(Q_OS_WIN)
     QDesktopServices::openUrl(url);
 #else
     bool isWSL = !qEnvironmentVariable("WSL_DISTRO_NAME").isEmpty();
