@@ -37,7 +37,7 @@ class AppController final : public QObject {
         [[nodiscard]] const AppSettings* settings() const noexcept { return m_settings.get(); }
 
         [[nodiscard]] bool isDarkTheme() const noexcept {
-            return m_settings->theme() == UiConst::Theme::dark;
+            return m_settings->theme() == UiConst::Theme::Dark;
         }
 
         [[nodiscard]] UiConst::Theme currentTheme() const noexcept { return m_settings->theme(); }
@@ -98,11 +98,11 @@ class AppController final : public QObject {
         void displayResultForGetAll(const std::vector<UnifiedSearchResult> &results);
         void settingsUpdateStatus(
             const QString &message, UiConst::SettingsMessageState state,
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void initialSettingsLoaded(const SettingsData &settings);
         void requestSyntaxHighlightingUpdate(UiConst::Theme theme);
         void addTabNotiRequest(const QString &message, UiConst::SettingsTabNotiLevel notiType =
-                                                           UiConst::SettingsTabNotiLevel::normal);
+                                                           UiConst::SettingsTabNotiLevel::Normal);
         void resetAddTabInputsRequest();
         void searchFinishedFromController(const std::vector<UnifiedSearchResult> &results,
                                           const QString &mode);

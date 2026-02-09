@@ -54,7 +54,7 @@ void AddTabWidget::setupUi() {
     mainLayout->addWidget(controlPanel, 4);
     mainLayout->addWidget(setupTextEditorGroup(), 6); // NOLINT(readability-magic-numbers)
 
-    onAddResTypeModeChanged(static_cast<int>(UiConst::AddResMode::text));
+    onAddResTypeModeChanged(static_cast<int>(UiConst::AddResMode::Text));
 
     updateAddAndClearButtons();
 }
@@ -91,15 +91,15 @@ void AddTabWidget::onAddButtonClicked() {
 
     const auto mode = static_cast<UiConst::AddResMode>(m_addResTypeGroup->checkedId());
     switch (mode) {
-        case UiConst::AddResMode::text: {
+        case UiConst::AddResMode::Text: {
             text = m_textEdt->toPlainText();
             break;
         }
-        case UiConst::AddResMode::file: {
+        case UiConst::AddResMode::File: {
             filePath = m_filepathInp->text().trimmed();
             break;
         }
-        case UiConst::AddResMode::url: {
+        case UiConst::AddResMode::Url: {
             url = m_urlInp->text().trimmed();
             break;
         }
@@ -154,7 +154,7 @@ void AddTabWidget::updateAddAndClearButtons() {
 
     const auto mode = static_cast<UiConst::AddResMode>(m_addResTypeGroup->checkedId());
     switch (mode) {
-        case UiConst::AddResMode::text: {
+        case UiConst::AddResMode::Text: {
             const bool hasText = !m_textEdt->toPlainText().trimmed().isEmpty();
 
             m_addBtn->setEnabled(hasTitle && hasText);
@@ -162,7 +162,7 @@ void AddTabWidget::updateAddAndClearButtons() {
             break;
         }
 
-        case UiConst::AddResMode::file: {
+        case UiConst::AddResMode::File: {
             const bool hasFilePath = !m_filepathInp->text().trimmed().isEmpty();
 
             m_addBtn->setEnabled(hasTitle && hasFilePath);
@@ -170,7 +170,7 @@ void AddTabWidget::updateAddAndClearButtons() {
             break;
         }
 
-        case UiConst::AddResMode::url: {
+        case UiConst::AddResMode::Url: {
             const bool hasUrl = !m_urlInp->text().trimmed().isEmpty();
 
             m_addBtn->setEnabled(hasTitle && hasUrl);
@@ -224,9 +224,9 @@ QWidget* AddTabWidget::setupResouceGroup() {
     m_urlRad = new QRadioButton(tr("Url"));
     m_textRad->setChecked(true);
 
-    m_addResTypeGroup->addButton(m_textRad, static_cast<int>(UiConst::AddResMode::text));
-    m_addResTypeGroup->addButton(m_fileRad, static_cast<int>(UiConst::AddResMode::file));
-    m_addResTypeGroup->addButton(m_urlRad, static_cast<int>(UiConst::AddResMode::url));
+    m_addResTypeGroup->addButton(m_textRad, static_cast<int>(UiConst::AddResMode::Text));
+    m_addResTypeGroup->addButton(m_fileRad, static_cast<int>(UiConst::AddResMode::File));
+    m_addResTypeGroup->addButton(m_urlRad, static_cast<int>(UiConst::AddResMode::Url));
 
     resTypeLayout->addWidget(m_resTypeLbl);
     resTypeLayout->addWidget(m_textRad);
@@ -348,19 +348,19 @@ void AddTabWidget::showNotification(const QString &message,
     m_notiLbl->setText(message);
     m_notiLbl->setVisible(true);
 
-    if (notiType != UiConst::SettingsTabNotiLevel::normal) {
+    if (notiType != UiConst::SettingsTabNotiLevel::Normal) {
         QString notiTextColor{};
         switch (notiType) {
-            case UiConst::SettingsTabNotiLevel::good: {
+            case UiConst::SettingsTabNotiLevel::Good: {
                 notiTextColor = "#2ECC71";
                 break;
             }
-            case UiConst::SettingsTabNotiLevel::normal : break;
-            case UiConst::SettingsTabNotiLevel::caution: {
+            case UiConst::SettingsTabNotiLevel::Normal : break;
+            case UiConst::SettingsTabNotiLevel::Caution: {
                 notiTextColor = "#D97706";
                 break;
             }
-            case UiConst::SettingsTabNotiLevel::warning: {
+            case UiConst::SettingsTabNotiLevel::Warning: {
                 notiTextColor = "#E74C3C";
                 break;
             }
@@ -433,13 +433,13 @@ void AddTabWidget::onAddResTypeModeChanged(int id) {
     const auto mode = static_cast<UiConst::AddResMode>(id);
 
     switch (mode) {
-        case UiConst::AddResMode::text: {
+        case UiConst::AddResMode::Text: {
             m_fileContainer->hide();
             m_textEditorContainer->show();
 
             break;
         }
-        case UiConst::AddResMode::file: {
+        case UiConst::AddResMode::File: {
             m_fileContainer->show();
             m_textEditorContainer->hide();
 
@@ -452,7 +452,7 @@ void AddTabWidget::onAddResTypeModeChanged(int id) {
 
             break;
         }
-        case UiConst::AddResMode::url: {
+        case UiConst::AddResMode::Url: {
             m_fileContainer->show();
             m_textEditorContainer->hide();
 

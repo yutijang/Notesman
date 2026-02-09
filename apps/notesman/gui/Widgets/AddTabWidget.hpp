@@ -33,7 +33,7 @@ class AddTabWidget final : public QWidget {
 
         void showNotification(
             const QString &message,
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal) const;
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal) const;
         void resetAddTabInputs() const;
 
     Q_SIGNALS:

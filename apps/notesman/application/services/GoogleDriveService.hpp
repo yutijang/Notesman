@@ -32,10 +32,10 @@ class GoogleDriveService final : public QObject {
     Q_SIGNALS:
         void onDownloadDBBtnRequest(
             bool isDisable, const QString &message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void onUploadDBBtnRequest(
             bool isDisable, const QString &message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
 
         void closeConnectDBRequest(bool isUpload);
         void reconnectDBRequest();

@@ -94,8 +94,8 @@ void SettingsTabWidget::setupConnections() {
         m_countdownTimer.stop();
         hideLoginStatus();
         m_linkGDBtn->setEnabled(true);
-        showNotification(tr("Login was canceled"), UiConst::SettingsMessageState::none,
-                         UiConst::SettingsTabNotiLevel::caution);
+        showNotification(tr("Login was canceled"), UiConst::SettingsMessageState::None,
+                         UiConst::SettingsTabNotiLevel::Caution);
         Q_EMIT cancelLoginRequested();
     });
 
@@ -132,8 +132,8 @@ void SettingsTabWidget::retranslateUi() {
         int idx = m_resManCom->findData(QVariant::fromValue(kind));
         if (idx != -1) { m_resManCom->setItemText(idx, text); }
     };
-    updateCombo(UiConst::ResManKind::internal, tr("Internal"));
-    updateCombo(UiConst::ResManKind::savePathOnly, tr("Save path only"));
+    updateCombo(UiConst::ResManKind::Internal, tr("Internal"));
+    updateCombo(UiConst::ResManKind::SavePathOnly, tr("Save path only"));
 
     m_applyBtn->setText(tr("Apply"));
     m_defaultBtn->setText(tr("Default"));
@@ -153,19 +153,19 @@ void SettingsTabWidget::onApplyBtnClicked() {
     SettingsData data{};
 
     if (m_langEnRad->isChecked()) {
-        data.language = UiConst::Language::english;
+        data.language = UiConst::Language::English;
     } else if (m_langViRad->isChecked()) {
-        data.language = UiConst::Language::vietnamese;
+        data.language = UiConst::Language::Vietnamese;
     }
 
     if (m_themeLightRad->isChecked()) {
-        data.theme = UiConst::Theme::light;
+        data.theme = UiConst::Theme::Light;
     } else if (m_themeDarkRad->isChecked()) {
-        data.theme = UiConst::Theme::dark;
+        data.theme = UiConst::Theme::Dark;
     }
 
     auto selectedKind = m_resManCom->currentData().value<UiConst::ResManKind>();
-    data.isManagedResource = (selectedKind == UiConst::ResManKind::internal);
+    data.isManagedResource = (selectedKind == UiConst::ResManKind::Internal);
 
     const auto path = m_resDirInp->text().trimmed();
     if (!path.isEmpty()) {
@@ -284,9 +284,9 @@ QHBoxLayout* SettingsTabWidget::setupResourceManagerTypeGroup() {
     m_resManLbl = new QLabel(tr("Notes file management type"));
     m_resManCom = new QComboBox();
     m_resManCom->setMaximumWidth(200); // NOLINT(readability-magic-numbers)
-    m_resManCom->addItem(tr("Internal"), QVariant::fromValue(UiConst::ResManKind::internal));
+    m_resManCom->addItem(tr("Internal"), QVariant::fromValue(UiConst::ResManKind::Internal));
     m_resManCom->addItem(tr("Save path only"),
-                         QVariant::fromValue(UiConst::ResManKind::savePathOnly));
+                         QVariant::fromValue(UiConst::ResManKind::SavePathOnly));
     resManLayout->addWidget(m_resManLbl);
     resManLayout->addWidget(m_resManCom);
 
@@ -416,7 +416,7 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
         QSpinBox* currentSpbx{};
         QPushButton* currentBtn{};
 
-        if (mode == UiConst::CleanupMode::epub) {
+        if (mode == UiConst::CleanupMode::Epub) {
             tagLbl->setProperty("mode", "epub");
 
             m_cleanupEpubAfterChk = new QCheckBox();
@@ -426,7 +426,7 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
             currentChk = m_cleanupEpubAfterChk;
             currentSpbx = m_expiredEpubSpbx;
             currentBtn = m_cleanupEpubCacheNowBtn;
-        } else if (mode == UiConst::CleanupMode::markdown) {
+        } else if (mode == UiConst::CleanupMode::Markdown) {
             tagLbl->setProperty("mode", "markdown");
 
             m_cleanupMDAfterChk = new QCheckBox();
@@ -461,9 +461,9 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
         return hLayout;
     };
 
-    mainLayout->addLayout(createRow("EPUB", UiConst::CleanupMode::epub));
+    mainLayout->addLayout(createRow("EPUB", UiConst::CleanupMode::Epub));
     mainLayout->setSpacing(15); // NOLINT(readability-magic-numbers)
-    mainLayout->addLayout(createRow("MARKDOWN", UiConst::CleanupMode::markdown));
+    mainLayout->addLayout(createRow("MARKDOWN", UiConst::CleanupMode::Markdown));
 
     m_cleanupCacheGBox->setLayout(mainLayout);
 
@@ -478,19 +478,19 @@ void SettingsTabWidget::showNotification(const QString &message,
     m_notiSettingsChangedLbl->setText(message);
     m_notiSettingsChangedLbl->setVisible(true);
 
-    if (notiType != UiConst::SettingsTabNotiLevel::normal) {
+    if (notiType != UiConst::SettingsTabNotiLevel::Normal) {
         QString notiTextColor{};
         switch (notiType) {
-            case UiConst::SettingsTabNotiLevel::good: {
+            case UiConst::SettingsTabNotiLevel::Good: {
                 notiTextColor = "#2ECC71";
                 break;
             }
-            case UiConst::SettingsTabNotiLevel::normal : break;
-            case UiConst::SettingsTabNotiLevel::caution: {
+            case UiConst::SettingsTabNotiLevel::Normal : break;
+            case UiConst::SettingsTabNotiLevel::Caution: {
                 notiTextColor = "#D97706";
                 break;
             }
-            case UiConst::SettingsTabNotiLevel::warning: {
+            case UiConst::SettingsTabNotiLevel::Warning: {
                 notiTextColor = "#E74C3C";
                 break;
             }
@@ -514,16 +514,16 @@ void SettingsTabWidget::showNotification(const QString &message,
 
 void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     // Giao diện
-    if (settings.theme == UiConst::Theme::light) {
+    if (settings.theme == UiConst::Theme::Light) {
         m_themeLightRad->setChecked(true);
-    } else if (settings.theme == UiConst::Theme::dark) {
+    } else if (settings.theme == UiConst::Theme::Dark) {
         m_themeDarkRad->setChecked(true);
     }
 
     // Ngôn ngữ
-    if (settings.language == UiConst::Language::english) {
+    if (settings.language == UiConst::Language::English) {
         m_langEnRad->setChecked(true);
-    } else if (settings.language == UiConst::Language::vietnamese) {
+    } else if (settings.language == UiConst::Language::Vietnamese) {
         m_langViRad->setChecked(true);
     }
 
@@ -535,8 +535,8 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     validateResourceDir(settings);
 
     // Kiểu quản lý tài nguyên
-    auto currentKind = settings.isManagedResource ? UiConst::ResManKind::internal
-                                                  : UiConst::ResManKind::savePathOnly;
+    auto currentKind = settings.isManagedResource ? UiConst::ResManKind::Internal
+                                                  : UiConst::ResManKind::SavePathOnly;
     m_resManCom->setCurrentIndex(m_resManCom->findData(QVariant::fromValue(currentKind)));
 
     // Cleanup file cache group
@@ -621,8 +621,8 @@ void SettingsTabWidget::handleLoginFailed(const QString &error) {
 
     m_linkGDBtn->setEnabled(true);
 
-    showNotification(error, UiConst::SettingsMessageState::none,
-                     UiConst::SettingsTabNotiLevel::warning);
+    showNotification(error, UiConst::SettingsMessageState::None,
+                     UiConst::SettingsTabNotiLevel::Warning);
 }
 
 void SettingsTabWidget::handleUploadDBRequested(bool isDisable, const QString &message,
@@ -637,7 +637,7 @@ void SettingsTabWidget::handleUploadDBRequested(bool isDisable, const QString &m
             m_uploadDBBtn->setEnabled(true);
             m_uploadDBBtn->setText(tr("Upload"));
 
-            showNotification(message, UiConst::SettingsMessageState::none, notiType);
+            showNotification(message, UiConst::SettingsMessageState::None, notiType);
         }
     }
 }
@@ -654,7 +654,7 @@ void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, const QString 
             m_downloadDBBtn->setEnabled(true);
             m_downloadDBBtn->setText(tr("Download"));
 
-            showNotification(message, UiConst::SettingsMessageState::none, notiType);
+            showNotification(message, UiConst::SettingsMessageState::None, notiType);
         }
     }
 }
@@ -736,9 +736,9 @@ void SettingsTabWidget::handleDeleteDBFileRespond(const QString &msg) {
 }
 
 void SettingsTabWidget::handleButtonAfterCleanup(UiConst::CleanupMode mode) {
-    if (mode == UiConst::CleanupMode::epub) {
+    if (mode == UiConst::CleanupMode::Epub) {
         m_cleanupEpubCacheNowBtn->setEnabled(true);
-    } else if (mode == UiConst::CleanupMode::markdown) {
+    } else if (mode == UiConst::CleanupMode::Markdown) {
         m_cleanupMDCacheNowBtn->setEnabled(true);
     }
 }

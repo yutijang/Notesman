@@ -174,7 +174,7 @@ void MainWindow::setupIconInfo() {
 void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) {
     m_settingsMessageState = state;
 
-    if (state == UiConst::SettingsMessageState::notChange) {
+    if (state == UiConst::SettingsMessageState::NotChange) {
         Q_EMIT settingsStateChangeRequest(AppController::defaultUiSettings());
     }
 }
@@ -454,12 +454,12 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController,
                      [this] {
                          auto result = AppController::cleanupOldEpubCacheNow();
-                         notiFromCleanupCacheResult(result, UiConst::CleanupMode::epub);
+                         notiFromCleanupCacheResult(result, UiConst::CleanupMode::Epub);
                      });
     QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupMDCacheNowRequest, m_appController,
                      [this] {
                          auto result = AppController::cleanupOldMarkdownCacheNow();
-                         notiFromCleanupCacheResult(result, UiConst::CleanupMode::markdown);
+                         notiFromCleanupCacheResult(result, UiConst::CleanupMode::Markdown);
                      });
     QObject::connect(this, &MainWindow::onCleanupFinished, m_settingsTab,
                      &SettingsTabWidget::handleButtonAfterCleanup);
@@ -496,15 +496,15 @@ void MainWindow::retranslateUi() {
 
     // Dịch lại thông báo đang hiển thị (nếu còn hiệu lực)
     switch (m_settingsMessageState) {
-        case UiConst::SettingsMessageState::updated:
+        case UiConst::SettingsMessageState::Updated:
             // m_settingsTab->notificationLabel()->setText(tr("Settings updated!"));
             Q_EMIT settingsTabShowNotification(tr("Settings updated!"));
             break;
-        case UiConst::SettingsMessageState::notChange:
+        case UiConst::SettingsMessageState::NotChange:
             // m_settingsTab->notificationLabel()->setText(tr("Settings default!"));
             Q_EMIT settingsTabShowNotification(tr("Settings default!"));
             break;
-        case UiConst::SettingsMessageState::none: break;
+        case UiConst::SettingsMessageState::None: break;
     }
     // =================================
 }
@@ -514,7 +514,7 @@ void MainWindow::applySyntaxHighlightingTheme(UiConst::Theme theme) {
 
     // Chọn theme tô màu
     const CppHighlighterTheme hlTheme =
-        (theme == UiConst::Theme::light) ? createLightTheme() : createDarkTheme();
+        (theme == UiConst::Theme::Light) ? createLightTheme() : createDarkTheme();
 
     // Nếu chưa có highlighter thì tạo mới
     if (m_cppHighlighter == nullptr) {
@@ -536,7 +536,7 @@ void MainWindow::applySyntaxHighlightingTheme(UiConst::Theme theme) {
     }
 
     m_lineHighlighter = new CodeEditorLineHighlighter(m_addTab->textEdit());
-    if (theme == UiConst::Theme::light) {
+    if (theme == UiConst::Theme::Light) {
         m_lineHighlighter->setColors(QColor("#dBdBdB"), QColor("#efefef"));
     } else {
         m_lineHighlighter->setColors(QColor("#2f2f2f"), QColor("#2a2a2a"));
@@ -966,19 +966,19 @@ QString MainWindow::resolveResPath(const QString &path) {
 void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result,
                                             UiConst::CleanupMode mode) {
     QString typeText =
-        (mode == UiConst::CleanupMode::epub) ? QStringLiteral("EPUB") : QStringLiteral("Markdown");
+        (mode == UiConst::CleanupMode::Epub) ? QStringLiteral("EPUB") : QStringLiteral("Markdown");
     switch (result) {
-        case UiConst::CleanupResult::pathError: {
+        case UiConst::CleanupResult::PathError: {
             Q_EMIT settingsTabShowNotification(
                 tr("%1 cache directory not found or inaccessible.").arg(typeText));
             break;
         }
-        case UiConst::CleanupResult::alreadyEmpty: {
+        case UiConst::CleanupResult::AlreadyEmpty: {
             Q_EMIT settingsTabShowNotification(
                 tr("The %1 cache folder is already empty. No action required.").arg(typeText));
             break;
         }
-        case UiConst::CleanupResult::success: {
+        case UiConst::CleanupResult::Success: {
             Q_EMIT settingsTabShowNotification(
                 tr("All temporary %1 cache files have been successfully cleared.").arg(typeText));
             break;

@@ -27,11 +27,11 @@ bool AppSettings::load(const std::filesystem::path &path) {
     }
 
     if (kv.contains("theme")) {
-        m_theme = (kv["theme"] == "dark") ? UiConst::Theme::dark : UiConst::Theme::light;
+        m_theme = (kv["theme"] == "dark") ? UiConst::Theme::Dark : UiConst::Theme::Light;
     }
     if (kv.contains("language")) {
         m_language =
-            (kv["language"] == "vi") ? UiConst::Language::vietnamese : UiConst::Language::english;
+            (kv["language"] == "vi") ? UiConst::Language::Vietnamese : UiConst::Language::English;
     }
     if (kv.contains("resource_dir")) {
         // Ép kiểu dữ liệu về chuỗi UTF-8 trước khi đưa vào path
@@ -71,8 +71,8 @@ bool AppSettings::save(const std::filesystem::path &path) const {
     std::ofstream file(path, std::ios::trunc);
     if (!file.is_open()) { return false; }
 
-    file << "theme=" << (m_theme == UiConst::Theme::light ? "light" : "dark") << "\n";
-    file << "language=" << (m_language == UiConst::Language::english ? "en" : "vi") << "\n";
+    file << "theme=" << (m_theme == UiConst::Theme::Light ? "light" : "dark") << "\n";
+    file << "language=" << (m_language == UiConst::Language::English ? "en" : "vi") << "\n";
     file << "resource_dir=" << m_resourceDir.string() << "\n";
     file << "is_managed=" << (m_isManagedResource ? "true" : "false") << "\n";
     file << "resource_dir_is_default=" << (m_isResourceDirCustomized ? "true" : "false") << "\n";

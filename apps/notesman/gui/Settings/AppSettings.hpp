@@ -68,8 +68,8 @@ class AppSettings {
         static constexpr const char* K_DEFAULT_RESOURCE_DIR = "resources";
         static constexpr int K_CACHE_EXPIRED{7};
 
-        UiConst::Theme m_theme{UiConst::Theme::light};
-        UiConst::Language m_language{UiConst::Language::english};
+        UiConst::Theme m_theme{UiConst::Theme::Light};
+        UiConst::Language m_language{UiConst::Language::English};
         std::filesystem::path m_resourceDir{K_DEFAULT_RESOURCE_DIR};
         bool m_isManagedResource{true};
         bool m_isResourceDirCustomized{};

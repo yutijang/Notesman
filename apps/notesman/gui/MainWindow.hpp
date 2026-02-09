@@ -72,8 +72,8 @@ class MainWindow : public QMainWindow {
         void requestUpdateCheck();
         void settingsTabShowNotification(
             const QString &message,
-            UiConst::SettingsMessageState state = UiConst::SettingsMessageState::none,
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsMessageState state = UiConst::SettingsMessageState::None,
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void settingsStateChangeRequest(const SettingsData &settings);
         void checkUpdateRequest();
         void updateDecision(bool accepted, const UpdateInfoSummary &infoSummary);
@@ -81,10 +81,10 @@ class MainWindow : public QMainWindow {
         void updateColumnWidthsRequest();
         void startDownloadDBForward(
             bool isDisable, const QString &message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void startUploadDBForward(
             bool isDisable, const QString &message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void loginFailedForward(const QString &error = QString{});
 
         void returnDBInfoForward(const QStringList &res);
@@ -154,7 +154,7 @@ class MainWindow : public QMainWindow {
 
         InfoCornerWidget* m_infoWidget{};
 
-        UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::none};
+        UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::None};
 
         QProgressDialog* m_progressDialog{};
 

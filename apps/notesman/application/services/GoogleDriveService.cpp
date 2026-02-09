@@ -205,7 +205,7 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
             if (localDBMD5Checksum == info.md5Checksum) {
                 Q_EMIT onUploadDBBtnRequest(
                     false, tr("Database is already in sync, upload/update not necessary."),
-                    UiConst::SettingsTabNotiLevel::good);
+                    UiConst::SettingsTabNotiLevel::Good);
                 Q_EMIT reconnectDBRequest();
                 return;
             }
@@ -229,13 +229,13 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
                 findAndGatherDatabaseFileInfo([this](const DriveFileInfo &newInfo) {
                     SettingsManager::instance().set("sync/data_file_version", newInfo.version);
                     Q_EMIT onUploadDBBtnRequest(false, tr("Compacted and uploaded new file!"),
-                                                UiConst::SettingsTabNotiLevel::good);
+                                                UiConst::SettingsTabNotiLevel::Good);
                     Q_EMIT reconnectDBRequest();
                 });
             } else {
                 Q_EMIT onUploadDBBtnRequest(
                     false, tr("Failed to save to Drive (permission, storage, or network)"),
-                    UiConst::SettingsTabNotiLevel::caution);
+                    UiConst::SettingsTabNotiLevel::Caution);
                 Q_EMIT reconnectDBRequest();
             }
         };
@@ -259,7 +259,7 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
     findAndGatherDatabaseFileInfo([this](const DriveFileInfo &info) {
         if (!info.isExists) {
             Q_EMIT onDownloadDBBtnRequest(false, tr("No database found or access denied"),
-                                          UiConst::SettingsTabNotiLevel::caution);
+                                          UiConst::SettingsTabNotiLevel::Caution);
             Q_EMIT reconnectDBRequest();
             return;
         }
@@ -269,7 +269,7 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
         if (localDBMD5Checksum == info.md5Checksum) {
             Q_EMIT onDownloadDBBtnRequest(
                 false, tr("Database is already in sync, download not necessary."),
-                UiConst::SettingsTabNotiLevel::good);
+                UiConst::SettingsTabNotiLevel::Good);
             Q_EMIT reconnectDBRequest();
             return;
         }
@@ -284,11 +284,11 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
                     false,
                     tr("Database downloaded successfully, with size of data.db is: %1")
                         .arg(fileSize),
-                    UiConst::SettingsTabNotiLevel::good);
+                    UiConst::SettingsTabNotiLevel::Good);
             } else {
                 Q_EMIT onDownloadDBBtnRequest(false,
                                               tr("Failed to download database. Please try again"),
-                                              UiConst::SettingsTabNotiLevel::caution);
+                                              UiConst::SettingsTabNotiLevel::Caution);
             }
 
             Q_EMIT reconnectDBRequest();

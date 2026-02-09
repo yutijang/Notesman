@@ -31,17 +31,17 @@ class SettingsTabWidget final : public QWidget {
 
         void showNotification(
             const QString &message,
-            UiConst::SettingsMessageState state = UiConst::SettingsMessageState::none,
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsMessageState state = UiConst::SettingsMessageState::None,
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void handleDeleteDBFileRespond(const QString &msg);
         void handleDBInfoGot(const QStringList &info);
         void handleLoginFailed(const QString &error = QString{});
         void handleDownloadDBRequested(
             bool isDisable, const QString &message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void handleUploadDBRequested(
             bool isDisable, const QString &message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::normal);
+            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void handleAfterUnlinkAccount();
         void handleAfterLinkAccount(const QString &htmlTextEmail);
         void handleInitialSettingsLoad(const SettingsData &settings) const;

@@ -85,7 +85,7 @@ void AppController::updateSettings(const AppSettings &newSettings) {
 void AppController::applyLanguage(UiConst::Language lang) {
     if (m_translator) { qApp->removeTranslator(m_translator.get()); }
 
-    if (lang == UiConst::Language::vietnamese) {
+    if (lang == UiConst::Language::Vietnamese) {
         m_translator = std::make_unique<QTranslator>();
         if (m_translator->load(":/i18n/app_vi.qm")) {
             qApp->installTranslator(m_translator.get());
@@ -108,12 +108,12 @@ void AppController::applyTheme(UiConst::Theme theme) {
     QColor linkColor;
 
     switch (theme) {
-        case UiConst::Theme::light: {
+        case UiConst::Theme::Light: {
             qssPath = ":/qss/light.qss";
             linkColor = QColor("#0000EE");
             break;
         }
-        case UiConst::Theme::dark: {
+        case UiConst::Theme::Dark: {
             qssPath = ":/qss/dark.qss";
             linkColor = QColor("#4FC3F7");
             break;
@@ -264,8 +264,8 @@ void AppController::handleLoadResourceByTypeRequest(ResourceType type) {
 }
 
 void AppController::handleDefaultSettingsRequest() {
-    Q_EMIT settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::notChange,
-                                UiConst::SettingsTabNotiLevel::caution);
+    Q_EMIT settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::NotChange,
+                                UiConst::SettingsTabNotiLevel::Caution);
 }
 
 void AppController::handleApplySettingsRequest(const SettingsData &data) {
@@ -305,11 +305,11 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
 
         Q_EMIT requestSyntaxHighlightingUpdate(data.theme);
 
-        Q_EMIT settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::updated,
-                                    UiConst::SettingsTabNotiLevel::good);
+        Q_EMIT settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::Updated,
+                                    UiConst::SettingsTabNotiLevel::Good);
     } else {
         Q_EMIT settingsUpdateStatus(tr("Nothing changed, settings not save"),
-                                    UiConst::SettingsMessageState::none);
+                                    UiConst::SettingsMessageState::None);
     }
 }
 
@@ -317,7 +317,7 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
 void AppController::handleAddNoteRequest(const QString &title, const QString &textContent,
                                          const QString &filePath, const QString &url,
                                          const QStringList &tags, UiConst::AddResMode mode) {
-    if (mode == UiConst::AddResMode::file && m_settings->isManagedResources()) {
+    if (mode == UiConst::AddResMode::File && m_settings->isManagedResources()) {
         const auto &resDir = m_settings->resourceDir();
         const bool needStrictCheck = !m_settings->isDefaultResourceDir();
 
@@ -325,7 +325,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
             (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir))) {
             Q_EMIT addTabNotiRequest(tr("Resource directory does not exist. "
                                         "Please fix it in Settings before adding resources."),
-                                     UiConst::SettingsTabNotiLevel::warning);
+                                     UiConst::SettingsTabNotiLevel::Warning);
 
             return;
         }
@@ -333,39 +333,39 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
 
     const std::filesystem::path filePathFs{filePath.toStdWString()};
     ResourceType type{};
-    if (mode == UiConst::AddResMode::text) {
+    if (mode == UiConst::AddResMode::Text) {
         if (textContent.isEmpty()) {
             Q_EMIT addTabNotiRequest(tr("Content cannot be empty!"),
-                                     UiConst::SettingsTabNotiLevel::warning);
+                                     UiConst::SettingsTabNotiLevel::Warning);
             return;
         }
 
         type = ResourceType::plainText;
-    } else if (mode == UiConst::AddResMode::file) {
+    } else if (mode == UiConst::AddResMode::File) {
         if (filePath.isEmpty()) {
             Q_EMIT addTabNotiRequest(tr("File path is empty."),
-                                     UiConst::SettingsTabNotiLevel::warning);
+                                     UiConst::SettingsTabNotiLevel::Warning);
             return;
         }
 
         if (m_core->isFileIndexed(filePathFs)) {
             Q_EMIT addTabNotiRequest(tr("File exists in storage! Not add more."),
-                                     UiConst::SettingsTabNotiLevel::warning);
+                                     UiConst::SettingsTabNotiLevel::Warning);
             return;
         }
 
         const auto typeOpt = resourceTypeFromFile(filePathFs);
         if (!typeOpt.has_value()) {
             Q_EMIT addTabNotiRequest(tr("File extension not support!"),
-                                     UiConst::SettingsTabNotiLevel::warning);
+                                     UiConst::SettingsTabNotiLevel::Warning);
             return;
         }
 
         type = *typeOpt;
-    } else if (mode == UiConst::AddResMode::url) {
+    } else if (mode == UiConst::AddResMode::Url) {
         if (url.isEmpty()) {
             Q_EMIT addTabNotiRequest(tr("Url cannot be empty!"),
-                                     UiConst::SettingsTabNotiLevel::warning);
+                                     UiConst::SettingsTabNotiLevel::Warning);
             return;
         }
 
@@ -375,21 +375,21 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
     const auto titleStd = title.toStdString();
     if (m_core->isExistTitle(titleStd, type)) {
         Q_EMIT addTabNotiRequest(tr("Title exists! Please choose another title"),
-                                 UiConst::SettingsTabNotiLevel::warning);
+                                 UiConst::SettingsTabNotiLevel::Warning);
         return;
     }
 
     sqlite_int64 resId{};
     switch (mode) {
-        case UiConst::AddResMode::text: {
+        case UiConst::AddResMode::Text: {
             resId = handleTextMode(titleStd, textContent, type);
             break;
         }
-        case UiConst::AddResMode::file: {
+        case UiConst::AddResMode::File: {
             resId = handleFileMode(titleStd, filePathFs, type);
             break;
         }
-        case UiConst::AddResMode::url: {
+        case UiConst::AddResMode::Url: {
             resId = handleUrlMode(titleStd, url, type);
             break;
         }
@@ -532,7 +532,7 @@ void AppController::displayInfoGMUserLinked(const QString &email) {
 sqlite_int64 AppController::handleTextMode(const std::string &title, const QString &textContent,
                                            ResourceType &outType) {
     auto resId = m_core->addTextNote(title, textContent.toUtf8().toStdString(), outType);
-    Q_EMIT addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::good);
+    Q_EMIT addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::Good);
     return resId;
 }
 
@@ -548,7 +548,7 @@ sqlite_int64 AppController::handleFileMode(const std::string &title,
     auto resId = m_core->addFileNote(filePath, title, outType, m_settings->isManagedResources(),
                                      contentToIndex);
 
-    Q_EMIT addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::good);
+    Q_EMIT addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::Good);
 
     return resId;
 }
@@ -559,11 +559,11 @@ sqlite_int64 AppController::handleUrlMode(const std::string &title, const QStrin
 
     auto resIdOtp = m_core->addUrlNote(title, outType, url.toStdString());
     if (!resIdOtp) {
-        Q_EMIT addTabNotiRequest(tr("Url added fail!"), UiConst::SettingsTabNotiLevel::warning);
+        Q_EMIT addTabNotiRequest(tr("Url added fail!"), UiConst::SettingsTabNotiLevel::Warning);
     } else {
         resId = *resIdOtp;
         Q_EMIT addTabNotiRequest(tr("Url added successfully!"),
-                                 UiConst::SettingsTabNotiLevel::good);
+                                 UiConst::SettingsTabNotiLevel::Good);
     }
 
     return resId;
@@ -571,16 +571,16 @@ sqlite_int64 AppController::handleUrlMode(const std::string &title, const QStrin
 
 UiConst::CleanupResult AppController::cleanupOldEpubCache(int days) {
     const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub");
-    if (!dir.exists()) { return UiConst::CleanupResult::pathError; }
+    if (!dir.exists()) { return UiConst::CleanupResult::PathError; }
 
-    if (dir.isEmpty()) { return UiConst::CleanupResult::alreadyEmpty; }
+    if (dir.isEmpty()) { return UiConst::CleanupResult::AlreadyEmpty; }
 
     const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
     const QDateTime now = QDateTime::currentDateTime();
 
     if (days <= 0) {
         for (const auto &fi : entries) { QDir(fi.absoluteFilePath()).removeRecursively(); }
-        return UiConst::CleanupResult::success;
+        return UiConst::CleanupResult::Success;
     }
 
     const qint64 maxAgeSecs = static_cast<qint64>(days) * 86400;
@@ -591,21 +591,21 @@ UiConst::CleanupResult AppController::cleanupOldEpubCache(int days) {
         }
     }
 
-    return UiConst::CleanupResult::success;
+    return UiConst::CleanupResult::Success;
 }
 
 UiConst::CleanupResult AppController::cleanupOldMarkdownCache(int days) {
     const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/markdown");
-    if (!dir.exists()) { return UiConst::CleanupResult::pathError; }
+    if (!dir.exists()) { return UiConst::CleanupResult::PathError; }
 
-    if (dir.isEmpty()) { return UiConst::CleanupResult::alreadyEmpty; }
+    if (dir.isEmpty()) { return UiConst::CleanupResult::AlreadyEmpty; }
 
     const auto entries = dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
     const QDateTime now = QDateTime::currentDateTime();
 
     if (days <= 0) {
         for (const auto &fi : entries) { QFile::remove(fi.absoluteFilePath()); }
-        return UiConst::CleanupResult::success;
+        return UiConst::CleanupResult::Success;
     }
 
     const qint64 maxAgeSecs = static_cast<qint64>(days) * 86400;
@@ -614,7 +614,7 @@ UiConst::CleanupResult AppController::cleanupOldMarkdownCache(int days) {
         if (fi.lastModified().secsTo(now) >= maxAgeSecs) { QFile::remove(fi.absoluteFilePath()); }
     }
 
-    return UiConst::CleanupResult::success;
+    return UiConst::CleanupResult::Success;
 }
 
 UiConst::CleanupResult AppController::cleanupOldEpubCacheNow() {
