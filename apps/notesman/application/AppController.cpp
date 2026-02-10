@@ -340,7 +340,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
             return;
         }
 
-        type = ResourceType::plainText;
+        type = ResourceType::PlainText;
     } else if (mode == UiConst::AddResMode::File) {
         if (filePath.isEmpty()) {
             Q_EMIT addTabNotiRequest(tr("File path is empty."),
@@ -369,7 +369,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
             return;
         }
 
-        type = ResourceType::url;
+        type = ResourceType::Url;
     }
 
     const auto titleStd = title.toStdString();
@@ -541,7 +541,7 @@ sqlite_int64 AppController::handleFileMode(const std::string &title,
                                            ResourceType &outType) {
     std::string contentToIndex;
 
-    if (Utils::isIndexable(outType, filePath) == IndexableResult::yes) {
+    if (Utils::isIndexable(outType, filePath) == IndexableResult::Yes) {
         contentToIndex = Utils::readFileToString(filePath);
     }
 

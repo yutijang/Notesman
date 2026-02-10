@@ -107,6 +107,8 @@ add_subdirectory(apps/notesman)
 add_subdirectory(apps/updater)
 # Logger
 add_subdirectory(common/logger)
+# viewer_pack
+add_subdirectory(common/viewer_pack)
 
 # launcher
 if(WIN32)

@@ -77,6 +77,7 @@ target_link_libraries(notes-core
     OpenSSL::SSL
     OpenSSL::Crypto
     common::logger
+    common::viewer_pack
 )
 
 target_compile_definitions(notes-core

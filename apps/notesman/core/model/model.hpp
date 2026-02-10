@@ -18,16 +18,16 @@
 #include "helper.hpp"
 
 enum class ResourceType : std::uint8_t {
-    unknown,
-    plainText, //> text thuần ghi trực tiếp vào database,
+    Unknown,
+    PlainText, //> text thuần ghi trực tiếp vào database,
                // ghi chú text thường (QTextEdit, có hoặc không highlight)
-    cCppCode,  //> text thuần dạng file / snippet / mã nguồn C/C++ (QTextEdit + highlight)
-    markdown,
-    htmlDoc,   //> .html (WebView)
-    pdfDoc,    //> .pdf (PDF viewer)
-    epubDoc,   //> .epub (Epub viewer)
-    url,
-    count
+    CCppCode,  //> text thuần dạng file / snippet / mã nguồn C/C++ (QTextEdit + highlight)
+    Markdown,
+    HtmlDoc,   //> .html (WebView)
+    PdfDoc,    //> .pdf (PDF viewer)
+    EpubDoc,   //> .epub (Epub viewer)
+    Url,
+    Count
 };
 
 struct ResourceTypeMeta {
@@ -35,51 +35,51 @@ struct ResourceTypeMeta {
         std::string_view key;
 };
 
-inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceType::count) - 1>
+inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceType::Count) - 1>
     K_RESOURCE_TYPE_TABLE{
-        {{.type = ResourceType::plainText, .key = "text"},
-         {.type = ResourceType::cCppCode, .key = "cpp"},
-         {.type = ResourceType::markdown, .key = "markdown"},
-         {.type = ResourceType::htmlDoc, .key = "html"},
-         {.type = ResourceType::pdfDoc, .key = "pdf"},
-         {.type = ResourceType::epubDoc, .key = "epub"},
-         {.type = ResourceType::url, .key = "url"}}
+        {{.type = ResourceType::PlainText, .key = "text"},
+         {.type = ResourceType::CCppCode, .key = "cpp"},
+         {.type = ResourceType::Markdown, .key = "markdown"},
+         {.type = ResourceType::HtmlDoc, .key = "html"},
+         {.type = ResourceType::PdfDoc, .key = "pdf"},
+         {.type = ResourceType::EpubDoc, .key = "epub"},
+         {.type = ResourceType::Url, .key = "url"}}
 };
 
 inline const std::unordered_map<std::string_view, ResourceType> K_EXT_MAP{
     // Plain text
-    {     "txt", ResourceType::plainText},
-    {    "text", ResourceType::plainText},
-    {     "log", ResourceType::plainText},
-    {     "ini", ResourceType::plainText},
-    {     "cfg", ResourceType::plainText},
-    {    "conf", ResourceType::plainText},
-    {     "csv", ResourceType::plainText},
+    {     "txt", ResourceType::PlainText},
+    {    "text", ResourceType::PlainText},
+    {     "log", ResourceType::PlainText},
+    {     "ini", ResourceType::PlainText},
+    {     "cfg", ResourceType::PlainText},
+    {    "conf", ResourceType::PlainText},
+    {     "csv", ResourceType::PlainText},
 
     // Markdown (parse → html)
-    {      "md",  ResourceType::markdown},
-    {"markdown",  ResourceType::markdown},
-    {     "mdx",  ResourceType::markdown},
+    {      "md",  ResourceType::Markdown},
+    {"markdown",  ResourceType::Markdown},
+    {     "mdx",  ResourceType::Markdown},
 
     // C / C++
-    {       "c",  ResourceType::cCppCode},
-    {     "cpp",  ResourceType::cCppCode},
-    {      "cc",  ResourceType::cCppCode},
-    {     "cxx",  ResourceType::cCppCode},
-    {       "h",  ResourceType::cCppCode},
-    {      "hh",  ResourceType::cCppCode},
-    {     "hpp",  ResourceType::cCppCode},
-    {     "hxx",  ResourceType::cCppCode},
+    {       "c",  ResourceType::CCppCode},
+    {     "cpp",  ResourceType::CCppCode},
+    {      "cc",  ResourceType::CCppCode},
+    {     "cxx",  ResourceType::CCppCode},
+    {       "h",  ResourceType::CCppCode},
+    {      "hh",  ResourceType::CCppCode},
+    {     "hpp",  ResourceType::CCppCode},
+    {     "hxx",  ResourceType::CCppCode},
 
     // HTML
-    {    "html",   ResourceType::htmlDoc},
-    {     "htm",   ResourceType::htmlDoc},
-    {   "xhtml",   ResourceType::htmlDoc},
-    {   "shtml",   ResourceType::htmlDoc},
+    {    "html",   ResourceType::HtmlDoc},
+    {     "htm",   ResourceType::HtmlDoc},
+    {   "xhtml",   ResourceType::HtmlDoc},
+    {   "shtml",   ResourceType::HtmlDoc},
 
     // Binary documents
-    {     "pdf",    ResourceType::pdfDoc},
-    {    "epub",   ResourceType::epubDoc}
+    {     "pdf",    ResourceType::PdfDoc},
+    {    "epub",   ResourceType::EpubDoc}
 };
 
 [[nodiscard]] inline std::string_view resourceTypeToString(ResourceType type) noexcept {
@@ -143,24 +143,24 @@ using RFBits = std::uint16_t;        // ResourceFlagBits
 
 // Bitmask
 enum class ResourceFlags : RFBits {
-    none = 0,
+    None = 0,
 
     // ===== Nguồn khớp tìm kiếm =====
-    matchTag = 1U << 0,      // 1
-    matchTitle = 1U << 1,    // 2
-    matchText = 1U << 2,     // 4  text_content_fts
-    matchFileText = 1U << 3, // 8  file_text_content_fts
-    matchDomain = 1U << 4,   // 16 resource_urls.domain
-    matchUrlPath = 1U << 5,
+    MatchTag = 1U << 0,      // 1
+    MatchTitle = 1U << 1,    // 2
+    MatchText = 1U << 2,     // 4  text_content_fts
+    MatchFileText = 1U << 3, // 8  file_text_content_fts
+    MatchDomain = 1U << 4,   // 16 resource_urls.domain
+    MatchUrlPath = 1U << 5,
 
     // ===== Trạng thái nội dung =====
-    hasSnippet = 1U << 6,     // Có snippet hợp lệ (FTS snippet)
-    hasFullContent = 1U << 7, // Có content đầy đủ trong DB (text_content)
+    HasSnippet = 1U << 6,     // Có snippet hợp lệ (FTS snippet)
+    HasFullContent = 1U << 7, // Có content đầy đủ trong DB (text_content)
 
     // ===== Trạng thái file =====
-    isFile = 1U << 8,     // Là tài nguyên file
-    isManaged = 1U << 9,  // File được app quản lý (copied vào storage)
-    isExternal = 1U << 10 // File liên kết ngoài (linked)
+    IsFile = 1U << 8,     // Là tài nguyên file
+    IsManaged = 1U << 9,  // File được app quản lý (copied vào storage)
+    IsExternal = 1U << 10 // File liên kết ngoài (linked)
 };
 
 constexpr ResourceFlags operator|(ResourceFlags a, ResourceFlags b) {

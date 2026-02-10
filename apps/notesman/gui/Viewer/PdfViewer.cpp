@@ -161,8 +161,8 @@ void PdfViewer::renderVisiblePages() {
             (lowQualityPass ? 96.0 : screenDpi) *
             (static_cast<double>(page->width()) / static_cast<double>(page->baseSize().width()));
 
-        page->renderIfNeeded(dpi, lowQualityPass ? PdfPageWidget::RenderQuality::fast
-                                                 : PdfPageWidget::RenderQuality::high);
+        page->renderIfNeeded(dpi, lowQualityPass ? PdfPageWidget::RenderQuality::Fast
+                                                 : PdfPageWidget::RenderQuality::High);
         ++rendered;
     }
 
@@ -253,6 +253,6 @@ void PdfViewer::createAndRenderFirstPageImmediately() {
     auto* vp = m_scrollArea->viewport();
     const double dpi = std::min<double>(vp->logicalDpiX(), 144.0);
 
-    widget->renderIfNeeded(dpi, PdfPageWidget::RenderQuality::fast);
+    widget->renderIfNeeded(dpi, PdfPageWidget::RenderQuality::Fast);
     QTimer::singleShot(0, m_rootWidget, [this] { renderVisiblePages(); });
 }

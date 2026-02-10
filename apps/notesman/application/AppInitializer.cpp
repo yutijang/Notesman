@@ -123,17 +123,17 @@ void AppInitializer::run() {
     setupInitializerConnections();
 
     const auto initCheck = initializeCore();
-    if (initCheck != InitFailureReason::ok) {
+    if (initCheck != InitFailureReason::Ok) {
         switch (initCheck) {
-            case InitFailureReason::ok: // clang(-Wswitch)
-            case InitFailureReason::userCancelled: break;
-            case InitFailureReason::openFailed   : Log::err("Failed to open database file."); break;
-            case InitFailureReason::readFailed   : Log::err("Failed to read database header."); break;
-            case InitFailureReason::getNullDBVersion:
+            case InitFailureReason::Ok: // clang(-Wswitch)
+            case InitFailureReason::UserCancelled: break;
+            case InitFailureReason::OpenFailed   : Log::err("Failed to open database file."); break;
+            case InitFailureReason::ReadFailed   : Log::err("Failed to read database header."); break;
+            case InitFailureReason::GetNullDBVersion:
                 Log::err("Error get Database version.");
                 break;
-            case InitFailureReason::verifyDBCorrupted: Log::err("Database corrupted."); break;
-            case InitFailureReason::dbOutdated       : Log::err("Database version is outdated."); break;
+            case InitFailureReason::VerifyDBCorrupted: Log::err("Database corrupted."); break;
+            case InitFailureReason::DBOutdated       : Log::err("Database version is outdated."); break;
         }
 
         QTimer::singleShot(0, qApp, &QCoreApplication::quit);
@@ -174,7 +174,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
         if (reply == QMessageBox::Yes) {
             createDatabase();
         } else {
-            return InitFailureReason::userCancelled;
+            return InitFailureReason::UserCancelled;
         }
     }
 
@@ -182,7 +182,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
     if (!dbFile.is_open()) {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"),
                                tr("Failed to open database file."));
-        return InitFailureReason::openFailed;
+        return InitFailureReason::OpenFailed;
     }
 
     constexpr const int len{16};
@@ -191,7 +191,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
     if (!dbFile || dbFile.gcount() != len) {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"),
                                tr("Failed to read database header."));
-        return InitFailureReason::readFailed;
+        return InitFailureReason::ReadFailed;
     }
 
     std::string_view headerView(header.data(), header.size());
@@ -206,7 +206,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
         if (reply == QMessageBox::Yes) {
             createDatabase();
         } else {
-            return InitFailureReason::userCancelled;
+            return InitFailureReason::UserCancelled;
         }
     }
 
@@ -214,7 +214,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
         m_db = std::make_unique<SQLiteDB>(dbPath.string());
 
         const auto dbVerifyResult = verifyDatabase();
-        if (dbVerifyResult != InitFailureReason::ok) { return dbVerifyResult; }
+        if (dbVerifyResult != InitFailureReason::Ok) { return dbVerifyResult; }
 
         m_resRepo = std::make_unique<ResourceRepository>(*m_db);
         m_fileRepo = std::make_unique<FileRepository>(*m_db);
@@ -241,7 +241,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
         DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(ex.what()));
     }
 
-    return InitFailureReason::ok;
+    return InitFailureReason::Ok;
 }
 
 void AppInitializer::createDatabase() {
@@ -295,11 +295,11 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
                "deleting.")
                 .arg(msg));
 
-        return InitFailureReason::verifyDBCorrupted;
+        return InitFailureReason::VerifyDBCorrupted;
     }
 
     const auto verOpt = checker.getDBVersion();
-    if (!verOpt.has_value()) { return InitFailureReason::getNullDBVersion; }
+    if (!verOpt.has_value()) { return InitFailureReason::GetNullDBVersion; }
 
     if (const int currentVersion = *verOpt; currentVersion < app::meta::SCHEMA_VERSION) {
         Log::err("Database version is outdated, current verison: {}, required version: {}",
@@ -316,10 +316,10 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
                                   .arg(currentVersion)
                                   .arg(app::meta::SCHEMA_VERSION));
 
-        return InitFailureReason::dbOutdated;
+        return InitFailureReason::DBOutdated;
     }
 
-    return InitFailureReason::ok;
+    return InitFailureReason::Ok;
 }
 
 void AppInitializer::setupInitializerConnections() {
@@ -356,12 +356,12 @@ void AppInitializer::reinitializeDatabaseConnection() {
         const std::string filename = m_db->getFilename();
         m_db->open(filename);
 
-        if (const auto dbVerify = verifyDatabase(); dbVerify != InitFailureReason::ok) {
-            if (dbVerify == InitFailureReason::getNullDBVersion) {
+        if (const auto dbVerify = verifyDatabase(); dbVerify != InitFailureReason::Ok) {
+            if (dbVerify == InitFailureReason::GetNullDBVersion) {
                 Log::err("Error get Database version.");
-            } else if (dbVerify == InitFailureReason::verifyDBCorrupted) {
+            } else if (dbVerify == InitFailureReason::VerifyDBCorrupted) {
                 Log::err("Database corrupted.");
-            } else if (dbVerify == InitFailureReason::verifyDBCorrupted) {
+            } else if (dbVerify == InitFailureReason::VerifyDBCorrupted) {
                 Log::err("Database version is outdated.");
             }
 

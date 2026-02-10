@@ -133,25 +133,25 @@ void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &res
         auto* titleItem = new QTableWidgetItem(QString::fromStdString(res.res.title));
         titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
 
-        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceId),
+        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::ResourceId),
                            QVariant::fromValue<qlonglong>(res.res.id));
 
-        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceType),
+        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::ResourceType),
                            static_cast<int>(res.res.type));
 
-        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::displaySubText),
+        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::DisplaySubText),
                            QString::fromStdString(res.displaySubText));
 
-        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::resourceFlags),
+        titleItem->setData(static_cast<int>(ResultsTable::ItemRole::ResourceFlags),
                            QVariant::fromValue(static_cast<int>(res.flags)));
 
-        if (hasFlag(res.flags, ResourceFlags::isFile) && res.filePath.has_value()) {
-            titleItem->setData(static_cast<int>(ResultsTable::ItemRole::fullPath),
+        if (hasFlag(res.flags, ResourceFlags::IsFile) && res.filePath.has_value()) {
+            titleItem->setData(static_cast<int>(ResultsTable::ItemRole::FullPath),
                                QString::fromStdString(*res.filePath));
         }
 
         if (res.url) {
-            titleItem->setData(static_cast<int>(ResultsTable::ItemRole::url),
+            titleItem->setData(static_cast<int>(ResultsTable::ItemRole::Url),
                                QString::fromStdString(*res.url));
         }
 
@@ -201,21 +201,21 @@ std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const 
     auto* titleItem = m_resultsTbl->item(row, 1);
     if (titleItem == nullptr) { return std::nullopt; }
 
-    const QVariant idVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceId));
+    const QVariant idVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::ResourceId));
     if (!idVar.isValid()) { return std::nullopt; }
     const auto id = static_cast<int>(idVar.toLongLong());
 
-    const QVariant vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
+    const QVariant vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::ResourceType));
     bool ok{};
     const int raw = vRes.toInt(&ok);
     if (!ok) { return std::nullopt; }
     const auto type = static_cast<ResourceType>(raw);
 
-    const QVariant pathVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::fullPath));
+    const QVariant pathVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::FullPath));
     QString path;
     if (pathVar.isValid() && !pathVar.isNull()) { path = pathVar.toString(); }
 
-    const QVariant urlVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::url));
+    const QVariant urlVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::Url));
     QString url;
     if (urlVar.isValid() && !urlVar.isNull()) { url = urlVar.toString(); }
 
@@ -364,15 +364,15 @@ void BrowseTabWidget::setupResultTableGroup() {
 
 QString BrowseTabWidget::resourceTypeToDisplayText(ResourceType type) {
     switch (type) {
-        case ResourceType::plainText: return tr("Text");
-        case ResourceType::cCppCode : return tr("C/C++ Code");
-        case ResourceType::markdown : return tr("Markdown Document");
-        case ResourceType::htmlDoc  : return tr("HTML Document");
-        case ResourceType::pdfDoc   : return tr("PDF Document");
-        case ResourceType::epubDoc  : return tr("EPUB Document");
-        case ResourceType::url      : return tr("Web Document");
-        case ResourceType::unknown  :
-        case ResourceType::count    : break;
+        case ResourceType::PlainText: return tr("Text");
+        case ResourceType::CCppCode : return tr("C/C++ Code");
+        case ResourceType::Markdown : return tr("Markdown Document");
+        case ResourceType::HtmlDoc  : return tr("HTML Document");
+        case ResourceType::PdfDoc   : return tr("PDF Document");
+        case ResourceType::EpubDoc  : return tr("EPUB Document");
+        case ResourceType::Url      : return tr("Web Document");
+        case ResourceType::Unknown  :
+        case ResourceType::Count    : break;
     }
 
     Q_ASSERT(false);

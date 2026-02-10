@@ -91,8 +91,8 @@ namespace Utils {
     }
 
     IndexableResult isIndexable(ResourceType type, const std::filesystem::path &path) {
-        if (type == ResourceType::pdfDoc || type == ResourceType::epubDoc) {
-            return IndexableResult::noUnsupportedType;
+        if (type == ResourceType::PdfDoc || type == ResourceType::EpubDoc) {
+            return IndexableResult::NoUnsupportedType;
         }
 
         std::error_code ec;
@@ -100,11 +100,11 @@ namespace Utils {
         if (ec || fileSize == 0 ||
             fileSize >
                 static_cast<uintmax_t>(2 * 1024 * 1024)) { // NOLINT(readability-magic-numbers)
-            return IndexableResult::noTooLarge;
+            return IndexableResult::NoTooLarge;
         }
 
         std::ifstream file(path, std::ios::binary);
-        if (!file) { return IndexableResult::noFileAccess; }
+        if (!file) { return IndexableResult::NoFileAccess; }
 
         std::array<char, 4096> buffer{}; // NOLINT(readability-magic-numbers)
         file.read(buffer.data(), buffer.size());
@@ -116,16 +116,16 @@ namespace Utils {
         for (char rawChar : dataView) {
             auto c = static_cast<unsigned char>(rawChar);
 
-            if (c == '\0') { return IndexableResult::noBinaryDetected; }
+            if (c == '\0') { return IndexableResult::NoBinaryDetected; }
 
             if (c < 7 || (c > 13 && c < 32)) { // NOLINT(readability-magic-numbers)
                 if (++suspicious > 8) {        // ~0.2%  // NOLINT(readability-magic-numbers)
-                    return IndexableResult::noBinaryDetected;
+                    return IndexableResult::NoBinaryDetected;
                 }
             }
         }
 
-        return IndexableResult::yes;
+        return IndexableResult::Yes;
     }
 
     std::string joinTags(const std::vector<std::string> &tags) {

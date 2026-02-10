@@ -414,11 +414,11 @@ QString AddTabWidget::buildResourceFileFilter() {
     for (auto it = groups.begin(); it != groups.end(); ++it) {
         QString label;
         switch (it.key()) {
-            case ResourceType::plainText: label = tr("Text Files"); break;
-            case ResourceType::cCppCode : label = tr("C/C++ Source"); break;
-            case ResourceType::htmlDoc  : label = tr("HTML Documents"); break;
-            case ResourceType::pdfDoc   : label = tr("PDF Documents"); break;
-            case ResourceType::epubDoc  : label = tr("Epub Books"); break;
+            case ResourceType::PlainText: label = tr("Text Files"); break;
+            case ResourceType::CCppCode : label = tr("C/C++ Source"); break;
+            case ResourceType::HtmlDoc  : label = tr("HTML Documents"); break;
+            case ResourceType::PdfDoc   : label = tr("PDF Documents"); break;
+            case ResourceType::EpubDoc  : label = tr("Epub Books"); break;
             default                     : label = tr("Other Files"); break;
         }
         filters << QString("%1 (%2)").arg(label, it.value().join(' '));

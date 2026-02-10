@@ -29,7 +29,7 @@ class ResourceViewerDialog final : public QDialog {
         void setupActions();
         void restoreGeometryLogic();
 
-        enum class DialogAnchor : std::uint8_t { center, left, right, top, bottom };
+        enum class DialogAnchor : std::uint8_t { Center, Left, Right, Top, Bottom };
 
         [[nodiscard]] QRect ensureOnScreen(const QRect &rect) const;
         QRect calcFallbackRect(QWidget* parent, DialogAnchor anchor) const;

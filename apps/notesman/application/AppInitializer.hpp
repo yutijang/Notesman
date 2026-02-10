@@ -51,13 +51,13 @@ class AppInitializer final : public QObject {
 
     private: // NOLINT(readability-redundant-access-specifiers)
         enum class InitFailureReason : std::uint8_t {
-            ok,
-            userCancelled,
-            openFailed,
-            readFailed,
-            verifyDBCorrupted,
-            getNullDBVersion,
-            dbOutdated
+            Ok,
+            UserCancelled,
+            OpenFailed,
+            ReadFailed,
+            VerifyDBCorrupted,
+            GetNullDBVersion,
+            DBOutdated
         };
 
         InitFailureReason initializeCore();

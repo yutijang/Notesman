@@ -14,7 +14,7 @@ class PdfPageWidget final : public QWidget {
         explicit PdfPageWidget(std::unique_ptr<poppler::page> page, QWidget* parent = nullptr);
         ~PdfPageWidget() override = default;
 
-        enum class RenderQuality : std::uint8_t { high, fast };
+        enum class RenderQuality : std::uint8_t { High, Fast };
 
         void renderIfNeeded(double dpi, RenderQuality quality);
         void releaseImage();

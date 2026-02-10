@@ -9,11 +9,11 @@
 enum class ResourceType : std::uint8_t;
 
 enum class IndexableResult : std::uint8_t {
-    yes,
-    noUnsupportedType,
-    noTooLarge,
-    noBinaryDetected,
-    noFileAccess
+    Yes,
+    NoUnsupportedType,
+    NoTooLarge,
+    NoBinaryDetected,
+    NoFileAccess
 };
 
 namespace Utils {

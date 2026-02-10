@@ -21,7 +21,7 @@
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 sqlite3_int64 ResourceService::addTextResource(const std::string &title, const std::string &content,
                                                ResourceType type) {
-    if (type != ResourceType::plainText) {
+    if (type != ResourceType::PlainText) {
         std::string msg{"addTextResource only supports ResourceType::plainText"};
         Log::err(msg);
         throw std::runtime_error(msg);
@@ -161,20 +161,20 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
     for (auto &item : results) {
         validateIsFile(item);
 
-        if (hasAnyFlags(item.flags, ResourceFlags::matchText | ResourceFlags::matchFileText) &&
+        if (hasAnyFlags(item.flags, ResourceFlags::MatchText | ResourceFlags::MatchFileText) &&
             item.rawSnippet.has_value()) {
             item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet);
-        } else if (hasFlag(item.flags, ResourceFlags::matchTag)) {
+        } else if (hasFlag(item.flags, ResourceFlags::MatchTag)) {
             std::vector<std::string> tagNames;
             auto tags = m_tagRepo.getTagsByResourceId(item.res.id);
             tagNames.reserve(tags.size());
             for (const auto &[id, name] : tags) { tagNames.push_back(name); }
             item.tags = tagNames;
             item.displaySubText = Utils::joinTags(item.tags);
-        } else if (hasFlag(item.flags, ResourceFlags::matchTitle)) {
+        } else if (hasFlag(item.flags, ResourceFlags::MatchTitle)) {
             item.displaySubText = item.res.updated_at;
         } else if (hasAnyFlags(item.flags,
-                               ResourceFlags::matchDomain | ResourceFlags::matchUrlPath)) {
+                               ResourceFlags::MatchDomain | ResourceFlags::MatchUrlPath)) {
             assert(item.url.has_value()); // invariant: domain match => URL resource
             item.displaySubText = *item.url;
         }
@@ -243,7 +243,7 @@ std::vector<UnifiedSearchResult> ResourceService::getFullResourcesByTag(const st
         u.res = res;
 
         u.rawSnippet = std::nullopt;
-        u.flags = ResourceFlags::matchTag;
+        u.flags = ResourceFlags::MatchTag;
 
         auto full = getFullResource(res.id);
         if (full.has_value()) {
@@ -312,7 +312,7 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
         auto tagPairs = m_tagRepo.getTagsByResourceId(resId);
         for (auto &p : tagPairs) { u.tags.push_back(p.second); }
 
-        u.flags = ResourceFlags::none;
+        u.flags = ResourceFlags::None;
 
         validateIsFile(u);
 
@@ -337,7 +337,7 @@ std::vector<UnifiedSearchResult> ResourceService::getAllResourcesByType(Resource
 
     for (auto &res : out) {
         res.displaySubText = res.res.updated_at + " Tags: " + Utils::joinTags(res.tags);
-        res.flags = ResourceFlags::none;
+        res.flags = ResourceFlags::None;
 
         validateIsFile(res);
     }
@@ -352,14 +352,14 @@ bool ResourceService::isExistFile(sqlite3_int64 resourceId) const {
 void ResourceService::validateIsFile(UnifiedSearchResult &item) {
     const auto resId = item.res.id;
     if (isExistFile(resId)) {
-        item.flags |= ResourceFlags::isFile;
+        item.flags |= ResourceFlags::IsFile;
 
         if (auto fileOpt = m_fileRepo.getFileById(resId)) {
             item.filePath = fileOpt->stored_path;
             if (fileOpt->is_managed) {
-                item.flags |= ResourceFlags::isManaged;
+                item.flags |= ResourceFlags::IsManaged;
             } else {
-                item.flags |= ResourceFlags::isExternal;
+                item.flags |= ResourceFlags::IsExternal;
             }
         }
     }

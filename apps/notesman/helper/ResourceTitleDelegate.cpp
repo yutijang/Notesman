@@ -22,15 +22,15 @@
 namespace {
     QString pathForType(ResourceType type) noexcept {
         switch (type) {
-            case ResourceType::plainText: return QStringLiteral(":/icons/type-text.svg");
-            case ResourceType::cCppCode : return QStringLiteral(":/icons/type-cpp.svg");
-            case ResourceType::markdown : return QStringLiteral(":/icons/type-md.svg");
-            case ResourceType::htmlDoc  : return QStringLiteral(":/icons/type-html.svg");
-            case ResourceType::pdfDoc   : return QStringLiteral(":/icons/type-pdf.svg");
-            case ResourceType::epubDoc  : return QStringLiteral(":/icons/type-epub.svg");
-            case ResourceType::url      : return QStringLiteral(":/icons/type-url.svg");
-            case ResourceType::unknown  :
-            case ResourceType::count    : break;
+            case ResourceType::PlainText: return QStringLiteral(":/icons/type-text.svg");
+            case ResourceType::CCppCode : return QStringLiteral(":/icons/type-cpp.svg");
+            case ResourceType::Markdown : return QStringLiteral(":/icons/type-md.svg");
+            case ResourceType::HtmlDoc  : return QStringLiteral(":/icons/type-html.svg");
+            case ResourceType::PdfDoc   : return QStringLiteral(":/icons/type-pdf.svg");
+            case ResourceType::EpubDoc  : return QStringLiteral(":/icons/type-epub.svg");
+            case ResourceType::Url      : return QStringLiteral(":/icons/type-url.svg");
+            case ResourceType::Unknown  :
+            case ResourceType::Count    : break;
         }
         return {};
     }
@@ -51,11 +51,11 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
     // ===== LẤY DỮ LIỆU =====
     const QString titleText = index.data(Qt::DisplayRole).toString();
     const QString subText =
-        index.data(static_cast<int>(ResultsTable::ItemRole::displaySubText)).toString();
+        index.data(static_cast<int>(ResultsTable::ItemRole::DisplaySubText)).toString();
     const auto type = static_cast<ResourceType>(
-        index.data(static_cast<int>(ResultsTable::ItemRole::resourceType)).toInt());
+        index.data(static_cast<int>(ResultsTable::ItemRole::ResourceType)).toInt());
     const auto flags = static_cast<ResourceFlags>(
-        index.data(static_cast<int>(ResultsTable::ItemRole::resourceFlags)).toInt());
+        index.data(static_cast<int>(ResultsTable::ItemRole::ResourceFlags)).toInt());
 
     // ===== ICON SVG =====
     constexpr int iconSize = 20;
@@ -111,9 +111,9 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
     if (!subText.isEmpty()) {
         QString subTextForDisplay = tr("Latest modified: %1").arg(subText);
 
-        if (hasAnyFlags(flags, ResourceFlags::matchText | ResourceFlags::matchFileText)) {
+        if (hasAnyFlags(flags, ResourceFlags::MatchText | ResourceFlags::MatchFileText)) {
             subTextForDisplay = subText;
-        } else if (hasFlag(flags, ResourceFlags::matchTag)) {
+        } else if (hasFlag(flags, ResourceFlags::MatchTag)) {
             subTextForDisplay = tr("Tags: %1").arg(subText);
         }
 

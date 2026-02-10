@@ -37,7 +37,7 @@ void ResourceViewService::saveTextResource(sqlite3_int64 resourceId, const QStri
     const auto &fullRes = *fullResOpt;
 
     // ====== Chỉ text thuần mới được lưu ======
-    if (fullRes.resource.type == ResourceType::plainText) {
+    if (fullRes.resource.type == ResourceType::PlainText) {
         m_core.updateText(resourceId, content.toStdString());
     }
 

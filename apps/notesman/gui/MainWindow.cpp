@@ -1,3 +1,5 @@
+#include <cstdint>
+#include <cstring>
 #include <memory>
 #include <optional>
 #include <ranges>
@@ -51,6 +53,8 @@
 #include "MainWindow.hpp"
 #include "CodeEditorLineHighlighter.hpp"
 #include "ResultsTable.hpp"
+#include "ViewerPackHeader.hpp"
+#include "ViewerPackWriter.hpp"
 #include "cpphighlightertheme.hpp"
 #include "cpphighlighter.hpp"
 #include "model.hpp"
@@ -68,6 +72,7 @@
 #include "Logger.hpp"
 #include "MarkdownToHtml.hpp"
 #include "EpubResolver.hpp"
+#include "SanitizeFileName.hpp"
 
 #if defined(Q_OS_LINUX)
     #include <sys/stat.h>
@@ -230,33 +235,33 @@ void MainWindow::setCore(NotesAppCore* core) {
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-void MainWindow::viewResource(int id, ResourceType type, const QString &title, const QString &path,
-                              const QString &url) {
+void MainWindow::viewResource(std::int64_t id, ResourceType type, const QString &title,
+                              const QString &path, const QString &url) {
     std::unique_ptr<IResourceViewer> viewer;
 
     switch (type) {
-        case ResourceType::plainText:
-        case ResourceType::cCppCode : {
-            const bool editable = (type == ResourceType::plainText && path.isEmpty());
+        case ResourceType::PlainText:
+        case ResourceType::CCppCode : {
+            const bool editable = (type == ResourceType::PlainText && path.isEmpty());
             const UiConst::Theme theme = m_appController->currentTheme();
 
             viewer = std::make_unique<TextViewer>(static_cast<sqlite3_int64>(id), editable,
                                                   *m_resourceViewService, theme, this);
             break;
         }
-        case ResourceType::htmlDoc:
-        case ResourceType::markdown: {
+        case ResourceType::HtmlDoc:
+        case ResourceType::Markdown: {
             const QString absolutePath = resolveResPath(path);
 
-            if (type == ResourceType::markdown) {
+            if (type == ResourceType::Markdown) {
                 const QString htmlFileFromMd =
                     MarkdownToHtml::convertFileToHtml(absolutePath, m_appController->isDarkTheme());
                 if (htmlFileFromMd.isEmpty()) { return; }
                 viewer =
-                    HtmlViewer::createFromFile(title, htmlFileFromMd, ContentMode::htmlFile, this);
+                    HtmlViewer::createFromFile(title, htmlFileFromMd, ContentMode::HtmlFile, this);
             } else {
                 viewer =
-                    HtmlViewer::createFromFile(title, absolutePath, ContentMode::htmlFile, this);
+                    HtmlViewer::createFromFile(title, absolutePath, ContentMode::HtmlFile, this);
             }
 
             if (!viewer) {
@@ -266,23 +271,23 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
 
             break;
         }
-        case ResourceType::url: {
+        case ResourceType::Url: {
             const QUrl qurl = QUrl::fromUserInput(url);
-            viewer = HtmlViewer::createFromUrl(title, qurl, ContentMode::url, this);
+            viewer = HtmlViewer::createFromUrl(title, qurl, ContentMode::Url, this);
             if (!viewer) {
                 Log::err("Invalid WebView2 runtime");
                 return;
             }
             break;
         }
-        case ResourceType::pdfDoc: {
+        case ResourceType::PdfDoc: {
             viewer = std::make_unique<PdfViewer>(path, this);
             break;
         }
-        case ResourceType::epubDoc: {
+        case ResourceType::EpubDoc: {
             auto epubResolvedPathOtp = EpubResolver::resolveToHtml(path);
             if (epubResolvedPathOtp) {
-                viewer = HtmlViewer::createFromFile(title, *epubResolvedPathOtp, ContentMode::epub,
+                viewer = HtmlViewer::createFromFile(title, *epubResolvedPathOtp, ContentMode::Epub,
                                                     this);
                 if (!viewer) {
                     Log::err("Invalid WebView2 runtime");
@@ -292,8 +297,8 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
 
             break;
         }
-        case ResourceType::unknown:
-        case ResourceType::count  : break;
+        case ResourceType::Unknown:
+        case ResourceType::Count  : break;
     }
 
     if (!viewer) { return; }
@@ -337,8 +342,8 @@ void MainWindow::viewResource(int id, ResourceType type, const QString &title, c
     dlg->exec();
 }
 
-void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
-                                 const QString &path, const QString &url) {
+void MainWindow::showContextMenu(const QPoint &pos, std::int64_t id, ResourceType type,
+                                 const QString &title, const QString &path, const QString &url) {
     if (m_browseTab == nullptr) {
         Log::warn("BrowseTabWidget not initialized!");
         return;
@@ -350,6 +355,20 @@ void MainWindow::showContextMenu(const QPoint &pos, int id, ResourceType type, c
     }
 
     QMenu menu(this);
+
+    QAction* addShortcutAction = menu.addAction(tr("Add Shortcut"));
+    QObject::connect(addShortcutAction, &QAction::triggered, this, [id, title]() {
+        ViewerPackHeader hdr{};
+        std::memcpy(hdr.magic, "RVPK", 4);
+        hdr.version = 1;
+        hdr.resourceId = id;
+        hdr.themeMode = static_cast<std::uint8_t>(UiConst::Theme::Light);
+        hdr.language = static_cast<std::uint8_t>(UiConst::Language::English);
+
+        ViewerPackWriter writer;
+        auto result = writer.write(sanitizeFileName(title.toStdString()) + ".rvpk", hdr);
+        Q_ASSERT(result.has_value());
+    });
 
     QAction* viewAction{};
     viewAction = menu.addAction(tr("View Resource"));
@@ -905,14 +924,14 @@ void MainWindow::handleContextMenuDeleteAction(ResultsTable* resultTable) {
 sqlite3_int64 MainWindow::extractIdFromRow(ResultsTable* resultTable, int row) {
     auto* item = resultTable->item(row, 1);
     if (item == nullptr) { return -1; }
-    return item->data(static_cast<int>(ResultsTable::ItemRole::resourceId)).toLongLong();
+    return item->data(static_cast<int>(ResultsTable::ItemRole::ResourceId)).toLongLong();
 }
 
 std::optional<ResourceType> MainWindow::extractTypeFromRow(ResultsTable* resultTable, int row) {
     auto* item = resultTable->item(row, 1);
     if (item == nullptr) { return std::nullopt; }
 
-    const QVariant vRes = item->data(static_cast<int>(ResultsTable::ItemRole::resourceType));
+    const QVariant vRes = item->data(static_cast<int>(ResultsTable::ItemRole::ResourceType));
     bool ok{};
     const int raw = vRes.toInt(&ok);
     if (!ok) { return std::nullopt; }

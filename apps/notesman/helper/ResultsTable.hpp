@@ -21,13 +21,13 @@ class ResultsTable final : public QTableWidget {
         // ItemRole base type must be int to match Qt ItemDataRole API
         // NOLINTNEXTLINE(performance-enum-size)
         enum class ItemRole : int {
-            resourceId = Qt::UserRole + 1,
-            resourceType,   // Kiểu tài nguyên
-            displaySubText, // Chứa nội dung dòng thứ 2 của mỗi hàng item
-            fullPath,       // Cho Tooltip hoặc Mở file
-            url,
-            tagList,
-            resourceFlags
+            ResourceId = Qt::UserRole + 1,
+            ResourceType,   // Kiểu tài nguyên
+            DisplaySubText, // Chứa nội dung dòng thứ 2 của mỗi hàng item
+            FullPath,       // Cho Tooltip hoặc Mở file
+            Url,
+            TagList,
+            ResourceFlags
         };
 
     protected:

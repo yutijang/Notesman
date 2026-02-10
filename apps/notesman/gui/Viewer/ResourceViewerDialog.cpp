@@ -136,7 +136,7 @@ void ResourceViewerDialog::restoreGeometryLogic() {
         return;
     }
 
-    constexpr DialogAnchor kDefaultFallbackAnchor = DialogAnchor::center;
+    constexpr DialogAnchor kDefaultFallbackAnchor = DialogAnchor::Center;
     if (QWidget* parent = parentWidget()) {
         dlgRect = calcFallbackRect(parent, kDefaultFallbackAnchor);
         move(dlgRect.topLeft());
@@ -170,11 +170,11 @@ QRect ResourceViewerDialog::calcFallbackRect(QWidget* parent, DialogAnchor ancho
     QRect r(QPoint{0, 0}, dialogFrameSize);
 
     switch (anchor) {
-        case DialogAnchor::left  : r.moveTopRight(parentFrame.topLeft()); break;
-        case DialogAnchor::right : r.moveTopLeft(parentFrame.topRight()); break;
-        case DialogAnchor::top   : r.moveBottomLeft(parentFrame.topLeft()); break;
-        case DialogAnchor::bottom: r.moveTopLeft(parentFrame.bottomLeft()); break;
-        case DialogAnchor::center: r.moveCenter(parentFrame.center()); break;
+        case DialogAnchor::Left  : r.moveTopRight(parentFrame.topLeft()); break;
+        case DialogAnchor::Right : r.moveTopLeft(parentFrame.topRight()); break;
+        case DialogAnchor::Top   : r.moveBottomLeft(parentFrame.topLeft()); break;
+        case DialogAnchor::Bottom: r.moveTopLeft(parentFrame.bottomLeft()); break;
+        case DialogAnchor::Center: r.moveCenter(parentFrame.center()); break;
     }
 
     return ensureOnScreen(r);

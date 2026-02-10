@@ -58,7 +58,7 @@ void PdfPageWidget::renderIfNeeded(double dpi, RenderQuality quality) {
 
     poppler::page_renderer renderer;
 
-    if (quality != RenderQuality::fast) {
+    if (quality != RenderQuality::Fast) {
         renderer.set_render_hint(poppler::page_renderer::antialiasing, true);
         renderer.set_render_hint(poppler::page_renderer::text_antialiasing, true);
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <sqlite3.h>
@@ -104,10 +105,10 @@ class MainWindow : public QMainWindow {
         void setupAddTab();
         void setupSettingsTab();
         void setupIconInfo();
-        void viewResource(int id, ResourceType type, const QString &title, const QString &path,
-                          const QString &url);
-        void showContextMenu(const QPoint &pos, int id, ResourceType type, const QString &title,
-                             const QString &path, const QString &url);
+        void viewResource(std::int64_t id, ResourceType type, const QString &title,
+                          const QString &path, const QString &url);
+        void showContextMenu(const QPoint &pos, std::int64_t id, ResourceType type,
+                             const QString &title, const QString &path, const QString &url);
         static void removeSelectedRowsFromTable(ResultsTable* table,
                                                 const QModelIndexList &selectedRows);
         static sqlite3_int64 extractIdFromRow(ResultsTable* resultTable, int row);

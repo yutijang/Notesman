@@ -23,7 +23,7 @@ sqlite3_int64 ResourceRepository::insert(const Resource &res) {
                                         static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
                       m_db.get());
 
-    if (res.type == ResourceType::plainText || res.file_hash.empty()) {
+    if (res.type == ResourceType::PlainText || res.file_hash.empty()) {
         sqlite::checkBind(sqlite3_bind_null(stmt.get(), 3), m_db.get());
     } else {
         sqlite::checkBind(
@@ -84,7 +84,7 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
                                  .filePath = std::nullopt,
                                  .url = std::nullopt,
                                  .tags = {},
-                                 .flags = ResourceFlags::matchTitle};
+                                 .flags = ResourceFlags::MatchTitle};
 
         result.push_back(std::move(ures));
     }
@@ -392,20 +392,20 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
             const int reason = sqlite3_column_int(stmt.get(), 9);
 
             ResourceFlags flags{};
-            if ((reason & 1) != 0) { flags |= ResourceFlags::matchTag; }
-            if ((reason & 2) != 0) { flags |= ResourceFlags::matchTitle; }
-            if ((reason & 4) != 0) { flags |= ResourceFlags::matchText; }
-            if ((reason & 8) != 0) { flags |= ResourceFlags::matchFileText; }
-            if ((reason & 16) != 0) { flags |= ResourceFlags::matchDomain; }
-            if ((reason & 32) != 0) { flags |= ResourceFlags::matchUrlPath; }
+            if ((reason & 1) != 0) { flags |= ResourceFlags::MatchTag; }
+            if ((reason & 2) != 0) { flags |= ResourceFlags::MatchTitle; }
+            if ((reason & 4) != 0) { flags |= ResourceFlags::MatchText; }
+            if ((reason & 8) != 0) { flags |= ResourceFlags::MatchFileText; }
+            if ((reason & 16) != 0) { flags |= ResourceFlags::MatchDomain; }
+            if ((reason & 32) != 0) { flags |= ResourceFlags::MatchUrlPath; }
 
             item.flags = flags;
 
-            if (hasAnyFlags(item.flags, ResourceFlags::matchText | ResourceFlags::matchFileText)) {
+            if (hasAnyFlags(item.flags, ResourceFlags::MatchText | ResourceFlags::MatchFileText)) {
                 // NOLINTNEXTLINE(readability-magic-numbers)
                 if (auto snippet = stmt.getColumnText(8); !snippet.empty()) {
                     item.rawSnippet = snippet;
-                    item.flags |= ResourceFlags::hasSnippet;
+                    item.flags |= ResourceFlags::HasSnippet;
                 }
             }
 
@@ -480,8 +480,8 @@ std::vector<UnifiedSearchResult>
                                  .filePath = std::nullopt,
                                  .url = std::nullopt,
                                  .tags = {},
-                                 .flags = ResourceFlags::matchText | ResourceFlags::matchFileText |
-                                          ResourceFlags::hasSnippet};
+                                 .flags = ResourceFlags::MatchText | ResourceFlags::MatchFileText |
+                                          ResourceFlags::HasSnippet};
 
         results.push_back(std::move(item));
     }
@@ -498,7 +498,7 @@ Resource ResourceRepository::resourceFromStmt(const SQLiteStmt &stmt) {
     res.title = stmt.getColumnText(1);
 
     auto type = stmt.getColumnText(2);
-    res.type = type.empty() ? ResourceType::unknown : resourceTypeFromString(type);
+    res.type = type.empty() ? ResourceType::Unknown : resourceTypeFromString(type);
 
     res.file_hash = stmt.getColumnText(3);
     res.created_at = stmt.getColumnText(4);

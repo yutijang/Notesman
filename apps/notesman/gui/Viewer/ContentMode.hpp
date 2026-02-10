@@ -3,7 +3,7 @@
 #include <cstdint>
 
 enum class ContentMode : std::uint8_t {
-    htmlFile, // HTML đơn lẻ
-    epub,     // HTML trong container
-    url       // Web page
+    HtmlFile, // HTML đơn lẻ
+    Epub,     // HTML trong container
+    Url       // Web page
 };
