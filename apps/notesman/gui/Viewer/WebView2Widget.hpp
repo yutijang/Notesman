@@ -37,7 +37,7 @@ class WebView2Widget final : public QWidget {
 
         QUrl m_pendingUrl;
 
-        ContentMode m_contentMode{ContentMode::htmlFile};
+        ContentMode m_contentMode{ContentMode::HtmlFile};
         QUrl m_baseUrl;
 
         Microsoft::WRL::ComPtr<ICoreWebView2Environment> m_env;

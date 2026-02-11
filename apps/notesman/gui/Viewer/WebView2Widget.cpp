@@ -151,8 +151,8 @@ void WebView2Widget::initWebView() {
                                         const QString scheme = target.scheme();
 
                                         switch (m_contentMode) {
-                                            case ContentMode::htmlFile:
-                                            case ContentMode::epub    : {
+                                            case ContentMode::HtmlFile:
+                                            case ContentMode::Epub    : {
                                                 // chỉ cho file://, data:, about:
                                                 if (scheme == "file" || scheme == "data" ||
                                                     scheme == "about") {
@@ -164,7 +164,7 @@ void WebView2Widget::initWebView() {
                                                 return S_OK;
                                             }
 
-                                            case ContentMode::url: {
+                                            case ContentMode::Url: {
                                                 // chỉ cho http/https
                                                 if (scheme != "http" && scheme != "https") {
                                                     args->put_Cancel(TRUE);
