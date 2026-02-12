@@ -19,5 +19,6 @@ class ViewerPackWriter final {
                                                    ViewerPackHeader header) const;
 
     private:
+        [[nodiscard]]
         static std::uint32_t computeHeaderCrc32(const ViewerPackHeader &header);
 };

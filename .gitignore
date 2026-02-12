@@ -28,6 +28,7 @@
 *.log
 
 .clangd
+.clang-tidy
 .clang-format
 
 app_version.hpp

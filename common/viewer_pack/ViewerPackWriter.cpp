@@ -10,22 +10,7 @@
 #include "ViewerPackWriter.hpp"
 #include "ViewerPackError.hpp"
 #include "ViewerPackHeader.hpp"
-
-// CRC32 implementation (IEEE 802.3, reflected)
-static std::uint32_t crc32(const void* data, std::size_t size) {
-    constexpr std::uint32_t poly = 0xEDB88320U;
-    constexpr std::uint32_t initialXor = 0xFFFFFFFFU;
-
-    std::uint32_t crc = initialXor;
-
-    const auto* bytes = static_cast<const std::uint8_t*>(data);
-    for (std::size_t i = 0; i < size; ++i) {
-        crc ^= bytes[i];
-        for (int bit = 0; bit < 8; ++bit) { crc = (crc >> 1) ^ (((crc & 1U) != 0U) ? poly : 0U); }
-    }
-
-    return ~crc;
-}
+#include "ViewerPackCrc32.hpp"
 
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 std::expected<void, ViewerPackError> ViewerPackWriter::write(const std::filesystem::path &filePath,
@@ -68,5 +53,5 @@ std::uint32_t ViewerPackWriter::computeHeaderCrc32(const ViewerPackHeader &heade
     // CRC over header[0 .. crc32 field)
     constexpr std::size_t crcOffset = offsetof(ViewerPackHeader, crc32);
 
-    return crc32(&header, crcOffset);
+    return computeCrc32(&header, crcOffset);
 }

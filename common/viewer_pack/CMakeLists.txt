@@ -1,6 +1,8 @@
 add_library(viewer_pack STATIC
     ViewerPackWriter.cpp
     ViewerPackReader.cpp
+    SanitizeFileName.cpp
+    ViewerPackCrc32.cpp
 )
 
 add_library(common::viewer_pack ALIAS viewer_pack)

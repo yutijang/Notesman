@@ -359,14 +359,15 @@ void MainWindow::showContextMenu(const QPoint &pos, std::int64_t id, ResourceTyp
     QAction* addShortcutAction = menu.addAction(tr("Add Shortcut"));
     QObject::connect(addShortcutAction, &QAction::triggered, this, [id, title]() {
         ViewerPackHeader hdr{};
-        std::memcpy(hdr.magic, "RVPK", 4);
+        std::memcpy(hdr.magic, ViewerPackHeader::RVPK_MAGIC, 4);
         hdr.version = 1;
         hdr.resourceId = id;
         hdr.themeMode = static_cast<std::uint8_t>(UiConst::Theme::Light);
         hdr.language = static_cast<std::uint8_t>(UiConst::Language::English);
 
         ViewerPackWriter writer;
-        auto result = writer.write(sanitizeFileName(title.toStdString()) + ".rvpk", hdr);
+        auto result =
+            writer.write(ViewerPackUltis::sanitizeFileName(title.toStdString()) + ".rvpk", hdr);
         Q_ASSERT(result.has_value());
     });
 

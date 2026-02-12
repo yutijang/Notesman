@@ -4,8 +4,8 @@
 
 enum class ViewerPackError : std::uint8_t {
     FileOpenFailed,
-    FileTooSmall,
-    InvalidMagic,
+    FileSizeMismatch,
+    MagicMismatch,
     UnsupportedVersion,
     HeaderSizeMismatch,
     CrcMismatch,

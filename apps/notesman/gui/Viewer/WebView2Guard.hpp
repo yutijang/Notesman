@@ -1,13 +1,12 @@
 #pragma once
 
-#include <windows.h>
 #include <cstdint>
 #include <string>
 #include <WebView2.h>
 
 class WebView2Guard final {
     public:
-        enum class Status : std::uint8_t { ok, loaderMissing, runtimeMissing, apiUnavailable };
+        enum class Status : std::uint8_t { Ok, LoaderMissing, RuntimeMissing, ApiUnavailable };
 
         static WebView2Guard &instance();
 
@@ -29,7 +28,7 @@ class WebView2Guard final {
         void checkRuntime();
 
         HMODULE m_loader{};
-        Status m_status{Status::loaderMissing};
+        Status m_status{Status::LoaderMissing};
 
         using FnGetVersion = HRESULT(STDMETHODCALLTYPE*)(PCWSTR, LPWSTR*);
         using FnCreateEnv =

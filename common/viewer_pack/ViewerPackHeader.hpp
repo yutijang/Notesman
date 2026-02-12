@@ -16,6 +16,9 @@ PACKED_STRICT
 
 struct ViewerPackHeader final {
     public:
+        static constexpr char RVPK_MAGIC[4] = {'R', 'V', 'P', 'K'};
+        static constexpr std::uint16_t VERSION{1};
+
         // ---------------------------------------------------------------------
         // Identity
         // ---------------------------------------------------------------------

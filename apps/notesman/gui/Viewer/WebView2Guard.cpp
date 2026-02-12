@@ -10,13 +10,13 @@ WebView2Guard &WebView2Guard::instance() {
 WebView2Guard::WebView2Guard() {
     loadLoader();
     if (m_loader == nullptr) {
-        m_status = Status::loaderMissing;
+        m_status = Status::LoaderMissing;
         return;
     }
 
     resolveFunctions();
     if ((m_getVersion == nullptr) || (m_createEnv == nullptr)) {
-        m_status = Status::apiUnavailable;
+        m_status = Status::ApiUnavailable;
         return;
     }
 
@@ -29,7 +29,7 @@ WebView2Guard::~WebView2Guard() {
 
 void WebView2Guard::loadLoader() {
     m_loader = LoadLibraryW(L"WebView2Loader.dll");
-    if (m_loader == nullptr) { m_status = Status::loaderMissing; }
+    if (m_loader == nullptr) { m_status = Status::LoaderMissing; }
 }
 
 void WebView2Guard::resolveFunctions() {
@@ -47,14 +47,14 @@ void WebView2Guard::checkRuntime() {
     const HRESULT hr = m_getVersion(nullptr, &version);
 
     if (FAILED(hr) || (version == nullptr)) {
-        m_status = Status::runtimeMissing;
+        m_status = Status::RuntimeMissing;
         return;
     }
 
     m_version = version;
     CoTaskMemFree(version);
 
-    m_status = Status::ok;
+    m_status = Status::Ok;
 }
 
 WebView2Guard::Status WebView2Guard::status() const noexcept {
@@ -62,7 +62,7 @@ WebView2Guard::Status WebView2Guard::status() const noexcept {
 }
 
 bool WebView2Guard::available() const noexcept {
-    return m_status == Status::ok;
+    return m_status == Status::Ok;
 }
 
 std::wstring WebView2Guard::runtimeVersion() const {

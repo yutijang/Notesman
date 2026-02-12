@@ -3,7 +3,6 @@
 #include <QObject>
 
 #ifdef Q_OS_WIN
-    #include <windows.h>
     #include <functional>
 #endif
 
