@@ -78,8 +78,10 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
     while (stmt.step() == SQLITE_ROW) {
         Resource res = resourceFromStmt(stmt);
 
+        std::string updatedAt = res.updated_at;
+
         UnifiedSearchResult ures{.res = std::move(res),
-                                 .displaySubText = ures.res.updated_at,
+                                 .displaySubText = updatedAt,
                                  .rawSnippet = std::nullopt,
                                  .filePath = std::nullopt,
                                  .url = std::nullopt,

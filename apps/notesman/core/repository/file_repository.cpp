@@ -71,28 +71,27 @@ void FileRepository::updateFile(sqlite3_int64 resourceId, const std::filesystem:
         sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, storedUtf8.data(),
                                             static_cast<int>(storedUtf8.size()), SQLITE_TRANSIENT),
                           m_db.get());
-        sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, originalUtf8.data(),
-                                            static_cast<int>(originalUtf8.size()),
-                                            SQLITE_TRANSIENT),
-                          m_db.get());
     } else {
         // Liên kết ngoài, 2 đường dẫn giống nhau, khi sử dụng: ưu tiên storedPath
         sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, originalUtf8.data(),
                                             static_cast<int>(originalUtf8.size()),
                                             SQLITE_TRANSIENT),
                           m_db.get());
-        sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, originalUtf8.data(),
-                                            static_cast<int>(originalUtf8.size()),
-                                            SQLITE_TRANSIENT),
-                          m_db.get());
     }
 
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, originalUtf8.data(),
+                                        static_cast<int>(originalUtf8.size()), SQLITE_TRANSIENT),
+                      m_db.get());
     sqlite::checkBind(sqlite3_bind_int(stmt.get(), 3, static_cast<int>(isManaged)), m_db.get());
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 4, resourceId), m_db.get());
 
     const int rc = stmt.step();
-    sqlite::checkStep(rc, m_db.get(), SQLITE_CONSTRAINT, "updateFile: " + storedUtf8);
-    sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "updateFile");
+    if (rc != SQLITE_DONE) {
+        if (rc == SQLITE_CONSTRAINT) {
+            throw std::runtime_error("updateFile: Constraint violation: " + storedUtf8);
+        }
+        sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "updateFile: " + storedUtf8);
+    }
 
     if (sqlite3_changes(m_db.get()) == 0) {
         throw std::runtime_error("Update failed: no rows updated for resource ID: " +
