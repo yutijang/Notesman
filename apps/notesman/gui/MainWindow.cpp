@@ -138,7 +138,7 @@ void MainWindow::setupBrowseTab() {
                      [this] { handleContextMenuDeleteAction(m_resultsTbl); });
 
     QObject::connect(m_resultsTbl->selectionModel(), &QItemSelectionModel::selectionChanged, this,
-                     [this](const QItemSelection &sel, const QItemSelection &) {
+                     [this](QItemSelection const& sel, QItemSelection const&) {
                          m_deleteResourceAction->setEnabled(!sel.isEmpty());
                      });
 
@@ -187,7 +187,7 @@ void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) 
 void MainWindow::showEvent(QShowEvent* event) {
     QMainWindow::showEvent(event);                // Gọi base trước
 
-    auto &settings = SettingsManager::instance(); // Tạo INI/JSON config
+    auto& settings = SettingsManager::instance(); // Tạo INI/JSON config
 
     // Đọc vị trí lưu
     int x = settings.get("window/main_posX", -1).toInt();
@@ -213,7 +213,7 @@ void MainWindow::showEvent(QShowEvent* event) {
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     // Lưu vị trí và kích thước
-    auto &settings = SettingsManager::instance();
+    auto& settings = SettingsManager::instance();
     settings.set("window/main_posX", x());
     settings.set("window/main_posY", y());
     settings.set("window/main_width", width());
@@ -235,15 +235,15 @@ void MainWindow::setCore(NotesAppCore* core) {
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-void MainWindow::viewResource(std::int64_t id, ResourceType type, const QString &title,
-                              const QString &path, const QString &url) {
+void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
+                              QString const& path, QString const& url) {
     std::unique_ptr<IResourceViewer> viewer;
 
     switch (type) {
         case ResourceType::PlainText:
         case ResourceType::CCppCode : {
-            const bool editable = (type == ResourceType::PlainText && path.isEmpty());
-            const UiConst::Theme theme = m_appController->currentTheme();
+            bool const editable = (type == ResourceType::PlainText && path.isEmpty());
+            UiConst::Theme const theme = m_appController->currentTheme();
 
             viewer = std::make_unique<TextViewer>(static_cast<sqlite3_int64>(id), editable,
                                                   *m_resourceViewService, theme, this);
@@ -251,10 +251,10 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, const QString 
         }
         case ResourceType::HtmlDoc:
         case ResourceType::Markdown: {
-            const QString absolutePath = resolveResPath(path);
+            QString const absolutePath = resolveResPath(path);
 
             if (type == ResourceType::Markdown) {
-                const QString htmlFileFromMd =
+                QString const htmlFileFromMd =
                     MarkdownToHtml::convertFileToHtml(absolutePath, m_appController->isDarkTheme());
                 if (htmlFileFromMd.isEmpty()) { return; }
                 viewer =
@@ -272,7 +272,7 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, const QString 
             break;
         }
         case ResourceType::Url: {
-            const QUrl qurl = QUrl::fromUserInput(url);
+            QUrl const qurl = QUrl::fromUserInput(url);
             viewer = HtmlViewer::createFromUrl(title, qurl, ContentMode::Url, this);
             if (!viewer) {
                 Log::err("Invalid WebView2 runtime");
@@ -342,8 +342,8 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, const QString 
     dlg->exec();
 }
 
-void MainWindow::showContextMenu(const QPoint &pos, std::int64_t id, ResourceType type,
-                                 const QString &title, const QString &path, const QString &url) {
+void MainWindow::showContextMenu(QPoint const& pos, std::int64_t id, ResourceType type,
+                                 QString const& title, QString const& path, QString const& url) {
     if (m_browseTab == nullptr) {
         Log::warn("BrowseTabWidget not initialized!");
         return;
@@ -390,7 +390,7 @@ void MainWindow::setAppController(AppController* controller) {
     m_appController = controller;
 
     QObject::connect(m_appController, &AppController::settingsLoaded, this,
-                     [this](const SettingsData &settings) {
+                     [this](SettingsData const& settings) {
                          if (m_tabWidget->currentIndex() == 2) {
                              Q_EMIT settingsUiRefreshRequest(settings);
                          }
@@ -399,7 +399,7 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_tabWidget, &QTabWidget::currentChanged, this, [this](int index) {
         constexpr int settingsTabIndex{2};
         if (index == settingsTabIndex && m_appController) {
-            const SettingsData ui = m_appController->currentUiSettings();
+            SettingsData const ui = m_appController->currentUiSettings();
             Q_EMIT settingsUiRefreshRequest(ui);
         }
     });
@@ -415,7 +415,7 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_settingsTab, &SettingsTabWidget::defaultSettingsRequested, m_appController,
                      &AppController::handleDefaultSettingsRequest);
     QObject::connect(m_appController, &AppController::settingsUpdateStatus, this,
-                     [this](const QString &, UiConst::SettingsMessageState state,
+                     [this](QString const&, UiConst::SettingsMessageState state,
                             UiConst::SettingsTabNotiLevel /*unused*/) {
                          this->handleSettingsStateChange(state);
                      });
@@ -533,7 +533,7 @@ void MainWindow::applySyntaxHighlightingTheme(UiConst::Theme theme) {
     if (m_addTab->textEdit() == nullptr) { return; }
 
     // Chọn theme tô màu
-    const CppHighlighterTheme hlTheme =
+    CppHighlighterTheme const hlTheme =
         (theme == UiConst::Theme::Light) ? createLightTheme() : createDarkTheme();
 
     // Nếu chưa có highlighter thì tạo mới
@@ -594,11 +594,11 @@ void MainWindow::onAbout() {
         return;
     }
 
-    const QRect dialogFrame = msgBox.frameGeometry();
-    const QRect parentFrame = root->frameGeometry();
+    QRect const dialogFrame = msgBox.frameGeometry();
+    QRect const parentFrame = root->frameGeometry();
 
-    const int x = parentFrame.center().x() - (dialogFrame.width() / 2);
-    const int y = parentFrame.center().y() - (dialogFrame.height() / 2);
+    int const x = parentFrame.center().x() - (dialogFrame.width() / 2);
+    int const y = parentFrame.center().y() - (dialogFrame.height() / 2);
 
     msgBox.move(x, y);
 
@@ -609,18 +609,18 @@ void MainWindow::onCheckUpdateClicked() {
     Q_EMIT checkUpdateRequest();
 }
 
-void MainWindow::onUpdateAvailable(const UpdateInfoSummary &infoSummary) {
+void MainWindow::onUpdateAvailable(UpdateInfoSummary const& infoSummary) {
     if (!infoSummary.isValid()) {
         Q_EMIT updateDecision(false, infoSummary);
         return;
     }
 
-    const auto &relName = infoSummary.releaseName;
-    const auto vPos = relName.indexOf('v');
-    const auto newVer =
+    auto const& relName = infoSummary.releaseName;
+    auto const vPos = relName.indexOf('v');
+    auto const newVer =
         (vPos >= 0 && vPos + 1 < relName.size()) ? relName.mid(vPos + 1) : QString{};
 
-    const auto reply =
+    auto const reply =
         DialogUtils::showQuestion(this, tr("Update available"),
                                   tr("A new version is available.\n\nCurrent version: %1\nNewer "
                                      "version: %2\n\nDo you want to download it?")
@@ -634,7 +634,7 @@ void MainWindow::onNoUpdateAvailable() {
     DialogUtils::showInfo(this, tr("No update"), tr("You are using the latest version."));
 }
 
-void MainWindow::onUpdateCheckFailed(const QString &error) {
+void MainWindow::onUpdateCheckFailed(QString const& error) {
     DialogUtils::showWarning(this, tr("Update check failed"), error);
 }
 
@@ -664,11 +664,11 @@ void MainWindow::onDownloadStarted() {
         QWidget* root = this->window();
         if (!root) { return; }
 
-        const QRect parentFrame = root->frameGeometry();
-        const QRect dlgFrame = m_progressDialog->frameGeometry();
+        QRect const parentFrame = root->frameGeometry();
+        QRect const dlgFrame = m_progressDialog->frameGeometry();
 
-        const int x = parentFrame.center().x() - (dlgFrame.width() / 2);
-        const int y = parentFrame.center().y() - (dlgFrame.height() / 2);
+        int const x = parentFrame.center().x() - (dlgFrame.width() / 2);
+        int const y = parentFrame.center().y() - (dlgFrame.height() / 2);
 
         m_progressDialog->move(x, y);
     });
@@ -676,12 +676,12 @@ void MainWindow::onDownloadStarted() {
 
 void MainWindow::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     if ((m_progressDialog != nullptr) && bytesTotal > 0) {
-        const int kpercent = static_cast<int>((bytesReceived * 100) / bytesTotal);
+        int const kpercent = static_cast<int>((bytesReceived * 100) / bytesTotal);
         m_progressDialog->setValue(kpercent);
     }
 }
 
-void MainWindow::onDownloadFinished(const QString &filePath) {
+void MainWindow::onDownloadFinished(QString const& filePath) {
     if (m_progressDialog != nullptr) {
         m_progressDialog->setValue(DL_MAX_PERCENT);
         m_progressDialog->close();
@@ -705,7 +705,7 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
         return;
     }
 
-    const auto assetHash = m_appController->lastUpdateInfoAssetHash();
+    auto const assetHash = m_appController->lastUpdateInfoAssetHash();
     if (assetHash.isEmpty()) {
         Q_EMIT onDownloadFailed(tr("Invalid expected hash"));
         return;
@@ -716,7 +716,7 @@ void MainWindow::onDownloadFinished(const QString &filePath) {
         return;
     }
 
-    const auto reply = DialogUtils::showQuestion(
+    auto const reply = DialogUtils::showQuestion(
         this, tr("Download complete"),
         tr("The update package has been downloaded:\n%1\n\nDo you want update?").arg(filePath));
     if (reply == QMessageBox::Yes) { runUpdate(filePath); }
@@ -730,10 +730,10 @@ void MainWindow::handleDownloadFailCauseTimeout() {
 }
 
 #if defined(Q_OS_WIN)
-void MainWindow::handleWindowsUpdate(const QString &filePath) {
-    const QString targetDir = QCoreApplication::applicationDirPath();
-    const auto kUpdaterName = QStringLiteral("Updater.exe");
-    const QString updaterPath = targetDir + "/" + kUpdaterName;
+void MainWindow::handleWindowsUpdate(const QString& filePath) {
+    QString const targetDir = QCoreApplication::applicationDirPath();
+    auto const kUpdaterName = QStringLiteral("Updater.exe");
+    QString const updaterPath = targetDir + "/" + kUpdaterName;
 
     if (!QFile::exists(updaterPath)) {
         Log::err("Missing {}. Update failed!", kUpdaterName.toStdString());
@@ -742,10 +742,10 @@ void MainWindow::handleWindowsUpdate(const QString &filePath) {
         return;
     }
 
-    const auto currentPID = QString::number(QCoreApplication::applicationPid());
+    auto const currentPID = QString::number(QCoreApplication::applicationPid());
 
-    const auto resDirStd = Utils::getDirectoryOrFileName(m_appController->resourceDir());
-    const QString resourceDirName =
+    auto const resDirStd = Utils::getDirectoryOrFileName(m_appController->resourceDir());
+    QString const resourceDirName =
         resDirStd.empty() ? "NULL_OR_ROOT" : QString::fromStdString(resDirStd);
 
     QStringList args;
@@ -760,13 +760,13 @@ void MainWindow::handleWindowsUpdate(const QString &filePath) {
     qApp->quit();
 }
 #elif defined(Q_OS_LINUX)
-void MainWindow::handleLinuxUpdate(const QString &filePath) {
+void MainWindow::handleLinuxUpdate(const QString& filePath) {
     QString currentAppImage = qEnvironmentVariable("APPIMAGE");
     if (currentAppImage.isEmpty()) { currentAppImage = QCoreApplication::arguments().first(); }
 
-    const QString &downloadedAppImage = filePath;
+    QString const& downloadedAppImage = filePath;
 
-    const QString updaterTmpPath = "/tmp/notesman-updater";
+    QString const updaterTmpPath = "/tmp/notesman-updater";
     QFile::remove(updaterTmpPath);
 
     if (!AppImageExtractor::extractUpdater(downloadedAppImage, updaterTmpPath) ||
@@ -778,13 +778,13 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
     }
 
     {
-        const QByteArray pathUtf8 = updaterTmpPath.toLocal8Bit();
+        QByteArray const pathUtf8 = updaterTmpPath.toLocal8Bit();
         ::chmod(pathUtf8.constData(),
                 S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH); // 0755
     }
 
     QStringList args{currentAppImage, downloadedAppImage};
-    const QString workDir = QDir::tempPath();
+    QString const workDir = QDir::tempPath();
 
     pid_t pid = fork();
     if (pid == -1) {
@@ -827,9 +827,9 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
         int fd = ::open("/tmp/notesman-updater.err", O_WRONLY | O_CREAT | O_TRUNC,
                         0644); // NOLINT(readability-magic-numbers)
         if (fd != -1) {
-            const char* msg = "execv failed: ";
+            char const* msg = "execv failed: ";
             ::write(fd, msg, strlen(msg));
-            const char* estr = strerror(err);
+            char const* estr = strerror(err);
             ::write(fd, estr, strlen(estr));
             ::write(fd, "\n", 1);
             ::close(fd);
@@ -846,7 +846,7 @@ void MainWindow::handleLinuxUpdate(const QString &filePath) {
 }
 #endif
 
-void MainWindow::runUpdate(const QString &filePath) {
+void MainWindow::runUpdate(const QString& filePath) {
 #if defined(Q_OS_WIN)
     handleWindowsUpdate(filePath);
 #elif defined(Q_OS_LINUX)
@@ -854,11 +854,11 @@ void MainWindow::runUpdate(const QString &filePath) {
 #endif
 }
 
-void MainWindow::onDownloadFailed(const QString &errorString) {
+void MainWindow::onDownloadFailed(QString const& errorString) {
     DialogUtils::showWarning(this, tr("Download failed"), errorString);
 }
 
-void MainWindow::updateStatus(const QString &message, int timeout) {
+void MainWindow::updateStatus(QString const& message, int timeout) {
     statusBar()->showMessage(message, timeout);
 }
 
@@ -868,7 +868,7 @@ void MainWindow::handleSyntaxHighlightingUpdate(UiConst::Theme theme) {
 
 void MainWindow::handleSyntaxHighlightingFromAddTabRequested(bool checked) {
     if (checked) {
-        const UiConst::Theme curTheme = m_appController->currentTheme();
+        UiConst::Theme const curTheme = m_appController->currentTheme();
         applySyntaxHighlightingTheme(curTheme);
     } else {
         disableSyntaxHighlightingTheme();
@@ -889,23 +889,23 @@ void MainWindow::disableSyntaxHighlightingTheme() {
 void MainWindow::handleContextMenuDeleteAction(ResultsTable* resultTable) {
     if (resultTable == nullptr) { return; }
 
-    const auto selectedRows = resultTable->selectionModel()->selectedRows();
+    auto const selectedRows = resultTable->selectionModel()->selectedRows();
     if (selectedRows.empty()) { return; }
 
     std::vector<sqlite3_int64> idsToDelete;
-    const auto idsToDelCount =
+    auto const idsToDelCount =
         static_cast<std::vector<sqlite3_int64>::size_type>(selectedRows.size());
     idsToDelete.reserve(idsToDelCount);
 
     QString textSel;
     if (idsToDelCount == 1) {
-        const auto &index = selectedRows[0];
+        auto const& index = selectedRows[0];
         auto* itemSel = resultTable->item(index.row(), 1);
         if (itemSel != nullptr) { textSel = itemSel->text(); }
     }
 
-    for (const QModelIndex &idx : selectedRows) {
-        const sqlite3_int64 id = extractIdFromRow(resultTable, idx.row());
+    for (QModelIndex const& idx : selectedRows) {
+        sqlite3_int64 const id = extractIdFromRow(resultTable, idx.row());
         if (id > 0) { idsToDelete.push_back(id); }
     }
 
@@ -932,20 +932,20 @@ std::optional<ResourceType> MainWindow::extractTypeFromRow(ResultsTable* resultT
     auto* item = resultTable->item(row, 1);
     if (item == nullptr) { return std::nullopt; }
 
-    const QVariant vRes = item->data(static_cast<int>(ResultsTable::ItemRole::ResourceType));
+    QVariant const vRes = item->data(static_cast<int>(ResultsTable::ItemRole::ResourceType));
     bool ok{};
-    const int raw = vRes.toInt(&ok);
+    int const raw = vRes.toInt(&ok);
     if (!ok) { return std::nullopt; }
 
     return static_cast<ResourceType>(raw);
 }
 
 void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
-                                             const QModelIndexList &selectedRows) {
+                                             QModelIndexList const& selectedRows) {
     table->setUpdatesEnabled(false);
     table->setSortingEnabled(false);
 
-    for (const auto &selectedRow : std::ranges::reverse_view(selectedRows)) {
+    for (auto const& selectedRow : std::ranges::reverse_view(selectedRows)) {
         table->removeRow(selectedRow.row());
     }
 
@@ -960,7 +960,7 @@ void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
 
 // --- END showContextMenu helper ---
 
-QString MainWindow::resolveResPath(const QString &path) {
+QString MainWindow::resolveResPath(QString const& path) {
     QString absolutePath;
 
     QFileInfo fi(path);

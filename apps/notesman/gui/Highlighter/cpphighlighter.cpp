@@ -14,7 +14,7 @@
 #include "cpphighlighter.hpp"
 #include "cpphighlightertheme.hpp"
 
-CppHighlighter::CppHighlighter(QTextDocument* parent, const CppHighlighterTheme &theme)
+CppHighlighter::CppHighlighter(QTextDocument* parent, CppHighlighterTheme const& theme)
     : QSyntaxHighlighter(parent), m_theme(theme) {
     initRules();
 }
@@ -23,7 +23,7 @@ CppHighlighter::~CppHighlighter() {
     stopGradualRehighlight();
 }
 
-void CppHighlighter::setTheme(const CppHighlighterTheme &theme) {
+void CppHighlighter::setTheme(CppHighlighterTheme const& theme) {
     m_theme = theme;
     initRules();
     // rehighlight();
@@ -55,11 +55,11 @@ void CppHighlighter::initRules() {
          .format = m_preprocessorFormat});
 
     // --- PHÂN NHÓM ---
-    const QStringList flowKeywords = {"for",      "if",     "else",   "do",      "while", "break",
+    QStringList const flowKeywords = {"for",      "if",     "else",   "do",      "while", "break",
                                       "continue", "switch", "case",   "return",  "using", "try",
                                       "catch",    "new",    "delete", "default", "throw"};
 
-    const QStringList builtinKeywords = {
+    QStringList const builtinKeywords = {
         "alignas",     "xor_eq",    "alignof",   "and",          "and_eq",       "asm",
         "auto",        "bitand",    "bitor",     "bool",         "char",         "char8_t",
         "char16_t",    "char32_t",  "class",     "compl",        "concept",      "const",
@@ -75,20 +75,20 @@ void CppHighlighter::initRules() {
         "void",        "volatile",  "wchar_t",   "xor"};
 
     // --- Áp dụng ---
-    for (const auto &word : flowKeywords) {
+    for (auto const& word : flowKeywords) {
         m_rules.push_back(
             {.pattern = QRegularExpression("\\b" + word + "\\b"), .format = m_flowKwFormat});
     }
 
-    for (const auto &word : builtinKeywords) {
+    for (auto const& word : builtinKeywords) {
         m_rules.push_back(
             {.pattern = QRegularExpression("\\b" + word + "\\b"), .format = m_builtinKwFormat});
     }
 
     // Types (common)
-    const QStringList types = {"std::string",     "std::vector", "std::map", "std::unique_ptr",
+    QStringList const types = {"std::string",     "std::vector", "std::map", "std::unique_ptr",
                                "std::shared_ptr", "int32_t",     "uint32_t", "size_t"};
-    for (const auto &t : types) {
+    for (auto const& t : types) {
         m_rules.push_back(
             {.pattern = QRegularExpression("\\b" + t + "\\b"), .format = m_typeFormat});
     }
@@ -131,15 +131,15 @@ void CppHighlighter::initRules() {
 
     // --- Delimiters: {}, (), [] --- (Regex: \b không cần thiết vì đây là ký tự đơn)
     // Lưu ý: Tách riêng các ký tự để dễ dàng loại trừ hoặc thay đổi sau này
-    const QStringList delimiters = {"\\{", "\\}", "\\(", "\\)", "\\[", "\\]"};
-    for (const auto &delim : delimiters) {
+    QStringList const delimiters = {"\\{", "\\}", "\\(", "\\)", "\\[", "\\]"};
+    for (auto const& delim : delimiters) {
         m_rules.push_back({.pattern = QRegularExpression(delim), .format = m_delimiterFormat});
     }
 }
 
-void CppHighlighter::highlightBlock(const QString &text) {
+void CppHighlighter::highlightBlock(QString const& text) {
     // Default app text color (used to detect "unformatted" regions)
-    const QColor defaultTextColor = qApp->palette().color(QPalette::Text);
+    QColor const defaultTextColor = qApp->palette().color(QPalette::Text);
 
     // --- 0) Apply string-like rules FIRST so they own internal content ---
     applyStringlikeRules(text);
@@ -196,7 +196,7 @@ void CppHighlighter::onGradualTimerTimeout() {
         return;
     }
 
-    const int totalBlocks = m_targetDoc->blockCount();
+    int const totalBlocks = m_targetDoc->blockCount();
     if (m_currentBlockIndex >= totalBlocks) {
         stopGradualRehighlight();
         return;
@@ -220,19 +220,19 @@ void CppHighlighter::onGradualTimerTimeout() {
     if (m_currentBlockIndex >= totalBlocks) { stopGradualRehighlight(); }
 }
 
-void CppHighlighter::handleSingleLineComment(const QString &text) {
+void CppHighlighter::handleSingleLineComment(QString const& text) {
     QRegularExpression singleLineComment(R"(//[^\n]*)");
     auto it = singleLineComment.globalMatch(text);
     while (it.hasNext()) {
-        const auto match = it.next();
-        const int start = static_cast<const int>(match.capturedStart());
-        const int len = static_cast<const int>(match.capturedLength());
+        auto const match = it.next();
+        int const start = static_cast<int const>(match.capturedStart());
+        int const len = static_cast<int const>(match.capturedLength());
         if (len <= 0) { continue; }
 
         // if comment overlaps a string (i.e. existing color == string color) skip
         bool inString = false;
         for (int i = 0; i < len; ++i) {
-            const QColor c = format(start + i).foreground().color();
+            QColor const c = format(start + i).foreground().color();
             if (c.isValid() && c == m_stringFormat.foreground().color()) {
                 inString = true;
                 break;
@@ -248,7 +248,7 @@ void CppHighlighter::handleSingleLineComment(const QString &text) {
     }
 }
 
-void CppHighlighter::handleMultilineComment(const QString &text) {
+void CppHighlighter::handleMultilineComment(QString const& text) {
     QRegularExpression startRE(R"(/\*)");
     QRegularExpression endRE(R"(\*/)");
     setCurrentBlockState(0);
@@ -268,7 +268,7 @@ void CppHighlighter::handleMultilineComment(const QString &text) {
         // check if this comment is inside a string (if so skip)
         bool inString = false;
         for (int i = 0; i < commentLength; ++i) {
-            const QColor c = format(startIndex + i).foreground().color();
+            QColor const c = format(startIndex + i).foreground().color();
             if (c.isValid() && c == m_stringFormat.foreground().color()) {
                 inString = true;
                 break;
@@ -286,19 +286,19 @@ void CppHighlighter::handleMultilineComment(const QString &text) {
     }
 }
 
-void CppHighlighter::handleIdentifierFallback(const QString &text, const QColor &defaultTextColor) {
+void CppHighlighter::handleIdentifierFallback(QString const& text, QColor const& defaultTextColor) {
     QRegularExpression identifierRegex(R"(\b[a-zA-Z_][a-zA-Z0-9_]*\b)");
     auto it = identifierRegex.globalMatch(text);
     while (it.hasNext()) {
-        const auto m = it.next();
-        const int s = static_cast<const int>(m.capturedStart());
-        const int l = static_cast<const int>(m.capturedLength());
+        auto const m = it.next();
+        int const s = static_cast<int const>(m.capturedStart());
+        int const l = static_cast<int const>(m.capturedLength());
         if (l <= 0) { continue; }
 
         // If any char already has non-default color, skip
         bool alreadyColored = false;
         for (int i = 0; i < l; ++i) {
-            const QColor c = format(s + i).foreground().color();
+            QColor const c = format(s + i).foreground().color();
             if (c.isValid() && c != defaultTextColor) {
                 alreadyColored = true;
                 break;
@@ -314,19 +314,19 @@ void CppHighlighter::handleIdentifierFallback(const QString &text, const QColor 
     }
 }
 
-void CppHighlighter::applyNormalRules(const QString &text, const QColor &defaultTextColor) {
-    for (const auto &rule : m_rules) {
+void CppHighlighter::applyNormalRules(QString const& text, QColor const& defaultTextColor) {
+    for (auto const& rule : m_rules) {
         auto it = rule.pattern.globalMatch(text);
         while (it.hasNext()) {
-            const auto match = it.next();
-            const int start = static_cast<const int>(match.capturedStart());
-            const int len = static_cast<const int>(match.capturedLength());
+            auto const match = it.next();
+            int const start = static_cast<int const>(match.capturedStart());
+            int const len = static_cast<int const>(match.capturedLength());
             if (len <= 0) { continue; }
 
             // check whether any char in this range is already formatted (i.e. not default)
             bool alreadyFormatted = false;
             for (int i = 0; i < len; ++i) {
-                const QColor c = format(start + i).foreground().color();
+                QColor const c = format(start + i).foreground().color();
                 if (c.isValid() && c != defaultTextColor) {
                     alreadyFormatted = true;
                     break;
@@ -345,13 +345,13 @@ void CppHighlighter::applyNormalRules(const QString &text, const QColor &default
     }
 }
 
-void CppHighlighter::applyStringlikeRules(const QString &text) {
-    for (const auto &rule : m_stringRules) {
+void CppHighlighter::applyStringlikeRules(QString const& text) {
+    for (auto const& rule : m_stringRules) {
         auto it = rule.pattern.globalMatch(text);
         while (it.hasNext()) {
-            const auto match = it.next();
-            const int start = static_cast<const int>(match.capturedStart());
-            const int len = static_cast<const int>(match.capturedLength());
+            auto const match = it.next();
+            int const start = static_cast<int const>(match.capturedStart());
+            int const len = static_cast<int const>(match.capturedLength());
             if (len <= 0) { continue; }
 
             QTextCharFormat f = rule.format;

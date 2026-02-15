@@ -32,7 +32,7 @@ class AddTabWidget final : public QWidget {
         [[nodiscard]] PlainTextEdit* textEdit() const noexcept { return m_textEdt; }
 
         void showNotification(
-            const QString &message,
+            QString const& message,
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal) const;
         void resetAddTabInputs() const;
 

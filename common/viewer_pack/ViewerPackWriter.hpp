@@ -11,14 +11,14 @@ class ViewerPackWriter final {
     public:
         ViewerPackWriter() = default;
 
-        ViewerPackWriter(const ViewerPackWriter &) = delete;
-        ViewerPackWriter &operator=(const ViewerPackWriter &) = delete;
+        ViewerPackWriter(ViewerPackWriter const &) = delete;
+        ViewerPackWriter &operator=(ViewerPackWriter const &) = delete;
 
         [[nodiscard]]
-        std::expected<void, ViewerPackError> write(const std::filesystem::path &filePath,
+        std::expected<void, ViewerPackError> write(std::filesystem::path const &filePath,
                                                    ViewerPackHeader header) const;
 
     private:
         [[nodiscard]]
-        static std::uint32_t computeHeaderCrc32(const ViewerPackHeader &header);
+        static std::uint32_t computeHeaderCrc32(ViewerPackHeader const &header);
 };

@@ -19,7 +19,7 @@
 #include "helper.hpp"
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-sqlite3_int64 ResourceService::addTextResource(const std::string &title, const std::string &content,
+sqlite3_int64 ResourceService::addTextResource(std::string const& title, std::string const& content,
                                                ResourceType type) {
     if (type != ResourceType::PlainText) {
         std::string msg{"addTextResource only supports ResourceType::plainText"};
@@ -39,9 +39,9 @@ sqlite3_int64 ResourceService::addTextResource(const std::string &title, const s
     return resourceId;
 }
 
-sqlite3_int64 ResourceService::addFileResource(const std::string &filepath,
-                                               const std::string &title, ResourceType type,
-                                               bool isManaged, const std::string &contentToIndex) {
+sqlite3_int64 ResourceService::addFileResource(std::string const& filepath,
+                                               std::string const& title, ResourceType type,
+                                               bool isManaged, std::string const& contentToIndex) {
     return m_fileService.addFileResource(filepath, title, type, isManaged, contentToIndex);
 }
 
@@ -61,7 +61,7 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
     auto tagPairs = m_tagRepo.getTagsByResourceId(resourceId);
     std::vector<std::string> tagNames;
     tagNames.reserve(tagPairs.size());
-    for (const auto &p : tagPairs) { tagNames.push_back(p.second); }
+    for (auto const& p : tagPairs) { tagNames.push_back(p.second); }
 
     FullResource fres;
     fres.resource = *resOpt;
@@ -88,15 +88,15 @@ void ResourceService::deleteResource(sqlite3_int64 resourceId) {
     m_resRepo.remove(resourceId);
 }
 
-void ResourceService::deleteResources(const std::vector<sqlite3_int64> &resourceIds) {
+void ResourceService::deleteResources(std::vector<sqlite3_int64> const& resourceIds) {
     if (resourceIds.empty()) { return; }
 
-    for (const auto id : resourceIds) {
+    for (auto const id : resourceIds) {
         auto fileEntry = m_fileRepo.getFileById(id);
         if (fileEntry.has_value() && fileEntry->is_managed) {
             try {
                 std::filesystem::remove(*(fileEntry->stored_path));
-            } catch (const std::filesystem::filesystem_error &e) {
+            } catch (std::filesystem::filesystem_error const& e) {
                 Log::warn("Failed to delete file: {}", e.what());
                 throw std::runtime_error("[WARN] Failed to delete file: " +
                                          std::string{(e.what())});
@@ -107,29 +107,29 @@ void ResourceService::deleteResources(const std::vector<sqlite3_int64> &resource
     m_resRepo.removeBatch(resourceIds);
 }
 
-std::vector<UnifiedSearchResult> ResourceService::searchByTitle(const std::string &keyword) {
+std::vector<UnifiedSearchResult> ResourceService::searchByTitle(std::string const& keyword) {
     return m_resRepo.searchByTitleFTS(keyword);
 }
 
-std::vector<UnifiedSearchResult> ResourceService::searchByTitleFull(const std::string &keyword) {
+std::vector<UnifiedSearchResult> ResourceService::searchByTitleFull(std::string const& keyword) {
     auto results = m_resRepo.searchByTitleFTS(keyword);
 
-    for (auto &item : results) { validateIsFile(item); }
+    for (auto& item : results) { validateIsFile(item); }
 
     return results;
 }
 
 std::vector<std::pair<sqlite3_int64, std::string>>
-    ResourceService::searchByContent(const std::string &keyword) {
+    ResourceService::searchByContent(std::string const& keyword) {
     return m_textRepo.searchByContentFTS(keyword);
 }
 
-std::vector<FullResource> ResourceService::searchByContentFull(const std::string &keyword) {
+std::vector<FullResource> ResourceService::searchByContentFull(std::string const& keyword) {
     std::vector<FullResource> results;
     auto matches = m_textRepo.searchByContentFTS(keyword);
     results.reserve(matches.size());
 
-    for (auto &[resourceId, snippet] : matches) {
+    for (auto& [resourceId, snippet] : matches) {
         auto full = getFullResource(resourceId);
         if (full.has_value()) {
             // override content bằng snippet highlight
@@ -141,10 +141,10 @@ std::vector<FullResource> ResourceService::searchByContentFull(const std::string
 }
 
 std::vector<UnifiedSearchResult>
-    ResourceService::searchByContentUnifiedFull(const std::string &keyword) {
+    ResourceService::searchByContentUnifiedFull(std::string const& keyword) {
     auto results = m_resRepo.searchByContentUnified(keyword);
 
-    for (auto &item : results) {
+    for (auto& item : results) {
         item.displaySubText = Utils::normalizeSnippet(*item.rawSnippet);
 
         validateIsFile(item);
@@ -158,7 +158,7 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
                                                                     std::string_view domainLikeKW) {
     auto results = m_resRepo.searchUnified(tagLikeKW, ftsKW, domainLikeKW);
 
-    for (auto &item : results) {
+    for (auto& item : results) {
         validateIsFile(item);
 
         if (hasAnyFlags(item.flags, ResourceFlags::MatchText | ResourceFlags::MatchFileText) &&
@@ -168,7 +168,7 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
             std::vector<std::string> tagNames;
             auto tags = m_tagRepo.getTagsByResourceId(item.res.id);
             tagNames.reserve(tags.size());
-            for (const auto &[id, name] : tags) { tagNames.push_back(name); }
+            for (auto const& [id, name] : tags) { tagNames.push_back(name); }
             item.tags = tagNames;
             item.displaySubText = Utils::joinTags(item.tags);
         } else if (hasFlag(item.flags, ResourceFlags::MatchTitle)) {
@@ -183,7 +183,7 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
     return results;
 }
 
-std::vector<Resource> ResourceService::getResourcesByTags(const std::vector<std::string> &tags) {
+std::vector<Resource> ResourceService::getResourcesByTags(std::vector<std::string> const& tags) {
     return m_tagRepo.getResourcesViaTags(tags);
 }
 
@@ -191,7 +191,7 @@ std::optional<std::string> ResourceService::getUrlByResourceIdOnly(sqlite3_int64
     return m_urlService.getUrlByResourceIdOnly(resourceId);
 }
 
-void ResourceService::addTagToResource(sqlite3_int64 resourceId, const std::string &tag) {
+void ResourceService::addTagToResource(sqlite3_int64 resourceId, std::string const& tag) {
     sqlite3_int64 tagId{};
     auto tagIdOpt = m_tagRepo.getTagIdByName(tag);
 
@@ -213,11 +213,11 @@ void ResourceService::addTagToResource(sqlite3_int64 resourceId, const std::stri
 }
 
 void ResourceService::addTagsToResource(sqlite3_int64 resourceId,
-                                        const std::vector<std::string> &tagNames) {
+                                        std::vector<std::string> const& tagNames) {
     m_tagRepo.linkResourceWithTags(resourceId, tagNames);
 }
 
-void ResourceService::removeTagFromResource(sqlite3_int64 resourceId, const std::string &tag) {
+void ResourceService::removeTagFromResource(sqlite3_int64 resourceId, std::string const& tag) {
     auto tagIdOpt = m_tagRepo.getTagIdByName(tag);
     if (!tagIdOpt.has_value()) { return; }
 
@@ -228,17 +228,17 @@ std::vector<std::pair<sqlite3_int64, std::string>> ResourceService::getAllTags()
     return m_tagRepo.getAllTags();
 }
 
-std::vector<Resource> ResourceService::getResourcesByTag(const std::string &tag) {
+std::vector<Resource> ResourceService::getResourcesByTag(std::string const& tag) {
     return m_tagRepo.getResourcesViaOneTag(tag);
 }
 
-std::vector<UnifiedSearchResult> ResourceService::getFullResourcesByTag(const std::string &tag) {
+std::vector<UnifiedSearchResult> ResourceService::getFullResourcesByTag(std::string const& tag) {
     std::vector<UnifiedSearchResult> results;
 
     auto resources = m_tagRepo.getResourcesViaOneTag(tag);
     results.reserve(resources.size());
 
-    for (const auto &res : resources) {
+    for (auto const& res : resources) {
         UnifiedSearchResult u{};
         u.res = res;
 
@@ -263,7 +263,7 @@ bool ResourceService::isExistTitle(std::string_view title, ResourceType type) co
     return m_resRepo.existsTitle(title, type);
 }
 
-FullResource ResourceService::buildFullFromResource(const Resource &res) {
+FullResource ResourceService::buildFullFromResource(Resource const& res) {
     FullResource fr;
 
     fr.resource = res;
@@ -273,7 +273,7 @@ FullResource ResourceService::buildFullFromResource(const Resource &res) {
     auto tagPairs = m_tagRepo.getTagsByResourceId(res.id); // vector<pair<id,name>>
     fr.tags.reserve(tagPairs.size());
 
-    for (auto &p : tagPairs) { fr.tags.push_back(p.second); }
+    for (auto& p : tagPairs) { fr.tags.push_back(p.second); }
 
     return fr;
 }
@@ -283,7 +283,7 @@ std::vector<FullResource> ResourceService::getAllFull() {
 
     if (auto resources = m_resRepo.getAll(); !resources.empty()) {
         out.reserve(resources.size());
-        for (auto &r : resources) { out.push_back(buildFullFromResource(r)); }
+        for (auto& r : resources) { out.push_back(buildFullFromResource(r)); }
     }
 
     return out;
@@ -295,11 +295,11 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
     auto resources = m_resRepo.getAll();
     out.reserve(resources.size());
 
-    for (const auto &r : resources) {
+    for (auto const& r : resources) {
         UnifiedSearchResult u{};
         u.res = r;
 
-        const auto resId = r.id;
+        auto const resId = r.id;
 
         // SubText: ngày cập nhật
         if (!r.updated_at.empty()) {
@@ -310,7 +310,7 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
 
         // Tags
         auto tagPairs = m_tagRepo.getTagsByResourceId(resId);
-        for (auto &p : tagPairs) { u.tags.push_back(p.second); }
+        for (auto& p : tagPairs) { u.tags.push_back(p.second); }
 
         u.flags = ResourceFlags::None;
 
@@ -335,7 +335,7 @@ void ResourceService::updateText(sqlite3_int64 resourceId, std::string_view newT
 std::vector<UnifiedSearchResult> ResourceService::getAllResourcesByType(ResourceType type) {
     auto out = m_resRepo.getAllResourcesByType(type);
 
-    for (auto &res : out) {
+    for (auto& res : out) {
         res.displaySubText = res.res.updated_at + " Tags: " + Utils::joinTags(res.tags);
         res.flags = ResourceFlags::None;
 
@@ -349,8 +349,8 @@ bool ResourceService::isExistFile(sqlite3_int64 resourceId) const {
     return m_fileRepo.exists(resourceId);
 }
 
-void ResourceService::validateIsFile(UnifiedSearchResult &item) {
-    const auto resId = item.res.id;
+void ResourceService::validateIsFile(UnifiedSearchResult& item) {
+    auto const resId = item.res.id;
     if (isExistFile(resId)) {
         item.flags |= ResourceFlags::IsFile;
 

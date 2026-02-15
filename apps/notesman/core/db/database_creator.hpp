@@ -11,8 +11,8 @@
 class DatabaseCreator {
     public:
         // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-        static bool create(const std::string &dbPath, const std::string &schemaSql,
-                           std::string &error) {
+        static bool create(std::string const& dbPath, std::string const& schemaSql,
+                           std::string& error) {
             try {
                 {
                     SQLiteDB db(dbPath);
@@ -41,7 +41,7 @@ class DatabaseCreator {
 
                     return true;
                 }
-            } catch (const std::exception &ex) {
+            } catch (std::exception const& ex) {
                 error = ex.what();
                 return false;
             }

@@ -13,22 +13,22 @@
 #include "sqlite_utils.hpp"
 
 namespace {
-    inline std::string toUtf8String(const std::filesystem::path &p) {
-        const std::u8string u8 = p.u8string();
+    inline std::string toUtf8String(std::filesystem::path const& p) {
+        std::u8string const u8 = p.u8string();
         return {u8.begin(), u8.end()};
     }
 } // namespace
 
-void FileRepository::insertFile(sqlite3_int64 resourceId, const std::filesystem::path &storedPath,
-                                const std::filesystem::path &originalPath, bool isManaged) {
-    static constexpr const char* sql = "INSERT INTO files(resource_id, stored_path, original_path, "
+void FileRepository::insertFile(sqlite3_int64 resourceId, std::filesystem::path const& storedPath,
+                                std::filesystem::path const& originalPath, bool isManaged) {
+    static constexpr char const* sql = "INSERT INTO files(resource_id, stored_path, original_path, "
                                        "is_managed) VALUES (?, ?, ?, ?);";
     SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    const std::string storedUtf8 = toUtf8String(storedPath);
-    const std::string originalUtf8 = toUtf8String(originalPath);
+    std::string const storedUtf8 = toUtf8String(storedPath);
+    std::string const originalUtf8 = toUtf8String(originalPath);
 
     if (isManaged) {
         // Liên kết nội bộ, sao chép file gốc vào thư mục lưu trữ nội bộ,
@@ -57,13 +57,13 @@ void FileRepository::insertFile(sqlite3_int64 resourceId, const std::filesystem:
                       "insertFile - Resource ID: " + std::to_string(resourceId));
 }
 
-void FileRepository::updateFile(sqlite3_int64 resourceId, const std::filesystem::path &storedPath,
-                                const std::filesystem::path &originalPath, bool isManaged) {
+void FileRepository::updateFile(sqlite3_int64 resourceId, std::filesystem::path const& storedPath,
+                                std::filesystem::path const& originalPath, bool isManaged) {
     SQLiteStmt stmt(m_db.get(), "UPDATE files SET stored_path = ?, original_path = ?, is_managed = "
                                 "? WHERE resource_id = ?;");
 
-    const std::string storedUtf8 = toUtf8String(storedPath);
-    const std::string originalUtf8 = toUtf8String(originalPath);
+    std::string const storedUtf8 = toUtf8String(storedPath);
+    std::string const originalUtf8 = toUtf8String(originalPath);
 
     if (isManaged) {
         // Liên kết nội bộ, sao chép file gốc vào thư mục lưu trữ nội bộ,
@@ -85,7 +85,7 @@ void FileRepository::updateFile(sqlite3_int64 resourceId, const std::filesystem:
     sqlite::checkBind(sqlite3_bind_int(stmt.get(), 3, static_cast<int>(isManaged)), m_db.get());
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 4, resourceId), m_db.get());
 
-    const int rc = stmt.step();
+    int const rc = stmt.step();
     if (rc != SQLITE_DONE) {
         if (rc == SQLITE_CONSTRAINT) {
             throw std::runtime_error("updateFile: Constraint violation: " + storedUtf8);
@@ -100,14 +100,14 @@ void FileRepository::updateFile(sqlite3_int64 resourceId, const std::filesystem:
 }
 
 std::optional<FileEntry> FileRepository::getFileById(sqlite_int64 resourceId) {
-    static constexpr const char* sql = "SELECT resource_id, stored_path, original_path, is_managed "
+    static constexpr char const* sql = "SELECT resource_id, stored_path, original_path, is_managed "
                                        "FROM files "
                                        "WHERE resource_id = ?;";
     SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    const int rc = stmt.step();
+    int const rc = stmt.step();
     if (rc == SQLITE_ROW) {
         FileEntry entry{};
 
@@ -138,7 +138,7 @@ bool FileRepository::exists(sqlite3_int64 resourceId) const {
 }
 
 std::vector<FileEntry> FileRepository::getAllFile() {
-    static constexpr const char* sql = "SELECT resource_id, stored_path, original_path, is_managed "
+    static constexpr char const* sql = "SELECT resource_id, stored_path, original_path, is_managed "
                                        "FROM files;";
     SQLiteStmt stmt(m_db.get(), sql);
 
@@ -176,10 +176,10 @@ std::optional<sqlite3_int64> FileRepository::getResourceIdBystoredPath(std::stri
 }
 
 std::optional<sqlite3_int64>
-    FileRepository::getResourceIdByOriginalPath(const std::filesystem::path &path) {
+    FileRepository::getResourceIdByOriginalPath(std::filesystem::path const& path) {
     SQLiteStmt stmt(m_db.get(), "SELECT resource_id FROM files WHERE original_path = ?;");
 
-    const std::string pathUtf8 = toUtf8String(path);
+    std::string const pathUtf8 = toUtf8String(path);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, pathUtf8.data(),
                                         static_cast<int>(pathUtf8.size()), SQLITE_TRANSIENT),

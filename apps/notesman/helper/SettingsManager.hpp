@@ -10,30 +10,30 @@
 class SettingsManager {
     public:
         // Lấy instance singleton
-        static SettingsManager &instance() {
+        static SettingsManager& instance() {
             static auto* sInstance =
                 new SettingsManager(); // intentional leak, no exit-time destructor
             return *sInstance;
         }
 
         // Xóa copy/move
-        SettingsManager(const SettingsManager &) = delete;
-        SettingsManager &operator=(const SettingsManager &) = delete;
-        SettingsManager(SettingsManager &&) = delete;
-        SettingsManager &operator=(SettingsManager &&) = delete;
+        SettingsManager(SettingsManager const&) = delete;
+        SettingsManager& operator=(SettingsManager const&) = delete;
+        SettingsManager(SettingsManager&&) = delete;
+        SettingsManager& operator=(SettingsManager&&) = delete;
 
         // --- Wrapper ---
-        QVariant get(const QString &key, const QVariant &defaultValue = {}) const {
+        QVariant get(QString const& key, QVariant const& defaultValue = {}) const {
             std::lock_guard<std::mutex> lock(m_mutex);
             return m_settings.value(key, defaultValue);
         }
 
-        void set(const QString &key, const QVariant &value) {
+        void set(QString const& key, QVariant const& value) {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_settings.setValue(key, value);
         }
 
-        void remove(const QString &key) {
+        void remove(QString const& key) {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_settings.remove(key);
         }

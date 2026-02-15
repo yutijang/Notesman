@@ -20,7 +20,7 @@
 #include "file_text_content_repository.hpp"
 
 // Tính hash file (SHA256)
-std::string FileService::computeFileHash(const std::filesystem::path &filePath) {
+std::string FileService::computeFileHash(std::filesystem::path const& filePath) {
     std::ifstream file(filePath, std::ios::binary);
     if (!file.is_open()) {
         throw std::runtime_error("Error, cannot open file: " + filePath.string());
@@ -35,7 +35,7 @@ std::string FileService::computeFileHash(const std::filesystem::path &filePath) 
         throw std::runtime_error("EVP_DigestInit_ex failed");
     }
 
-    const int bufferSize{8192};
+    int const bufferSize{8192};
     std::array<char, bufferSize> buffer{};
     while (file.read(buffer.data(), buffer.size()) || file.gcount() > 0) {
         if (EVP_DigestUpdate(ctx, buffer.data(), static_cast<std::size_t>(file.gcount())) != 1) {
@@ -63,9 +63,9 @@ std::string FileService::computeFileHash(const std::filesystem::path &filePath) 
 }
 
 // Thêm file vào DB kèm hash
-sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath,
-                                           const std::string &title, ResourceType type,
-                                           bool isManaged, const std::string &contentToIndex) {
+sqlite3_int64 FileService::addFileResource(std::filesystem::path const& filepath,
+                                           std::string const& title, ResourceType type,
+                                           bool isManaged, std::string const& contentToIndex) {
     // Tính hash của file
     std::string hash = computeFileHash(filepath);
 
@@ -98,7 +98,7 @@ sqlite3_int64 FileService::addFileResource(const std::filesystem::path &filepath
 
 // Kiểm tra file đã được index chưa
 std::optional<sqlite3_int64>
-    FileService::findResourceByFile(const std::filesystem::path &filepath) {
+    FileService::findResourceByFile(std::filesystem::path const& filepath) {
     // Kiểm tra trước với original_path
     if (auto byOriginal = m_fileRepo.getResourceIdByOriginalPath(filepath)) { return byOriginal; }
 
@@ -117,7 +117,7 @@ void FileService::refreshFileHash(sqlite3_int64 resourceId) {
         throw std::runtime_error("No file entry for resource ID: " + std::to_string(resourceId));
     }
 
-    const auto &entry = *fileEntryOpt;
+    auto const& entry = *fileEntryOpt;
     if (!entry.stored_path.has_value()) {
         Log::err("File has no stored_path for resource ID: {}", resourceId);
         throw std::runtime_error("File has no stored_path for resource ID: " +
@@ -128,8 +128,8 @@ void FileService::refreshFileHash(sqlite3_int64 resourceId) {
     m_resRepo.updateFileHash(resourceId, newHash);
 }
 
-std::filesystem::path FileService::copyToStorage(const std::filesystem::path &srcPath,
-                                                 const std::string &hash) {
+std::filesystem::path FileService::copyToStorage(std::filesystem::path const& srcPath,
+                                                 std::string const& hash) {
     namespace fs = std::filesystem;
 
     fs::path storageDir = "resources";
@@ -139,7 +139,7 @@ std::filesystem::path FileService::copyToStorage(const std::filesystem::path &sr
 
     try {
         fs::copy_file(srcPath, dest, fs::copy_options::skip_existing);
-    } catch (const std::filesystem::filesystem_error &e) {
+    } catch (std::filesystem::filesystem_error const& e) {
         Log::err("Filesystem error: {}", e.what());
         throw std::runtime_error("Filesystem error: " + std::string(e.what()));
     }

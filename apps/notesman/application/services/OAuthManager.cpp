@@ -34,7 +34,7 @@
 
 namespace {
     unsigned short oauthPort() {
-        static const unsigned short port = findFreePort();
+        static unsigned short const port = findFreePort();
         return port;
     }
 
@@ -73,7 +73,7 @@ QString OAuthManager::generateRandomString(int length) {
     return str;
 }
 
-QString OAuthManager::sha256Base64Url(const QString &input) {
+QString OAuthManager::sha256Base64Url(QString const& input) {
     QByteArray hash = QCryptographicHash::hash(input.toUtf8(), QCryptographicHash::Sha256);
     return QString{hash.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals)};
 }
@@ -86,24 +86,24 @@ void OAuthManager::cleanupAuthServer() {
     }
 }
 
-void OAuthManager::processTokenJson(const QJsonObject &json) {
+void OAuthManager::processTokenJson(QJsonObject const& json) {
     if (json.isEmpty()) { return; }
 
     m_accessToken = json["access_token"].toString();
-    const int expiresIn = json["expires_in"].toInt();
+    int const expiresIn = json["expires_in"].toInt();
     m_accessTokenExpiry = QDateTime::currentDateTimeUtc().addSecs(expiresIn);
 
     // Xử lý refresh token nếu có (thường chỉ có ở lần exchange đầu tiên)
-    const QString refresh = json["refresh_token"].toString();
+    QString const refresh = json["refresh_token"].toString();
     if (!refresh.isEmpty()) { saveRefreshToken(refresh); }
 
     // Lưu vào Settings
-    auto &settings = SettingsManager::instance();
+    auto& settings = SettingsManager::instance();
     settings.set(KEY_ACCESS_TOKEN, m_accessToken);
     settings.set(KEY_TOKEN_EXPIRY, m_accessTokenExpiry.toSecsSinceEpoch());
 }
 
-void OAuthManager::openBrowser(const QUrl &url) {
+void OAuthManager::openBrowser(QUrl const& url) {
 #if defined(Q_OS_WIN)
     QDesktopServices::openUrl(url);
 #else
@@ -123,8 +123,8 @@ void OAuthManager::openBrowser(const QUrl &url) {
 #endif
 }
 
-QString OAuthManager::htmlResponde(const QString &title, const QString &header,
-                                   const QString &message) noexcept {
+QString OAuthManager::htmlResponde(QString const& title, QString const& header,
+                                   QString const& message) noexcept {
     return QStringLiteral(
                R"html(<!DOCTYPE html>
 <meta charset="UTF-8">
@@ -153,8 +153,8 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
         return;                                        // Đợi gói tin tiếp theo
     }
 
-    const QByteArray requestLine = socket->readLine(); // Chỉ đọc dòng đầu: GET /... HTTP/1.1
-    const QString requestStr = QString::fromLatin1(requestLine);
+    QByteArray const requestLine = socket->readLine(); // Chỉ đọc dòng đầu: GET /... HTTP/1.1
+    QString const requestStr = QString::fromLatin1(requestLine);
 
     QRegularExpression rx(R"(GET\s+\/\?(.*)\s+HTTP\/1\.)");
     QRegularExpressionMatch match = rx.match(requestStr);
@@ -167,8 +167,8 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
     QUrl url("http://localhost/?" + match.captured(1));
     QUrlQuery query(url);
 
-    const QString authCode = query.queryItemValue("code");
-    const QString error = query.queryItemValue("error");
+    QString const authCode = query.queryItemValue("code");
+    QString const error = query.queryItemValue("error");
 
     if (!authCode.isEmpty()) {
         exchangeAuthCodeForTokens(authCode);
@@ -181,15 +181,15 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
     // Trả về HTML
     QByteArray responseBody;
     if (!authCode.isEmpty()) {
-        const QString title = tr("Authorization Successful");
-        const QString header = tr("Authorization successful!");
-        const QString body = tr("You can return to the application.");
+        QString const title = tr("Authorization Successful");
+        QString const header = tr("Authorization successful!");
+        QString const body = tr("You can return to the application.");
 
         responseBody = htmlResponde(title, header, body).toUtf8();
     } else if (!error.isEmpty()) {
-        const QString title = tr("Authorization Failed");
-        const QString header = tr("Authorization failed!");
-        const QString body = tr("You canceled login. Please try again.");
+        QString const title = tr("Authorization Failed");
+        QString const header = tr("Authorization failed!");
+        QString const body = tr("You canceled login. Please try again.");
 
         responseBody = htmlResponde(title, header, body).toUtf8();
     }
@@ -211,7 +211,7 @@ void OAuthManager::handleRedirect(QTcpSocket* socket) {
     socket->disconnectFromHost();
 }
 
-void OAuthManager::exchangeAuthCodeForTokens(const QString &authCode) {
+void OAuthManager::exchangeAuthCodeForTokens(QString const& authCode) {
     QUrl url(GOOGLE_OAUTH2_TOKEN_URL);
 
     QUrlQuery body;
@@ -222,7 +222,7 @@ void OAuthManager::exchangeAuthCodeForTokens(const QString &authCode) {
     body.addQueryItem("redirect_uri", redirectUri());
     body.addQueryItem("grant_type", "authorization_code");
 
-    const QByteArray bodyData = body.toString(QUrl::FullyEncoded).toUtf8();
+    QByteArray const bodyData = body.toString(QUrl::FullyEncoded).toUtf8();
 
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
@@ -240,7 +240,7 @@ void OAuthManager::handlePostFinished(QNetworkReply* reply) {
         return;
     }
 
-    const QByteArray data = reply->readAll();
+    QByteArray const data = reply->readAll();
     reply->deleteLater();
 
     QJsonDocument json = QJsonDocument::fromJson(data);
@@ -264,7 +264,7 @@ void OAuthManager::fetchUserEmail() {
     auto* reply = m_networkManager.get(req);
 
     QObject::connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        const QByteArray data = reply->readAll();
+        QByteArray const data = reply->readAll();
 
         reply->deleteLater();
 
@@ -274,8 +274,8 @@ void OAuthManager::fetchUserEmail() {
             return;
         }
 
-        const auto obj = doc.object();
-        const QString email = obj["email"].toString();
+        auto const obj = doc.object();
+        QString const email = obj["email"].toString();
         if (email.isEmpty()) {
             Log::warn("Email not present");
             return;
@@ -341,7 +341,7 @@ void OAuthManager::handleLoginGMRequested() {
 
 void OAuthManager::handleUnlinkGMRequested() {
     if (qEnvironmentVariable("WSL_DISTRO_NAME").isEmpty()) {
-        const QString refreshTokenToRevoke = loadRefreshToken();
+        QString const refreshTokenToRevoke = loadRefreshToken();
         revokeRefreshToken(refreshTokenToRevoke);
     }
 
@@ -363,7 +363,7 @@ void OAuthManager::handleUnlinkGMRequested() {
 
     job->start();
 
-    auto &settings = SettingsManager::instance();
+    auto& settings = SettingsManager::instance();
     settings.remove(KEY_ACCESS_TOKEN);
     settings.remove(KEY_TOKEN_EXPIRY);
 
@@ -372,8 +372,8 @@ void OAuthManager::handleUnlinkGMRequested() {
     Q_EMIT gmailUnlinked();
 }
 
-void OAuthManager::requestNewAccessToken(const QString &refreshToken,
-                                         const std::function<void()> &finishedCallback) {
+void OAuthManager::requestNewAccessToken(QString const& refreshToken,
+                                         std::function<void()> const& finishedCallback) {
     QUrl url(GOOGLE_OAUTH2_TOKEN_URL);
     QUrlQuery body;
     body.addQueryItem("client_id", CLIENT_ID);
@@ -393,7 +393,7 @@ void OAuthManager::requestNewAccessToken(const QString &refreshToken,
             return;
         }
 
-        const auto json = QJsonDocument::fromJson(reply->readAll());
+        auto const json = QJsonDocument::fromJson(reply->readAll());
         reply->deleteLater();
 
         if (json.isObject()) { processTokenJson(json.object()); }
@@ -402,7 +402,7 @@ void OAuthManager::requestNewAccessToken(const QString &refreshToken,
     });
 }
 
-void OAuthManager::saveRefreshToken(const QString &refreshToken) {
+void OAuthManager::saveRefreshToken(QString const& refreshToken) {
     auto* job = new QKeychain::WritePasswordJob(app::meta::NAME, this);
     job->setKey(KEY_REFRESH_TOKEN);
     job->setTextData(refreshToken);
@@ -441,7 +441,7 @@ QString OAuthManager::accessToken() {
     if (m_accessToken.isEmpty() ||
         QDateTime::currentDateTimeUtc() >=
             m_accessTokenExpiry.addSecs(-30)) { // NOLINT(readability-magic-numbers)
-        const QString refresh = loadRefreshToken();
+        QString const refresh = loadRefreshToken();
         if (!refresh.isEmpty()) {
             QEventLoop loop;
             requestNewAccessToken(refresh, [&]() { loop.quit(); });
@@ -458,7 +458,7 @@ QString OAuthManager::accessToken() {
 void OAuthManager::tryAutoLogin() {
     if (m_isLogin) { return; }
 
-    auto &settings = SettingsManager::instance();
+    auto& settings = SettingsManager::instance();
     m_accessToken = settings.get(KEY_ACCESS_TOKEN).toString();
     qint64 expirySecs = settings.get(KEY_TOKEN_EXPIRY).toLongLong();
     m_accessTokenExpiry = QDateTime::fromSecsSinceEpoch(expirySecs, QTimeZone::utc());
@@ -481,7 +481,7 @@ void OAuthManager::cancelCurrentLogin() {
     cleanupAuthServer();
 }
 
-void OAuthManager::revokeRefreshToken(const QString &refreshTokenToRevoke) {
+void OAuthManager::revokeRefreshToken(QString const& refreshTokenToRevoke) {
     if (refreshTokenToRevoke.isEmpty()) {
         Log::warn("Revocation skipped: Token is empty.");
         return;

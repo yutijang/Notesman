@@ -11,7 +11,7 @@
 
 class UrlService {
     public:
-        UrlService(UrlRepository &urlRepo, ResourceRepository &resRepo) noexcept
+        UrlService(UrlRepository& urlRepo, ResourceRepository& resRepo) noexcept
             : m_urlRepo(urlRepo), m_resRepo(resRepo) {}
 
         // Core CURD
@@ -48,6 +48,6 @@ class UrlService {
 
         static std::optional<UrlService::UrlParts> getUrlParts(std::string_view normalizedUrl);
 
-        UrlRepository &m_urlRepo;
-        ResourceRepository &m_resRepo;
+        UrlRepository& m_urlRepo;
+        ResourceRepository& m_resRepo;
 };

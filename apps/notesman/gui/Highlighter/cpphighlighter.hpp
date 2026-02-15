@@ -15,11 +15,11 @@ class CppHighlighter final : public QSyntaxHighlighter {
         Q_OBJECT
 
     public:
-        explicit CppHighlighter(QTextDocument* parent, const CppHighlighterTheme &theme);
+        explicit CppHighlighter(QTextDocument* parent, CppHighlighterTheme const& theme);
         ~CppHighlighter() override;
 
         // Cho phép đổi theme lúc runtime
-        void setTheme(const CppHighlighterTheme &theme);
+        void setTheme(CppHighlighterTheme const& theme);
 
         // rehighlight gradually (non-blocking)
         void rehighlightGradually(QTextDocument* doc,
@@ -28,12 +28,12 @@ class CppHighlighter final : public QSyntaxHighlighter {
         void stopGradualRehighlight();
 
     protected:
-        void handleSingleLineComment(const QString &text);
-        void handleMultilineComment(const QString &text);
-        void handleIdentifierFallback(const QString &text, const QColor &defaultTextColor);
-        void applyNormalRules(const QString &text, const QColor &defaultTextColor);
-        void applyStringlikeRules(const QString &text);
-        void highlightBlock(const QString &text) override;
+        void handleSingleLineComment(QString const& text);
+        void handleMultilineComment(QString const& text);
+        void handleIdentifierFallback(QString const& text, QColor const& defaultTextColor);
+        void applyNormalRules(QString const& text, QColor const& defaultTextColor);
+        void applyStringlikeRules(QString const& text);
+        void highlightBlock(QString const& text) override;
 
     private:
         void initRules();

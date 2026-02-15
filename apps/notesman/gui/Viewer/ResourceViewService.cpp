@@ -8,13 +8,13 @@
 #include "ResourceViewService.hpp"
 #include "model.hpp"
 
-ResourceViewService::ResourceViewService(NotesAppCore &core) : m_core(core) {}
+ResourceViewService::ResourceViewService(NotesAppCore& core) : m_core(core) {}
 
 std::optional<QString> ResourceViewService::loadTextResource(sqlite3_int64 resourceId) const {
-    const auto fullResOpt = m_core.getFullResource(resourceId);
+    auto const fullResOpt = m_core.getFullResource(resourceId);
     if (!fullResOpt) { return std::nullopt; }
 
-    const auto &fullRes = *fullResOpt;
+    auto const& fullRes = *fullResOpt;
 
     if (fullRes.filepath.has_value()) {
         QFile file(QString::fromStdString(*fullRes.filepath));
@@ -30,11 +30,11 @@ std::optional<QString> ResourceViewService::loadTextResource(sqlite3_int64 resou
     return std::nullopt;
 }
 
-void ResourceViewService::saveTextResource(sqlite3_int64 resourceId, const QString &content) const {
-    const auto fullResOpt = m_core.getFullResource(resourceId);
+void ResourceViewService::saveTextResource(sqlite3_int64 resourceId, QString const& content) const {
+    auto const fullResOpt = m_core.getFullResource(resourceId);
     if (!fullResOpt) { return; }
 
-    const auto &fullRes = *fullResOpt;
+    auto const& fullRes = *fullResOpt;
 
     // ====== Chỉ text thuần mới được lưu ======
     if (fullRes.resource.type == ResourceType::PlainText) {

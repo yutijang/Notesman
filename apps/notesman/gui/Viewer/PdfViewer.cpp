@@ -122,11 +122,11 @@ void PdfViewer::renderVisiblePages() {
     m_rendering = true;
 
     auto* vp = m_scrollArea->viewport();
-    const int scrollY = m_scrollArea->verticalScrollBar()->value();
-    const int vh = vp->height();
-    const int vw = vp->width();
+    int const scrollY = m_scrollArea->verticalScrollBar()->value();
+    int const vh = vp->height();
+    int const vw = vp->width();
 
-    const bool scrollingDown = scrollY >= m_lastScrollY;
+    bool const scrollingDown = scrollY >= m_lastScrollY;
     m_lastScrollY = scrollY;
 
     // prefetch xa hơn về phía sắp cuộn tới
@@ -142,22 +142,22 @@ void PdfViewer::renderVisiblePages() {
     constexpr int kMaxPagesPerPass = 4;
     int rendered{};
 
-    const double screenDpi = std::min<double>(vp->logicalDpiX(), 144.0);
-    const bool lowQualityPass = !m_warmupDone;
-    const int count = m_pagesLayout->count();
+    double const screenDpi = std::min<double>(vp->logicalDpiX(), 144.0);
+    bool const lowQualityPass = !m_warmupDone;
+    int const count = m_pagesLayout->count();
     for (int i = 0; i < count && rendered < kMaxPagesPerPass; ++i) {
         auto* page = qobject_cast<PdfPageWidget*>(m_pagesLayout->itemAt(i)->widget());
         if (page == nullptr) { continue; }
 
-        const QRect pageRect = page->geometry();
+        QRect const pageRect = page->geometry();
 
         if (!pageRect.intersects(prefetchRect)) {
-            const QRect farRect = viewportRect.adjusted(0, -vh * 4, 0, vh * 4);
+            QRect const farRect = viewportRect.adjusted(0, -vh * 4, 0, vh * 4);
             if (!pageRect.intersects(farRect)) { page->releaseImage(); }
             continue;
         }
 
-        const double dpi =
+        double const dpi =
             (lowQualityPass ? 96.0 : screenDpi) *
             (static_cast<double>(page->width()) / static_cast<double>(page->baseSize().width()));
 
@@ -184,17 +184,17 @@ void PdfViewer::renderVisiblePages() {
 
 void PdfViewer::updatePageScaleToFitWidth() {
     auto* vp = m_scrollArea->viewport();
-    const int viewportW = vp->width();
+    int const viewportW = vp->width();
     if (viewportW <= 0) { return; }
 
     constexpr int margin = 16;
 
-    const int count = m_pagesLayout->count();
+    int const count = m_pagesLayout->count();
     for (int i = 0; i < count; ++i) {
         auto* page = qobject_cast<PdfPageWidget*>(m_pagesLayout->itemAt(i)->widget());
         if (page == nullptr) { continue; }
 
-        const double scale =
+        double const scale =
             static_cast<double>(viewportW - margin) / static_cast<double>(page->baseSize().width());
 
         page->setScale(scale);
@@ -206,7 +206,7 @@ void PdfViewer::createPageWidgetsStep() {
 
     constexpr int kPagesPerBatch = 2;
 
-    const int total = m_document->pages();
+    int const total = m_document->pages();
     int created{};
 
     while (m_pageCreateIndex < total && created < kPagesPerBatch) {
@@ -218,9 +218,9 @@ void PdfViewer::createPageWidgetsStep() {
             auto* vp = m_scrollArea->viewport();
             constexpr int margin = 16;
 
-            const int viewportW = vp->width();
+            int const viewportW = vp->width();
             if (viewportW > 0) {
-                const double scale = static_cast<double>(viewportW - margin) /
+                double const scale = static_cast<double>(viewportW - margin) /
                                      static_cast<double>(widget->baseSize().width());
 
                 widget->setScale(scale);
@@ -251,7 +251,7 @@ void PdfViewer::createAndRenderFirstPageImmediately() {
     updatePageScaleToFitWidth();
 
     auto* vp = m_scrollArea->viewport();
-    const double dpi = std::min<double>(vp->logicalDpiX(), 144.0);
+    double const dpi = std::min<double>(vp->logicalDpiX(), 144.0);
 
     widget->renderIfNeeded(dpi, PdfPageWidget::RenderQuality::Fast);
     QTimer::singleShot(0, m_rootWidget, [this] { renderVisiblePages(); });

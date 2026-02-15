@@ -82,14 +82,14 @@ void AddTabWidget::setupConnections() {
 }
 
 void AddTabWidget::onAddButtonClicked() {
-    const QString title = m_titleInp->text().trimmed();
-    const QStringList tags = m_tagInp->getAllTags();
+    QString const title = m_titleInp->text().trimmed();
+    QStringList const tags = m_tagInp->getAllTags();
 
     QString text;
     QString filePath;
     QString url;
 
-    const auto mode = static_cast<UiConst::AddResMode>(m_addResTypeGroup->checkedId());
+    auto const mode = static_cast<UiConst::AddResMode>(m_addResTypeGroup->checkedId());
     switch (mode) {
         case UiConst::AddResMode::Text: {
             text = m_textEdt->toPlainText();
@@ -109,19 +109,19 @@ void AddTabWidget::onAddButtonClicked() {
 }
 
 void AddTabWidget::onClearButtonClicked() {
-    const auto reply = DialogUtils::showQuestion(
+    auto const reply = DialogUtils::showQuestion(
         this, tr("Caution"), tr("Would you like to clear content in all data field?"));
 
     if (reply == QMessageBox::Yes) { resetAddTabInputs(); }
 }
 
 void AddTabWidget::onBrowseFile() {
-    auto &settings = SettingsManager::instance();
+    auto& settings = SettingsManager::instance();
 
-    const QString kDefaultDir = settings.get("addTab/lastBrowseDir", QDir::homePath()).toString();
+    QString const kDefaultDir = settings.get("addTab/lastBrowseDir", QDir::homePath()).toString();
 
-    const QString fileFilter = buildResourceFileFilter();
-    const QString filePath =
+    QString const fileFilter = buildResourceFileFilter();
+    QString const filePath =
         QFileDialog::getOpenFileName(this, tr("Select Resource File"), kDefaultDir, fileFilter);
 
     if (filePath.isEmpty()) { return; }
@@ -136,7 +136,7 @@ void AddTabWidget::onBrowseFile() {
 
     if (fileInfo.exists()) { settings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path()); }
 
-    const auto typeOpt = resourceTypeFromFile(filePath.toStdString());
+    auto const typeOpt = resourceTypeFromFile(filePath.toStdString());
     if (!typeOpt.has_value()) {
         m_notiFilepathLbl->setText(tr("File extension not support!"));
         m_notiFilepathLbl->setVisible(true);
@@ -150,12 +150,12 @@ void AddTabWidget::onBrowseFile() {
 
 // Logic enable/disable when m_titleInp, m_textEdt, m_filepathInp has content
 void AddTabWidget::updateAddAndClearButtons() {
-    const bool hasTitle = !m_titleInp->text().trimmed().isEmpty();
+    bool const hasTitle = !m_titleInp->text().trimmed().isEmpty();
 
-    const auto mode = static_cast<UiConst::AddResMode>(m_addResTypeGroup->checkedId());
+    auto const mode = static_cast<UiConst::AddResMode>(m_addResTypeGroup->checkedId());
     switch (mode) {
         case UiConst::AddResMode::Text: {
-            const bool hasText = !m_textEdt->toPlainText().trimmed().isEmpty();
+            bool const hasText = !m_textEdt->toPlainText().trimmed().isEmpty();
 
             m_addBtn->setEnabled(hasTitle && hasText);
             m_clearBtn->setEnabled(hasTitle || hasText);
@@ -163,7 +163,7 @@ void AddTabWidget::updateAddAndClearButtons() {
         }
 
         case UiConst::AddResMode::File: {
-            const bool hasFilePath = !m_filepathInp->text().trimmed().isEmpty();
+            bool const hasFilePath = !m_filepathInp->text().trimmed().isEmpty();
 
             m_addBtn->setEnabled(hasTitle && hasFilePath);
             m_clearBtn->setEnabled(hasTitle || hasFilePath);
@@ -171,7 +171,7 @@ void AddTabWidget::updateAddAndClearButtons() {
         }
 
         case UiConst::AddResMode::Url: {
-            const bool hasUrl = !m_urlInp->text().trimmed().isEmpty();
+            bool const hasUrl = !m_urlInp->text().trimmed().isEmpty();
 
             m_addBtn->setEnabled(hasTitle && hasUrl);
             m_clearBtn->setEnabled(hasTitle || hasUrl);
@@ -343,7 +343,7 @@ QHBoxLayout* AddTabWidget::setupButtonGroup() {
     return buttonLayout;
 }
 
-void AddTabWidget::showNotification(const QString &message,
+void AddTabWidget::showNotification(QString const& message,
                                     UiConst::SettingsTabNotiLevel notiType) const {
     m_notiLbl->setText(message);
     m_notiLbl->setVisible(true);
@@ -399,7 +399,7 @@ QString AddTabWidget::buildResourceFileFilter() {
     QMap<ResourceType, QStringList> groups;
     QStringList allExtensions;
 
-    for (const auto &[ext, type] : K_EXT_MAP) {
+    for (auto const& [ext, type] : K_EXT_MAP) {
         QString pattern = "*." + QString::fromUtf8(ext.data(), static_cast<int>(ext.size()));
         groups[type] << pattern;
         allExtensions << pattern;
@@ -430,7 +430,7 @@ QString AddTabWidget::buildResourceFileFilter() {
 }
 
 void AddTabWidget::onAddResTypeModeChanged(int id) {
-    const auto mode = static_cast<UiConst::AddResMode>(id);
+    auto const mode = static_cast<UiConst::AddResMode>(id);
 
     switch (mode) {
         case UiConst::AddResMode::Text: {

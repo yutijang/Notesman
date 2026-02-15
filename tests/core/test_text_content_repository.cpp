@@ -1,7 +1,7 @@
-#include <string>
+#include <catch2/catch_test_macros.hpp>
 #include <sqlite3.h>
 #include <stdexcept>
-#include <catch2/catch_test_macros.hpp>
+#include <string>
 
 #include "Logger.hpp"
 #include "sqldb_raii.hpp"
@@ -12,7 +12,7 @@ namespace {
         SQLiteDB db(":memory:");
         sqlite3* rawPtr = db.get();
 
-        const char* schema = R"SQL(
+        char const* schema = R"SQL(
             PRAGMA foreign_keys = ON;
 
             CREATE TABLE text_content (

@@ -51,19 +51,19 @@ class MainWindow : public QMainWindow {
         void setAppController(AppController* controller);
         void retranslateUi();
         void applySyntaxHighlightingTheme(UiConst::Theme theme);
-        void onUpdateAvailable(const UpdateInfoSummary &infoSummary);
+        void onUpdateAvailable(UpdateInfoSummary const& infoSummary);
         void onNoUpdateAvailable();
-        void onUpdateCheckFailed(const QString &error);
+        void onUpdateCheckFailed(QString const& error);
 
         void setCore(NotesAppCore* core);
 
         void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
         void onDownloadStarted();
-        void onDownloadFinished(const QString &filePath);
-        void onDownloadFailed(const QString &errorString);
+        void onDownloadFinished(QString const& filePath);
+        void onDownloadFailed(QString const& errorString);
         void handleDownloadFailCauseTimeout();
 
-        void updateStatus(const QString &message, int timeout = UiConst::NOTI_TIMEOUT5);
+        void updateStatus(QString const& message, int timeout = UiConst::NOTI_TIMEOUT5);
 
         void handleSyntaxHighlightingUpdate(UiConst::Theme theme);
         void handleSyntaxHighlightingFromAddTabRequested(bool checked);
@@ -72,25 +72,25 @@ class MainWindow : public QMainWindow {
         void requestDatabaseCreation();
         void requestUpdateCheck();
         void settingsTabShowNotification(
-            const QString &message,
+            QString const& message,
             UiConst::SettingsMessageState state = UiConst::SettingsMessageState::None,
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
-        void settingsStateChangeRequest(const SettingsData &settings);
+        void settingsStateChangeRequest(SettingsData const& settings);
         void checkUpdateRequest();
-        void updateDecision(bool accepted, const UpdateInfoSummary &infoSummary);
-        void settingsUiRefreshRequest(const SettingsData &settings);
+        void updateDecision(bool accepted, UpdateInfoSummary const& infoSummary);
+        void settingsUiRefreshRequest(SettingsData const& settings);
         void updateColumnWidthsRequest();
         void startDownloadDBForward(
-            bool isDisable, const QString &message = QString{},
+            bool isDisable, QString const& message = QString{},
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void startUploadDBForward(
-            bool isDisable, const QString &message = QString{},
+            bool isDisable, QString const& message = QString{},
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
-        void loginFailedForward(const QString &error = QString{});
+        void loginFailedForward(QString const& error = QString{});
 
-        void returnDBInfoForward(const QStringList &res);
+        void returnDBInfoForward(QStringList const& res);
 
-        void deleteDatabaseFileRespondForward(const QString &msg);
+        void deleteDatabaseFileRespondForward(QString const& msg);
         void onCleanupFinished(UiConst::CleanupMode mode);
 
     protected:
@@ -105,17 +105,17 @@ class MainWindow : public QMainWindow {
         void setupAddTab();
         void setupSettingsTab();
         void setupIconInfo();
-        void viewResource(std::int64_t id, ResourceType type, const QString &title,
-                          const QString &path, const QString &url);
-        void showContextMenu(const QPoint &pos, std::int64_t id, ResourceType type,
-                             const QString &title, const QString &path, const QString &url);
+        void viewResource(std::int64_t id, ResourceType type, QString const& title,
+                          QString const& path, QString const& url);
+        void showContextMenu(QPoint const& pos, std::int64_t id, ResourceType type,
+                             QString const& title, QString const& path, QString const& url);
         static void removeSelectedRowsFromTable(ResultsTable* table,
-                                                const QModelIndexList &selectedRows);
+                                                QModelIndexList const& selectedRows);
         static sqlite3_int64 extractIdFromRow(ResultsTable* resultTable, int row);
         static std::optional<ResourceType> extractTypeFromRow(ResultsTable* resultTable, int row);
-        void runUpdate(const QString &filePath);
+        void runUpdate(QString const& filePath);
         void disableSyntaxHighlightingTheme();
-        QString resolveResPath(const QString &path);
+        QString resolveResPath(QString const& path);
 
         void onCheckUpdateClicked();
         void onAbout();
@@ -126,9 +126,9 @@ class MainWindow : public QMainWindow {
         void notiFromCleanupCacheResult(UiConst::CleanupResult result, UiConst::CleanupMode mode);
 
 #if defined(Q_OS_WIN)
-        void handleWindowsUpdate(const QString &filePath);
+        void handleWindowsUpdate(const QString& filePath);
 #elif defined(Q_OS_LINUX)
-        void handleLinuxUpdate(const QString &filePath);
+        void handleLinuxUpdate(const QString& filePath);
 
         std::unique_ptr<IResourceViewer> m_externalViewer;
         bool m_viewerLocked{};

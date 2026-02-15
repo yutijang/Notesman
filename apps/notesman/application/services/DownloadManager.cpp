@@ -41,7 +41,7 @@ DownloadManager::~DownloadManager() {
     if (m_outputFile.isOpen()) { m_outputFile.close(); }
 }
 
-void DownloadManager::startDownload(const QUrl &url, const QString &outputFilePath) {
+void DownloadManager::startDownload(QUrl const& url, QString const& outputFilePath) {
     if (m_currentReply != nullptr) {
         Log::info("Another download is already in progress.");
         Q_EMIT downloadFailed(tr("Another download is already in progress."));

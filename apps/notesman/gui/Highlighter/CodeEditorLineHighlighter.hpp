@@ -12,7 +12,7 @@ class CodeEditorLineHighlighter final : public QObject {
         explicit CodeEditorLineHighlighter(PlainTextEdit* editor);
 
         // Đặt màu nền khi có focus và mất focus
-        void setColors(const QColor &background, const QColor &blurBackground);
+        void setColors(QColor const& background, QColor const& blurBackground);
 
     protected:
         // Ghi đè eventFilter để bắt sự kiện FocusIn và FocusOut của QTextEdit

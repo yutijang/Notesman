@@ -11,7 +11,7 @@
 
 class UrlRepository {
     public:
-        explicit UrlRepository(SQLiteDB &db) noexcept : m_db(db) {}
+        explicit UrlRepository(SQLiteDB& db) noexcept : m_db(db) {}
 
         void insertUrl(sqlite3_int64 resourceId, std::string_view rawUrl,
                        std::string_view normalizedUrl, std::string_view domain,
@@ -45,7 +45,7 @@ class UrlRepository {
         [[nodiscard]] bool exists(sqlite3_int64 resourceId) const;
 
     private:
-        static UrlEntry urlEntryFromStmt(const SQLiteStmt &stmt);
+        static UrlEntry urlEntryFromStmt(SQLiteStmt const& stmt);
 
-        SQLiteDB &m_db;
+        SQLiteDB& m_db;
 };

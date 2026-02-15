@@ -42,7 +42,7 @@
 AppController::AppController(QObject* parent) : QObject(parent) {}
 
 void AppController::loadSettings() {
-    const std::filesystem::path configPath =
+    std::filesystem::path const configPath =
         std::filesystem::path(CorePaths::configFile().toStdString());
 
     m_settings = std::make_unique<AppSettings>();
@@ -63,7 +63,7 @@ void AppController::loadSettings() {
 }
 
 void AppController::saveSettings() {
-    const std::filesystem::path configPath =
+    std::filesystem::path const configPath =
         std::filesystem::path(CorePaths::configFile().toStdString());
     if (m_settings) {
         if (!m_settings->save(configPath)) {
@@ -72,7 +72,7 @@ void AppController::saveSettings() {
     }
 }
 
-void AppController::updateSettings(const AppSettings &newSettings) {
+void AppController::updateSettings(AppSettings const& newSettings) {
     if (!m_settings) {
         m_settings = std::make_unique<AppSettings>();
     } else {
@@ -126,7 +126,7 @@ void AppController::applyTheme(UiConst::Theme theme) {
 
     QFile qssFile(qssPath);
     if (qssFile.open(QFile::ReadOnly | QFile::Text)) {
-        const QString styleSheet = QString::fromUtf8(qssFile.readAll());
+        QString const styleSheet = QString::fromUtf8(qssFile.readAll());
         qApp->setStyleSheet(styleSheet);
         qssFile.close();
     } else {
@@ -268,7 +268,7 @@ void AppController::handleDefaultSettingsRequest() {
                                 UiConst::SettingsTabNotiLevel::Caution);
 }
 
-void AppController::handleApplySettingsRequest(const SettingsData &data) {
+void AppController::handleApplySettingsRequest(SettingsData const& data) {
     auto* settings = m_settings.get();
     if (settings == nullptr) {
         DialogUtils::showError(m_mainWindow, tr("Error"), tr("Core is not initialized."));
@@ -292,7 +292,7 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
         applyTheme(data.theme);
 
         if (!m_currentLinkedEmail.isEmpty()) {
-            const auto htmlTextEmail =
+            auto const htmlTextEmail =
                 tr("Hello, ") +
                 QString("<span style=\"color:%1;\"><i>%2</i></span>")
                     .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
@@ -314,12 +314,12 @@ void AppController::handleApplySettingsRequest(const SettingsData &data) {
 }
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void AppController::handleAddNoteRequest(const QString &title, const QString &textContent,
-                                         const QString &filePath, const QString &url,
-                                         const QStringList &tags, UiConst::AddResMode mode) {
+void AppController::handleAddNoteRequest(QString const& title, QString const& textContent,
+                                         QString const& filePath, QString const& url,
+                                         QStringList const& tags, UiConst::AddResMode mode) {
     if (mode == UiConst::AddResMode::File && m_settings->isManagedResources()) {
-        const auto &resDir = m_settings->resourceDir();
-        const bool needStrictCheck = !m_settings->isDefaultResourceDir();
+        auto const& resDir = m_settings->resourceDir();
+        bool const needStrictCheck = !m_settings->isDefaultResourceDir();
 
         if (needStrictCheck &&
             (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir))) {
@@ -331,7 +331,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
         }
     }
 
-    const std::filesystem::path filePathFs{filePath.toStdWString()};
+    std::filesystem::path const filePathFs{filePath.toStdWString()};
     ResourceType type{};
     if (mode == UiConst::AddResMode::Text) {
         if (textContent.isEmpty()) {
@@ -354,7 +354,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
             return;
         }
 
-        const auto typeOpt = resourceTypeFromFile(filePathFs);
+        auto const typeOpt = resourceTypeFromFile(filePathFs);
         if (!typeOpt.has_value()) {
             Q_EMIT addTabNotiRequest(tr("File extension not support!"),
                                      UiConst::SettingsTabNotiLevel::Warning);
@@ -372,7 +372,7 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
         type = ResourceType::Url;
     }
 
-    const auto titleStd = title.toStdString();
+    auto const titleStd = title.toStdString();
     if (m_core->isExistTitle(titleStd, type)) {
         Q_EMIT addTabNotiRequest(tr("Title exists! Please choose another title"),
                                  UiConst::SettingsTabNotiLevel::Warning);
@@ -402,17 +402,17 @@ void AppController::handleAddNoteRequest(const QString &title, const QString &te
     Q_EMIT resetAddTabInputsRequest();
 }
 
-void AppController::addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const {
+void AppController::addTagsToResource(sqlite3_int64 resourceId, QStringList const& tags) const {
     if (tags.isEmpty()) { return; }
 
     std::vector<std::string> tagNames;
     tagNames.reserve(static_cast<std::size_t>(tags.size()));
     std::ranges::transform(tags, std::back_inserter(tagNames),
-                           [](const QString &s) { return s.toStdString(); });
+                           [](QString const& s) { return s.toStdString(); });
     m_core->addTags(resourceId, tagNames);
 }
 
-void AppController::handleSearchRequest(const QString &keyword, const QString &mode) {
+void AppController::handleSearchRequest(QString const& keyword, QString const& mode) {
     if (m_core == nullptr) {
         DialogUtils::showError(m_mainWindow, tr("Error"), tr("Database not initialized."));
         return;
@@ -432,7 +432,7 @@ void AppController::handleSearchRequest(const QString &keyword, const QString &m
     QObject::connect(thread, &QThread::started, worker, &ResourceSearchWorker::doSearch);
     QObject::connect(
         worker, &ResourceSearchWorker::searchFinished, this,
-        [this, mode](const std::vector<UnifiedSearchResult> &results) {
+        [this, mode](std::vector<UnifiedSearchResult> const& results) {
             Q_EMIT searchFinishedFromController(results, mode);
         },
         Qt::QueuedConnection);
@@ -454,15 +454,15 @@ SettingsData AppController::defaultUiSettings() {
 
 void AppController::handleCheckUpdateRequested() {
     using Qt::Literals::StringLiterals::operator""_s;
-    const auto kUpdateUrl = u"https://api.github.com/repos/yutijang/Notesman/releases/latest"_s;
+    auto const kUpdateUrl = u"https://api.github.com/repos/yutijang/Notesman/releases/latest"_s;
     updateManager()->checkForUpdates(kUpdateUrl);
 }
 
-void AppController::onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo) {
+void AppController::onUpdateDecision(bool accepted, UpdateInfoSummary const& updateInfo) {
     if (!accepted) { return; }
 
-    const QUrl kdownloadUrl(updateInfo.assetDownloadURL);
-    const QString koutputPath = QDir::temp().filePath(updateInfo.assetName);
+    QUrl const kdownloadUrl(updateInfo.assetDownloadURL);
+    QString const koutputPath = QDir::temp().filePath(updateInfo.assetName);
 
     m_lastUpdateInfoSummary = updateInfo;
     downloadManager()->startDownload(kdownloadUrl, koutputPath);
@@ -478,7 +478,7 @@ void AppController::handleUnlinkGMRequested(bool isDeleteDB) {
     if (isDeleteDB && m_GDService != nullptr) {
         QObject::connect(
             m_GDService.get(), &GoogleDriveService::deleteDatabaseFileRespond, this,
-            [this](const QString &msg) {
+            [this](QString const& msg) {
                 Log::info("Cleanup on Cloud finished: {}. Now revoking token...",
                           msg.toStdString());
 
@@ -507,7 +507,7 @@ void AppController::downloadDbAuto() {
 
 void AppController::updateTranslatedStrings() {
     if (!m_currentLinkedEmail.isEmpty()) {
-        const auto htmlTextEmail =
+        auto const htmlTextEmail =
             tr("Hello, ") + QString("<span style=\"color:%1;\"><i>%2</i></span>")
                                 .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
 
@@ -519,26 +519,26 @@ void AppController::handleGetDBInfoRequested() {
     if (m_GDService != nullptr) { m_GDService->getDBInfo(); }
 }
 
-void AppController::displayInfoGMUserLinked(const QString &email) {
+void AppController::displayInfoGMUserLinked(QString const& email) {
     m_currentLinkedEmail = email;
 
-    const auto htmlTextEmail =
+    auto const htmlTextEmail =
         tr("Hello, ") + QString("<span style=\"color:%1;\"><i>%2</i></span>")
                             .arg((isDarkTheme()) ? "#FFB86C" : "#1A73E8", m_currentLinkedEmail);
 
     Q_EMIT gmailLinkedForView(htmlTextEmail);
 }
 
-sqlite_int64 AppController::handleTextMode(const std::string &title, const QString &textContent,
-                                           ResourceType &outType) {
+sqlite_int64 AppController::handleTextMode(std::string const& title, QString const& textContent,
+                                           ResourceType& outType) {
     auto resId = m_core->addTextNote(title, textContent.toUtf8().toStdString(), outType);
     Q_EMIT addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::Good);
     return resId;
 }
 
-sqlite_int64 AppController::handleFileMode(const std::string &title,
-                                           const std::filesystem::path &filePath,
-                                           ResourceType &outType) {
+sqlite_int64 AppController::handleFileMode(std::string const& title,
+                                           std::filesystem::path const& filePath,
+                                           ResourceType& outType) {
     std::string contentToIndex;
 
     if (Utils::isIndexable(outType, filePath) == IndexableResult::Yes) {
@@ -553,8 +553,8 @@ sqlite_int64 AppController::handleFileMode(const std::string &title,
     return resId;
 }
 
-sqlite_int64 AppController::handleUrlMode(const std::string &title, const QString &url,
-                                          ResourceType &outType) {
+sqlite_int64 AppController::handleUrlMode(std::string const& title, QString const& url,
+                                          ResourceType& outType) {
     sqlite3_int64 resId{};
 
     auto resIdOtp = m_core->addUrlNote(title, outType, url.toStdString());
@@ -570,22 +570,22 @@ sqlite_int64 AppController::handleUrlMode(const std::string &title, const QStrin
 }
 
 UiConst::CleanupResult AppController::cleanupOldEpubCache(int days) {
-    const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub");
+    QDir const dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub");
     if (!dir.exists()) { return UiConst::CleanupResult::PathError; }
 
     if (dir.isEmpty()) { return UiConst::CleanupResult::AlreadyEmpty; }
 
-    const auto entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
-    const QDateTime now = QDateTime::currentDateTime();
+    auto const entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    QDateTime const now = QDateTime::currentDateTime();
 
     if (days <= 0) {
-        for (const auto &fi : entries) { QDir(fi.absoluteFilePath()).removeRecursively(); }
+        for (auto const& fi : entries) { QDir(fi.absoluteFilePath()).removeRecursively(); }
         return UiConst::CleanupResult::Success;
     }
 
-    const qint64 maxAgeSecs = static_cast<qint64>(days) * 86400;
+    qint64 const maxAgeSecs = static_cast<qint64>(days) * 86400;
 
-    for (const auto &fi : entries) {
+    for (auto const& fi : entries) {
         if (fi.lastModified().secsTo(now) >= maxAgeSecs) {
             QDir(fi.absoluteFilePath()).removeRecursively();
         }
@@ -595,22 +595,22 @@ UiConst::CleanupResult AppController::cleanupOldEpubCache(int days) {
 }
 
 UiConst::CleanupResult AppController::cleanupOldMarkdownCache(int days) {
-    const QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/markdown");
+    QDir const dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/markdown");
     if (!dir.exists()) { return UiConst::CleanupResult::PathError; }
 
     if (dir.isEmpty()) { return UiConst::CleanupResult::AlreadyEmpty; }
 
-    const auto entries = dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
-    const QDateTime now = QDateTime::currentDateTime();
+    auto const entries = dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
+    QDateTime const now = QDateTime::currentDateTime();
 
     if (days <= 0) {
-        for (const auto &fi : entries) { QFile::remove(fi.absoluteFilePath()); }
+        for (auto const& fi : entries) { QFile::remove(fi.absoluteFilePath()); }
         return UiConst::CleanupResult::Success;
     }
 
-    const qint64 maxAgeSecs = static_cast<qint64>(days) * 86400;
+    qint64 const maxAgeSecs = static_cast<qint64>(days) * 86400;
 
-    for (const auto &fi : entries) {
+    for (auto const& fi : entries) {
         if (fi.lastModified().secsTo(now) >= maxAgeSecs) { QFile::remove(fi.absoluteFilePath()); }
     }
 

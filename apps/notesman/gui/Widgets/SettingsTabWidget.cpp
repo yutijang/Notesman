@@ -128,7 +128,7 @@ void SettingsTabWidget::retranslateUi() {
     m_resDirLbl->setText(tr("Resource storage directory"));
     m_resManLbl->setText(tr("Notes file management type"));
 
-    auto updateCombo = [this](UiConst::ResManKind kind, const QString &text) {
+    auto updateCombo = [this](UiConst::ResManKind kind, QString const& text) {
         int idx = m_resManCom->findData(QVariant::fromValue(kind));
         if (idx != -1) { m_resManCom->setItemText(idx, text); }
     };
@@ -167,7 +167,7 @@ void SettingsTabWidget::onApplyBtnClicked() {
     auto selectedKind = m_resManCom->currentData().value<UiConst::ResManKind>();
     data.isManagedResource = (selectedKind == UiConst::ResManKind::Internal);
 
-    const auto path = m_resDirInp->text().trimmed();
+    auto const path = m_resDirInp->text().trimmed();
     if (!path.isEmpty()) {
         data.resourceDir = std::filesystem::path(path.toStdWString());
         data.isResourceDirCustomized = true;
@@ -185,7 +185,7 @@ void SettingsTabWidget::onApplyBtnClicked() {
 }
 
 void SettingsTabWidget::onDefaultBtnClicked() {
-    const auto reply =
+    auto const reply =
         DialogUtils::showQuestion(this, tr("Restore Defaults"),
                                   tr("Do you want to restore default settings?\nChanges will not "
                                      "be saved until you click Apply."));
@@ -200,19 +200,19 @@ void SettingsTabWidget::onBrowseBtnClicked() {
     auto* targetEdit = senderButton->property("targetEdit").value<QLineEdit*>();
     if (targetEdit == nullptr) { return; }
 
-    auto &settings = SettingsManager::instance();
-    const QString kDefaultDir =
+    auto& settings = SettingsManager::instance();
+    QString const kDefaultDir =
         settings.get(QStringLiteral("settingsTab/lastBrowseDir"), QDir::homePath()).toString();
 
     QString dirPath =
         QFileDialog::getExistingDirectory(this, tr("Select Output Folder"), kDefaultDir);
 
     if (!dirPath.isEmpty()) {
-        const QString cleanPath = QDir::cleanPath(dirPath);
+        QString const cleanPath = QDir::cleanPath(dirPath);
         targetEdit->setText(QDir::toNativeSeparators(cleanPath));
 
         // Get parent path
-        const QString parentDir = QFileInfo(cleanPath).absoluteDir().absolutePath();
+        QString const parentDir = QFileInfo(cleanPath).absoluteDir().absolutePath();
         settings.set(QStringLiteral("settingsTab/lastBrowseDir"), parentDir);
     }
 }
@@ -404,7 +404,7 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
     mainLayout->setContentsMargins(0, 20, 15, 15); // NOLINT(readability-magic-numbers)
     mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    auto createRow = [this](const QString &tagText, UiConst::CleanupMode mode) {
+    auto createRow = [this](QString const& tagText, UiConst::CleanupMode mode) {
         auto* hLayout = new QHBoxLayout();
         hLayout->setSpacing(5); // NOLINT(readability-magic-numbers)
 
@@ -470,7 +470,7 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
     return m_cleanupCacheGBox;
 }
 
-void SettingsTabWidget::showNotification(const QString &message,
+void SettingsTabWidget::showNotification(QString const& message,
                                          UiConst::SettingsMessageState /*unused*/,
                                          UiConst::SettingsTabNotiLevel notiType) {
     if (m_notiSettingsChangedLbl == nullptr) { return; }
@@ -512,7 +512,7 @@ void SettingsTabWidget::showNotification(const QString &message,
     });
 }
 
-void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
+void SettingsTabWidget::loadSettingsToUi(SettingsData const& settings) const {
     // Giao diện
     if (settings.theme == UiConst::Theme::Light) {
         m_themeLightRad->setChecked(true);
@@ -530,7 +530,7 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     // Thư mục tài nguyên
     // m_resDirInp->setText(
     // QString::fromUtf8(reinterpret_cast<const char*>(settings.resourceDir.u8string().c_str())));
-    const auto resDirPath = settings.resourceDir;
+    auto const resDirPath = settings.resourceDir;
     m_resDirInp->setText(QString::fromStdU16String(resDirPath.u16string()));
     validateResourceDir(settings);
 
@@ -546,31 +546,31 @@ void SettingsTabWidget::loadSettingsToUi(const SettingsData &settings) const {
     m_expiredMDSpbx->setValue(settings.expiredCleanupMDCache);
 }
 
-void SettingsTabWidget::validateResourceDir(const SettingsData &settings) const {
+void SettingsTabWidget::validateResourceDir(SettingsData const& settings) const {
     if (!settings.isManagedResource || !settings.isResourceDirCustomized) {
         m_resDirInp->setStyleSheet("");
         return;
     }
 
-    const bool valid = std::filesystem::exists(settings.resourceDir) &&
+    bool const valid = std::filesystem::exists(settings.resourceDir) &&
                        std::filesystem::is_directory(settings.resourceDir);
 
     m_resDirInp->setStyleSheet(valid ? "" : R"(QLineEdit { border: 1px solid #e20c53; })");
 }
 
-void SettingsTabWidget::handleInitialSettingsLoad(const SettingsData &settings) const {
+void SettingsTabWidget::handleInitialSettingsLoad(SettingsData const& settings) const {
     loadSettingsToUi(settings);
 }
 
-void SettingsTabWidget::handleSettingsStateChange(const SettingsData &settings) const {
+void SettingsTabWidget::handleSettingsStateChange(SettingsData const& settings) const {
     loadSettingsToUi(settings);
 }
 
-void SettingsTabWidget::handleUiRefreshRequest(const SettingsData &settings) const {
+void SettingsTabWidget::handleUiRefreshRequest(SettingsData const& settings) const {
     loadSettingsToUi(settings);
 }
 
-void SettingsTabWidget::handleAfterLinkAccount(const QString &htmlTextEmail) {
+void SettingsTabWidget::handleAfterLinkAccount(QString const& htmlTextEmail) {
     hideLoginStatus();
 
     m_addressUserGMLoginLbl->setText(htmlTextEmail);
@@ -616,7 +616,7 @@ void SettingsTabWidget::onLinkBtnClicked() {
     Q_EMIT requestGoogleUnlink(reply == QMessageBox::Yes);
 }
 
-void SettingsTabWidget::handleLoginFailed(const QString &error) {
+void SettingsTabWidget::handleLoginFailed(QString const& error) {
     hideLoginStatus();
 
     m_linkGDBtn->setEnabled(true);
@@ -625,7 +625,7 @@ void SettingsTabWidget::handleLoginFailed(const QString &error) {
                      UiConst::SettingsTabNotiLevel::Warning);
 }
 
-void SettingsTabWidget::handleUploadDBRequested(bool isDisable, const QString &message,
+void SettingsTabWidget::handleUploadDBRequested(bool isDisable, QString const& message,
                                                 UiConst::SettingsTabNotiLevel notiType) {
     if (m_uploadDBBtn != nullptr) {
         if (isDisable) {
@@ -642,7 +642,7 @@ void SettingsTabWidget::handleUploadDBRequested(bool isDisable, const QString &m
     }
 }
 
-void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, const QString &message,
+void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, QString const& message,
                                                   UiConst::SettingsTabNotiLevel notiType) {
     if (m_downloadDBBtn != nullptr) {
         if (isDisable) {
@@ -660,7 +660,7 @@ void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, const QString 
 }
 
 void SettingsTabWidget::onUploadButtonClicked() {
-    const auto reply =
+    auto const reply =
         DialogUtils::showQuestion(this, tr("Upload database to Google Drive"),
                                   tr("Do you want to upload <b>data.db</b> to Google "
                                      "Drive?<br><br>The file will be compacted locally "
@@ -671,7 +671,7 @@ void SettingsTabWidget::onUploadButtonClicked() {
 }
 
 void SettingsTabWidget::onDownloadButtonClicked() {
-    const auto reply = DialogUtils::showQuestion(
+    auto const reply = DialogUtils::showQuestion(
         this, tr("Download database from Google Drive"),
         tr("Do you want to download the file <b>data.db</b> from the linked Google "
            "Drive?<br><br>This will overwrite the <b>data.db</b> file currently used by this "
@@ -714,7 +714,7 @@ void SettingsTabWidget::showLoginStatus() {
     m_loginStatusWidget->setVisible(true);
 }
 
-void SettingsTabWidget::handleDBInfoGot(const QStringList &info) {
+void SettingsTabWidget::handleDBInfoGot(QStringList const& info) {
     m_checkRemoteDBInfoBtn->setEnabled(true);
 
     if (info.isEmpty()) {
@@ -731,7 +731,7 @@ void SettingsTabWidget::handleDBInfoGot(const QStringList &info) {
     }
 }
 
-void SettingsTabWidget::handleDeleteDBFileRespond(const QString &msg) {
+void SettingsTabWidget::handleDeleteDBFileRespond(QString const& msg) {
     DialogUtils::showInfo(this, tr("Information"), msg);
 }
 

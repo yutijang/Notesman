@@ -112,9 +112,7 @@ std::optional<sqlite3_int64> UrlService::addUrlResource(std::string_view title, 
     auto normalizedUrl = normalizeUrl(rawUrl);
     if (!normalizedUrl) { return std::nullopt; }
 
-    if (auto resIdOpt = m_urlRepo.getResourceIdByNormalizedUrl(*normalizedUrl)) {
-        return *resIdOpt;
-    }
+    if (auto resIdOpt = m_urlRepo.getResourceIdByNormalizedUrl(*normalizedUrl)) { return resIdOpt; }
 
     // NOLINTNEXTLINE (-Wmissing-designated-field-initializers)
     sqlite3_int64 resourceId = m_resRepo.insert({.title = std::string(title), .type = type});
@@ -163,7 +161,7 @@ std::optional<std::string> UrlService::normalizeUrl(std::string_view rawUrl) {
     // scheme + host already canonicalized by Boost.URL
 
     // default port
-    const std::string_view scheme = u.scheme();
+    std::string_view const scheme = u.scheme();
     if ((scheme == "http" && u.port() == "80") || (scheme == "https" && u.port() == "443")) {
         u.remove_port();
     }
@@ -181,14 +179,14 @@ std::optional<std::string> UrlService::normalizeUrl(std::string_view rawUrl) {
         std::vector<std::pair<std::string, std::string>> params;
         params.reserve(view.size());
 
-        for (const auto &p : view) { params.emplace_back(p.key, p.value); }
+        for (auto const& p : view) { params.emplace_back(p.key, p.value); }
 
         std::ranges::sort(params);
 
         u.remove_query();
         auto out = u.params();
 
-        for (const auto &[k, v] : params) { out.append(boost::urls::param_view{k, v}); }
+        for (auto const& [k, v] : params) { out.append(boost::urls::param_view{k, v}); }
     }
 
     return std::string(u.buffer());

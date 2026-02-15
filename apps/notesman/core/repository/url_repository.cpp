@@ -13,7 +13,7 @@
 void UrlRepository::insertUrl(sqlite3_int64 resourceId, std::string_view url,
                               std::string_view normalizedUrl, std::string_view domain,
                               std::string_view urlPath) {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         INSERT INTO resource_urls (
             resource_id,
             url,
@@ -51,7 +51,7 @@ void UrlRepository::insertUrl(sqlite3_int64 resourceId, std::string_view url,
 void UrlRepository::updateUrl(sqlite3_int64 resourceId, std::string_view url,
                               std::string_view normalizedUrl, std::string_view domain,
                               std::string_view urlPath) {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         UPDATE resource_urls
         SET
             url = ?,
@@ -81,7 +81,7 @@ void UrlRepository::updateUrl(sqlite3_int64 resourceId, std::string_view url,
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 5, resourceId), m_db.get());
 
-    const int rc = stmt.step();
+    int const rc = stmt.step();
     if (rc == SQLITE_CONSTRAINT) {
         throw std::runtime_error("updateUrl: unique constraint violated, url=" + std::string(url));
     }
@@ -94,7 +94,7 @@ void UrlRepository::updateUrl(sqlite3_int64 resourceId, std::string_view url,
 }
 
 std::optional<UrlEntry> UrlRepository::getUrlByResourceId(sqlite3_int64 resourceId) const {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         SELECT
             resource_id,
             url,
@@ -108,7 +108,7 @@ std::optional<UrlEntry> UrlRepository::getUrlByResourceId(sqlite3_int64 resource
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    const int rc = stmt.step();
+    int const rc = stmt.step();
     if (rc == SQLITE_ROW) {
         UrlEntry entry{};
 
@@ -126,7 +126,7 @@ std::optional<UrlEntry> UrlRepository::getUrlByResourceId(sqlite3_int64 resource
 }
 
 std::vector<UrlEntry> UrlRepository::getAllUrls() const {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         SELECT
             resource_id,
             url,
@@ -146,7 +146,7 @@ std::vector<UrlEntry> UrlRepository::getAllUrls() const {
 
 std::optional<sqlite3_int64>
     UrlRepository::getResourceIdByNormalizedUrl(std::string_view normalizedUrl) const {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         SELECT
             resource_id
         FROM resource_urls
@@ -166,7 +166,7 @@ std::optional<sqlite3_int64>
 }
 
 std::vector<sqlite3_int64> UrlRepository::getResourceIdsByDomain(std::string_view domain) const {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         SELECT
             resource_id
         FROM resource_urls
@@ -186,7 +186,7 @@ std::vector<sqlite3_int64> UrlRepository::getResourceIdsByDomain(std::string_vie
 }
 
 std::optional<std::string> UrlRepository::getUrlByResourceIdOnly(sqlite3_int64 resourceId) const {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         SELECT
             url
         FROM resource_urls
@@ -204,7 +204,7 @@ std::optional<std::string> UrlRepository::getUrlByResourceIdOnly(sqlite3_int64 r
 }
 
 std::optional<std::string> UrlRepository::getDomainByResourceId(sqlite3_int64 resourceId) const {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         SELECT
             domain
         FROM resource_urls
@@ -222,7 +222,7 @@ std::optional<std::string> UrlRepository::getDomainByResourceId(sqlite3_int64 re
 }
 
 bool UrlRepository::exists(sqlite3_int64 resourceId) const {
-    static constexpr const char* sql = R"(
+    static constexpr char const* sql = R"(
         SELECT 1
         FROM resource_urls
         WHERE resource_id = ?
@@ -237,7 +237,7 @@ bool UrlRepository::exists(sqlite3_int64 resourceId) const {
 }
 
 // === helper ===
-UrlEntry UrlRepository::urlEntryFromStmt(const SQLiteStmt &stmt) {
+UrlEntry UrlRepository::urlEntryFromStmt(SQLiteStmt const& stmt) {
     UrlEntry entry{};
 
     entry.resource_id = stmt.getColumnInt64(0);

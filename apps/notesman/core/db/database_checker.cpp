@@ -8,10 +8,10 @@
 #include "database_checker.hpp"
 #include "sqldb_raii.hpp"
 
-bool DatabaseChecker::checkIntegrity(std::vector<std::string> &messages) {
+bool DatabaseChecker::checkIntegrity(std::vector<std::string>& messages) {
     bool ok{true};
 
-    auto runPragma = [&](const char* sql, const char* label) {
+    auto runPragma = [&](char const* sql, char const* label) {
         sqlite3_stmt* stmt{nullptr};
         int rc = sqlite3_prepare_v2(m_db.get(), sql, -1, &stmt, nullptr);
         if (rc != SQLITE_OK) {
@@ -20,7 +20,7 @@ bool DatabaseChecker::checkIntegrity(std::vector<std::string> &messages) {
         }
 
         while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-            const char* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            char const* textPtr = reinterpret_cast<char const*>(sqlite3_column_text(stmt, 0));
             int bytes = sqlite3_column_bytes(stmt, 0);
 
             std::string content;

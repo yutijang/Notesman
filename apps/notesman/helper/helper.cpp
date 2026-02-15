@@ -16,7 +16,7 @@
 #include "model.hpp"
 
 namespace Utils {
-    std::string getExtensionFromDownloadUrl(const std::string &url) {
+    std::string getExtensionFromDownloadUrl(std::string const& url) {
         std::size_t lastSlash = url.find_last_of('/');
         if (lastSlash == std::string::npos) {
             lastSlash = 0;
@@ -74,12 +74,12 @@ namespace Utils {
 
     // NOLINTEND
 
-    std::string readFileToString(const std::filesystem::path &path) {
+    std::string readFileToString(std::filesystem::path const& path) {
         std::ifstream file(path, std::ios::binary);
         if (!file) { return {}; }
 
         file.seekg(0, std::ios::end);
-        const std::streamsize size = file.tellg();
+        std::streamsize const size = file.tellg();
         file.seekg(0, std::ios::beg);
 
         std::string content;
@@ -90,13 +90,13 @@ namespace Utils {
         return content;
     }
 
-    IndexableResult isIndexable(ResourceType type, const std::filesystem::path &path) {
+    IndexableResult isIndexable(ResourceType type, std::filesystem::path const& path) {
         if (type == ResourceType::PdfDoc || type == ResourceType::EpubDoc) {
             return IndexableResult::NoUnsupportedType;
         }
 
         std::error_code ec;
-        const auto fileSize = std::filesystem::file_size(path, ec);
+        auto const fileSize = std::filesystem::file_size(path, ec);
         if (ec || fileSize == 0 ||
             fileSize >
                 static_cast<uintmax_t>(2 * 1024 * 1024)) { // NOLINT(readability-magic-numbers)
@@ -108,7 +108,7 @@ namespace Utils {
 
         std::array<char, 4096> buffer{}; // NOLINT(readability-magic-numbers)
         file.read(buffer.data(), buffer.size());
-        const auto bytesRead = file.gcount();
+        auto const bytesRead = file.gcount();
 
         std::string_view dataView(buffer.data(), static_cast<std::size_t>(bytesRead));
 
@@ -128,11 +128,11 @@ namespace Utils {
         return IndexableResult::Yes;
     }
 
-    std::string joinTags(const std::vector<std::string> &tags) {
+    std::string joinTags(std::vector<std::string> const& tags) {
         std::string result;
         bool first{true};
 
-        for (const auto &tag : tags) {
+        for (auto const& tag : tags) {
             if (tag.empty()) { continue; }
 
             if (!first) { result.append(", "); }
@@ -173,7 +173,7 @@ namespace Utils {
 
     // NOLINTEND
 
-    void trimS(std::string &source) {
+    void trimS(std::string& source) {
         auto isSpace = [](unsigned char ch) { return std::isspace(ch); };
         auto trimmedView = source | std::views::drop_while(isSpace) | std::views::reverse |
                            std::views::drop_while(isSpace) | std::views::reverse;

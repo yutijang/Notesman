@@ -16,7 +16,7 @@ class ResourceSearchWorker final : public QObject {
             : QObject(parent), m_core(core) {}
 
         // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-        void setSearchParams(const QString &keyword, const QString &mode) {
+        void setSearchParams(QString const& keyword, QString const& mode) {
             m_keyword = keyword.trimmed();
             m_mode = mode;
         }
@@ -24,7 +24,7 @@ class ResourceSearchWorker final : public QObject {
         void doSearch();
 
     Q_SIGNALS:
-        void searchFinished(const std::vector<UnifiedSearchResult> &results);
+        void searchFinished(std::vector<UnifiedSearchResult> const& results);
 
     private:
         NotesAppCore* m_core{};

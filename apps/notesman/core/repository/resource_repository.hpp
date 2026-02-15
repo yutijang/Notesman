@@ -14,16 +14,16 @@ class SQLiteDB;
 
 class ResourceRepository {
     public:
-        explicit ResourceRepository(SQLiteDB &db) noexcept : m_db(db) {}
+        explicit ResourceRepository(SQLiteDB& db) noexcept : m_db(db) {}
 
         // CRUD
-        sqlite3_int64 insert(const Resource &res);
+        sqlite3_int64 insert(Resource const& res);
         std::optional<Resource> getById(sqlite3_int64 resourceId);
-        void update(const Resource &res);
+        void update(Resource const& res);
         // Ràng buộc ON DELETE CASCADE
         // SQLite tự động xóa tất cả các hàng liên quan trong files, text_content, và resource_tags
         void remove(sqlite3_int64 resourceId);
-        void removeBatch(const std::vector<sqlite3_int64> &resourceIds);
+        void removeBatch(std::vector<sqlite3_int64> const& resourceIds);
 
         std::vector<Resource> getAll();
 
@@ -43,8 +43,8 @@ class ResourceRepository {
         std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);
 
     private:
-        static Resource resourceFromStmt(const SQLiteStmt &stmt);
+        static Resource resourceFromStmt(SQLiteStmt const& stmt);
         static std::vector<std::string> splitTags(std::string_view s, std::string_view delimiter);
 
-        SQLiteDB &m_db;
+        SQLiteDB& m_db;
 };

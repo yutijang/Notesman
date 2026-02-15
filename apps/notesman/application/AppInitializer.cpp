@@ -89,7 +89,7 @@ void AppInitializer::onSecondInstanceMessage() {
 
     if (!client->waitForReadyRead(TIMEWAIT)) { return; }
 
-    const QByteArray msg = client->readAll();
+    QByteArray const msg = client->readAll();
 
     if (msg == "activate" && m_mainWindow) {
 #if defined(Q_OS_WIN)
@@ -122,7 +122,7 @@ void AppInitializer::run() {
     // vì Qt không queue lại signal cũ
     setupInitializerConnections();
 
-    const auto initCheck = initializeCore();
+    auto const initCheck = initializeCore();
     if (initCheck != InitFailureReason::Ok) {
         switch (initCheck) {
             case InitFailureReason::Ok: // clang(-Wswitch)
@@ -142,7 +142,7 @@ void AppInitializer::run() {
 
     m_controller->loadSettings();
 
-    const AppSettings* settings = m_controller->settings();
+    AppSettings const* settings = m_controller->settings();
     if (settings != nullptr) {
         m_controller->applyLanguage(settings->language());
         m_controller->applyTheme(settings->theme());
@@ -163,11 +163,11 @@ void AppInitializer::run() {
 }
 
 AppInitializer::InitFailureReason AppInitializer::initializeCore() {
-    const QString dbFullPath = CorePaths::databaseFile();
-    const std::filesystem::path dbPath = dbFullPath.toStdString();
+    QString const dbFullPath = CorePaths::databaseFile();
+    std::filesystem::path const dbPath = dbFullPath.toStdString();
 
     if (!std::filesystem::exists(dbPath)) {
-        const auto reply =
+        auto const reply =
             DialogUtils::showQuestion(m_mainWindow.get(), tr("Database Missing"),
                                       tr("No database found. Would you like to create a new one?"));
 
@@ -185,7 +185,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
         return InitFailureReason::OpenFailed;
     }
 
-    constexpr const int len{16};
+    constexpr int const len{16};
     std::array<char, len> header{};
     dbFile.read(header.data(), header.size());
     if (!dbFile || dbFile.gcount() != len) {
@@ -198,7 +198,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
     if (!headerView.starts_with("SQLite format 3")) { // C++20+
         DialogUtils::showError(m_mainWindow.get(), tr("Error"), tr("Invalid database file."));
 
-        const auto reply =
+        auto const reply =
             DialogUtils::showQuestion(m_mainWindow.get(), tr("Invalid Database"),
                                       tr("The existing file is not a valid SQLite database.\n"
                                          "Would you like to recreate it?"));
@@ -213,7 +213,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
     try {
         m_db = std::make_unique<SQLiteDB>(dbPath.string());
 
-        const auto dbVerifyResult = verifyDatabase();
+        auto const dbVerifyResult = verifyDatabase();
         if (dbVerifyResult != InitFailureReason::Ok) { return dbVerifyResult; }
 
         m_resRepo = std::make_unique<ResourceRepository>(*m_db);
@@ -236,7 +236,7 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
 
         Q_EMIT coreReady(m_core.get());
 
-    } catch (const std::exception &ex) {
+    } catch (std::exception const& ex) {
         Log::err(ex.what());
         DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(ex.what()));
     }
@@ -245,8 +245,8 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
 }
 
 void AppInitializer::createDatabase() {
-    const QString dbPath = CorePaths::databaseFile();
-    const QString schemaResourcePath = ":/schema/notes_manager_schema.sql";
+    QString const dbPath = CorePaths::databaseFile();
+    QString const schemaResourcePath = ":/schema/notes_manager_schema.sql";
 
     // Đọc nội dung file .sql
     QFile schemaFile(schemaResourcePath);
@@ -258,8 +258,8 @@ void AppInitializer::createDatabase() {
         return;
     }
 
-    const std::string schemaSql = schemaFile.readAll().toStdString();
-    const std::string dbPathUtf8 = dbPath.toUtf8().constData();
+    std::string const schemaSql = schemaFile.readAll().toStdString();
+    std::string const dbPathUtf8 = dbPath.toUtf8().constData();
 
     if (std::string error; !DatabaseCreator::create(dbPathUtf8, schemaSql, error)) {
         Log::err("Error create database: {}", error);
@@ -278,7 +278,7 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
 
     if (std::vector<std::string> issues; !checker.checkIntegrity(issues)) {
         QString msg = tr("Database integrity check failed:\n");
-        for (const auto &e : issues) { msg += QString::fromStdString(e) + "\n"; }
+        for (auto const& e : issues) { msg += QString::fromStdString(e) + "\n"; }
 
         Log::err(msg.toStdString());
         DialogUtils::showError(
@@ -298,10 +298,10 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
         return InitFailureReason::VerifyDBCorrupted;
     }
 
-    const auto verOpt = checker.getDBVersion();
+    auto const verOpt = checker.getDBVersion();
     if (!verOpt.has_value()) { return InitFailureReason::GetNullDBVersion; }
 
-    if (const int currentVersion = *verOpt; currentVersion < app::meta::SCHEMA_VERSION) {
+    if (int const currentVersion = *verOpt; currentVersion < app::meta::SCHEMA_VERSION) {
         Log::err("Database version is outdated, current verison: {}, required version: {}",
                  currentVersion, app::meta::SCHEMA_VERSION);
         DialogUtils::showInfo(m_mainWindow.get(), tr("Incompatible Database"),
@@ -353,10 +353,10 @@ void AppInitializer::reinitializeDatabaseConnection() {
     if (!m_db) { return; }
 
     try {
-        const std::string filename = m_db->getFilename();
+        std::string const filename = m_db->getFilename();
         m_db->open(filename);
 
-        if (const auto dbVerify = verifyDatabase(); dbVerify != InitFailureReason::Ok) {
+        if (auto const dbVerify = verifyDatabase(); dbVerify != InitFailureReason::Ok) {
             if (dbVerify == InitFailureReason::GetNullDBVersion) {
                 Log::err("Error get Database version.");
             } else if (dbVerify == InitFailureReason::VerifyDBCorrupted) {
@@ -369,14 +369,14 @@ void AppInitializer::reinitializeDatabaseConnection() {
         }
 
         Q_EMIT dbOpened();
-    } catch (const std::exception &ex) { Log::fatal("Fatal error: {}", ex.what()); }
+    } catch (std::exception const& ex) { Log::fatal("Fatal error: {}", ex.what()); }
 }
 
 void AppInitializer::checkUpdateFlag() {
-    const QStringList args = QApplication::arguments();
+    QStringList const args = QApplication::arguments();
 
     if (bool isUpdateDone =
-            std::ranges::any_of(args, [](const QString &arg) { return arg == "--update-done"; });
+            std::ranges::any_of(args, [](QString const& arg) { return arg == "--update-done"; });
         !isUpdateDone) {
         return;
     }
@@ -391,7 +391,7 @@ void AppInitializer::checkUpdateFlag() {
     // argv[3] = temp_update dir path
     // argv[4] = zip path
 
-    const auto updaterPID = static_cast<DWORD>(args[2].toULongLong());
+    auto const updaterPID = static_cast<DWORD>(args[2].toULongLong());
     waitForProcessExitAsync(updaterPID, [this, args]() {
         handleUpdateCleanup(args);
         saveETagOnUpdateSuccess();
@@ -401,15 +401,15 @@ void AppInitializer::checkUpdateFlag() {
 
     namespace fs = std::filesystem;
 
-    const fs::path oldAppPath(args[2].toStdString());
-    const fs::path selfPath = fs::read_symlink("/proc/self/exe");
+    fs::path const oldAppPath(args[2].toStdString());
+    fs::path const selfPath = fs::read_symlink("/proc/self/exe");
 
     if (std::error_code ec; fs::exists(oldAppPath) && fs::weakly_canonical(oldAppPath, ec) !=
                                                           fs::weakly_canonical(selfPath, ec)) {
         fs::remove(oldAppPath);
     }
 
-    const fs::path binPath(args[3].toStdString());
+    fs::path const binPath(args[3].toStdString());
     if (fs::exists(binPath)) { fs::remove(binPath); }
 
     displayNotiUpdateComplete();
@@ -418,10 +418,10 @@ void AppInitializer::checkUpdateFlag() {
 }
 
 void AppInitializer::saveETagOnUpdateSuccess() {
-    auto &settings = SettingsManager::instance();
+    auto& settings = SettingsManager::instance();
 
-    const QString pendingETag = settings.get("update/pending_etag").toString();
-    const QString pendingVersion = settings.get("update/pending_version").toString();
+    QString const pendingETag = settings.get("update/pending_etag").toString();
+    QString const pendingVersion = settings.get("update/pending_version").toString();
 
     // Chỉ xác nhận thành công nếu version khớp
     if (!pendingETag.isEmpty() && !pendingVersion.isEmpty() &&
@@ -441,7 +441,7 @@ void AppInitializer::saveETagOnUpdateSuccess() {
     settings.remove("update/pending_version");
 }
 
-void AppInitializer::handleUpdateCleanup(const QStringList &args) {
+void AppInitializer::handleUpdateCleanup(QStringList const& args) {
     std::filesystem::path tempDirPath(args[3].toStdWString());
     std::error_code ec;
 
@@ -465,7 +465,7 @@ void AppInitializer::handleUpdateCleanup(const QStringList &args) {
 
 void AppInitializer::displayNotiUpdateComplete() {
     QTimer::singleShot(0, m_mainWindow.get(), [this]() {
-        const QString kLinkColor = (m_controller->isDarkTheme()) ? "#4FC3F7" : "#0000EE";
+        QString const kLinkColor = (m_controller->isDarkTheme()) ? "#4FC3F7" : "#0000EE";
         DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
                               tr("Application has been updated successfully.<br>"
                                  "Version: v%1<br>"
@@ -479,7 +479,7 @@ void AppInitializer::displayNotiUpdateComplete() {
 }
 
 #ifdef Q_OS_WIN
-void AppInitializer::waitForProcessExitAsync(DWORD pid, const std::function<void()> &onExited) {
+void AppInitializer::waitForProcessExitAsync(DWORD pid, const std::function<void()>& onExited) {
     HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, pid);
     if (h == nullptr) {
         onExited();

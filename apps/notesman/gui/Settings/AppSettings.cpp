@@ -9,7 +9,7 @@
 #include "SettingsData.hpp"
 #include "UiConstants.hpp"
 
-bool AppSettings::load(const std::filesystem::path &path) {
+bool AppSettings::load(std::filesystem::path const& path) {
     if (!std::filesystem::exists(path)) { return false; }
 
     std::ifstream file(path);
@@ -65,7 +65,7 @@ bool AppSettings::load(const std::filesystem::path &path) {
     return true;
 }
 
-bool AppSettings::save(const std::filesystem::path &path) const {
+bool AppSettings::save(std::filesystem::path const& path) const {
     if (!m_dirty) { return true; }
 
     std::ofstream file(path, std::ios::trunc);
@@ -162,6 +162,6 @@ SettingsData AppSettings::toUiSettings() const {
 }
 
 SettingsData AppSettings::defaultUiSettings() {
-    const AppSettings defaults{};
+    AppSettings const defaults{};
     return defaults.toUiSettings();
 }

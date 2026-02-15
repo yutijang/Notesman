@@ -28,7 +28,7 @@ PlainTextEdit::PlainTextEdit(QWidget* parent)
     updateLineNumberAreaWidth();
 }
 
-void PlainTextEdit::insertFromMimeData(const QMimeData* source) {
+void PlainTextEdit::insertFromMimeData(QMimeData const* source) {
     if (source->hasText()) {
         insertPlainText(source->text());
     } else {
@@ -37,14 +37,14 @@ void PlainTextEdit::insertFromMimeData(const QMimeData* source) {
 }
 
 int PlainTextEdit::lineNumberAreaWidth() const {
-    const int digits = std::max(2, static_cast<int>(std::log10(blockCount() + 1)) + 1);
+    int const digits = std::max(2, static_cast<int>(std::log10(blockCount() + 1)) + 1);
 
     // VSCode-like padding
-    const int paddingLeft = 6;
-    const int paddingRight = 8;
+    int const paddingLeft = 6;
+    int const paddingRight = 8;
 
     QFontMetrics metrics(font());
-    const int numberWidth = metrics.horizontalAdvance(QString(digits, QChar('9')));
+    int const numberWidth = metrics.horizontalAdvance(QString(digits, QChar('9')));
 
     return paddingLeft + numberWidth + paddingRight;
 }
@@ -53,7 +53,7 @@ void PlainTextEdit::updateLineNumberAreaWidth() {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
 
-void PlainTextEdit::updateLineNumberArea(const QRect &rect, int dy) {
+void PlainTextEdit::updateLineNumberArea(QRect const& rect, int dy) {
     if (dy != 0) {
         m_lineNumberArea->scroll(0, dy);
     } else {
@@ -66,7 +66,7 @@ void PlainTextEdit::updateLineNumberArea(const QRect &rect, int dy) {
 void PlainTextEdit::resizeEvent(QResizeEvent* event) {
     QPlainTextEdit::resizeEvent(event);
 
-    const QRect cr = contentsRect();
+    QRect const cr = contentsRect();
     m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
@@ -74,8 +74,8 @@ void PlainTextEdit::lineNumberAreaPaintEvent(QPaintEvent* event) {
     QPainter painter(m_lineNumberArea);
 
     // Detect theme via palette
-    const QColor baseColor = palette().color(QPalette::Window);
-    const bool isDark = baseColor.value() < 128;
+    QColor const baseColor = palette().color(QPalette::Window);
+    bool const isDark = baseColor.value() < 128;
 
     // NOLINTNEXTLINE(readability-magic-numbers)
     QColor bg = isDark ? baseColor.darker(115) : baseColor.lighter(110);
@@ -84,7 +84,7 @@ void PlainTextEdit::lineNumberAreaPaintEvent(QPaintEvent* event) {
     painter.fillRect(event->rect(), bg);
     painter.setPen(fg);
 
-    const int rightPadding = 8;
+    int const rightPadding = 8;
 
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
@@ -96,10 +96,10 @@ void PlainTextEdit::lineNumberAreaPaintEvent(QPaintEvent* event) {
 
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
-            const QString number = QString::number(blockNumber + 1);
+            QString const number = QString::number(blockNumber + 1);
 
-            const int x = lineNumberAreaWidth() - fm.horizontalAdvance(number) - rightPadding;
-            const int y = top + fm.ascent() + 1;
+            int const x = lineNumberAreaWidth() - fm.horizontalAdvance(number) - rightPadding;
+            int const y = top + fm.ascent() + 1;
 
             painter.drawText(x, y, number);
         }

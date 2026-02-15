@@ -2,7 +2,7 @@
 
 class WebKitGTKGuard {
     public:
-        static WebKitGTKGuard &instance();
+        static WebKitGTKGuard& instance();
 
         [[nodiscard]] bool available() const noexcept;
 

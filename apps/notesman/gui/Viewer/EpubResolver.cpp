@@ -20,8 +20,8 @@
 #include "EpubResolver.hpp"
 
 namespace {
-    void rewriteRelativeUrls(QString &html, const QUrl &baseUrl) {
-        static const QRegularExpression re(R"((href|src)\s*=\s*["']([^"':#][^"']*)["'])",
+    void rewriteRelativeUrls(QString& html, QUrl const& baseUrl) {
+        static QRegularExpression const re(R"((href|src)\s*=\s*["']([^"':#][^"']*)["'])",
                                            QRegularExpression::CaseInsensitiveOption);
 
         QString result;
@@ -36,8 +36,8 @@ namespace {
             // copy text trước match
             result.append(html.mid(lastPos, m.capturedStart() - lastPos));
 
-            const QString attr = m.captured(1);
-            const QString path = m.captured(2);
+            QString const attr = m.captured(1);
+            QString const path = m.captured(2);
 
             QUrl abs = baseUrl.resolved(QUrl(path));
 
@@ -55,11 +55,11 @@ namespace {
         html.swap(result);
     }
 
-    QString makeWorkDir(const QString &epubPath) {
-        const QByteArray hash =
+    QString makeWorkDir(QString const& epubPath) {
+        QByteArray const hash =
             QCryptographicHash::hash(epubPath.toUtf8(), QCryptographicHash::Sha256).toHex();
 
-        const QString base =
+        QString const base =
             QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub/" + hash;
 
         QDir{}.mkpath(base);
@@ -67,20 +67,20 @@ namespace {
     }
 
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-    bool extractZip(const QString &zipPath, const QString &outDir) {
+    bool extractZip(QString const& zipPath, QString const& outDir) {
         int err = 0;
         zip* za = zip_open(zipPath.toUtf8().constData(), ZIP_RDONLY, &err);
         if (za == nullptr) { return false; }
 
-        const zip_int64_t count = zip_get_num_entries(za, 0);
+        zip_int64_t const count = zip_get_num_entries(za, 0);
 
         for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(count); ++i) {
             struct zip_stat st{};
             zip_stat_init(&st);
             if (zip_stat_index(za, i, 0, &st) != 0) { continue; }
 
-            const QString name = QString::fromUtf8(st.name);
-            const QString outPath = outDir + "/" + name;
+            QString const name = QString::fromUtf8(st.name);
+            QString const outPath = outDir + "/" + name;
 
             // directory
             if (name.endsWith('/')) {
@@ -117,7 +117,7 @@ namespace {
         return true;
     }
 
-    std::optional<QString> findOpfPath(const QString &rootDir) {
+    std::optional<QString> findOpfPath(QString const& rootDir) {
         QFile file(rootDir + "/META-INF/container.xml");
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) { return std::nullopt; }
 
@@ -125,7 +125,7 @@ namespace {
         while (!xml.atEnd()) {
             xml.readNext();
             if (xml.isStartElement() && xml.name() == "rootfile") {
-                const auto attrs = xml.attributes();
+                auto const attrs = xml.attributes();
                 if (attrs.hasAttribute("full-path")) {
                     return rootDir + "/" + attrs.value("full-path").toString();
                 }
@@ -135,11 +135,11 @@ namespace {
         return std::nullopt;
     }
 
-    std::optional<EpubResolver::OpfData> parseOpf(const QString &opfPath) {
+    std::optional<EpubResolver::OpfData> parseOpf(QString const& opfPath) {
         QFile file(opfPath);
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) { return std::nullopt; }
 
-        const QString baseDir = QFileInfo(opfPath).path();
+        QString const baseDir = QFileInfo(opfPath).path();
 
         QXmlStreamReader xml(&file);
 
@@ -151,7 +151,7 @@ namespace {
 
             if (xml.isStartElement()) {
                 if (xml.name() == "item") {
-                    const auto a = xml.attributes();
+                    auto const a = xml.attributes();
                     manifest.insert(a.value("id").toString(), a.value("href").toString());
                 } else if (xml.name() == "itemref") {
                     spineIds.push_back(xml.attributes().value("idref").toString());
@@ -162,7 +162,7 @@ namespace {
         EpubResolver::OpfData data;
         data.baseDir = baseDir;
 
-        for (const auto &id : spineIds) {
+        for (auto const& id : spineIds) {
             if (manifest.contains(id)) { data.spineFiles.push_back(baseDir + "/" + manifest[id]); }
         }
 
@@ -171,8 +171,8 @@ namespace {
         return data;
     }
 
-    QString generateEntryHtml(const EpubResolver::OpfData &opf, const QString &outDir) {
-        const QString entryPath = outDir + "/__entry.html";
+    QString generateEntryHtml(EpubResolver::OpfData const& opf, QString const& outDir) {
+        QString const entryPath = outDir + "/__entry.html";
         QFile f(entryPath);
         if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) { return {}; }
 
@@ -185,7 +185,7 @@ namespace {
               "</style>\n";
         ts << "</head>\n<body>\n";
 
-        for (const auto &chapter : opf.spineFiles) {
+        for (auto const& chapter : opf.spineFiles) {
             QFile cf(chapter);
             if (!cf.open(QIODevice::ReadOnly | QIODevice::Text)) { continue; }
 
@@ -193,18 +193,18 @@ namespace {
             cf.close();
 
             // Cắt <body>
-            const auto bodyStart = content.indexOf("<body", Qt::CaseInsensitive);
+            auto const bodyStart = content.indexOf("<body", Qt::CaseInsensitive);
             if (bodyStart >= 0) {
-                const auto bodyTagEnd = content.indexOf('>', bodyStart);
-                const auto bodyEnd = content.lastIndexOf("</body>", Qt::CaseInsensitive);
+                auto const bodyTagEnd = content.indexOf('>', bodyStart);
+                auto const bodyEnd = content.lastIndexOf("</body>", Qt::CaseInsensitive);
                 if (bodyTagEnd >= 0 && bodyEnd > bodyTagEnd) {
                     content = content.mid(bodyTagEnd + 1, bodyEnd - bodyTagEnd - 1);
                 }
             }
 
             // Rewrite URL
-            const QString spineDir = QFileInfo(chapter).path();
-            const QUrl spineBase = QUrl::fromLocalFile(spineDir + "/");
+            QString const spineDir = QFileInfo(chapter).path();
+            QUrl const spineBase = QUrl::fromLocalFile(spineDir + "/");
 
             rewriteRelativeUrls(content, spineBase);
 
@@ -222,24 +222,24 @@ namespace {
 
 } // namespace
 
-std::optional<QString> EpubResolver::resolveToHtml(const QString &epubPath) {
+std::optional<QString> EpubResolver::resolveToHtml(QString const& epubPath) {
     QFileInfo fi(epubPath);
     if (!fi.exists() || fi.suffix().toLower() != "epub") { return std::nullopt; }
 
-    const QString workDir = makeWorkDir(fi.absoluteFilePath());
+    QString const workDir = makeWorkDir(fi.absoluteFilePath());
 
     // extract only once
     if (!QFileInfo::exists(workDir + "/META-INF/container.xml")) {
         if (!extractZip(fi.absoluteFilePath(), workDir)) { return std::nullopt; }
     }
 
-    const auto opfPath = findOpfPath(workDir);
+    auto const opfPath = findOpfPath(workDir);
     if (!opfPath) { return std::nullopt; }
 
-    const auto opf = parseOpf(*opfPath);
+    auto const opf = parseOpf(*opfPath);
     if (!opf) { return std::nullopt; }
 
-    const QString entry = generateEntryHtml(*opf, workDir);
+    QString const entry = generateEntryHtml(*opf, workDir);
     if (entry.isEmpty()) { return std::nullopt; }
 
     return QFileInfo(entry).absoluteFilePath();

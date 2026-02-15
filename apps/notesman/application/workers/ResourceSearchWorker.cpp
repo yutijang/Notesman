@@ -16,15 +16,15 @@ void ResourceSearchWorker::doSearch() {
         return;
     }
 
-    const std::string stdKeyword = m_keyword.toUtf8().toStdString();
+    std::string const stdKeyword = m_keyword.toUtf8().toStdString();
     std::vector<UnifiedSearchResult> results;
 
     try {
         if (m_mode == "title") {
-            const auto sanitizedKW = Utils::sanitizeFtsQuery(stdKeyword, true);
+            auto const sanitizedKW = Utils::sanitizeFtsQuery(stdKeyword, true);
             results = m_core->searchByTitleFull(sanitizedKW);
         } else if (m_mode == "content") {
-            const auto sanitizedKW = Utils::sanitizeFtsQuery(stdKeyword, false);
+            auto const sanitizedKW = Utils::sanitizeFtsQuery(stdKeyword, false);
             results = m_core->searchByContentUnifiedFull(sanitizedKW);
         } else if (m_mode == "tag") {
             std::string cleanTag = stdKeyword;
@@ -34,14 +34,14 @@ void ResourceSearchWorker::doSearch() {
             results = m_core->getFullResourcesByTag(cleanTag);
         } else if (m_mode == "all") {
             // 1. Chuẩn bị chuỗi cho LIKE (Bảng Tag)
-            const std::string tagLikeKW = Utils::toLikeQuery(stdKeyword);
+            std::string const tagLikeKW = Utils::toLikeQuery(stdKeyword);
 
             // 2. Chuẩn bị chuỗi cho MATCH (Bảng FTS Title/Content)
             // Dùng false để tìm kiếm linh hoạt hơn trong chế độ tìm tổng hợp
-            const std::string ftsKW = Utils::sanitizeFtsQuery(stdKeyword, false);
+            std::string const ftsKW = Utils::sanitizeFtsQuery(stdKeyword, false);
 
             // LIKE cho domain
-            const std::string domainLikeKW = Utils::toLikeQuery(stdKeyword);
+            std::string const domainLikeKW = Utils::toLikeQuery(stdKeyword);
 
             // 3. Gọi hàm hợp nhất trong Core
             // Hàm này sẽ bind likeKW vào các tham số LIKE và ftsKW vào các tham số MATCH
@@ -49,7 +49,7 @@ void ResourceSearchWorker::doSearch() {
         }
     }
 
-    catch (const std::runtime_error &ex) {
+    catch (std::runtime_error const& ex) {
         Log::err("Error: {}", ex.what());
     }
 

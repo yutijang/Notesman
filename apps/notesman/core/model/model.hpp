@@ -46,7 +46,7 @@ inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceT
          {.type = ResourceType::Url, .key = "url"}}
 };
 
-inline const std::unordered_map<std::string_view, ResourceType> K_EXT_MAP{
+inline std::unordered_map<std::string_view, ResourceType> const K_EXT_MAP{
     // Plain text
     {     "txt", ResourceType::PlainText},
     {    "text", ResourceType::PlainText},
@@ -83,7 +83,7 @@ inline const std::unordered_map<std::string_view, ResourceType> K_EXT_MAP{
 };
 
 [[nodiscard]] inline std::string_view resourceTypeToString(ResourceType type) noexcept {
-    for (const auto &m : K_RESOURCE_TYPE_TABLE) {
+    for (auto const& m : K_RESOURCE_TYPE_TABLE) {
         if (m.type == type) { return m.key; }
     }
     assert(false && "Invalid ResourceType");
@@ -91,7 +91,7 @@ inline const std::unordered_map<std::string_view, ResourceType> K_EXT_MAP{
 }
 
 [[nodiscard]] inline ResourceType resourceTypeFromString(std::string_view str) {
-    for (const auto &m : K_RESOURCE_TYPE_TABLE) {
+    for (auto const& m : K_RESOURCE_TYPE_TABLE) {
         if (m.key == str) { return m.type; }
     }
     throw std::runtime_error(std::format("Unknown ResourceType: {}", str));
@@ -103,8 +103,8 @@ inline const std::unordered_map<std::string_view, ResourceType> K_EXT_MAP{
 }
 
 [[nodiscard]] inline std::optional<ResourceType>
-    resourceTypeFromFile(const std::filesystem::path &pathStr) {
-    const auto ext = Utils::getFileExtension(pathStr);
+    resourceTypeFromFile(std::filesystem::path const& pathStr) {
+    auto const ext = Utils::getFileExtension(pathStr);
     return resourceTypeFromExtension(ext);
 }
 
@@ -175,7 +175,7 @@ constexpr ResourceFlags operator~(ResourceFlags v) {
     return static_cast<ResourceFlags>(~static_cast<RFBits>(v));
 }
 
-constexpr ResourceFlags &operator|=(ResourceFlags &lhs, ResourceFlags rhs) noexcept {
+constexpr ResourceFlags& operator|=(ResourceFlags& lhs, ResourceFlags rhs) noexcept {
     lhs = lhs | rhs;
     return lhs;
 }

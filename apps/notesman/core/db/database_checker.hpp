@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 #include <sqlite3.h>
@@ -8,13 +9,13 @@
 
 class DatabaseChecker {
     public:
-        explicit DatabaseChecker(SQLiteDB &db) noexcept : m_db(db) {}
+        explicit DatabaseChecker(SQLiteDB& db) noexcept : m_db(db) {}
 
         // Trả về true nếu toàn vẹn, false nếu có lỗi
-        bool checkIntegrity(std::vector<std::string> &messages);
+        bool checkIntegrity(std::vector<std::string>& messages);
 
         std::optional<int> getDBVersion();
 
     private:
-        SQLiteDB &m_db;
+        SQLiteDB& m_db;
 };

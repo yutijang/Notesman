@@ -42,13 +42,13 @@ class Socket {
         }
 
         // Non-copy
-        Socket(const Socket &) = delete;
-        Socket &operator=(const Socket &) = delete;
+        Socket(Socket const&) = delete;
+        Socket& operator=(Socket const&) = delete;
 
         // Move
-        Socket(Socket &&other) noexcept : m_fd{other.m_fd} { other.m_fd = INVALID_SOCK; }
+        Socket(Socket&& other) noexcept : m_fd{other.m_fd} { other.m_fd = INVALID_SOCK; }
 
-        Socket &operator=(Socket &&other) noexcept {
+        Socket& operator=(Socket&& other) noexcept {
             if (this != &other) {
                 m_fd = other.m_fd;
                 other.m_fd = INVALID_SOCK;
@@ -75,8 +75,8 @@ class WSA {
 
         ~WSA() { WSACleanup(); }
 
-        WSA(const WSA &) = delete;
-        WSA &operator=(const WSA &) = delete;
+        WSA(const WSA&) = delete;
+        WSA& operator=(const WSA&) = delete;
 };
 #endif
 

@@ -16,7 +16,7 @@ class TagInput final : public QWidget {
     public:
         explicit TagInput(QWidget* parent = nullptr);
 
-        void addTag(const QString &tag);
+        void addTag(QString const& tag);
         [[nodiscard]] QStringList getAllTags() const;
 
         void retranslateUi();
@@ -24,11 +24,11 @@ class TagInput final : public QWidget {
         void clearTags();
 
     Q_SIGNALS:
-        void tagAdded(const QString &tag);
+        void tagAdded(QString const& tag);
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void createInput();
-        void onTextChanged(const QString &text);
+        void onTextChanged(QString const& text);
         void onTagClicked();
         void onReturnPressed();
 

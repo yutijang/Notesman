@@ -67,6 +67,7 @@
             "displayName": "Windows Clang-CL Debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_TESTING": "ON",
                 "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebugDLL"
             }
         },
@@ -78,6 +79,7 @@
             "displayName": "Windows Clang-CL Release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_TESTING": "OFF",
                 "CMAKE_CXX_FLAGS_RELEASE": "/O2",
                 "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDLL"
             }
@@ -89,7 +91,8 @@
             ],
             "displayName": "Linux Clang++ Debug",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_TESTING": "ON"
             }
         },
         {
@@ -100,6 +103,7 @@
             "displayName": "Linux Clang++ Release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_TESTING": "OFF",
                 "CMAKE_CXX_FLAGS_RELEASE": "-O3"
             }
         },

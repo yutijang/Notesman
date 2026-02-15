@@ -23,7 +23,7 @@
 #include "DialogUtils.hpp"
 #include "helper.hpp"
 
-TextViewer::TextViewer(sqlite3_int64 resourceId, bool editable, ResourceViewService &viewService,
+TextViewer::TextViewer(sqlite3_int64 resourceId, bool editable, ResourceViewService& viewService,
                        UiConst::Theme theme, QWidget* parent)
     : m_resourceId(resourceId), m_editable(editable), m_viewService(viewService),
       m_currentTheme(theme) {
@@ -72,13 +72,13 @@ bool TextViewer::hasUnsavedChanges() const {
 bool TextViewer::onClose(QWidget* parent) {
     if (!hasUnsavedChanges()) { return true; }
 
-    const auto reply = DialogUtils::showQuestion(parent, QObject::tr("Unsaved changes"),
+    auto const reply = DialogUtils::showQuestion(parent, QObject::tr("Unsaved changes"),
                                                  QObject::tr("Save changes before closing?"));
 
     if (reply == QMessageBox::Cancel) { return false; }
 
     if (reply == QMessageBox::Yes) {
-        const auto content = m_editor->toPlainText();
+        auto const content = m_editor->toPlainText();
         m_viewService.saveTextResource(m_resourceId, content);
         m_originalContent = content;
     }
@@ -113,7 +113,7 @@ void TextViewer::setupToolbar(QToolBar* toolbar) {
     actionToggleSH->setChecked(m_isAppliedSH);
 
     QIcon toggleIcon;
-    const QPixmap pixmap(":/icons/syntax.ico");
+    QPixmap const pixmap(":/icons/syntax.ico");
     toggleIcon.addPixmap(pixmap, QIcon::Normal, QIcon::On);
     toggleIcon.addPixmap(toggleIcon.pixmap(pixmap.size(), QIcon::Disabled), QIcon::Normal,
                          QIcon::Off);
@@ -159,7 +159,7 @@ void TextViewer::setupToolbar(QToolBar* toolbar) {
 
 void TextViewer::startSearch() {
     bool ok{};
-    const QString text =
+    QString const text =
         QInputDialog::getText(m_rootWidget, QObject::tr("Search"), QObject::tr("Find:"),
                               QLineEdit::Normal, m_lastSearchText, &ok);
 
@@ -193,7 +193,7 @@ void TextViewer::findPrevious() {
 }
 
 void TextViewer::loadContent() {
-    const auto textContent = m_viewService.loadTextResource(m_resourceId);
+    auto const textContent = m_viewService.loadTextResource(m_resourceId);
     if (!textContent) {
         m_editor->setPlainText(QObject::tr("No content available."));
         return;
@@ -220,7 +220,7 @@ void TextViewer::applySyntaxHighlightingTheme() {
     if (m_editor == nullptr) { return; }
 
     // Chọn theme tô màu
-    const CppHighlighterTheme hlTheme =
+    CppHighlighterTheme const hlTheme =
         (m_currentTheme == UiConst::Theme::Light) ? createLightTheme() : createDarkTheme();
 
     auto* doc = m_editor->document();
@@ -262,7 +262,7 @@ void TextViewer::applyLineHighlighter() {
 void TextViewer::setupHighlighter() {
     if (m_editor == nullptr) { return; }
 
-    const CppHighlighterTheme hlTheme =
+    CppHighlighterTheme const hlTheme =
         (m_currentTheme == UiConst::Theme::Dark) ? createDarkTheme() : createLightTheme();
 
     auto* doc = m_editor->document();

@@ -13,7 +13,7 @@
 #include "MarkdownToHtml.hpp"
 
 namespace {
-    QString readResource(const QString &path) {
+    QString readResource(QString const& path) {
         QFile file(path);
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) { return {}; }
         return file.readAll();
@@ -21,23 +21,23 @@ namespace {
 
     void mdHtmlWrite(const MD_CHAR* data, MD_SIZE size, void* userdata) {
         auto* out = static_cast<QByteArray*>(userdata);
-        out->append(reinterpret_cast<const char*>(data), static_cast<int>(size));
+        out->append(reinterpret_cast<char const*>(data), static_cast<int>(size));
     }
 } // namespace
 
-QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkTheme) {
+QString MarkdownToHtml::convertFileToHtml(QString const& mdPath, bool isDarkTheme) {
     QFileInfo mdFi(mdPath);
     if (!mdFi.exists() || !mdFi.isFile()) { return {}; }
 
     // ---- cache dir ----
-    const QDir cacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+    QDir const cacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
                         "/markdown");
     if (!cacheDir.exists()) { cacheDir.mkpath("."); }
 
     // ---- cache file name (path + theme) ----
-    const QByteArray key = (mdFi.absoluteFilePath() + (isDarkTheme ? "|dark" : "|light")).toUtf8();
-    const QString hash = QString::number(qHash(key), 16);
-    const QString htmlPath = cacheDir.absoluteFilePath(hash + ".html");
+    QByteArray const key = (mdFi.absoluteFilePath() + (isDarkTheme ? "|dark" : "|light")).toUtf8();
+    QString const hash = QString::number(qHash(key), 16);
+    QString const htmlPath = cacheDir.absoluteFilePath(hash + ".html");
 
     QFileInfo htmlFi(htmlPath);
 
@@ -47,18 +47,18 @@ QString MarkdownToHtml::convertFileToHtml(const QString &mdPath, bool isDarkThem
     QFile f(mdPath);
     if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) { return {}; }
 
-    const QByteArray md = f.readAll();
+    QByteArray const md = f.readAll();
     QByteArray htmlBody;
-    const unsigned parserFlags = MD_FLAG_TABLES | MD_FLAG_TASKLISTS | MD_FLAG_STRIKETHROUGH |
+    unsigned const parserFlags = MD_FLAG_TABLES | MD_FLAG_TASKLISTS | MD_FLAG_STRIKETHROUGH |
                                  MD_FLAG_PERMISSIVEAUTOLINKS | MD_FLAG_PERMISSIVEATXHEADERS |
                                  MD_FLAG_LATEXMATHSPANS;
 
-    const int rc = md_html(md.constData(), static_cast<MD_SIZE>(md.size()), mdHtmlWrite, &htmlBody,
+    int const rc = md_html(md.constData(), static_cast<MD_SIZE>(md.size()), mdHtmlWrite, &htmlBody,
                            parserFlags, 0);
 
     if (rc != 0) { return {}; }
 
-    const QUrl baseUrl = QUrl::fromLocalFile(mdFi.absolutePath() + "/");
+    QUrl const baseUrl = QUrl::fromLocalFile(mdFi.absolutePath() + "/");
 
     QByteArray html;
     html += isDarkTheme ? R"(<!DOCTYPE html><html style="color-scheme: dark;">)"

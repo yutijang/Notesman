@@ -98,16 +98,16 @@ void HtmlViewer::initFromFile(QString path, ContentMode mode) {
         return;
     }
 
-    const QUrl base = QUrl::fromLocalFile(fi.absolutePath() + "/");
+    QUrl const base = QUrl::fromLocalFile(fi.absolutePath() + "/");
 
     m_view->setContentMode(mode, base);
     m_view->loadFile(m_htmlPath);
 #elif defined(Q_OS_LINUX)
     m_process = new QProcess(m_rootWidget);
 
-    const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
-    const QString uri = QUrl::fromLocalFile(m_htmlPath).toString();
-    const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
+    QString const program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
+    QString const uri = QUrl::fromLocalFile(m_htmlPath).toString();
+    QString const wTitle = QObject::tr("View detail resource: %1").arg(m_title);
 
     m_process->start(program, {uri, wTitle});
 #endif
@@ -134,9 +134,9 @@ void HtmlViewer::initFromUrl(QUrl url, ContentMode mode) {
 #elif defined(Q_OS_LINUX)
     m_process = new QProcess(m_rootWidget);
 
-    const QString program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
-    const QString wTitle = QObject::tr("View detail resource: %1").arg(m_title);
-    const QString uri = m_url.toString(QUrl::FullyEncoded);
+    QString const program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
+    QString const wTitle = QObject::tr("View detail resource: %1").arg(m_title);
+    QString const uri = m_url.toString(QUrl::FullyEncoded);
 
     m_process->start(program, {uri, wTitle});
 #endif
@@ -166,7 +166,7 @@ void HtmlViewer::setupToolbar(QToolBar* toolbar) {
     actSearch->setShortcut(QKeySequence::Find);
     QObject::connect(actSearch, &QAction::triggered, toolbar, [this]() {
         bool ok{};
-        const QString text =
+        QString const text =
             QInputDialog::getText(m_rootWidget, QObject::tr("Search"), QObject::tr("Find:"),
                                   QLineEdit::Normal, m_lastSearchText, &ok);
         if (!ok || text.isEmpty()) { return; }

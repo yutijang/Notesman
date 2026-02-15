@@ -25,7 +25,7 @@
 #include "IResourceViewer.hpp"
 #include "SettingsManager.hpp"
 
-ResourceViewerDialog::ResourceViewerDialog(const QString &title,
+ResourceViewerDialog::ResourceViewerDialog(QString const& title,
                                            std::unique_ptr<IResourceViewer> viewer, QWidget* parent)
     : QDialog(parent), m_viewer(std::move(viewer)) {
     Q_ASSERT(m_viewer);
@@ -49,7 +49,7 @@ void ResourceViewerDialog::showEvent(QShowEvent* event) {
 }
 
 void ResourceViewerDialog::closeEvent(QCloseEvent* event) {
-    auto &settings = SettingsManager::instance();
+    auto& settings = SettingsManager::instance();
 
     settings.set("window/dialog_viewer_posX", x());
     settings.set("window/dialog_viewer_posY", y());
@@ -66,7 +66,7 @@ void ResourceViewerDialog::closeEvent(QCloseEvent* event) {
     QDialog::closeEvent(event);
 }
 
-void ResourceViewerDialog::setupUi(const QString &title) {
+void ResourceViewerDialog::setupUi(QString const& title) {
     setWindowTitle(QString(tr("View detail resource: %1")).arg(title));
 
     auto* layout = new QVBoxLayout(this);
@@ -104,12 +104,12 @@ void ResourceViewerDialog::setupActions() {
 }
 
 void ResourceViewerDialog::restoreGeometryLogic() {
-    auto &settings = SettingsManager::instance();
+    auto& settings = SettingsManager::instance();
 
-    const int savedX = settings.get("window/dialog_viewer_posX", -1).toInt();
-    const int savedY = settings.get("window/dialog_viewer_posY", -1).toInt();
-    const int savedW = settings.get("window/dialog_viewer_width", -1).toInt();
-    const int savedH = settings.get("window/dialog_viewer_height", -1).toInt();
+    int const savedX = settings.get("window/dialog_viewer_posX", -1).toInt();
+    int const savedY = settings.get("window/dialog_viewer_posY", -1).toInt();
+    int const savedW = settings.get("window/dialog_viewer_width", -1).toInt();
+    int const savedH = settings.get("window/dialog_viewer_height", -1).toInt();
 
     static constexpr QSize kDefaultSize{800, 800};
 
@@ -125,7 +125,7 @@ void ResourceViewerDialog::restoreGeometryLogic() {
     if (scr == nullptr) { scr = QGuiApplication::primaryScreen(); }
     Q_ASSERT(scr);
 
-    const QRect screenGeom = scr->availableGeometry();
+    QRect const screenGeom = scr->availableGeometry();
 
     QRect dlgRect = frameGeometry();
 
@@ -147,12 +147,12 @@ void ResourceViewerDialog::restoreGeometryLogic() {
     move(dlgRect.topLeft());
 }
 
-QRect ResourceViewerDialog::ensureOnScreen(const QRect &rect) const {
+QRect ResourceViewerDialog::ensureOnScreen(QRect const& rect) const {
     QScreen* scr = screen();
     if (scr == nullptr) { scr = QGuiApplication::primaryScreen(); }
     Q_ASSERT(scr);
 
-    const QRect screenGeom = scr->availableGeometry();
+    QRect const screenGeom = scr->availableGeometry();
 
     if (screenGeom.intersects(rect)) { return rect; }
 
@@ -164,8 +164,8 @@ QRect ResourceViewerDialog::ensureOnScreen(const QRect &rect) const {
 QRect ResourceViewerDialog::calcFallbackRect(QWidget* parent, DialogAnchor anchor) const {
     Q_ASSERT(parent);
 
-    const QRect parentFrame = parent->frameGeometry();
-    const QSize dialogFrameSize = frameGeometry().size();
+    QRect const parentFrame = parent->frameGeometry();
+    QSize const dialogFrameSize = frameGeometry().size();
 
     QRect r(QPoint{0, 0}, dialogFrameSize);
 

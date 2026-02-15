@@ -24,7 +24,7 @@ PdfPageWidget::PdfPageWidget(std::unique_ptr<poppler::page> page, QWidget* paren
     : QWidget(parent), m_page(std::move(page)) {
     Q_ASSERT(m_page);
 
-    const auto rect = m_page->page_rect(); // points (1/72 inch)
+    auto const rect = m_page->page_rect(); // points (1/72 inch)
     constexpr double dpi = 96.0;
     m_baseSize = QSize(static_cast<int>(rect.width() * dpi / K_PDF_POINTS_PER_INCH),
                        static_cast<int>(rect.height() * dpi / K_PDF_POINTS_PER_INCH));
@@ -37,7 +37,7 @@ void PdfPageWidget::setScale(double scale) {
 
     m_scale = scale;
 
-    const QSize newSize(static_cast<int>(m_baseSize.width() * m_scale),
+    QSize const newSize(static_cast<int>(m_baseSize.width() * m_scale),
                         static_cast<int>(m_baseSize.height() * m_scale));
 
     setFixedSize(newSize);
@@ -49,7 +49,7 @@ void PdfPageWidget::setScale(double scale) {
 void PdfPageWidget::renderIfNeeded(double dpi, RenderQuality quality) {
     if (!m_page) { return; }
 
-    const double targetDpi = quantizeDpi(dpi);
+    double const targetDpi = quantizeDpi(dpi);
 
     constexpr double kDpiEpsilon = 0.25;
     if (m_rendered && std::abs(m_currentDpi - targetDpi) < kDpiEpsilon) { return; }
@@ -66,7 +66,7 @@ void PdfPageWidget::renderIfNeeded(double dpi, RenderQuality quality) {
     auto img = renderer.render_page(m_page.get(), targetDpi, targetDpi);
     if (!img.is_valid()) { return; }
 
-    m_image = QImage(reinterpret_cast<const uchar*>(img.data()), img.width(), img.height(),
+    m_image = QImage(reinterpret_cast<uchar const*>(img.data()), img.width(), img.height(),
                      img.bytes_per_row(), QImage::Format_ARGB32)
                   .copy();
 

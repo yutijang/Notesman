@@ -16,8 +16,8 @@
 
 class NotesAppCore {
     public:
-        NotesAppCore(TextContentRepository &textRepo, FileService &fileService,
-                     UrlService &urlService, ResourceService &resService)
+        NotesAppCore(TextContentRepository& textRepo, FileService& fileService,
+                     UrlService& urlService, ResourceService& resService)
             : m_textRepo(textRepo), m_fileService(fileService), m_urlService(urlService),
               m_resService(resService) {}
 
@@ -25,12 +25,12 @@ class NotesAppCore {
 
         // ========= CRUD =========
         [[nodiscard]]
-        sqlite3_int64 addTextNote(const std::string &title, const std::string &content,
+        sqlite3_int64 addTextNote(std::string const& title, std::string const& content,
                                   ResourceType type) const;
         [[nodiscard]]
-        sqlite3_int64 addFileNote(const std::filesystem::path &filepath, const std::string &title,
+        sqlite3_int64 addFileNote(std::filesystem::path const& filepath, std::string const& title,
                                   ResourceType type, bool isManaged,
-                                  const std::string &contentToIndex) const;
+                                  std::string const& contentToIndex) const;
         [[nodiscard]]
         std::optional<sqlite3_int64> addUrlNote(std::string_view title, ResourceType type,
                                                 std::string_view rawUrl) const;
@@ -42,14 +42,14 @@ class NotesAppCore {
         void updateText(sqlite3_int64 resourceId, std::string_view newText);
 
         void deleteResource(sqlite3_int64 resourceId);
-        void deleteResources(const std::vector<sqlite3_int64> &resourceIds);
+        void deleteResources(std::vector<sqlite3_int64> const& resourceIds);
 
         // ========= Search =========
         [[nodiscard]]
-        std::vector<UnifiedSearchResult> searchByTitle(const std::string &keyword) const;
+        std::vector<UnifiedSearchResult> searchByTitle(std::string const& keyword) const;
         [[nodiscard]]
         std::vector<std::pair<sqlite3_int64, std::string>>
-            searchByContent(const std::string &keyword) const;
+            searchByContent(std::string const& keyword) const;
 
         // Tạm thời không sử dụng
         // [[nodiscard]] std::vector<FullResource>
@@ -58,7 +58,7 @@ class NotesAppCore {
 
         [[nodiscard]]
         std::vector<UnifiedSearchResult>
-            searchByContentUnifiedFull(const std::string &keyword) const;
+            searchByContentUnifiedFull(std::string const& keyword) const;
 
         // For mode all
         [[nodiscard]]
@@ -67,29 +67,29 @@ class NotesAppCore {
                                                            std::string_view domainLikeKW) const;
 
         [[nodiscard]]
-        std::vector<UnifiedSearchResult> searchByTitleFull(const std::string &keyword) const;
+        std::vector<UnifiedSearchResult> searchByTitleFull(std::string const& keyword) const;
         [[nodiscard]]
-        std::vector<UnifiedSearchResult> getFullResourcesByTag(const std::string &tag) const;
+        std::vector<UnifiedSearchResult> getFullResourcesByTag(std::string const& tag) const;
         [[nodiscard]]
-        std::vector<Resource> getResourcesByTags(const std::vector<std::string> &tags) const;
+        std::vector<Resource> getResourcesByTags(std::vector<std::string> const& tags) const;
 
         // ========= Tags =========
-        void addTag(sqlite3_int64 resourceId, const std::string &tag);
-        void addTags(sqlite3_int64 resourceId, const std::vector<std::string> &tags);
-        void removeTag(sqlite3_int64 resourceId, const std::string &tag);
+        void addTag(sqlite3_int64 resourceId, std::string const& tag);
+        void addTags(sqlite3_int64 resourceId, std::vector<std::string> const& tags);
+        void removeTag(sqlite3_int64 resourceId, std::string const& tag);
         [[nodiscard]] std::vector<std::pair<sqlite3_int64, std::string>> getAllTags() const;
 
         // ========= Utility =========
         [[nodiscard]] bool isExistTitle(std::string_view title, ResourceType type) const;
-        [[nodiscard]] bool isFileIndexed(const std::filesystem::path &filepath) const;
+        [[nodiscard]] bool isFileIndexed(std::filesystem::path const& filepath) const;
         [[nodiscard]] bool isExistFile(sqlite3_int64 resourceId) const;
-        static std::string computeFileHash(const std::filesystem::path &filePath);
+        static std::string computeFileHash(std::filesystem::path const& filePath);
 
         std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);
 
     private:
-        TextContentRepository &m_textRepo;
-        FileService &m_fileService;
-        UrlService &m_urlService;
-        ResourceService &m_resService;
+        TextContentRepository& m_textRepo;
+        FileService& m_fileService;
+        UrlService& m_urlService;
+        ResourceService& m_resService;
 };

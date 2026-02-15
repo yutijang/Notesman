@@ -15,13 +15,13 @@ class DownloadManager final : public QObject {
         ~DownloadManager() override;
 
         // Bắt đầu tải từ URL, lưu ra đường dẫn local
-        void startDownload(const QUrl &url, const QString &outputFilePath);
+        void startDownload(QUrl const& url, QString const& outputFilePath);
 
     Q_SIGNALS:
         void downloadStarted();
         void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-        void downloadFinished(const QString &filePath);
-        void downloadFailed(const QString &errorString);
+        void downloadFinished(QString const& filePath);
+        void downloadFailed(QString const& errorString);
         void downloadFailCauseTimeoutRequest();
 
     private: // NOLINT(readability-redundant-access-specifiers)

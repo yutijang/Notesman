@@ -9,8 +9,8 @@ class AppSettings {
     public:
         AppSettings() = default;
 
-        bool load(const std::filesystem::path &path);
-        [[nodiscard]] bool save(const std::filesystem::path &path) const;
+        bool load(std::filesystem::path const& path);
+        [[nodiscard]] bool save(std::filesystem::path const& path) const;
 
         // Getter
         [[nodiscard]] UiConst::Theme theme() const noexcept { return m_theme; }
@@ -65,7 +65,7 @@ class AppSettings {
         static SettingsData defaultUiSettings();
 
     private:
-        static constexpr const char* K_DEFAULT_RESOURCE_DIR = "resources";
+        static constexpr char const* K_DEFAULT_RESOURCE_DIR = "resources";
         static constexpr int K_CACHE_EXPIRED{7};
 
         UiConst::Theme m_theme{UiConst::Theme::Light};

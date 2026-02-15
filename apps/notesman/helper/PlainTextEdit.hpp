@@ -21,11 +21,11 @@ class PlainTextEdit final : public QPlainTextEdit {
 
     protected:
         void resizeEvent(QResizeEvent* event) override;
-        void insertFromMimeData(const QMimeData* source) override;
+        void insertFromMimeData(QMimeData const* source) override;
 
     private:
         void updateLineNumberAreaWidth();
-        void updateLineNumberArea(const QRect &rect, int dy);
+        void updateLineNumberArea(QRect const& rect, int dy);
 
         QWidget* m_lineNumberArea;
 };

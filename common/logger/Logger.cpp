@@ -59,7 +59,7 @@ namespace {
             return std::filesystem::path(xdg) / "notesman" / "logs";
         }
 
-        if (const char* home = std::getenv("HOME")) {
+        if (char const* home = std::getenv("HOME")) {
             return std::filesystem::path(home) / ".local/state/notesman/logs";
         }
 
@@ -70,7 +70,7 @@ namespace {
 } // namespace
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void Log::init(const std::string &loggerName, const std::string &fileName) {
+void Log::init(std::string const& loggerName, std::string const& fileName) {
     std::call_once(gOnce, [&] {
         std::vector<spdlog::sink_ptr> sinks;
 

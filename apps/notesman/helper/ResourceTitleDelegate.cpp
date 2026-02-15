@@ -36,25 +36,25 @@ namespace {
     }
 } // namespace
 
-void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem &option,
-                                  const QModelIndex &index) const {
+void ResourceTitleDelegate::paint(QPainter* painter, QStyleOptionViewItem const& option,
+                                  QModelIndex const& index) const {
     QStyleOptionViewItem opt(option);
     initStyleOption(&opt, index);
 
     // Không để style vẽ text mặc định
     opt.text.clear();
 
-    const QWidget* widget = option.widget;
+    QWidget const* widget = option.widget;
     QStyle* style = (widget != nullptr) ? widget->style() : QApplication::style();
     style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
 
     // ===== LẤY DỮ LIỆU =====
-    const QString titleText = index.data(Qt::DisplayRole).toString();
-    const QString subText =
+    QString const titleText = index.data(Qt::DisplayRole).toString();
+    QString const subText =
         index.data(static_cast<int>(ResultsTable::ItemRole::DisplaySubText)).toString();
-    const auto type = static_cast<ResourceType>(
+    auto const type = static_cast<ResourceType>(
         index.data(static_cast<int>(ResultsTable::ItemRole::ResourceType)).toInt());
-    const auto flags = static_cast<ResourceFlags>(
+    auto const flags = static_cast<ResourceFlags>(
         index.data(static_cast<int>(ResultsTable::ItemRole::ResourceFlags)).toInt());
 
     // ===== ICON SVG =====
@@ -135,8 +135,8 @@ void ResourceTitleDelegate::paint(QPainter* painter, const QStyleOptionViewItem 
     painter->restore();
 }
 
-QSize ResourceTitleDelegate::sizeHint(const QStyleOptionViewItem &option,
-                                      const QModelIndex &index) const {
+QSize ResourceTitleDelegate::sizeHint(QStyleOptionViewItem const& option,
+                                      QModelIndex const& index) const {
     QSize sz = QStyledItemDelegate::sizeHint(option, index);
     sz.setHeight(qMax(sz.height(), 48)); // NOLINT(readability-magic-numbers) // icon + padding
     return sz;

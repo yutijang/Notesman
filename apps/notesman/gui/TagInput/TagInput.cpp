@@ -40,7 +40,7 @@ void TagInput::createInput() {
     //    "padding: 2px 4px; border-radius: 2px; }"); // Style specific
 }
 
-void TagInput::onTextChanged(const QString &text) {
+void TagInput::onTextChanged(QString const& text) {
     if (text.endsWith(',')) {
         QString tag = text.left(text.size() - 1).trimmed();
         if (!tag.isEmpty()) {
@@ -52,8 +52,8 @@ void TagInput::onTextChanged(const QString &text) {
     }
 }
 
-void TagInput::addTag(const QString &tag) {
-    const QString qssTagChip = R"(
+void TagInput::addTag(QString const& tag) {
+    QString const qssTagChip = R"(
     /* ================================================= */
     /* TRẠNG THÁI MẶC ĐỊNH (BASE STATE)                  */
     /* ================================================= */
@@ -136,7 +136,7 @@ QStringList TagInput::getAllTags() const {
     QString currentText = m_input->text().trimmed();
     if (!currentText.isEmpty()) {
         QStringList currentTags = currentText.split(',', Qt::SkipEmptyParts);
-        for (const QString &tag : currentTags) {
+        for (QString const& tag : currentTags) {
             QString trimmedTag = tag.trimmed();
             if (!trimmedTag.isEmpty()) {
                 if (!tags.contains(trimmedTag)) { tags.append(trimmedTag); }
@@ -153,7 +153,7 @@ void TagInput::onReturnPressed() {
     if (!text.isEmpty()) {
         QStringList tags = text.split(',', Qt::SkipEmptyParts);
 
-        for (const QString &tag : tags) {
+        for (QString const& tag : tags) {
             QString trimmedTag = tag.trimmed();
             if (!trimmedTag.isEmpty()) { addTag(trimmedTag); }
         }

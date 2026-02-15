@@ -11,7 +11,7 @@
 
 class TextContentRepository {
     public:
-        explicit TextContentRepository(SQLiteDB &db) noexcept : m_db(db) {}
+        explicit TextContentRepository(SQLiteDB& db) noexcept : m_db(db) {}
 
         void insertText(sqlite3_int64 resourceId, std::string_view text);
 
@@ -27,7 +27,7 @@ class TextContentRepository {
         bool exists(sqlite3_int64 resourceId);
 
     private:
-        static std::pair<sqlite3_int64, std::string> rowToEntry(SQLiteStmt &stmt);
+        static std::pair<sqlite3_int64, std::string> rowToEntry(SQLiteStmt& stmt);
 
-        SQLiteDB &m_db;
+        SQLiteDB& m_db;
 };

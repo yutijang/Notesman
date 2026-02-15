@@ -13,14 +13,14 @@ void FontLoader::loadCustomFontOnce() {
     if (loaded) { return; }
     loaded = true;
 
-    const QString fontPath = ":/fonts/Roboto-Condensed-webfont.ttf";
-    const int fontId = QFontDatabase::addApplicationFont(fontPath);
+    QString const fontPath = ":/fonts/Roboto-Condensed-webfont.ttf";
+    int const fontId = QFontDatabase::addApplicationFont(fontPath);
     if (fontId == -1) {
         Log::warn("Failed to load custom font from {}", fontPath.toStdString());
         return;
     }
 
-    const QStringList loadedFamilies = QFontDatabase::applicationFontFamilies(fontId);
+    QStringList const loadedFamilies = QFontDatabase::applicationFontFamilies(fontId);
     if (!loadedFamilies.isEmpty()) {
         QFont appFont(loadedFamilies.at(0));
         appFont.setPointSize(UiConst::FONT_SIZE); // NOLINT(readability-magic-numbers)

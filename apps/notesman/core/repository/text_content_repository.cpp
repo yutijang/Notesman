@@ -27,7 +27,7 @@ std::optional<std::string> TextContentRepository::getTextById(sqlite3_int64 reso
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    const int rc = stmt.step();
+    int const rc = stmt.step();
     if (rc == SQLITE_ROW) {
         if (sqlite3_column_type(stmt.get(), 0) != SQLITE_NULL) { return stmt.getColumnText(0); }
         // Giá trị trả về trong lệnh truy vấn có chỉ số bắt đầu là 0 và vì chỉ
@@ -95,7 +95,7 @@ std::vector<std::pair<sqlite3_int64, std::string>>
     return result;
 }
 
-std::pair<sqlite3_int64, std::string> TextContentRepository::rowToEntry(SQLiteStmt &stmt) {
+std::pair<sqlite3_int64, std::string> TextContentRepository::rowToEntry(SQLiteStmt& stmt) {
     sqlite3_int64 rID = stmt.getColumnInt64(0);
     auto content = stmt.getColumnText(1);
 

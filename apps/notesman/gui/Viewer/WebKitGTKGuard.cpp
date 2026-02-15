@@ -3,10 +3,10 @@
 #include "WebKitGTKGuard.hpp"
 
 namespace {
-    constexpr const char* K_WEB_KIT_GTK_SONAME = "libwebkit2gtk-4.1.so.0";
+    constexpr char const* K_WEB_KIT_GTK_SONAME = "libwebkit2gtk-4.1.so.0";
 } // namespace
 
-WebKitGTKGuard &WebKitGTKGuard::instance() {
+WebKitGTKGuard& WebKitGTKGuard::instance() {
     static WebKitGTKGuard g;
     return g;
 }

@@ -24,21 +24,21 @@ class BrowseTabWidget final : public QWidget {
         ~BrowseTabWidget() override = default;
 
         void retranslateUi();
-        void displayResults(const std::vector<UnifiedSearchResult> &results);
+        void displayResults(std::vector<UnifiedSearchResult> const& results);
         void updateColumnWidths();
 
         // Getter
         [[nodiscard]] ResultsTable* resultsTable() const noexcept { return m_resultsTbl; }
 
-        void handleResultsSearchRequested(const std::vector<UnifiedSearchResult> &results);
+        void handleResultsSearchRequested(std::vector<UnifiedSearchResult> const& results);
 
     Q_SIGNALS:
-        void searchRequested(const QString &keyword, const QString &mode);
-        void resourceDoubleClicked(int id, ResourceType type, const QString &title,
-                                   const QString &path, const QString &url);
-        void contextMenuRequested(const QPoint &pos, int id, ResourceType type,
-                                  const QString &title, const QString &path, const QString &url);
-        void statusUpdateRequest(const QString &msg, int timeout);
+        void searchRequested(QString const& keyword, QString const& mode);
+        void resourceDoubleClicked(int id, ResourceType type, QString const& title,
+                                   QString const& path, QString const& url);
+        void contextMenuRequested(QPoint const& pos, int id, ResourceType type,
+                                  QString const& title, QString const& path, QString const& url);
+        void statusUpdateRequest(QString const& msg, int timeout);
         void loadAllDataRequested();
 
         void loadResourceByTypeRequested(ResourceType type);
@@ -57,9 +57,9 @@ class BrowseTabWidget final : public QWidget {
         void setupUI();
         void setupConnections();
         void onCellDoubleClicked(int row);
-        void onCustomContextMenuRequested(const QPoint &pos);
+        void onCustomContextMenuRequested(QPoint const& pos);
 
-        static ResourceType currentResourceType(const QComboBox* combo);
+        static ResourceType currentResourceType(QComboBox const* combo);
         static void populateResourceTypeCombo(QComboBox* combo);
 
         static QString resourceTypeToDisplayText(ResourceType type);

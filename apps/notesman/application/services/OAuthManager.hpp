@@ -25,30 +25,30 @@ class OAuthManager final : public QObject {
         void cancelCurrentLogin();
 
     Q_SIGNALS:
-        void gmailLinked(const QString &email);
+        void gmailLinked(QString const& email);
         void gmailUnlinked();
-        void loginFailed(const QString &error = QString{});
+        void loginFailed(QString const& error = QString{});
         void loginCancelled();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         // helper
         static QString generateRandomString(int length);
-        static QString sha256Base64Url(const QString &input);
+        static QString sha256Base64Url(QString const& input);
         void cleanupAuthServer();
-        void processTokenJson(const QJsonObject &json);
-        static void openBrowser(const QUrl &url);
+        void processTokenJson(QJsonObject const& json);
+        static void openBrowser(QUrl const& url);
         //
 
-        void exchangeAuthCodeForTokens(const QString &authCode);
+        void exchangeAuthCodeForTokens(QString const& authCode);
         void fetchUserEmail();
-        void requestNewAccessToken(const QString &refreshToken,
-                                   const std::function<void()> &finishedCallback);
-        void saveRefreshToken(const QString &refreshToken);
+        void requestNewAccessToken(QString const& refreshToken,
+                                   std::function<void()> const& finishedCallback);
+        void saveRefreshToken(QString const& refreshToken);
         QString loadRefreshToken();
         void handleOAuthRedirect();
-        static QString htmlResponde(const QString &title, const QString &header,
-                                    const QString &message) noexcept;
-        void revokeRefreshToken(const QString &refreshTokenToRevoke);
+        static QString htmlResponde(QString const& title, QString const& header,
+                                    QString const& message) noexcept;
+        void revokeRefreshToken(QString const& refreshTokenToRevoke);
 
         void handleRedirect(QTcpSocket* socket);
         void handlePostFinished(QNetworkReply* reply);

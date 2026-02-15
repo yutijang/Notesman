@@ -31,18 +31,18 @@ class GoogleDriveService final : public QObject {
 
     Q_SIGNALS:
         void onDownloadDBBtnRequest(
-            bool isDisable, const QString &message = QString{},
+            bool isDisable, QString const& message = QString{},
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void onUploadDBBtnRequest(
-            bool isDisable, const QString &message = QString{},
+            bool isDisable, QString const& message = QString{},
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
 
         void closeConnectDBRequest(bool isUpload);
         void reconnectDBRequest();
 
-        void returnDBInfo(const QStringList &res);
+        void returnDBInfo(QStringList const& res);
 
-        void deleteDatabaseFileRespond(const QString &msg);
+        void deleteDatabaseFileRespond(QString const& msg);
 
     private:
         struct DriveFileInfo {
@@ -56,14 +56,14 @@ class GoogleDriveService final : public QObject {
                 bool isExists{};
         };
 
-        void uploadDatabase(const std::function<void(bool)> &done);
-        void findAndGatherDatabaseFileInfo(const std::function<void(DriveFileInfo)> &done);
-        void updateDatabase(const QString &fileId, const std::function<void(bool)> &done);
-        void downloadDatabase(const QString &fileId, const std::function<void(bool)> &done);
-        void deleteDatabaseFile(const QString &fileId, const std::function<void(bool)> &done);
-        static QString formatDateTimeSmart(const QDateTime &dt);
-        static QString calculateFileMD5(const QString &filePath);
-        static DriveFileInfo parseFileInfo(const QJsonObject &obj);
+        void uploadDatabase(std::function<void(bool)> const& done);
+        void findAndGatherDatabaseFileInfo(std::function<void(DriveFileInfo)> const& done);
+        void updateDatabase(QString const& fileId, std::function<void(bool)> const& done);
+        void downloadDatabase(QString const& fileId, std::function<void(bool)> const& done);
+        void deleteDatabaseFile(QString const& fileId, std::function<void(bool)> const& done);
+        static QString formatDateTimeSmart(QDateTime const& dt);
+        static QString calculateFileMD5(QString const& filePath);
+        static DriveFileInfo parseFileInfo(QJsonObject const& obj);
 
         QNetworkAccessManager m_networkManager;
         OAuthManager* m_oauth;

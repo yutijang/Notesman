@@ -12,7 +12,7 @@ namespace sqlite {
     inline void checkBind(int rc, sqlite3* db,
                           std::source_location loc = std::source_location::current()) {
         if (rc != SQLITE_OK) {
-            const char* err = sqlite3_errmsg(db);
+            char const* err = sqlite3_errmsg(db);
             Log::err(Log::SourceLocFmt{"SQLite bind failed: {}", loc}, err);
             throw std::runtime_error(std::string{"SQLite bind failed: "} + err);
         }
@@ -27,7 +27,7 @@ namespace sqlite {
         }
     }
 
-    inline void checkExec(sqlite3* db, const char* sqlString, std::string_view context,
+    inline void checkExec(sqlite3* db, char const* sqlString, std::string_view context,
                           std::source_location loc = std::source_location::current()) {
         char* errMsg{};
         int rc = sqlite3_exec(db, sqlString, nullptr, nullptr, &errMsg);

@@ -16,7 +16,7 @@ class ResourceViewerDialog final : public QDialog {
         Q_OBJECT
 
     public:
-        explicit ResourceViewerDialog(const QString &title, std::unique_ptr<IResourceViewer> viewer,
+        explicit ResourceViewerDialog(QString const& title, std::unique_ptr<IResourceViewer> viewer,
                                       QWidget* parent = nullptr);
         ~ResourceViewerDialog() override = default;
 
@@ -25,13 +25,13 @@ class ResourceViewerDialog final : public QDialog {
         void closeEvent(QCloseEvent* event) override;
 
     private:
-        void setupUi(const QString &title);
+        void setupUi(QString const& title);
         void setupActions();
         void restoreGeometryLogic();
 
         enum class DialogAnchor : std::uint8_t { Center, Left, Right, Top, Bottom };
 
-        [[nodiscard]] QRect ensureOnScreen(const QRect &rect) const;
+        [[nodiscard]] QRect ensureOnScreen(QRect const& rect) const;
         QRect calcFallbackRect(QWidget* parent, DialogAnchor anchor) const;
 
         bool m_geometryRestored{};

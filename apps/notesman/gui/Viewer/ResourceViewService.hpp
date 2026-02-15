@@ -8,14 +8,14 @@
 
 class ResourceViewService {
     public:
-        explicit ResourceViewService(NotesAppCore &core);
+        explicit ResourceViewService(NotesAppCore& core);
 
         // LOAD
         [[nodiscard]] std::optional<QString> loadTextResource(sqlite3_int64 resourceId) const;
 
         // SAVE
-        void saveTextResource(sqlite3_int64 resourceId, const QString &content) const;
+        void saveTextResource(sqlite3_int64 resourceId, QString const& content) const;
 
     private:
-        NotesAppCore &m_core;
+        NotesAppCore& m_core;
 };

@@ -32,9 +32,9 @@ class AppController final : public QObject {
 
         void loadSettings();
         void saveSettings();
-        void updateSettings(const AppSettings &newSettings);
+        void updateSettings(AppSettings const& newSettings);
 
-        [[nodiscard]] const AppSettings* settings() const noexcept { return m_settings.get(); }
+        [[nodiscard]] AppSettings const* settings() const noexcept { return m_settings.get(); }
 
         [[nodiscard]] bool isDarkTheme() const noexcept {
             return m_settings->theme() == UiConst::Theme::Dark;
@@ -71,13 +71,13 @@ class AppController final : public QObject {
 
         void handleLoadResourceByTypeRequest(ResourceType type);
         void handleDefaultSettingsRequest();
-        void handleApplySettingsRequest(const SettingsData &data);
-        void handleAddNoteRequest(const QString &title, const QString &textContent,
-                                  const QString &filePath, const QString &url,
-                                  const QStringList &tags, UiConst::AddResMode mode);
-        void handleSearchRequest(const QString &keyword, const QString &mode);
+        void handleApplySettingsRequest(SettingsData const& data);
+        void handleAddNoteRequest(QString const& title, QString const& textContent,
+                                  QString const& filePath, QString const& url,
+                                  QStringList const& tags, UiConst::AddResMode mode);
+        void handleSearchRequest(QString const& keyword, QString const& mode);
         void handleCheckUpdateRequested();
-        void onUpdateDecision(bool accepted, const UpdateInfoSummary &updateInfo);
+        void onUpdateDecision(bool accepted, UpdateInfoSummary const& updateInfo);
         void handleLoginGMRequested();
         void handleUnlinkGMRequested(bool isDeleteDB);
         void uploadDbAuto();
@@ -94,20 +94,20 @@ class AppController final : public QObject {
         // waitting for using
         // void languageChanged();
 
-        void settingsLoaded(const SettingsData &settings);
-        void displayResultForGetAll(const std::vector<UnifiedSearchResult> &results);
+        void settingsLoaded(SettingsData const& settings);
+        void displayResultForGetAll(std::vector<UnifiedSearchResult> const& results);
         void settingsUpdateStatus(
-            const QString &message, UiConst::SettingsMessageState state,
+            QString const& message, UiConst::SettingsMessageState state,
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
-        void initialSettingsLoaded(const SettingsData &settings);
+        void initialSettingsLoaded(SettingsData const& settings);
         void requestSyntaxHighlightingUpdate(UiConst::Theme theme);
-        void addTabNotiRequest(const QString &message, UiConst::SettingsTabNotiLevel notiType =
+        void addTabNotiRequest(QString const& message, UiConst::SettingsTabNotiLevel notiType =
                                                            UiConst::SettingsTabNotiLevel::Normal);
         void resetAddTabInputsRequest();
-        void searchFinishedFromController(const std::vector<UnifiedSearchResult> &results,
-                                          const QString &mode);
+        void searchFinishedFromController(std::vector<UnifiedSearchResult> const& results,
+                                          QString const& mode);
         void gmailUnlinked();
-        void gmailLinkedForView(const QString &htmlTextEmail);
+        void gmailLinkedForView(QString const& htmlTextEmail);
         void cancelLoginRequestedForward();
         void closeConnectDBRequestForward(bool isUpload);
         void reconnectDBRequestForward();
@@ -115,19 +115,19 @@ class AppController final : public QObject {
         void dbOpenedForward();
         void deleteDatabaseFileRequest();
 
-        void deleteDatabaseFileRespondForward(const QString &msg);
+        void deleteDatabaseFileRespondForward(QString const& msg);
 
     private: // NOLINT(readability-redundant-access-specifiers)
-        void addTagsToResource(sqlite3_int64 resourceId, const QStringList &tags) const;
+        void addTagsToResource(sqlite3_int64 resourceId, QStringList const& tags) const;
         void finalizeUnlink();
-        sqlite_int64 handleTextMode(const std::string &title, const QString &textContent,
-                                    ResourceType &outType);
-        sqlite_int64 handleFileMode(const std::string &title, const std::filesystem::path &filePath,
-                                    ResourceType &outType);
-        sqlite_int64 handleUrlMode(const std::string &title, const QString &url,
-                                   ResourceType &outType);
+        sqlite_int64 handleTextMode(std::string const& title, QString const& textContent,
+                                    ResourceType& outType);
+        sqlite_int64 handleFileMode(std::string const& title, std::filesystem::path const& filePath,
+                                    ResourceType& outType);
+        sqlite_int64 handleUrlMode(std::string const& title, QString const& url,
+                                   ResourceType& outType);
 
-        void displayInfoGMUserLinked(const QString &email);
+        void displayInfoGMUserLinked(QString const& email);
 
         std::unique_ptr<AppSettings> m_settings;
         std::unique_ptr<QTranslator> m_translator;

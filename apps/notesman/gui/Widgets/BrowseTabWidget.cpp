@@ -102,15 +102,15 @@ void BrowseTabWidget::retranslateUi() {
 void BrowseTabWidget::updateColumnWidths() {
     if (m_resultsTbl == nullptr) { return; }
 
-    const int leftRightMargin{20};
+    int const leftRightMargin{20};
     int tableWidth = m_resultsTbl->viewport()->width() - leftRightMargin;
-    const int idWidth{50};
+    int const idWidth{50};
     int remaining = qMax(0, tableWidth - idWidth);
     m_resultsTbl->setColumnWidth(0, idWidth);
     m_resultsTbl->setColumnWidth(1, remaining / 3);
 }
 
-void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &results) {
+void BrowseTabWidget::displayResults(std::vector<UnifiedSearchResult> const& results) {
     if (results.empty()) { return; }
 
     m_resultsTbl->setRowCount(0); // Dọn dẹp (clear) hoặc chuẩn bị lại bảng kết quả
@@ -119,8 +119,8 @@ void BrowseTabWidget::displayResults(const std::vector<UnifiedSearchResult> &res
     m_resultsTbl->setSortingEnabled(false);
 
     for (std::size_t i = 0; i < results.size(); ++i) {
-        const auto &res = results[i];
-        const int row = m_resultsTbl->rowCount();
+        auto const& res = results[i];
+        int const row = m_resultsTbl->rowCount();
         m_resultsTbl->insertRow(row);
 
         // No.
@@ -173,16 +173,16 @@ void BrowseTabWidget::onCellDoubleClicked(int row) {
         return;
     }
 
-    const auto &data = *rowDataOpt;
+    auto const& data = *rowDataOpt;
 
     Q_EMIT resourceDoubleClicked(data.id, data.type, data.title, data.path, data.url);
 }
 
-void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
-    const QModelIndex index = m_resultsTbl->indexAt(pos);
+void BrowseTabWidget::onCustomContextMenuRequested(QPoint const& pos) {
+    QModelIndex const index = m_resultsTbl->indexAt(pos);
     if (!index.isValid()) { return; }
 
-    const int row = index.row();
+    int const row = index.row();
 
     auto rowDataOpt = rowData(row);
     if (!rowDataOpt.has_value()) {
@@ -190,7 +190,7 @@ void BrowseTabWidget::onCustomContextMenuRequested(const QPoint &pos) {
         return;
     }
 
-    const auto &data = *rowDataOpt;
+    auto const& data = *rowDataOpt;
 
     Q_EMIT contextMenuRequested(pos, data.id, data.type, data.title, data.path, data.url);
 }
@@ -201,21 +201,21 @@ std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const 
     auto* titleItem = m_resultsTbl->item(row, 1);
     if (titleItem == nullptr) { return std::nullopt; }
 
-    const QVariant idVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::ResourceId));
+    QVariant const idVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::ResourceId));
     if (!idVar.isValid()) { return std::nullopt; }
-    const auto id = static_cast<int>(idVar.toLongLong());
+    auto const id = static_cast<int>(idVar.toLongLong());
 
-    const QVariant vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::ResourceType));
+    QVariant const vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::ResourceType));
     bool ok{};
-    const int raw = vRes.toInt(&ok);
+    int const raw = vRes.toInt(&ok);
     if (!ok) { return std::nullopt; }
-    const auto type = static_cast<ResourceType>(raw);
+    auto const type = static_cast<ResourceType>(raw);
 
-    const QVariant pathVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::FullPath));
+    QVariant const pathVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::FullPath));
     QString path;
     if (pathVar.isValid() && !pathVar.isNull()) { path = pathVar.toString(); }
 
-    const QVariant urlVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::Url));
+    QVariant const urlVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::Url));
     QString url;
     if (urlVar.isValid() && !urlVar.isNull()) { url = urlVar.toString(); }
 
@@ -238,7 +238,7 @@ void BrowseTabWidget::onGetAllButtonClicked() {
 
 void BrowseTabWidget::onSearchButtonClicked() {
     // IIFE: Biểu thức lambda được định nghĩa và gọi ngay lập tức ()
-    const QString mode = [this]() -> QString {
+    QString const mode = [this]() -> QString {
         if (m_titleRad->isChecked()) { return "title"; }
         if (m_contentRad->isChecked()) { return "content"; }
         if (m_tagRad->isChecked()) { return "tag"; }
@@ -250,19 +250,19 @@ void BrowseTabWidget::onSearchButtonClicked() {
 }
 
 void BrowseTabWidget::handleResultsSearchRequested(
-    const std::vector<UnifiedSearchResult> &results) {
+    std::vector<UnifiedSearchResult> const& results) {
     displayResults(results);
     updateColumnWidths();
 }
 
-ResourceType BrowseTabWidget::currentResourceType(const QComboBox* combo) {
+ResourceType BrowseTabWidget::currentResourceType(QComboBox const* combo) {
     return static_cast<ResourceType>(combo->currentData().toInt());
 }
 
 void BrowseTabWidget::populateResourceTypeCombo(QComboBox* combo) {
     combo->clear();
 
-    for (const auto &meta : K_RESOURCE_TYPE_TABLE) {
+    for (auto const& meta : K_RESOURCE_TYPE_TABLE) {
         combo->addItem(resourceTypeToDisplayText(meta.type), static_cast<int>(meta.type));
     }
 }

@@ -66,12 +66,12 @@ class AppInitializer final : public QObject {
         void checkUpdateFlag();
         void onSecondInstanceMessage();
 
-        void handleUpdateCleanup(const QStringList &args);
+        void handleUpdateCleanup(QStringList const& args);
         void displayNotiUpdateComplete();
         static void saveETagOnUpdateSuccess();
 
 #ifdef Q_OS_WIN
-        void waitForProcessExitAsync(DWORD pid, const std::function<void()> &onExited);
+        void waitForProcessExitAsync(DWORD pid, const std::function<void()>& onExited);
 #endif
 
         std::unique_ptr<SQLiteDB> m_db;

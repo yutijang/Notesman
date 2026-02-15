@@ -44,7 +44,7 @@ void ResultsTable::showEvent(QShowEvent* event) {
 
 void ResultsTable::changeEvent(QEvent* event) {
     if (event->type() == QEvent::ApplicationFontChange) {
-        const QFont f = qApp->font();
+        QFont const f = qApp->font();
         setFont(f);
         if (horizontalHeader() != nullptr) { horizontalHeader()->setFont(f); }
         if (verticalHeader() != nullptr) { verticalHeader()->setFont(f); }

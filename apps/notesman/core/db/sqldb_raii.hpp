@@ -17,14 +17,14 @@ class SQLiteDB {
 
         using unique_sqlite_db_ptr = std::unique_ptr<sqlite3, SqliteDBDeleter>;
 
-        explicit SQLiteDB(const std::string &filename) { open(filename); }
+        explicit SQLiteDB(std::string const& filename) { open(filename); }
 
         ~SQLiteDB() = default;
-        SQLiteDB(const SQLiteDB &) = delete;      // CẤM COPY để tránh double-free
-        SQLiteDB &operator=(const SQLiteDB &) = delete;
+        SQLiteDB(SQLiteDB const&) = delete;      // CẤM COPY để tránh double-free
+        SQLiteDB& operator=(SQLiteDB const&) = delete;
 
-        SQLiteDB(SQLiteDB &&) noexcept = default; // CHO PHÉP MOVE
-        SQLiteDB &operator=(SQLiteDB &&) noexcept = default;
+        SQLiteDB(SQLiteDB&&) noexcept = default; // CHO PHÉP MOVE
+        SQLiteDB& operator=(SQLiteDB&&) noexcept = default;
 
         [[nodiscard]] explicit operator bool() const noexcept { return m_db != nullptr; }
 
@@ -32,7 +32,7 @@ class SQLiteDB {
 
         void close() noexcept { m_db.reset(); }
 
-        void open(const std::string &filename) {
+        void open(std::string const& filename) {
             sqlite3* dbPtr = nullptr;
 
             int rc = sqlite3_open_v2(filename.c_str(), &dbPtr,
@@ -48,7 +48,7 @@ class SQLiteDB {
             // =======================================================
             // Bổ sung: Kích hoạt Foreign Keys (Best Practice)
             // =======================================================
-            const char* pragmaFKON = "PRAGMA foreign_keys = ON;";
+            char const* pragmaFKON = "PRAGMA foreign_keys = ON;";
             rc = sqlite3_exec(dbPtr, pragmaFKON, nullptr, nullptr, nullptr);
 
             if (rc != SQLITE_OK) {
@@ -62,7 +62,7 @@ class SQLiteDB {
             m_filename = filename;
         }
 
-        [[nodiscard]] const std::string &getFilename() const noexcept { return m_filename; }
+        [[nodiscard]] std::string const& getFilename() const noexcept { return m_filename; }
 
     private:
         unique_sqlite_db_ptr m_db;
@@ -78,7 +78,7 @@ class SQLiteStmt {
 
         using unique_sqlite_stmt_ptr = std::unique_ptr<sqlite3_stmt, SqliteStmtDeleter>;
 
-        explicit SQLiteStmt(sqlite3* db, const std::string &query) {
+        explicit SQLiteStmt(sqlite3* db, std::string const& query) {
             if (db == nullptr) { throw std::invalid_argument("SQLiteStmt: db is null"); }
 
             sqlite3_stmt* stmtPtr = nullptr;
@@ -96,11 +96,11 @@ class SQLiteStmt {
         // Rule of Five
         ~SQLiteStmt() = default;
 
-        SQLiteStmt(const SQLiteStmt &) = delete;
-        SQLiteStmt &operator=(const SQLiteStmt &) = delete;
+        SQLiteStmt(SQLiteStmt const&) = delete;
+        SQLiteStmt& operator=(SQLiteStmt const&) = delete;
 
-        SQLiteStmt(SQLiteStmt &&) noexcept = default;
-        SQLiteStmt &operator=(SQLiteStmt &&) noexcept = default;
+        SQLiteStmt(SQLiteStmt&&) noexcept = default;
+        SQLiteStmt& operator=(SQLiteStmt&&) noexcept = default;
 
         // State check
         [[nodiscard]] explicit operator bool() const noexcept { return m_stmt != nullptr; }
@@ -123,8 +123,8 @@ class SQLiteStmt {
         }
 
         [[nodiscard]] std::string getColumnText(int index) const {
-            const char* text =
-                reinterpret_cast<const char*>(sqlite3_column_text(m_stmt.get(), index));
+            char const* text =
+                reinterpret_cast<char const*>(sqlite3_column_text(m_stmt.get(), index));
             if (text == nullptr) { return {}; }
 
             int bytes = sqlite3_column_bytes(m_stmt.get(), index);

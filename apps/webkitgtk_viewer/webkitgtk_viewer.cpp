@@ -6,7 +6,7 @@
 #include <glib.h>
 
 namespace {
-    gchar* toFileUri(const char* path) {
+    gchar* toFileUri(char const* path) {
         if (path == nullptr || *path == '\0') { return nullptr; }
 
         // Đã là URI (file://, http://, https:// ...)
@@ -67,7 +67,7 @@ namespace {
 
                 auto* req = webkit_navigation_action_get_request(action);
 
-                const char* uri = webkit_uri_request_get_uri(req);
+                char const* uri = webkit_uri_request_get_uri(req);
 
                 if (!g_str_has_prefix(uri, "http://") && !g_str_has_prefix(uri, "https://") &&
                     !g_str_has_prefix(uri, "file://")) {
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     gtk_window_set_default_size(GTK_WINDOW(window), 1024, 768);
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
 
-    const char* title = (argc >= 3) ? argv[2] : "View detail resource";
+    char const* title = (argc >= 3) ? argv[2] : "View detail resource";
     gtk_window_set_title(GTK_WINDOW(window), title);
 
     GtkWidget* webview = webkit_web_view_new();

@@ -30,35 +30,35 @@ class SettingsTabWidget final : public QWidget {
         void retranslateUi();
 
         void showNotification(
-            const QString &message,
+            QString const& message,
             UiConst::SettingsMessageState state = UiConst::SettingsMessageState::None,
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
-        void handleDeleteDBFileRespond(const QString &msg);
-        void handleDBInfoGot(const QStringList &info);
-        void handleLoginFailed(const QString &error = QString{});
+        void handleDeleteDBFileRespond(QString const& msg);
+        void handleDBInfoGot(QStringList const& info);
+        void handleLoginFailed(QString const& error = QString{});
         void handleDownloadDBRequested(
-            bool isDisable, const QString &message = QString{},
+            bool isDisable, QString const& message = QString{},
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void handleUploadDBRequested(
-            bool isDisable, const QString &message = QString{},
+            bool isDisable, QString const& message = QString{},
             UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
         void handleAfterUnlinkAccount();
-        void handleAfterLinkAccount(const QString &htmlTextEmail);
-        void handleInitialSettingsLoad(const SettingsData &settings) const;
-        void handleSettingsStateChange(const SettingsData &settings) const;
-        void handleUiRefreshRequest(const SettingsData &settings) const;
+        void handleAfterLinkAccount(QString const& htmlTextEmail);
+        void handleInitialSettingsLoad(SettingsData const& settings) const;
+        void handleSettingsStateChange(SettingsData const& settings) const;
+        void handleUiRefreshRequest(SettingsData const& settings) const;
 
         void handleButtonAfterCleanup(UiConst::CleanupMode mode);
 
     Q_SIGNALS:
-        void applySettingsRequested(const SettingsData &data);
+        void applySettingsRequested(SettingsData const& data);
         void defaultSettingsRequested();
         void requestGoogleLogin();
         void requestGoogleUnlink(bool isDeleteDB);
         void requestUpload();
         void requestDownload();
         void cancelLoginRequested();
-        void statusUpdateRequest(const QString &msg, int timeout) const;
+        void statusUpdateRequest(QString const& msg, int timeout) const;
 
         void requestDBInfo();
 
@@ -71,12 +71,12 @@ class SettingsTabWidget final : public QWidget {
         void updateCountdownDisplay();
         void hideLoginStatus();
         void showLoginStatus();
-        void validateResourceDir(const SettingsData &settings) const;
+        void validateResourceDir(SettingsData const& settings) const;
 
         void onApplyBtnClicked();
         void onDefaultBtnClicked();
         void onBrowseBtnClicked();
-        void loadSettingsToUi(const SettingsData &settings) const;
+        void loadSettingsToUi(SettingsData const& settings) const;
         void onLinkBtnClicked();
         void onUploadButtonClicked();
         void onDownloadButtonClicked();

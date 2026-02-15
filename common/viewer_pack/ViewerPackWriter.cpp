@@ -13,7 +13,7 @@
 #include "ViewerPackCrc32.hpp"
 
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-std::expected<void, ViewerPackError> ViewerPackWriter::write(const std::filesystem::path &filePath,
+std::expected<void, ViewerPackError> ViewerPackWriter::write(std::filesystem::path const &filePath,
                                                              ViewerPackHeader header) const {
     std::filesystem::path tempPath = filePath;
     tempPath.replace_extension(filePath.extension().string() + ".tmp");
@@ -25,7 +25,7 @@ std::expected<void, ViewerPackError> ViewerPackWriter::write(const std::filesyst
         header.headerSize = static_cast<std::uint16_t>(sizeof(ViewerPackHeader));
         header.crc32 = computeHeaderCrc32(header);
 
-        ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
+        ofs.write(reinterpret_cast<char const*>(&header), sizeof(header));
         if (!ofs.good()) {
             std::filesystem::remove(tempPath);
             return std::unexpected(ViewerPackError::FileOpenFailed);
@@ -49,7 +49,7 @@ std::expected<void, ViewerPackError> ViewerPackWriter::write(const std::filesyst
     return {};
 }
 
-std::uint32_t ViewerPackWriter::computeHeaderCrc32(const ViewerPackHeader &header) {
+std::uint32_t ViewerPackWriter::computeHeaderCrc32(ViewerPackHeader const &header) {
     // CRC over header[0 .. crc32 field)
     constexpr std::size_t crcOffset = offsetof(ViewerPackHeader, crc32);
 

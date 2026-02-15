@@ -6,7 +6,7 @@
 
 class DatabaseMaintenance {
     public:
-        static void compact(const std::string &dbPath) {
+        static void compact(std::string const& dbPath) {
             sqlite3* db{};
 
             int rc = sqlite3_open_v2(dbPath.c_str(), &db, SQLITE_OPEN_READWRITE, nullptr);

@@ -26,7 +26,7 @@ CodeEditorLineHighlighter::CodeEditorLineHighlighter(PlainTextEdit* editor)
     updateHighlighting(m_editor->hasFocus());
 }
 
-void CodeEditorLineHighlighter::setColors(const QColor &background, const QColor &blurBackground) {
+void CodeEditorLineHighlighter::setColors(QColor const& background, QColor const& blurBackground) {
     m_background = background;
     m_blurBackground = blurBackground;
     // Cập nhật ngay lập tức
