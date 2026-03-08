@@ -1,87 +1,88 @@
+#include "MainWindow.hpp"
+
+#include "AddTabWidget.hpp"
+#include "AppController.hpp"
+#include "BrowseTabWidget.hpp"
+#include "CodeEditorLineHighlighter.hpp"
+#include "ContentMode.hpp"
+#include "DialogUtils.hpp"
+#include "EpubResolver.hpp"
+#include "HtmlViewer.hpp"
+#include "IResourceViewer.hpp"
+#include "InfoCornerWidget.hpp"
+#include "Logger.hpp"
+#include "MarkdownToHtml.hpp"
+#include "NotesAppCore.hpp"
+#include "PdfViewer.hpp"
+#include "PlainTextEdit.hpp"
+#include "ResourceSearchWorker.hpp"
+#include "ResourceViewService.hpp"
+#include "ResourceViewerDialog.hpp"
+#include "ResultsTable.hpp"
+#include "SanitizeFileName.hpp"
+#include "SettingsData.hpp"
+#include "SettingsManager.hpp"
+#include "SettingsTabWidget.hpp"
+#include "TextViewer.hpp"
+#include "UiConstants.hpp"
+#include "UpdateInfoSummary.hpp"
+#include "ViewerPackHeader.hpp"
+#include "ViewerPackWriter.hpp"
+#include "app_version.hpp"
+#include "cpphighlighter.hpp"
+#include "cpphighlightertheme.hpp"
+#include "model.hpp"
+
+#include <QApplication>
+#include <QColor>
+#include <QCoreApplication>
+#include <QDesktopServices>
+#include <QDir>
+#include <QFileInfo>
+#include <QItemSelection>
+#include <QKeySequence>
+#include <QLabel>
+#include <QLatin1String>
+#include <QLineEdit>
+#include <QMainWindow>
+#include <QMenu>
+#include <QMessageBox>
+#include <QModelIndexList>
+#include <QOverload>
+#include <QPoint>
+#include <QProcess>
+#include <QProgressDialog>
+#include <QPushButton>
+#include <QScreen>
+#include <QShowEvent>
+#include <QStatusBar>
+#include <QString>
+#include <QStringList>
+#include <QTabWidget>
+#include <QTimer>
+#include <QUrl>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <Qt>
+#include <QtTypes>
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <optional>
+#include <qminmax.h>
 #include <ranges>
+#include <sqlite3.h>
 #include <utility>
 #include <vector>
-#include <sqlite3.h>
-#include <qminmax.h>
-#include <QMainWindow>
-#include <QTabWidget>
-#include <QWidget>
-#include <QLineEdit>
-#include <QLabel>
-#include <QMessageBox>
-#include <QShowEvent>
-#include <QScreen>
-#include <QMenu>
-#include <QPoint>
-#include <QTimer>
-#include <QApplication>
-#include <QDesktopServices>
-#include <QUrl>
-#include <QProgressDialog>
-#include <QStatusBar>
-#include <QVBoxLayout>
-#include <QDir>
-#include <QModelIndexList>
-#include <QProcess>
-#include <QtTypes>
-#include <QKeySequence>
-#include <Qt>
-#include <QItemSelection>
-#include <QString>
-#include <QColor>
-#include <QFileInfo>
-#include <QCoreApplication>
-#include <QStringList>
-#include <QPushButton>
-#include <QOverload>
-#include <QLatin1String>
-
-#include "ContentMode.hpp"
-#include "HtmlViewer.hpp"
-#include "IResourceViewer.hpp"
-#include "PdfViewer.hpp"
-#include "SettingsData.hpp"
-#include "TextViewer.hpp"
-#include "UiConstants.hpp"
-#include "BrowseTabWidget.hpp"
-#include "AddTabWidget.hpp"
-#include "SettingsTabWidget.hpp"
-#include "MainWindow.hpp"
-#include "CodeEditorLineHighlighter.hpp"
-#include "ResultsTable.hpp"
-#include "ViewerPackHeader.hpp"
-#include "ViewerPackWriter.hpp"
-#include "cpphighlightertheme.hpp"
-#include "cpphighlighter.hpp"
-#include "model.hpp"
-#include "NotesAppCore.hpp"
-#include "PlainTextEdit.hpp"
-#include "AppController.hpp"
-#include "InfoCornerWidget.hpp"
-#include "app_version.hpp"
-#include "ResourceSearchWorker.hpp"
-#include "UpdateInfoSummary.hpp"
-#include "DialogUtils.hpp"
-#include "ResourceViewService.hpp"
-#include "ResourceViewerDialog.hpp"
-#include "SettingsManager.hpp"
-#include "Logger.hpp"
-#include "MarkdownToHtml.hpp"
-#include "EpubResolver.hpp"
-#include "SanitizeFileName.hpp"
 
 #if defined(Q_OS_LINUX)
-    #include <sys/stat.h>
-    #include <fcntl.h>
-    #include <unistd.h>
+#include "AppImageExtractor.hpp"
 
-    #include "AppImageExtractor.hpp"
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #elif defined(Q_OS_WIN)
-    #include "helper.hpp"
+#include "helper.hpp"
 #endif
 
 namespace {
@@ -730,7 +731,7 @@ void MainWindow::handleDownloadFailCauseTimeout() {
 }
 
 #if defined(Q_OS_WIN)
-void MainWindow::handleWindowsUpdate(const QString& filePath) {
+void MainWindow::handleWindowsUpdate(QString const& filePath) {
     QString const targetDir = QCoreApplication::applicationDirPath();
     auto const kUpdaterName = QStringLiteral("Updater.exe");
     QString const updaterPath = targetDir + "/" + kUpdaterName;
@@ -760,7 +761,7 @@ void MainWindow::handleWindowsUpdate(const QString& filePath) {
     qApp->quit();
 }
 #elif defined(Q_OS_LINUX)
-void MainWindow::handleLinuxUpdate(const QString& filePath) {
+void MainWindow::handleLinuxUpdate(QString const& filePath) {
     QString currentAppImage = qEnvironmentVariable("APPIMAGE");
     if (currentAppImage.isEmpty()) { currentAppImage = QCoreApplication::arguments().first(); }
 
@@ -846,7 +847,7 @@ void MainWindow::handleLinuxUpdate(const QString& filePath) {
 }
 #endif
 
-void MainWindow::runUpdate(const QString& filePath) {
+void MainWindow::runUpdate(QString const& filePath) {
 #if defined(Q_OS_WIN)
     handleWindowsUpdate(filePath);
 #elif defined(Q_OS_LINUX)

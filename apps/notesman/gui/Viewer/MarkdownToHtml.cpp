@@ -1,16 +1,16 @@
-#include <QFile>
-#include <QTextStream>
-#include <QTemporaryFile>
+#include "MarkdownToHtml.hpp"
+
 #include <QByteArray>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
-#include <QUrl>
-#include <QStandardPaths>
 #include <QHash>
-#include <md4c.h>
+#include <QStandardPaths>
+#include <QTemporaryFile>
+#include <QTextStream>
+#include <QUrl>
 #include <md4c-html.h>
-
-#include "MarkdownToHtml.hpp"
+#include <md4c.h>
 
 namespace {
     QString readResource(QString const& path) {

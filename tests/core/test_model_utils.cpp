@@ -1,10 +1,10 @@
-#include <stdexcept>
-#include <optional>
-#include <string_view>
-#include <catch2/matchers/catch_matchers.hpp>
-#include <catch2/catch_test_macros.hpp>
-
 #include "model.hpp"
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <optional>
+#include <stdexcept>
+#include <string_view>
 
 TEST_CASE("resourceTypeToString - Standard Mappings", "[Model][Utils][ResourceType]") {
     SECTION("Mapping text") {

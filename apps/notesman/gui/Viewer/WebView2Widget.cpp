@@ -1,24 +1,24 @@
-#include <windows.h>
-#include <WebView2.h>
-#include <wrl/client.h>
-#include <wrl/event.h>
+#include "WebView2Widget.hpp"
+
+#include "ContentMode.hpp"
+#include "Logger.hpp"
+#include "WebView2Guard.hpp"
 
 #include <QDebug>
-#include <QWindow>
-#include <QResizeEvent>
-#include <QUrl>
-#include <Qt>
-#include <QWidget>
+#include <QFileInfo>
 #include <QRect>
+#include <QResizeEvent>
+#include <QStandardPaths>
+#include <QUrl>
+#include <QWidget>
+#include <QWindow>
+#include <Qt>
 #include <QtAssert>
 #include <QtLogging>
-#include <QFileInfo>
-#include <QStandardPaths>
-
-#include "WebView2Widget.hpp"
-#include "ContentMode.hpp"
-#include "WebView2Guard.hpp"
-#include "Logger.hpp"
+#include <WebView2.h>
+#include <windows.h>
+#include <wrl/client.h>
+#include <wrl/event.h>
 
 using Microsoft::WRL::ComPtr;
 
@@ -52,7 +52,7 @@ void WebView2Widget::resizeEvent(QResizeEvent* e) {
     QWidget::resizeEvent(e);
 
     if (m_controller != nullptr) {
-        const QRect r = rect();
+        QRect const r = rect();
         RECT rc{r.left(), r.top(), r.left() + r.width(), r.top() + r.height()};
         m_controller->put_Bounds(rc);
     }
@@ -62,7 +62,7 @@ void WebView2Widget::initWebView() {
     HWND hwnd = reinterpret_cast<HWND>(winId());
     Q_ASSERT(hwnd);
 
-    auto &guard = WebView2Guard::instance();
+    auto& guard = WebView2Guard::instance();
     if (!guard.available()) {
         Log::warn("WebView2 runtime not available");
         return;
@@ -103,7 +103,7 @@ void WebView2Widget::initWebView() {
                                 m_webview->Navigate(m_pendingFile.toStdWString().c_str());
                                 m_pendingFile.clear();
                             } else if (m_pendingUrl.isValid()) {
-                                const QString urlStr = m_pendingUrl.toString(QUrl::FullyEncoded);
+                                QString const urlStr = m_pendingUrl.toString(QUrl::FullyEncoded);
                                 m_webview->Navigate(urlStr.toStdWString().c_str());
                                 m_pendingUrl = QUrl{};
                             }
@@ -148,7 +148,7 @@ void WebView2Widget::initWebView() {
                                         QUrl target = QUrl(QString::fromWCharArray(uri));
                                         CoTaskMemFree(uri);
 
-                                        const QString scheme = target.scheme();
+                                        QString const scheme = target.scheme();
 
                                         switch (m_contentMode) {
                                             case ContentMode::HtmlFile:
@@ -213,16 +213,16 @@ void WebView2Widget::initWebView() {
             .Get());
 }
 
-void WebView2Widget::loadFile(const QString &path) {
+void WebView2Widget::loadFile(QString const& path) {
     QFileInfo fi(path);
-    const QString absolutePath = fi.absoluteFilePath();
+    QString const absolutePath = fi.absoluteFilePath();
 
     if (!QFile::exists(absolutePath)) {
         Log::warn("HTML file not found: {}", absolutePath.toStdString());
         return;
     }
 
-    const QUrl url = QUrl::fromLocalFile(absolutePath);
+    QUrl const url = QUrl::fromLocalFile(absolutePath);
 
     if (m_webview == nullptr) {
         // WebView2 CHƯA SẴN SÀNG → ghi nhớ lại
@@ -233,16 +233,16 @@ void WebView2Widget::loadFile(const QString &path) {
     m_webview->Navigate(url.toString().toStdWString().c_str());
 }
 
-void WebView2Widget::find(const QString &text, bool backward) {
+void WebView2Widget::find(QString const& text, bool backward) {
     if ((m_webview == nullptr) || text.isEmpty()) { return; }
 
-    const QString js = QString("window.find(\"%1\", false, %2, true, false, true, false);")
+    QString const js = QString("window.find(\"%1\", false, %2, true, false, true, false);")
                            .arg(escapeJsString(text), backward ? "true" : "false");
 
     m_webview->ExecuteScript(js.toStdWString().c_str(), nullptr);
 }
 
-void WebView2Widget::loadUrl(const QUrl &url) {
+void WebView2Widget::loadUrl(QUrl const& url) {
     if (!url.isValid()) {
         Log::warn("Invalid URL: {}", url.toString().toStdString());
         return;
@@ -253,7 +253,7 @@ void WebView2Widget::loadUrl(const QUrl &url) {
         return;
     }
 
-    const QString urlStr = url.toString(QUrl::FullyEncoded);
+    QString const urlStr = url.toString(QUrl::FullyEncoded);
 
     if (m_webview == nullptr) {
         // WebView2 chưa sẵn sàng

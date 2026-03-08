@@ -1,8 +1,8 @@
-#include <string>
-
 #include "WebView2Guard.hpp"
 
-WebView2Guard &WebView2Guard::instance() {
+#include <string>
+
+WebView2Guard& WebView2Guard::instance() {
     static WebView2Guard inst;
     return inst;
 }
@@ -70,7 +70,7 @@ std::wstring WebView2Guard::runtimeVersion() const {
 }
 
 HRESULT WebView2Guard::createEnvironment(
-    const wchar_t* userDataDir,
+    wchar_t const* userDataDir,
     ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler* handler) const {
     if (!available()) { return E_FAIL; }
 

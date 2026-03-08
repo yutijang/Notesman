@@ -1,23 +1,24 @@
-#include <memory>
-#include <utility>
-#include <QPainter>
+#include "ResourceTitleDelegate.hpp"
+
+#include "ResultsTable.hpp"
+#include "model.hpp"
+
 #include <QApplication>
-#include <QStyleOptionViewItem>
+#include <QColor>
+#include <QFont>
 #include <QModelIndex>
-#include <Qt>
-#include <QString>
+#include <QPainter>
+#include <QPalette>
 #include <QRect>
 #include <QSize>
+#include <QString>
+#include <QStyleOptionViewItem>
 #include <QStyledItemDelegate>
-#include <QPalette>
 #include <QSvgRenderer>
-#include <QFont>
-#include <QColor>
+#include <Qt>
 #include <QtMinMax>
-
-#include "ResourceTitleDelegate.hpp"
-#include "model.hpp"
-#include "ResultsTable.hpp"
+#include <memory>
+#include <utility>
 
 namespace {
     QString pathForType(ResourceType type) noexcept {

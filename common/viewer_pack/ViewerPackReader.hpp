@@ -1,11 +1,11 @@
 #pragma once
 
+#include "ViewerPackError.hpp"
+#include "ViewerPackHeader.hpp"
+
 #include <cstdint>
 #include <expected>
 #include <filesystem>
-
-#include "ViewerPackHeader.hpp"
-#include "ViewerPackError.hpp"
 
 class ViewerPackReader final {
     public:

@@ -1,15 +1,16 @@
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <optional>
-#include <vector>
-#include <utility>
-#include <sqlite3.h>
-
 #include "text_content_repository.hpp"
+
 #include "Logger.hpp"
 #include "sqldb_raii.hpp"
 #include "sqlite_utils.hpp"
+
+#include <optional>
+#include <sqlite3.h>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 void TextContentRepository::insertText(sqlite3_int64 resourceId, std::string_view text) {
     SQLiteStmt stmt(m_db.get(), "INSERT INTO text_content(resource_id, content) VALUES (?, ?)");

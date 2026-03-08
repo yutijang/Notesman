@@ -1,11 +1,11 @@
 #pragma once
 
+#include "sqldb_raii.hpp"
+
 #include <optional>
+#include <sqlite3.h>
 #include <string>
 #include <vector>
-#include <sqlite3.h>
-
-#include "sqldb_raii.hpp"
 
 class DatabaseChecker {
     public:

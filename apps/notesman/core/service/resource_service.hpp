@@ -1,20 +1,20 @@
 #pragma once
 
-#include <optional>
-#include <string>
-#include <vector>
-#include <utility>
-#include <string_view>
-#include <sqlite3.h>
-
-#include "model.hpp"
-#include "sqldb_raii.hpp"
-#include "resource_repository.hpp"
 #include "file_repository.hpp"
-#include "text_content_repository.hpp"
-#include "tag_repository.hpp"
 #include "file_service.hpp"
+#include "model.hpp"
+#include "resource_repository.hpp"
+#include "sqldb_raii.hpp"
+#include "tag_repository.hpp"
+#include "text_content_repository.hpp"
 #include "url_service.hpp"
+
+#include <optional>
+#include <sqlite3.h>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 class ResourceService {
     public:

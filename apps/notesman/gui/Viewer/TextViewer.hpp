@@ -1,12 +1,12 @@
 #pragma once
 
-#include <QWidget>
-#include <QString>
-#include <sqlite3.h>
-
 #include "IResourceViewer.hpp"
 #include "ResourceViewService.hpp"
 #include "UiConstants.hpp"
+
+#include <QString>
+#include <QWidget>
+#include <sqlite3.h>
 
 class QWidget;
 class PlainTextEdit;

@@ -1,14 +1,15 @@
+#include "url_repository.hpp"
+
+#include "model.hpp"
+#include "sqldb_raii.hpp"
+#include "sqlite_utils.hpp"
+
 #include <optional>
 #include <sqlite3.h>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "url_repository.hpp"
-#include "model.hpp"
-#include "sqldb_raii.hpp"
-#include "sqlite_utils.hpp"
 
 void UrlRepository::insertUrl(sqlite3_int64 resourceId, std::string_view url,
                               std::string_view normalizedUrl, std::string_view domain,

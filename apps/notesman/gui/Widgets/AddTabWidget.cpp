@@ -1,30 +1,31 @@
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QButtonGroup>
-#include <QRadioButton>
-#include <QTextEdit>
-#include <QFont>
-#include <QPushButton>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QDir>
-#include <QTimer>
-#include <QCheckBox>
-#include <QObject>
-#include <Qt>
-#include <QStringList>
-#include <QFileInfo>
-#include <QMap>
-
-#include "PlainTextEdit.hpp"
-#include "TagInput.hpp"
 #include "AddTabWidget.hpp"
+
+#include "DialogUtils.hpp"
+#include "PlainTextEdit.hpp"
+#include "SettingsManager.hpp"
+#include "TagInput.hpp"
 #include "UiConstants.hpp"
 #include "model.hpp"
-#include "DialogUtils.hpp"
-#include "SettingsManager.hpp"
+
+#include <QButtonGroup>
+#include <QCheckBox>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QMap>
+#include <QMessageBox>
+#include <QObject>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QStringList>
+#include <QTextEdit>
+#include <QTimer>
+#include <QVBoxLayout>
+#include <Qt>
 
 AddTabWidget::AddTabWidget(QWidget* parent) : QWidget(parent) {
     setupUi();

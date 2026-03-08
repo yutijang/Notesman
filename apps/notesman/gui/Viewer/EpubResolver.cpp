@@ -1,23 +1,23 @@
-#include <optional>
-#include <vector>
-#include <zip.h>
-#include <zipconf.h>
+#include "EpubResolver.hpp"
+
+#include <QByteArray>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QStandardPaths>
-#include <QXmlStreamReader>
-#include <QString>
-#include <QtTypes>
-#include <QUrl>
 #include <QHash>
-#include <QTextStream>
-#include <Qt>
-#include <QByteArray>
 #include <QRegularExpression>
-
-#include "EpubResolver.hpp"
+#include <QStandardPaths>
+#include <QString>
+#include <QTextStream>
+#include <QUrl>
+#include <QXmlStreamReader>
+#include <Qt>
+#include <QtTypes>
+#include <optional>
+#include <vector>
+#include <zip.h>
+#include <zipconf.h>
 
 namespace {
     void rewriteRelativeUrls(QString& html, QUrl const& baseUrl) {

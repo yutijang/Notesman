@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <string_view>
-#include <cstdint>
 #include <vector>
 
 enum class ResourceType : std::uint8_t;

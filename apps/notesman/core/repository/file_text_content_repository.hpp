@@ -1,11 +1,11 @@
 #pragma once
 
-#include <string_view>
-#include <string>
+#include "sqldb_raii.hpp"
+
 #include <optional>
 #include <sqlite3.h>
-
-#include "sqldb_raii.hpp"
+#include <string>
+#include <string_view>
 
 class FileTextContentRepository {
     public:

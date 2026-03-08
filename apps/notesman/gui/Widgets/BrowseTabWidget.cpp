@@ -1,34 +1,35 @@
+#include "BrowseTabWidget.hpp"
+
+#include "Logger.hpp"
+#include "ResourceTitleDelegate.hpp"
+#include "ResultsTable.hpp"
+#include "UiConstants.hpp"
+#include "model.hpp"
+
+#include <QAbstractItemView>
+#include <QButtonGroup>
+#include <QComboBox>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QLabel>
+#include <QLineEdit>
+#include <QObject>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QSizePolicy>
+#include <QTableView>
+#include <QTableWidget>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <Qt>
+#include <QtAssert>
+#include <QtGlobal>
+#include <QtTypes>
 #include <cstddef>
+#include <optional>
 #include <qminmax.h>
 #include <vector>
-#include <optional>
-#include <QWidget>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QLabel>
-#include <QRadioButton>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QButtonGroup>
-#include <QHeaderView>
-#include <QTableView>
-#include <QGroupBox>
-#include <QSizePolicy>
-#include <Qt>
-#include <QAbstractItemView>
-#include <QObject>
-#include <QTableWidget>
-#include <QtGlobal>
-#include <QComboBox>
-#include <QtAssert>
-#include <QtTypes>
-
-#include "BrowseTabWidget.hpp"
-#include "Logger.hpp"
-#include "ResultsTable.hpp"
-#include "model.hpp"
-#include "UiConstants.hpp"
-#include "ResourceTitleDelegate.hpp"
 
 BrowseTabWidget::BrowseTabWidget(QWidget* parent) : QWidget(parent) {
     setupUI();

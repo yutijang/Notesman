@@ -1,19 +1,20 @@
+#include "helper.hpp"
+
+#include "model.hpp"
+
+#include <array>
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
-#include <string>
-#include <array>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <ios>
-#include <filesystem>
 #include <ranges>
-#include <cctype>
+#include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
-
-#include "helper.hpp"
-#include "model.hpp"
 
 namespace Utils {
     std::string getExtensionFromDownloadUrl(std::string const& url) {

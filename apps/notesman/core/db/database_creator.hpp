@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
-#include <exception>
-#include <sqlite3.h>
-
-#include "sqldb_raii.hpp"
 #include "Logger.hpp"
 #include "schema_version.hpp"
+#include "sqldb_raii.hpp"
+
+#include <exception>
+#include <sqlite3.h>
+#include <string>
 
 class DatabaseCreator {
     public:

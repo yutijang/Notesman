@@ -1,16 +1,17 @@
-#include <ranges>
-#include <stdexcept>
+#include "resource_repository.hpp"
+
+#include "model.hpp"
+#include "sqldb_raii.hpp"
+#include "sqlite_utils.hpp"
+
 #include <optional>
+#include <ranges>
+#include <sqlite3.h>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-#include <sqlite3.h>
-
-#include "resource_repository.hpp"
-#include "model.hpp"
-#include "sqldb_raii.hpp"
-#include "sqlite_utils.hpp"
 
 sqlite3_int64 ResourceRepository::insert(Resource const& res) {
     SQLiteStmt stmt(m_db.get(), "INSERT INTO resources (title, type, file_hash) VALUES (?, ?, ?);");

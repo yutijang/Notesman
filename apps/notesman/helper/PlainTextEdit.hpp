@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QWidget>
+#include <QObject>
 #include <QPlainTextEdit>
 #include <QRect>
-#include <QObject>
+#include <QWidget>
 
 class QMimeData;
 class QPaintEvent;

@@ -1,26 +1,27 @@
+#include "Logger.hpp"
+
 #if defined(_WIN32)
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <unistd.h>
-    #include <climits>
-    #include <linux/limits.h>
-    #include <sys/types.h>
-    #include <cstdlib>
+#include <climits>
+#include <cstdlib>
+#include <linux/limits.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #endif
 
-#include <vector>
-#include <mutex>
-#include <memory>
-#include <string>
 #include <filesystem>
-#include <system_error>
+#include <memory>
+#include <mutex>
 #include <spdlog/common.h>
 #include <spdlog/logger.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
-
-#include "Logger.hpp"
+#include <string>
+#include <system_error>
+#include <vector>
 
 namespace {
     std::once_flag gOnce;
@@ -41,13 +42,13 @@ namespace {
 
 #ifdef _DEBUG
     bool hasConsole() {
-    #if defined(_WIN32)
+#if defined(_WIN32)
         DWORD mode{};
         HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
         return h != INVALID_HANDLE_VALUE && h != nullptr && (GetConsoleMode(h, &mode) != 0);
-    #else
+#else
         return ::isatty(STDOUT_FILENO);
-    #endif
+#endif
     }
 #endif
 
@@ -55,7 +56,7 @@ namespace {
 #if defined(_WIN32)
         return getExeDir() / "logs";
 #else
-        if (const char* xdg = std::getenv("XDG_STATE_HOME")) {
+        if (char const* xdg = std::getenv("XDG_STATE_HOME")) {
             return std::filesystem::path(xdg) / "notesman" / "logs";
         }
 

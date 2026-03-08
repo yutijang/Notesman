@@ -1,14 +1,14 @@
 #pragma once
 
-#include <memory>
-#include <unordered_map>
-#include <QStyledItemDelegate>
-#include <QStyleOptionViewItem>
+#include "model.hpp"
+
 #include <QModelIndex>
 #include <QSize>
+#include <QStyleOptionViewItem>
+#include <QStyledItemDelegate>
 #include <QSvgRenderer>
-
-#include "model.hpp"
+#include <memory>
+#include <unordered_map>
 
 class QPainter;
 

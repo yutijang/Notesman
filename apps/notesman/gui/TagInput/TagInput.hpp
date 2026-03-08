@@ -1,10 +1,10 @@
 #pragma once
 
-#include <QWidget>
-#include <QStringList>
-#include <QObject>
 #include <QList>
+#include <QObject>
 #include <QString>
+#include <QStringList>
+#include <QWidget>
 
 class QHBoxLayout;
 class QLineEdit;

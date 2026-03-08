@@ -1,13 +1,13 @@
 #pragma once
 
-#include <QWidget>
-#include <QTimer>
-#include <QString>
-#include <QObject>
-#include <QStringList>
-
 #include "SettingsData.hpp"
 #include "UiConstants.hpp"
+
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QTimer>
+#include <QWidget>
 
 class QRadioButton;
 class QLineEdit;

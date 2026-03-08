@@ -1,13 +1,13 @@
 #pragma once
 
-#include <QSyntaxHighlighter>
+#include "cpphighlightertheme.hpp"
+
+#include <QObject>
+#include <QPointer>
 #include <QRegularExpression>
+#include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 #include <QTextDocument>
-#include <QPointer>
-#include <QObject>
-
-#include "cpphighlightertheme.hpp"
 
 class QTimer;
 

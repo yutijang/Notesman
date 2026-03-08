@@ -1,27 +1,28 @@
-#include <QTextEdit>
-#include <QVBoxLayout>
-#include <QWidget>
-#include <QFont>
-#include <QMessageBox>
-#include <QToolBar>
-#include <QColor>
-#include <Qt>
-#include <QSizePolicy>
-#include <QObject>
-#include <QLineEdit>
-#include <QInputDialog>
-#include <QTextCursor>
-#include <sqlite3.h>
-
 #include "TextViewer.hpp"
+
 #include "CodeEditorLineHighlighter.hpp"
+#include "DialogUtils.hpp"
 #include "PlainTextEdit.hpp"
 #include "ResourceViewService.hpp"
+#include "UiConstants.hpp"
 #include "cpphighlighter.hpp"
 #include "cpphighlightertheme.hpp"
-#include "UiConstants.hpp"
-#include "DialogUtils.hpp"
 #include "helper.hpp"
+
+#include <QColor>
+#include <QFont>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QObject>
+#include <QSizePolicy>
+#include <QTextCursor>
+#include <QTextEdit>
+#include <QToolBar>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <Qt>
+#include <sqlite3.h>
 
 TextViewer::TextViewer(sqlite3_int64 resourceId, bool editable, ResourceViewService& viewService,
                        UiConst::Theme theme, QWidget* parent)

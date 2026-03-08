@@ -1,14 +1,14 @@
-#include <string>
-#include <catch2/matchers/catch_matchers.hpp>
+#include "sqldb_raii.hpp"
+
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <sqlite3.h>
-
-#include "sqldb_raii.hpp"
+#include <string>
 
 namespace {
     // Helper: Check PRAGMA value
-    int getPragmaInt(sqlite3* db, const char* pragma) {
+    int getPragmaInt(sqlite3* db, char const* pragma) {
         int value{};
         char* errMsg{};
 

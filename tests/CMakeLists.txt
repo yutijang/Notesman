@@ -1,6 +1,5 @@
 # Tìm Catch2 v3 được cài qua vcpkg
 find_package(Catch2 CONFIG REQUIRED)
-find_package(Qt6 COMPONENTS Test Widgets REQUIRED)
 
 # Set general output dir
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/tests")

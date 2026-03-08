@@ -1,12 +1,14 @@
+#include "DownloadManager.hpp"
+
+#include "Logger.hpp"
+
 #include <QDir>
-#include <QtGlobal>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QObject>
 #include <QTimer>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-
-#include "DownloadManager.hpp"
-#include "Logger.hpp"
+#include <QtGlobal>
+#include <QtTypes>
 
 DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
     m_timeoutTimer.setInterval(10'000); // NOLINT(readability-magic-numbers)

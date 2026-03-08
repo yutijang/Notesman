@@ -4,16 +4,19 @@ constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindowsd.dll";
 constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindows.dll";
 #endif
 
-#include <cstddef>
-#include <string>
+#include "SecurityUtils.hpp"
+#include "simple_log.hpp"
+
+// clang-format off
 #include <windows.h>
 #include <shellapi.h>
 #include <shlwapi.h>
+// clang-format on
 
-#include "simple_log.hpp"
-#include "SecurityUtils.hpp"
+#include <cstddef>
+#include <string>
 
-static BOOL fileExists(const wchar_t* name) {
+static BOOL fileExists(wchar_t const* name) {
     DWORD attr = GetFileAttributesW(name);
 
     return static_cast<BOOL>(attr != INVALID_FILE_ATTRIBUTES);
@@ -33,7 +36,7 @@ inline std::size_t getBaseAddr(HMODULE hMod) noexcept {
     return (std::size_t) hMod & ~0x3; // NOLINT
 }
 
-static BOOL isAlreadyInList(const wchar_t* list, const wchar_t* name) {
+static BOOL isAlreadyInList(wchar_t const* list, wchar_t const* name) {
     if (list == nullptr || list[0] == L'\0') { return FALSE; }
 
     // Nếu tìm thấy chuỗi 'name' nằm trong 'list'
@@ -41,7 +44,7 @@ static BOOL isAlreadyInList(const wchar_t* list, const wchar_t* name) {
     return FALSE;
 }
 
-static BOOL isLibraryAvailable(const wchar_t* dllName, int depth, wchar_t* outMissingName) {
+static BOOL isLibraryAvailable(wchar_t const* dllName, int depth, wchar_t* outMissingName) {
     if ((dllName == nullptr) || dllName[0] == L'\0' || depth < 0) { return FALSE; }
 
     // Thêm LOAD_WITH_ALTERED_SEARCH_PATH để Windows tìm DLL con cùng thư mục với DLL cha
@@ -96,8 +99,8 @@ static BOOL isLibraryAvailable(const wchar_t* dllName, int depth, wchar_t* outMi
     return TRUE;
 }
 
-static void appendAnotherMissing(wchar_t* missing, int maxLen, const wchar_t* name,
-                                 const wchar_t* note = nullptr) {
+static void appendAnotherMissing(wchar_t* missing, int maxLen, wchar_t const* name,
+                                 wchar_t const* note = nullptr) {
     if (isAlreadyInList(missing, name) != 0) { return; }
 
     if (lstrlenW(missing) > 0 && lstrlenW(missing) < maxLen - 2) { lstrcatW(missing, L"\n"); }
@@ -172,7 +175,7 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
             zeroMemoryW(actualMissing, sizeof(actualMissing));
 
             if (isLibraryAvailable(wName, 1, actualMissing) == 0) {
-                const wchar_t* finalName = (actualMissing[0] != L'\0') ? actualMissing : wName;
+                wchar_t const* finalName = (actualMissing[0] != L'\0') ? actualMissing : wName;
 
                 int nameLen = lstrlenW(finalName);
                 if (nameLen > 0 && finalName[0] >= 32) {
@@ -208,7 +211,7 @@ static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
     return count;
 }
 
-static void callMainCore(const wchar_t* filenameCore) {
+static void callMainCore(wchar_t const* filenameCore) {
     SetFileAttributesW(filenameCore, FILE_ATTRIBUTE_HIDDEN);
 
     char secret[32];
@@ -294,13 +297,13 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
     std::wstring fullPathCore = appDir + L"\\NotesmanCore.dll";
     std::wstring fullPathUpdater = appDir + L"\\updater.exe";
 
-    const wchar_t* filenameCore = fullPathCore.c_str();
-    const wchar_t* targets[] = {filenameCore, fullPathUpdater.c_str()};
+    wchar_t const* filenameCore = fullPathCore.c_str();
+    wchar_t const* targets[] = {filenameCore, fullPathUpdater.c_str()};
 
     int totalMissing{};
     BOOL isCrtMissing = FALSE; // Cờ đánh dấu thiếu CRT
 
-    for (const wchar_t* exeName : targets) {
+    for (wchar_t const* exeName : targets) {
         // Kiểm tra xem file EXE có tồn tại hay không trước khi kiểm tra DLL
         if (fileExists(exeName) == 0) {
             if (totalMissing > 0) { lstrcatW(missing, L"\n"); }

@@ -1,29 +1,30 @@
-#include <memory>
-#include <utility>
-#include <QString>
-#include <QVBoxLayout>
-#include <QObject>
-#include <Qt>
-#include <QToolBar>
-#include <QInputDialog>
-#include <QLineEdit>
-#include <QTextCursor>
-#include <QTextDocument>
-#include <QTextBrowser>
-#include <QDesktopServices>
-#include <QUrl>
-#include <QFileInfo>
-
 #include "HtmlViewer.hpp"
+
 #include "ContentMode.hpp"
 #include "DialogUtils.hpp"
 #include "Logger.hpp"
 
+#include <QDesktopServices>
+#include <QFileInfo>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QObject>
+#include <QString>
+#include <QTextBrowser>
+#include <QTextCursor>
+#include <QTextDocument>
+#include <QToolBar>
+#include <QUrl>
+#include <QVBoxLayout>
+#include <Qt>
+#include <memory>
+#include <utility>
+
 #ifdef Q_OS_WIN
-    #include "WebView2Widget.hpp"
-    #include "WebView2Guard.hpp"
+#include "WebView2Guard.hpp"
+#include "WebView2Widget.hpp"
 #elif defined(Q_OS_LINUX)
-    #include "WebKitGTKGuard.hpp"
+#include "WebKitGTKGuard.hpp"
 #endif
 
 namespace {

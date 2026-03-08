@@ -1,11 +1,11 @@
 #pragma once
 
-#include <memory>
-#include <QString>
-#include <QUrl>
-
 #include "ContentMode.hpp"
 #include "IResourceViewer.hpp"
+
+#include <QString>
+#include <QUrl>
+#include <memory>
 
 class QWidget;
 class QTextBrowser;

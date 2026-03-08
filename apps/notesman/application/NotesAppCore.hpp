@@ -1,18 +1,18 @@
 #pragma once
 
-#include <filesystem>
-#include <string>
-#include <optional>
-#include <string_view>
-#include <vector>
-#include <utility>
-#include <sqlite3.h>
-
-#include "model.hpp"
 #include "file_service.hpp"
+#include "model.hpp"
 #include "resource_service.hpp"
 #include "text_content_repository.hpp"
 #include "url_service.hpp"
+
+#include <filesystem>
+#include <optional>
+#include <sqlite3.h>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 class NotesAppCore {
     public:

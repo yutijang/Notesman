@@ -1,24 +1,24 @@
 #pragma once
 
-#include <filesystem>
-#include <memory>
-#include <string>
-#include <vector>
-#include <sqlite3.h>
-#include <QObject>
-#include <QTranslator>
-#include <QTcpServer>
-#include <QStringList>
-
 #include "AppSettings.hpp"
 #include "DownloadManager.hpp"
 #include "GoogleDriveService.hpp"
 #include "OAuthManager.hpp"
+#include "SettingsData.hpp"
+#include "UiConstants.hpp"
+#include "UpdateInfoSummary.hpp"
 #include "UpdateManager.hpp"
 #include "model.hpp"
-#include "UiConstants.hpp"
-#include "SettingsData.hpp"
-#include "UpdateInfoSummary.hpp"
+
+#include <QObject>
+#include <QStringList>
+#include <QTcpServer>
+#include <QTranslator>
+#include <filesystem>
+#include <memory>
+#include <sqlite3.h>
+#include <string>
+#include <vector>
 
 class NotesAppCore;
 class MainWindow;

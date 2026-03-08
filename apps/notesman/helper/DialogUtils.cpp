@@ -1,13 +1,13 @@
-#include <QWidget>
-#include <QtCore>
+#include "DialogUtils.hpp"
+
+#include <QLabel>
+#include <QMessageBox>
 #include <QPoint>
 #include <QSize>
 #include <QStyle>
-#include <QMessageBox>
-#include <QLabel>
+#include <QWidget>
 #include <Qt>
-
-#include "DialogUtils.hpp"
+#include <QtCore>
 
 void DialogUtils::centerDialog(QWidget* parent, QMessageBox& box) {
     box.ensurePolished();

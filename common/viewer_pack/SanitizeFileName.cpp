@@ -1,16 +1,16 @@
-#include <cstddef>
-#include <string>
-#include <string_view>
+#include "SanitizeFileName.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
-
-#include "SanitizeFileName.hpp"
+#include <cstddef>
+#include <string>
+#include <string_view>
 
 namespace {
     bool isWindowsReservedName(std::string_view filename) {
         // Lấy basename (trước dấu '.')
-        const auto dotPos = filename.find('.');
+        auto const dotPos = filename.find('.');
         std::string_view base =
             (dotPos == std::string_view::npos) ? filename : filename.substr(0, dotPos);
 
@@ -55,7 +55,7 @@ namespace ViewerPackUltis {
         // Duyệt một vòng lặp: Thay thế ký tự cấm và khoảng trắng nếu cần
         // Lưu ý: Chúng ta xử lý trên từng byte, an toàn với UTF-8 vì các ký tự cấm
         // đều nằm trong dải ASCII (< 128).
-        for (char &c : result) {
+        for (char& c : result) {
             if (static_cast<unsigned char>(c) < 128 &&
                 FORBIDDEN_LOOKUP[static_cast<unsigned char>(c)]) {
                 c = replacement;

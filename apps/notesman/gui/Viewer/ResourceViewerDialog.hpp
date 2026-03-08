@@ -1,12 +1,12 @@
 #pragma once
 
+#include "IResourceViewer.hpp"
+
+#include <QDialog>
+#include <QObject>
+#include <QString>
 #include <cstdint>
 #include <memory>
-#include <QDialog>
-#include <QString>
-#include <QObject>
-
-#include "IResourceViewer.hpp"
 
 class QWidget;
 class QShowEvent;

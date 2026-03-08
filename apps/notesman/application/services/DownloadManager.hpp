@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QObject>
+#include <QFile>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QFile>
+#include <QObject>
 #include <QTimer>
 #include <QtTypes>
 

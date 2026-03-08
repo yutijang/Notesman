@@ -1,17 +1,17 @@
-#include <catch2/catch_test_macros.hpp>
-#include <sqlite3.h>
-#include <stdexcept>
-
 #include "Logger.hpp"
 #include "file_repository.hpp"
 #include "sqldb_raii.hpp"
+
+#include <catch2/catch_test_macros.hpp>
+#include <sqlite3.h>
+#include <stdexcept>
 
 namespace {
     SQLiteDB createInMemoryDB() {
         SQLiteDB db(":memory:");
         sqlite3* rawPtr = db.get();
 
-        const char* schema = R"SQL(
+        char const* schema = R"SQL(
             CREATE TABLE files (
                 resource_id INTEGER PRIMARY KEY,
                 stored_path TEXT,

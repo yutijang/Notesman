@@ -1,11 +1,11 @@
+#include "Logger.hpp"
+#include "sqldb_raii.hpp"
+#include "text_content_repository.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 #include <sqlite3.h>
 #include <stdexcept>
 #include <string>
-
-#include "Logger.hpp"
-#include "sqldb_raii.hpp"
-#include "text_content_repository.hpp"
 
 namespace {
     SQLiteDB createInMemoryDB() {

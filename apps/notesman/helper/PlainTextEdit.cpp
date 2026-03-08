@@ -1,18 +1,18 @@
+#include "PlainTextEdit.hpp"
+
+#include <QColor>
+#include <QMimeData>
+#include <QPainter>
+#include <QPalette>
+#include <QPlainTextEdit>
+#include <QRect>
+#include <QString>
+#include <QTextBlock>
+#include <QTextEdit>
+#include <QTextOption>
+#include <QWidget>
 #include <algorithm>
 #include <cmath>
-#include <QMimeData>
-#include <QWidget>
-#include <QTextEdit>
-#include <QPainter>
-#include <QTextBlock>
-#include <QPlainTextEdit>
-#include <QTextOption>
-#include <QString>
-#include <QRect>
-#include <QPalette>
-#include <QColor>
-
-#include "PlainTextEdit.hpp"
 
 PlainTextEdit::PlainTextEdit(QWidget* parent)
     : QPlainTextEdit(parent), m_lineNumberArea(new LineNumberArea(this)) {

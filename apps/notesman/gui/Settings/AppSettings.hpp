@@ -1,9 +1,9 @@
 #pragma once
 
-#include <filesystem>
-
-#include "UiConstants.hpp"
 #include "SettingsData.hpp"
+#include "UiConstants.hpp"
+
+#include <filesystem>
 
 class AppSettings {
     public:

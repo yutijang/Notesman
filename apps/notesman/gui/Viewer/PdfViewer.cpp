@@ -1,22 +1,23 @@
-#include <memory>
-#include <algorithm>
-#include <utility>
-#include <poppler-document.h>
+#include "PdfViewer.hpp"
+
+#include "PdfPageWidget.hpp"
+
+#include <QFutureWatcher>
+#include <QLayoutItem>
+#include <QMessageBox>
+#include <QObject>
+#include <QRect>
 #include <QScrollArea>
 #include <QScrollBar>
-#include <QVBoxLayout>
-#include <QMessageBox>
 #include <QTimer>
-#include <QLayoutItem>
+#include <QVBoxLayout>
 #include <QtConcurrent>
 #include <QtConcurrentRun>
-#include <QFutureWatcher>
-#include <QRect>
-#include <QObject>
 #include <QtPreprocessorSupport>
-
-#include "PdfViewer.hpp"
-#include "PdfPageWidget.hpp"
+#include <algorithm>
+#include <memory>
+#include <poppler-document.h>
+#include <utility>
 
 PdfViewer::PdfViewer(QString pdfPath, QWidget* parent) : m_pdfPath(std::move(pdfPath)) {
     setupUi(parent);

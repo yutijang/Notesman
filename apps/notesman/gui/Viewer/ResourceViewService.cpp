@@ -1,12 +1,13 @@
-#include <optional>
-#include <QString>
-#include <QFile>
-#include <QTextStream>
-#include <sqlite3.h>
+#include "ResourceViewService.hpp"
 
 #include "NotesAppCore.hpp"
-#include "ResourceViewService.hpp"
 #include "model.hpp"
+
+#include <QFile>
+#include <QString>
+#include <QTextStream>
+#include <optional>
+#include <sqlite3.h>
 
 ResourceViewService::ResourceViewService(NotesAppCore& core) : m_core(core) {}
 

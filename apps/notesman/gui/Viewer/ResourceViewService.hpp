@@ -1,10 +1,10 @@
 #pragma once
 
-#include <optional>
-#include <QString>
-#include <sqlite3.h>
-
 #include "NotesAppCore.hpp"
+
+#include <QString>
+#include <optional>
+#include <sqlite3.h>
 
 class ResourceViewService {
     public:

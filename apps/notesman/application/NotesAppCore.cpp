@@ -1,15 +1,16 @@
-#include <filesystem>
-#include <optional>
-#include <string>
-#include <vector>
-#include <utility>
-#include <string_view>
-#include <sqlite3.h>
-
 #include "NotesAppCore.hpp"
-#include "resource_service.hpp"
+
 #include "file_service.hpp"
 #include "model.hpp"
+#include "resource_service.hpp"
+
+#include <filesystem>
+#include <optional>
+#include <sqlite3.h>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 // ========= CRUD =========
 sqlite3_int64 NotesAppCore::addTextNote(std::string const& title, std::string const& content,

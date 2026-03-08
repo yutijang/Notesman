@@ -1,11 +1,12 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
-#include <cstddef>
-#include <windows.h>
 #include <bcrypt.h>
+#include <cstddef>
+#include <cstdint>
 #include <shellapi.h>
+#include <windows.h>
+
 
 namespace security_utils {
     // Key và Secret dùng chung
@@ -36,7 +37,7 @@ namespace security_utils {
     // NOLINTEND
 
     // Tính HMAC-SHA256 sử dụng BCrypt (Win32 API chuẩn)
-    inline BOOL computeHMAC(const char* key, const char* message, BYTE* outHash) {
+    inline BOOL computeHMAC(char const* key, char const* message, BYTE* outHash) {
         BCRYPT_ALG_HANDLE hAlg{};
         BCRYPT_HASH_HANDLE hHash{};
         ULONG cbHash{};

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <QString>
-#include <QWidget>
-#include <QTimer>
-#include <QFutureWatcher>
-
 #include "IResourceViewer.hpp"
+
+#include <QFutureWatcher>
+#include <QString>
+#include <QTimer>
+#include <QWidget>
+#include <memory>
 
 namespace poppler {
     class document;

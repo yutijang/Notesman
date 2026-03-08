@@ -1,11 +1,11 @@
 #pragma once
 
-#include <mutex>
+#include "app_version.hpp"
+
 #include <QSettings>
 #include <QString>
 #include <QVariant>
-
-#include "app_version.hpp"
+#include <mutex>
 
 class SettingsManager {
     public:

@@ -1,12 +1,13 @@
+#include "database_checker.hpp"
+
+#include "sqldb_raii.hpp"
+
 #include <cstddef>
 #include <optional>
+#include <sqlite3.h>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <sqlite3.h>
-
-#include "database_checker.hpp"
-#include "sqldb_raii.hpp"
 
 bool DatabaseChecker::checkIntegrity(std::vector<std::string>& messages) {
     bool ok{true};

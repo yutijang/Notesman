@@ -1,21 +1,21 @@
 #pragma once
 
+#include "helper.hpp"
+
+#include <array>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
+#include <format>
+#include <optional>
+#include <sqlite3.h>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <format>
 #include <unordered_map>
-#include <vector>
-#include <optional>
 #include <utility>
-#include <filesystem>
-#include <array>
-#include <cassert>
-#include <sqlite3.h>
-
-#include "helper.hpp"
+#include <vector>
 
 enum class ResourceType : std::uint8_t {
     Unknown,

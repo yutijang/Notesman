@@ -1,3 +1,10 @@
+cmake_minimum_required(VERSION 3.31)
+
+# Modules
+include(FetchContent)
+# -----------------------------------------------------------
+
+# Read project version
 file(STRINGS "${CMAKE_SOURCE_DIR}/version.txt" VERSION_LINES)
 
 foreach(line IN LISTS VERSION_LINES)
@@ -17,14 +24,17 @@ endif()
 if(NOT DEFINED SCHEMA_VERSION_VALUE)
     message(FATAL_ERROR "DB version not found in version.txt")
 endif()
+# -----------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.31)
+# Project
 project(Notesman
     VERSION ${PROJECT_VERSION_VALUE}
     LANGUAGES C CXX
     DESCRIPTION "C++ notes manager for learn"
 )
+# -----------------------------------------------------------
 
+# Global build settings
 # Bật export compile commands cho clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -39,6 +49,18 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 # Bỏ quét module/p1689 để tránh xung đột clang-scan-deps
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
+# ============================================================
+# Qt setup
+# ============================================================
+# Bật Qt MOC/UIC/RCC cho toàn project
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+# Set general output dir
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
+# -----------------------------------------------------------
+
+# Dependencies
 find_package(OpenSSL REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network Svg Concurrent REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
@@ -56,10 +78,10 @@ endif()
 
 find_package(boost_url CONFIG REQUIRED)
 find_package(libzip CONFIG REQUIRED)
+# -----------------------------------------------------------
 
+# Third-party build
 # --- QtKeychain ---------------------------------------------
-include(FetchContent)
-
 FetchContent_Declare(
     qtkeychain
     GIT_REPOSITORY https://github.com/frankosterfeld/qtkeychain.git
@@ -82,21 +104,12 @@ if (TARGET qt6keychain)
 endif()
 # ------------------------------------------------------------
 
-# Set general output dir
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
-
-# ============================================================
-# Qt setup
-# ============================================================
-# Bật Qt MOC/UIC/RCC cho toàn project
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
 # if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release" AND DEFINED ENV{CI})
     # message(STATUS "Windows CI build detected → disabling precompiled headers")
     # set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
 # endif()
 
+# Subprojects
 # Thêm subdirectory app
 # add_subdirectory(extern/sqlite3)
 # add_subdirectory(extern/miniz)
@@ -119,6 +132,9 @@ endif()
 if(UNIX AND NOT APPLE)
     add_subdirectory(apps/webkitgtk_viewer)
 endif()
+# ------------------------------------------------------------
 
+# Tests
 enable_testing()
 add_subdirectory(tests)
+# ------------------------------------------------------------

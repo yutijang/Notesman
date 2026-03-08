@@ -10,11 +10,11 @@ target_link_libraries(common_logger
 )
 
 target_compile_definitions(common_logger
-  PRIVATE
-    UNICODE
-    _UNICODE
-    WIN32_LEAN_AND_MEAN
-    NOMINMAX
+    PRIVATE
+        UNICODE
+        _UNICODE
+        WIN32_LEAN_AND_MEAN
+        NOMINMAX
 )
 
 target_include_directories(common_logger

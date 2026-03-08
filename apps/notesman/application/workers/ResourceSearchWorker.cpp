@@ -1,14 +1,15 @@
+#include "ResourceSearchWorker.hpp"
+
+#include "Logger.hpp"
+#include "NotesAppCore.hpp"
+#include "helper.hpp"
+#include "model.hpp"
+
+#include <QObject>
+#include <QStringView>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <QObject>
-#include <QStringView>
-
-#include "ResourceSearchWorker.hpp"
-#include "Logger.hpp"
-#include "NotesAppCore.hpp"
-#include "model.hpp"
-#include "helper.hpp"
 
 void ResourceSearchWorker::doSearch() {
     if (m_core == nullptr) {

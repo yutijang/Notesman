@@ -3,29 +3,29 @@
 #include <QObject>
 
 #ifdef Q_OS_WIN
-    #include <functional>
+#include <functional>
 #endif
 
-#include <cstdint>
-#include <memory>
+#include "AppController.hpp"
+#include "MainWindow.hpp"
+#include "NotesAppCore.hpp"
+#include "file_repository.hpp"
+#include "file_service.hpp"
+#include "file_text_content_repository.hpp"
+#include "resource_repository.hpp"
+#include "resource_service.hpp"
+#include "sqldb_raii.hpp"
+#include "tag_repository.hpp"
+#include "text_content_repository.hpp"
+#include "url_repository.hpp"
+#include "url_service.hpp"
+
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QString>
 #include <QStringList>
-
-#include "MainWindow.hpp"
-#include "AppController.hpp"
-#include "NotesAppCore.hpp"
-#include "sqldb_raii.hpp"
-#include "resource_repository.hpp"
-#include "file_repository.hpp"
-#include "text_content_repository.hpp"
-#include "tag_repository.hpp"
-#include "file_service.hpp"
-#include "resource_service.hpp"
-#include "file_text_content_repository.hpp"
-#include "url_repository.hpp"
-#include "url_service.hpp"
+#include <cstdint>
+#include <memory>
 
 class AppInitializer final : public QObject {
         Q_OBJECT
@@ -71,7 +71,7 @@ class AppInitializer final : public QObject {
         static void saveETagOnUpdateSuccess();
 
 #ifdef Q_OS_WIN
-        void waitForProcessExitAsync(DWORD pid, const std::function<void()>& onExited);
+        void waitForProcessExitAsync(DWORD pid, std::function<void()> const& onExited);
 #endif
 
         std::unique_ptr<SQLiteDB> m_db;

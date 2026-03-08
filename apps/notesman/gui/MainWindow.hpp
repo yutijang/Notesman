@@ -1,22 +1,22 @@
 #pragma once
 
+#include "IResourceViewer.hpp"
+#include "ResourceViewService.hpp"
+#include "SettingsData.hpp"
+#include "UiConstants.hpp"
+#include "UpdateInfoSummary.hpp"
+#include "model.hpp"
+
+#include <QMainWindow>
+#include <QModelIndexList>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QtTypes>
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <sqlite3.h>
-#include <QMainWindow>
-#include <QModelIndexList>
-#include <QtTypes>
-#include <QString>
-#include <QObject>
-#include <QStringList>
-
-#include "IResourceViewer.hpp"
-#include "UiConstants.hpp"
-#include "SettingsData.hpp"
-#include "UpdateInfoSummary.hpp"
-#include "model.hpp"
-#include "ResourceViewService.hpp"
 
 // ----------------------------------------------------
 // Forward Declarations cho các Widgets con (Best Practice)
@@ -126,9 +126,9 @@ class MainWindow : public QMainWindow {
         void notiFromCleanupCacheResult(UiConst::CleanupResult result, UiConst::CleanupMode mode);
 
 #if defined(Q_OS_WIN)
-        void handleWindowsUpdate(const QString& filePath);
+        void handleWindowsUpdate(QString const& filePath);
 #elif defined(Q_OS_LINUX)
-        void handleLinuxUpdate(const QString& filePath);
+        void handleLinuxUpdate(QString const& filePath);
 
         std::unique_ptr<IResourceViewer> m_externalViewer;
         bool m_viewerLocked{};

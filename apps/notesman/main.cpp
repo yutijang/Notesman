@@ -1,10 +1,10 @@
+#include "AppInitializer.hpp"
+#include "Logger.hpp"
+
 #include <QApplication>
 
-#include "Logger.hpp"
-#include "AppInitializer.hpp"
-
 #ifdef Q_OS_WIN
-    #include "SecurityUtils.hpp"
+#include "SecurityUtils.hpp"
 #endif
 
 int main(int argc, char* argv[]) {

@@ -1,6 +1,6 @@
-#include <dlfcn.h>
-
 #include "WebKitGTKGuard.hpp"
+
+#include <dlfcn.h>
 
 namespace {
     constexpr char const* K_WEB_KIT_GTK_SONAME = "libwebkit2gtk-4.1.so.0";

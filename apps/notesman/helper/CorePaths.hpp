@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QString>
 #include <QCoreApplication>
 #include <QDir>
 #include <QStandardPaths>
+#include <QString>
 
 class CorePaths {
     public:
@@ -11,7 +11,7 @@ class CorePaths {
 #ifdef Q_OS_WIN
             return QCoreApplication::applicationDirPath();
 #else
-            const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+            QString const dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
             QDir{}.mkpath(dir);
             return dir;
 #endif

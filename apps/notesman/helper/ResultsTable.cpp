@@ -1,17 +1,17 @@
-#include <QWidget>
-#include <QTableWidget>
-#include <QMouseEvent>
-#include <QFocusEvent>
-#include <QShowEvent>
-#include <QTimer>
-#include <QHeaderView>
-#include <QScrollBar>
-#include <QModelIndex>
-#include <QItemSelectionModel>
-#include <QFont>
-#include <QApplication>
-
 #include "ResultsTable.hpp"
+
+#include <QApplication>
+#include <QFocusEvent>
+#include <QFont>
+#include <QHeaderView>
+#include <QItemSelectionModel>
+#include <QModelIndex>
+#include <QMouseEvent>
+#include <QScrollBar>
+#include <QShowEvent>
+#include <QTableWidget>
+#include <QTimer>
+#include <QWidget>
 
 ResultsTable::ResultsTable(QWidget* parent) : QTableWidget(parent) {}
 

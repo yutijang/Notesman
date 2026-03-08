@@ -1,29 +1,30 @@
-#include <algorithm>
-#include <memory>
-#include <utility>
-#include <QCloseEvent>
-#include <QMessageBox>
-#include <QString>
-#include <QWidget>
-#include <QDialog>
-#include <QToolBar>
-#include <QTimer>
-#include <QStyle>
-#include <QVBoxLayout>
-#include <QIcon>
-#include <QPixmap>
-#include <Qt>
-#include <QFont>
-#include <QSizePolicy>
-#include <QObject>
-#include <QtGlobal>
-#include <QtAssert>
-#include <QGuiApplication>
-
 #include "ResourceViewerDialog.hpp"
+
 #include "DialogUtils.hpp"
 #include "IResourceViewer.hpp"
 #include "SettingsManager.hpp"
+
+#include <QCloseEvent>
+#include <QDialog>
+#include <QFont>
+#include <QGuiApplication>
+#include <QIcon>
+#include <QMessageBox>
+#include <QObject>
+#include <QPixmap>
+#include <QSizePolicy>
+#include <QString>
+#include <QStyle>
+#include <QTimer>
+#include <QToolBar>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <Qt>
+#include <QtAssert>
+#include <QtGlobal>
+#include <algorithm>
+#include <memory>
+#include <utility>
 
 ResourceViewerDialog::ResourceViewerDialog(QString const& title,
                                            std::unique_ptr<IResourceViewer> viewer, QWidget* parent)

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <wrl.h>
-#include <wrl/client.h>
-#include <WebView2.h>
-#include <QWidget>
+#include "ContentMode.hpp"
+
 #include <QString>
 #include <QUrl>
-
-#include "ContentMode.hpp"
+#include <QWidget>
+#include <WebView2.h>
+#include <wrl.h>
+#include <wrl/client.h>
 
 class WebView2Widget final : public QWidget {
         Q_OBJECT
@@ -16,14 +16,14 @@ class WebView2Widget final : public QWidget {
         explicit WebView2Widget(QWidget* parent = nullptr);
         ~WebView2Widget() override;
 
-        void setContentMode(ContentMode mode, const QUrl &baseUrl) noexcept {
+        void setContentMode(ContentMode mode, QUrl const& baseUrl) noexcept {
             m_contentMode = mode;
             m_baseUrl = baseUrl;
         }
 
-        void loadFile(const QString &path);
-        void loadUrl(const QUrl &url);
-        void find(const QString &text, bool backward = false);
+        void loadFile(QString const& path);
+        void loadUrl(QUrl const& url);
+        void find(QString const& text, bool backward = false);
 
     protected:
         void resizeEvent(QResizeEvent* e) override;

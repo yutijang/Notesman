@@ -1,10 +1,10 @@
 #pragma once
 
+#include "model.hpp"
+
 #include <QObject>
 #include <QString>
 #include <vector>
-
-#include "model.hpp"
 
 class NotesAppCore;
 

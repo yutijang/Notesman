@@ -1,11 +1,12 @@
-#include <optional>
-#include <string>
-#include <string_view>
-#include <sqlite3.h>
-
 #include "file_text_content_repository.hpp"
+
 #include "sqldb_raii.hpp"
 #include "sqlite_utils.hpp"
+
+#include <optional>
+#include <sqlite3.h>
+#include <string>
+#include <string_view>
 
 void FileTextContentRepository::upsertText(sqlite3_int64 resourceId, std::string_view text) {
     static constexpr char const* sql =

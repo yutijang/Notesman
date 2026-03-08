@@ -11,10 +11,10 @@ set(NOTESMAN_FILENAME "NotesmanCore.dll")
 
 # --- OAuth config (Notesman only) ---------------------------
 if(DEFINED ENV{GOOGLE_CLIENT_ID})
-  set(CLIENT_ID     "$ENV{GOOGLE_CLIENT_ID}")
-  set(CLIENT_SECRET "$ENV{GOOGLE_CLIENT_SECRET}")
+    set(CLIENT_ID     "$ENV{GOOGLE_CLIENT_ID}")
+    set(CLIENT_SECRET "$ENV{GOOGLE_CLIENT_SECRET}")
 elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/oauth_private.cmake")
-  include("${CMAKE_CURRENT_SOURCE_DIR}/oauth_private.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/oauth_private.cmake")
 endif()
 
 set(NOTESMAN_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated/notesman")
@@ -57,35 +57,35 @@ add_library(notes-core STATIC
 )
 
 target_include_directories(notes-core
-  PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/db
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/model
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/repository
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/service
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper
-    ${NOTESMAN_GENERATED_DIR} # db version
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/db
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/model
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/repository
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/service
+        ${CMAKE_CURRENT_SOURCE_DIR}/helper
+        ${NOTESMAN_GENERATED_DIR} # db version
 )
 
 target_precompile_headers(notes-core
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/pch_stl.hpp
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/pch_stl.hpp
 )
 
 target_link_libraries(notes-core
-  PUBLIC
-    SQLite::SQLite3
-    OpenSSL::SSL
-    OpenSSL::Crypto
-    common::logger
-    common::viewer_pack
+    PUBLIC
+        SQLite::SQLite3
+        OpenSSL::SSL
+        OpenSSL::Crypto
+        common::logger
+        common::viewer_pack
 )
 
 target_compile_definitions(notes-core
-  PRIVATE
-    $<$<PLATFORM_ID:Windows>:UNICODE>
-    $<$<PLATFORM_ID:Windows>:_UNICODE>
-    $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
-    $<$<PLATFORM_ID:Windows>:NOMINMAX>
+    PRIVATE
+        $<$<PLATFORM_ID:Windows>:UNICODE>
+        $<$<PLATFORM_ID:Windows>:_UNICODE>
+        $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
+        $<$<PLATFORM_ID:Windows>:NOMINMAX>
 )
 
 # =========================================================
@@ -133,9 +133,9 @@ set(HELPER_SOURCES
 )
 
 if(UNIX)
-  list(APPEND HELPER_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper/AppImageExtractor.cpp
-  )
+    list(APPEND HELPER_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/helper/AppImageExtractor.cpp
+    )
 endif()
 
 # =========================================================
@@ -148,64 +148,64 @@ add_library(notes-app-lib-core STATIC
 )
 
 target_include_directories(notes-app-lib-core
-  PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/application
-    ${CMAKE_CURRENT_SOURCE_DIR}/application/workers
-    ${CMAKE_CURRENT_SOURCE_DIR}/application/services
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui/Settings
-    ${CMAKE_CURRENT_SOURCE_DIR}/helper
-    ${NOTESMAN_GENERATED_DIR} # OAuth config include dir
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/application
+        ${CMAKE_CURRENT_SOURCE_DIR}/application/workers
+        ${CMAKE_CURRENT_SOURCE_DIR}/application/services
+        ${CMAKE_CURRENT_SOURCE_DIR}/gui
+        ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter
+        ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
+        ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
+        ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer
+        ${CMAKE_CURRENT_SOURCE_DIR}/gui/Settings
+        ${CMAKE_CURRENT_SOURCE_DIR}/helper
+        ${NOTESMAN_GENERATED_DIR} # OAuth config include dir
 )
 
 target_precompile_headers(notes-app-lib-core
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/pch_qt.hpp
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/pch_qt.hpp
 )
 
 target_link_libraries(notes-app-lib-core
-  PUBLIC
-    notes-core
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Widgets
-    Qt6::Network
-    Qt6::Svg
-    Qt6::Concurrent
-    PkgConfig::POPPLER_CPP
-    md4c::md4c
-    md4c::md4c-html
-    Boost::url
-    libzip::zip
+    PUBLIC
+        notes-core
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Network
+        Qt6::Svg
+        Qt6::Concurrent
+        PkgConfig::POPPLER_CPP
+        md4c::md4c
+        md4c::md4c-html
+        Boost::url
+        libzip::zip
 )
 
 if (WIN32)
-  target_link_libraries(notes-app-lib-core
-    PRIVATE
-      unofficial::webview2::webview2 user32 ole32 oleaut32 shlwapi
-  )
+    target_link_libraries(notes-app-lib-core
+        PRIVATE
+        unofficial::webview2::webview2 user32 ole32 oleaut32 shlwapi
+    )
 endif()
 
 target_compile_definitions(notes-app-lib-core
-  PRIVATE
-    $<$<PLATFORM_ID:Windows>:UNICODE>
-    $<$<PLATFORM_ID:Windows>:_UNICODE>
+    PRIVATE
+        $<$<PLATFORM_ID:Windows>:UNICODE>
+        $<$<PLATFORM_ID:Windows>:_UNICODE>
 )
 
 target_compile_definitions(notes-app-lib-core
-  PRIVATE
-    $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
-    $<$<CONFIG:Release>:QT_NO_DEBUG_WARNING_OUTPUT>
-    $<$<CONFIG:Release>:QT_NO_DEBUG_FATAL_WARNINGS>
+    PRIVATE
+        $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
+        $<$<CONFIG:Release>:QT_NO_DEBUG_WARNING_OUTPUT>
+        $<$<CONFIG:Release>:QT_NO_DEBUG_FATAL_WARNINGS>
 )
 
 target_compile_definitions(notes-app-lib-core
-  PRIVATE
-    QT_NO_KEYWORDS
+    PRIVATE
+        QT_NO_KEYWORDS
 )
 
 #===
@@ -215,19 +215,19 @@ add_library(notes-app-lib-qtkeychain STATIC
 )
 
 target_include_directories(notes-app-lib-qtkeychain
-  SYSTEM PRIVATE
-    ${qtkeychain_SOURCE_DIR}/qtkeychain
-    ${qtkeychain_BINARY_DIR}/qtkeychain
+    SYSTEM PRIVATE
+        ${qtkeychain_SOURCE_DIR}/qtkeychain
+        ${qtkeychain_BINARY_DIR}/qtkeychain
 )
 
 target_precompile_headers(notes-app-lib-qtkeychain
-  REUSE_FROM notes-app-lib-core
+    REUSE_FROM notes-app-lib-core
 )
 
 target_link_libraries(notes-app-lib-qtkeychain
-  PRIVATE
-    notes-app-lib-core
-    qt6keychain
+    PRIVATE
+        notes-app-lib-core
+        qt6keychain
 )
 #===
 
@@ -242,56 +242,56 @@ add_executable(${PROJECT_NAME}
 target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
 
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-    notes-app-lib-core # Thứ tự QUAN TRỌNG
-    notes-app-lib-qtkeychain
-    $<$<TARGET_EXISTS:security_utils>:security_utils>
+    PRIVATE
+        notes-app-lib-core # Thứ tự QUAN TRỌNG
+        notes-app-lib-qtkeychain
+        $<$<TARGET_EXISTS:security_utils>:security_utils>
 )
 
 if(WIN32)
-  set(GENERATED_RC_DIR
-      "${CMAKE_BINARY_DIR}/generated/notesman"
-  )
-  file(MAKE_DIRECTORY "${GENERATED_RC_DIR}")
+    set(GENERATED_RC_DIR
+        "${CMAKE_BINARY_DIR}/generated/notesman"
+    )
+    file(MAKE_DIRECTORY "${GENERATED_RC_DIR}")
 
-  set(NOTESMAN_VERSION_RC
-      "${GENERATED_RC_DIR}/version.rc"
-  )
+    set(NOTESMAN_VERSION_RC
+        "${GENERATED_RC_DIR}/version.rc"
+    )
 
-  configure_file(
-      ${CMAKE_CURRENT_SOURCE_DIR}/resources/version.rc.in
-      ${NOTESMAN_VERSION_RC}
-      @ONLY
-  )
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/version.rc.in
+        ${NOTESMAN_VERSION_RC}
+        @ONLY
+    )
 
-  set(NOTESMAN_ICON_RC
-      "${GENERATED_RC_DIR}/icon.rc"
-  )
+    set(NOTESMAN_ICON_RC
+        "${GENERATED_RC_DIR}/icon.rc"
+    )
 
-  configure_file(
-      ${CMAKE_CURRENT_SOURCE_DIR}/resources/app_icon.rc.in
-      ${NOTESMAN_ICON_RC}
-      @ONLY
-  )
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/app_icon.rc.in
+        ${NOTESMAN_ICON_RC}
+        @ONLY
+    )
 
-  target_sources(${PROJECT_NAME}
-    PRIVATE
-      ${NOTESMAN_VERSION_RC}
-      ${NOTESMAN_ICON_RC}
-  )
+    target_sources(${PROJECT_NAME}
+        PRIVATE
+        ${NOTESMAN_VERSION_RC}
+        ${NOTESMAN_ICON_RC}
+    )
 
-  set_target_properties(${PROJECT_NAME} PROPERTIES
-    WIN32_EXECUTABLE $<IF:$<CONFIG:Release>,TRUE,FALSE>
-    OUTPUT_NAME "NotesmanCore"
-    SUFFIX ".dll"
-  )
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        WIN32_EXECUTABLE $<IF:$<CONFIG:Release>,TRUE,FALSE>
+        OUTPUT_NAME "NotesmanCore"
+        SUFFIX ".dll"
+    )
 endif()
 
 target_compile_definitions(${PROJECT_NAME}
-  PRIVATE
-    $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
-    $<$<CONFIG:Release>:QT_NO_DEBUG_WARNING_OUTPUT>
-    $<$<CONFIG:Release>:QT_NO_DEBUG_FATAL_WARNINGS>
+    PRIVATE
+        $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
+        $<$<CONFIG:Release>:QT_NO_DEBUG_WARNING_OUTPUT>
+        $<$<CONFIG:Release>:QT_NO_DEBUG_FATAL_WARNINGS>
 )
 
 # # Thêm warning flags

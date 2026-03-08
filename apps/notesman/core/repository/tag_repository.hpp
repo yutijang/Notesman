@@ -1,14 +1,14 @@
 #pragma once
 
-#include <string>
-#include <string_view>
-#include <optional>
-#include <vector>
-#include <utility>
-#include <sqlite3.h>
-
 #include "model.hpp"
 #include "sqldb_raii.hpp"
+
+#include <optional>
+#include <sqlite3.h>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 class TagRepository {
     public:

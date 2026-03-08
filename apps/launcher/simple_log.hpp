@@ -3,5 +3,5 @@
 #include <string>
 
 namespace simple_log {
-    void write(const std::wstring &msg);
+    void write(std::wstring const& msg);
 } // namespace simple_log

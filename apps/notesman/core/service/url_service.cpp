@@ -1,17 +1,18 @@
+#include "url_service.hpp"
+
+#include "Logger.hpp"
+#include "model.hpp"
+
 #include <algorithm>
 #include <boost/url/param.hpp>
+#include <boost/url/parse.hpp>
+#include <boost/url/url.hpp>
 #include <optional>
+#include <sqlite3.h>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-#include <sqlite3.h>
-#include <boost/url/url.hpp>
-#include <boost/url/parse.hpp>
-
-#include "url_service.hpp"
-#include "Logger.hpp"
-#include "model.hpp"
 
 namespace urls = boost::urls;
 

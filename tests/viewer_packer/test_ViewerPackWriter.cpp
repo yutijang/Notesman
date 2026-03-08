@@ -1,14 +1,14 @@
+#include "ViewerPackCrc32.hpp"
+#include "ViewerPackError.hpp"
+#include "ViewerPackHeader.hpp"
+#include "ViewerPackWriter.hpp"
+
+#include <catch2/catch_test_macros.hpp>
 #include <cstddef>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <ios>
-#include <catch2/catch_test_macros.hpp>
-
-#include "ViewerPackCrc32.hpp"
-#include "ViewerPackError.hpp"
-#include "ViewerPackHeader.hpp"
-#include "ViewerPackWriter.hpp"
 
 namespace fs = std::filesystem;
 

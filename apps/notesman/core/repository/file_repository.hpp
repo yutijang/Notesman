@@ -1,14 +1,14 @@
 #pragma once
 
-#include <filesystem>
-#include <string>
-#include <string_view>
-#include <optional>
-#include <vector>
-#include <sqlite3.h>
-
 #include "model.hpp"
 #include "sqldb_raii.hpp"
+
+#include <filesystem>
+#include <optional>
+#include <sqlite3.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
 class FileRepository {
     public:

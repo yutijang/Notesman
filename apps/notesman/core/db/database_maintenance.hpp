@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
-#include <stdexcept>
 #include <sqlite3.h>
+#include <stdexcept>
+#include <string>
 
 class DatabaseMaintenance {
     public:

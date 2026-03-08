@@ -1,9 +1,9 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
-#include <glib.h>
 
 namespace {
     gchar* toFileUri(char const* path) {

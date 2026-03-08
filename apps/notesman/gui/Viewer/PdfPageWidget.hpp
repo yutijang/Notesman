@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cstdint>
-#include <memory>
-#include <QWidget>
 #include <QImage>
 #include <QSize>
+#include <QWidget>
+#include <cstdint>
+#include <memory>
 #include <poppler-page.h>
 
 class PdfPageWidget final : public QWidget {

@@ -2,10 +2,10 @@
 
 #include <cassert>
 #include <cstddef>
-#include <string>
-#include <stdexcept>
 #include <memory>
 #include <sqlite3.h>
+#include <stdexcept>
+#include <string>
 
 // RAII wrapper cho sqlite3*
 class SQLiteDB {

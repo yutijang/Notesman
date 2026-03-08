@@ -1,23 +1,24 @@
+#include "file_service.hpp"
+
+#include "Logger.hpp"
+#include "file_repository.hpp"
+#include "file_text_content_repository.hpp"
+#include "model.hpp"
+#include "resource_repository.hpp"
+
 #include <array>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
 #include <optional>
+#include <sqlite3.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
-#include <sqlite3.h>
-
-#include "Logger.hpp"
-#include "file_repository.hpp"
-#include "file_service.hpp"
-#include "model.hpp"
-#include "resource_repository.hpp"
-#include "file_text_content_repository.hpp"
 
 // Tính hash file (SHA256)
 std::string FileService::computeFileHash(std::filesystem::path const& filePath) {

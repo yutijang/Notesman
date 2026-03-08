@@ -1,15 +1,15 @@
-#include <QToolButton>
-#include <QMenu>
-#include <QWidget>
-#include <QFont>
-#include <QPoint>
-#include <QList>
-#include <QMouseEvent>
-#include <QSize>
-#include <Qt>
-#include <QObject>
-
 #include "InfoCornerWidget.hpp"
+
+#include <QFont>
+#include <QList>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QObject>
+#include <QPoint>
+#include <QSize>
+#include <QToolButton>
+#include <QWidget>
+#include <Qt>
 
 namespace {
     constexpr auto INFO_ICON_SIZE = QSize(18, 18);

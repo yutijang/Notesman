@@ -1,16 +1,16 @@
-#include <cmath>
-#include <utility>
-#include <memory>
-#include <poppler-page.h>
-#include <poppler-page-renderer.h>
-#include <QPainter>
-#include <QtAssert>
-#include <QImage>
-#include <QWidget>
-#include <QSize>
-#include <QtTypes>
-
 #include "PdfPageWidget.hpp"
+
+#include <QImage>
+#include <QPainter>
+#include <QSize>
+#include <QWidget>
+#include <QtAssert>
+#include <QtTypes>
+#include <cmath>
+#include <memory>
+#include <poppler-page-renderer.h>
+#include <poppler-page.h>
+#include <utility>
 
 namespace {
     double quantizeDpi(double dpi) noexcept {

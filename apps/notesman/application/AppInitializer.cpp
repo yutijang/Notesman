@@ -1,53 +1,54 @@
+#include "AppInitializer.hpp"
+
 #ifdef Q_OS_WIN
-    #include <windows.h>
+#include <windows.h>
 #endif
 
+#include "AppController.hpp"
+#include "AppSettings.hpp"
+#include "CorePaths.hpp"
+#include "DialogUtils.hpp"
+#include "FontLoader.hpp"
+#include "Logger.hpp"
+#include "MainWindow.hpp"
+#include "NotesAppCore.hpp"
+#include "SettingsManager.hpp"
+#include "app_version.hpp"
+#include "database_checker.hpp"
+#include "database_creator.hpp"
+#include "file_repository.hpp"
+#include "file_service.hpp"
+#include "file_text_content_repository.hpp"
+#include "resource_repository.hpp"
+#include "resource_service.hpp"
+#include "schema_version.hpp"
+#include "sqldb_raii.hpp"
+#include "tag_repository.hpp"
+#include "text_content_repository.hpp"
+#include "url_repository.hpp"
+#include "url_service.hpp"
+
+#include <QApplication>
+#include <QDir>
+#include <QLocalServer>
+#include <QLocalSocket>
+#include <QMessageBox>
+#include <QObject>
+#include <QStringList>
+#include <QStringView>
+#include <QTimer>
+#include <Qt>
 #include <algorithm>
-#include <memory>
-#include <fstream>
-#include <ios>
-#include <filesystem>
 #include <array>
 #include <exception>
+#include <filesystem>
+#include <fstream>
+#include <ios>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
-#include <QApplication>
-#include <QLocalServer>
-#include <QLocalSocket>
-#include <QStringView>
-#include <QMessageBox>
-#include <QTimer>
-#include <QDir>
-#include <QObject>
-#include <Qt>
-#include <QStringList>
-
-#include "AppInitializer.hpp"
-#include "MainWindow.hpp"
-#include "AppController.hpp"
-#include "FontLoader.hpp"
-#include "sqldb_raii.hpp"
-#include "resource_repository.hpp"
-#include "file_repository.hpp"
-#include "text_content_repository.hpp"
-#include "tag_repository.hpp"
-#include "file_service.hpp"
-#include "resource_service.hpp"
-#include "NotesAppCore.hpp"
-#include "database_checker.hpp"
-#include "DialogUtils.hpp"
-#include "database_creator.hpp"
-#include "CorePaths.hpp"
-#include "app_version.hpp"
-#include "SettingsManager.hpp"
-#include "AppSettings.hpp"
-#include "Logger.hpp"
-#include "file_text_content_repository.hpp"
-#include "schema_version.hpp"
-#include "url_repository.hpp"
-#include "url_service.hpp"
 
 namespace {
     constexpr auto SERVER_NAME = "Notesman_InstanceLock";
@@ -479,7 +480,7 @@ void AppInitializer::displayNotiUpdateComplete() {
 }
 
 #ifdef Q_OS_WIN
-void AppInitializer::waitForProcessExitAsync(DWORD pid, const std::function<void()>& onExited) {
+void AppInitializer::waitForProcessExitAsync(DWORD pid, std::function<void()> const& onExited) {
     HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, pid);
     if (h == nullptr) {
         onExited();

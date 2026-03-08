@@ -1,12 +1,13 @@
-#include <QApplication>
-#include <QFontDatabase>
-#include <QFont>
-#include <QString>
-#include <QStringList>
-
 #include "FontLoader.hpp"
+
 #include "Logger.hpp"
 #include "UiConstants.hpp"
+
+#include <QApplication>
+#include <QFont>
+#include <QFontDatabase>
+#include <QString>
+#include <QStringList>
 
 void FontLoader::loadCustomFontOnce() {
     static bool loaded{}; // đảm bảo chỉ chạy 1 lần

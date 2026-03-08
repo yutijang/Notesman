@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 // CRC32 implementation (IEEE 802.3, reflected)
-std::uint32_t computeCrc32(const void* data, std::size_t size);
+std::uint32_t computeCrc32(void const* data, std::size_t size);

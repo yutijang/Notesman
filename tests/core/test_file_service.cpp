@@ -1,21 +1,21 @@
-#include <fstream>
-#include <filesystem>
-#include <string>
-#include <optional>
-#include <string_view>
-#include <sqlite3.h>
-#include <catch2/catch_test_macros.hpp>
-
 #include "file_repository.hpp"
+#include "file_service.hpp"
 #include "file_text_content_repository.hpp"
 #include "model.hpp"
-#include "file_service.hpp"
 #include "resource_repository.hpp"
 #include "sqldb_raii.hpp"
 
+#include <catch2/catch_test_macros.hpp>
+#include <filesystem>
+#include <fstream>
+#include <optional>
+#include <sqlite3.h>
+#include <string>
+#include <string_view>
+
 namespace {
     void createMinimalFileServiceSchema(sqlite3* db) {
-        const char* schema = R"SQL(
+        char const* schema = R"SQL(
                 -- resources table (thêm created_at/updated_at vì repo/service có dùng)
                 CREATE TABLE resources (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,7 +49,7 @@ namespace {
         REQUIRE(sqlite3_exec(db, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
     }
 
-    std::filesystem::path createTempFile(const std::string &name, std::string_view content) {
+    std::filesystem::path createTempFile(std::string const& name, std::string_view content) {
         auto path = std::filesystem::temp_directory_path() / name;
         std::ofstream ofs(path);
         ofs << content;
@@ -169,7 +169,7 @@ TEST_CASE("FileService::refreshFileHash updates existing resource", "[FileServic
 
     // Tạo file thật và insert dòng vào bảng files để mô phỏng file đã lưu
     auto file = createTempFile("refresh.txt", "new content");
-    const std::string insertFileSql =
+    std::string const insertFileSql =
         "INSERT INTO files (resource_id, original_path, stored_path, is_managed) VALUES (1, '" +
         file.string() + "', '" + file.string() + "', 0);";
     REQUIRE(sqlite3_exec(db.get(), insertFileSql.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK);
@@ -182,7 +182,7 @@ TEST_CASE("FileService::refreshFileHash updates existing resource", "[FileServic
     REQUIRE(sqlite3_prepare_v2(db.get(), "SELECT file_hash FROM resources WHERE id=1;", -1, &stmt,
                                nullptr) == SQLITE_OK);
     REQUIRE(sqlite3_step(stmt) == SQLITE_ROW);
-    const auto* hash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+    auto const* hash = reinterpret_cast<char const*>(sqlite3_column_text(stmt, 0));
     CHECK_FALSE(std::string(hash).empty());
     sqlite3_finalize(stmt);
 

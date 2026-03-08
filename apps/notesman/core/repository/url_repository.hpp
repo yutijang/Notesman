@@ -1,13 +1,13 @@
 #pragma once
 
-#include <optional>
-#include <string>
-#include <string_view>
-#include <sqlite3.h>
-#include <vector>
-
 #include "model.hpp"
 #include "sqldb_raii.hpp"
+
+#include <optional>
+#include <sqlite3.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
 class UrlRepository {
     public:

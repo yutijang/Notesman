@@ -1,18 +1,18 @@
-#include <utility>
-#include <QHBoxLayout>
-#include <QWidget>
-#include <QLineEdit>
-#include <QFont>
-#include <QApplication>
-#include <QString>
-#include <QPushButton>
-#include <QStyle>
-#include <QSizePolicy>
-#include <QObject>
-#include <QStringList>
-#include <Qt>
-
 #include "TagInput.hpp"
+
+#include <QApplication>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QObject>
+#include <QPushButton>
+#include <QSizePolicy>
+#include <QString>
+#include <QStringList>
+#include <QStyle>
+#include <QWidget>
+#include <Qt>
+#include <utility>
 
 TagInput::TagInput(QWidget* parent) : QWidget(parent) {
     m_layout = new QHBoxLayout(this);

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <functional>
+#include <QDateTime>
+#include <QJsonObject>
+#include <QNetworkAccessManager>
 #include <QObject>
 #include <QString>
 #include <QTcpServer>
-#include <QNetworkAccessManager>
-#include <QDateTime>
-#include <QJsonObject>
 #include <QUrl>
+#include <functional>
 
 class QTcpSocket;
 class QNetworkReply;

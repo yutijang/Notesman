@@ -1,36 +1,38 @@
-#include <functional>
-#include <string_view>
-#include <keychain.h>
-#include <QNetworkReply>
-#include <QRandomGenerator>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QUrl>
-#include <QUrlQuery>
-#include <QDesktopServices>
-#include <QTimeZone>
-#include <QEventLoop>
-#include <QTcpSocket>
-#include <QDateTime>
-#include <QCryptographicHash>
-#include <QRegularExpression>
-#include <QStringList>
-#include <QString>
-#include <QProcess>
-#include <QTimer>
-#include <QtTypes>
-#include <QByteArray>
-#include <QTcpServer>
-#include <QNetworkRequest>
-#include <QHostAddress>
-#include <QtGlobal>
-
 #include "OAuthManager.hpp"
+
 #include "Logger.hpp"
-#include "google_oauth_config.hpp"
-#include "free_port.hpp"
 #include "SettingsManager.hpp"
 #include "app_version.hpp"
+#include "free_port.hpp"
+#include "google_oauth_config.hpp"
+
+#include <QByteArray>
+#include <QCryptographicHash>
+#include <QDateTime>
+#include <QDesktopServices>
+#include <QEventLoop>
+#include <QHostAddress>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QProcess>
+#include <QRandomGenerator>
+#include <QRegularExpression>
+#include <QString>
+#include <QStringList>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QTimeZone>
+#include <QTimer>
+#include <QUrl>
+#include <QUrlQuery>
+#include <QtEnvironmentVariables>
+#include <QtGlobal>
+#include <QtTypes>
+#include <functional>
+#include <keychain.h>
+#include <string_view>
 
 namespace {
     unsigned short oauthPort() {

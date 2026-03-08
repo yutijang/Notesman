@@ -1,16 +1,17 @@
+#include "ViewerPackReader.hpp"
+
+#include "ViewerPackCrc32.hpp"
+#include "ViewerPackError.hpp"
+#include "ViewerPackHeader.hpp"
+
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <expected>
 #include <filesystem>
 #include <fstream>
-#include <cstddef>
-#include <cstring>
 #include <ios>
 #include <string_view>
-
-#include "ViewerPackReader.hpp"
-#include "ViewerPackError.hpp"
-#include "ViewerPackHeader.hpp"
-#include "ViewerPackCrc32.hpp"
 
 // ---------------------------------------------------------------------
 
@@ -19,7 +20,7 @@ ViewerPackReader::ViewerPackReader(ViewerPackHeader header) noexcept : m_header(
 // ---------------------------------------------------------------------
 
 std::expected<ViewerPackReader, ViewerPackError>
-    ViewerPackReader::read(std::filesystem::path const &filePath) {
+    ViewerPackReader::read(std::filesystem::path const& filePath) {
     std::ifstream file(filePath, std::ios::binary);
     if (!file) { return std::unexpected(ViewerPackError::FileOpenFailed); }
 
@@ -45,23 +46,23 @@ std::expected<ViewerPackReader, ViewerPackError>
 
 // ---------------------------------------------------------------------
 
-bool ViewerPackReader::validateMagic(ViewerPackHeader const &header) noexcept {
+bool ViewerPackReader::validateMagic(ViewerPackHeader const& header) noexcept {
     return std::string_view(header.magic, 4) == std::string_view(ViewerPackHeader::RVPK_MAGIC, 4);
 }
 
-bool ViewerPackReader::validateVersion(ViewerPackHeader const &header) noexcept {
+bool ViewerPackReader::validateVersion(ViewerPackHeader const& header) noexcept {
     return header.version == ViewerPackHeader::VERSION;
 }
 
-bool ViewerPackReader::validateHeaderSize(ViewerPackHeader const &header) noexcept {
+bool ViewerPackReader::validateHeaderSize(ViewerPackHeader const& header) noexcept {
     return header.headerSize == sizeof(ViewerPackHeader);
 }
 
-bool ViewerPackReader::validateCrc(ViewerPackHeader const &header) noexcept {
+bool ViewerPackReader::validateCrc(ViewerPackHeader const& header) noexcept {
     return header.crc32 == computeHeaderCrc32(header);
 }
 
-std::uint32_t ViewerPackReader::computeHeaderCrc32(ViewerPackHeader const &header) noexcept {
+std::uint32_t ViewerPackReader::computeHeaderCrc32(ViewerPackHeader const& header) noexcept {
     constexpr std::size_t crcOffset = offsetof(ViewerPackHeader, crc32);
 
     return computeCrc32(&header, crcOffset);

@@ -1,20 +1,20 @@
 #pragma once
 
+#include <WebView2.h>
 #include <cstdint>
 #include <string>
-#include <WebView2.h>
 
 class WebView2Guard final {
     public:
         enum class Status : std::uint8_t { Ok, LoaderMissing, RuntimeMissing, ApiUnavailable };
 
-        static WebView2Guard &instance();
+        static WebView2Guard& instance();
 
         [[nodiscard]] Status status() const noexcept;
         [[nodiscard]] bool available() const noexcept;
 
         HRESULT createEnvironment(
-            const wchar_t* userDataDir,
+            wchar_t const* userDataDir,
             ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler* handler) const;
 
         [[nodiscard]] std::wstring runtimeVersion() const;

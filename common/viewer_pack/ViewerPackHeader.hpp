@@ -1,13 +1,13 @@
 #pragma once
 
 #if defined(_MSC_VER) && !defined(__clang__)
-    #define PACKED_STRICT __pragma(pack(push, 1))
-    #define END_PACKED_STRICT __pragma(pack(pop))
-    #define ATTR_PACKED
+#define PACKED_STRICT __pragma(pack(push, 1))
+#define END_PACKED_STRICT __pragma(pack(pop))
+#define ATTR_PACKED
 #else
-    #define PACKED_STRICT
-    #define END_PACKED_STRICT
-    #define ATTR_PACKED [[gnu::packed]]
+#define PACKED_STRICT
+#define END_PACKED_STRICT
+#define ATTR_PACKED [[gnu::packed]]
 #endif
 
 #include <cstdint>

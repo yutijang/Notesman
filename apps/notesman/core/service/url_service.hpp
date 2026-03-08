@@ -1,13 +1,13 @@
 #pragma once
 
+#include "model.hpp"
+#include "resource_repository.hpp"
+#include "url_repository.hpp"
+
 #include <optional>
 #include <sqlite3.h>
 #include <string>
 #include <string_view>
-
-#include "model.hpp"
-#include "resource_repository.hpp"
-#include "url_repository.hpp"
 
 class UrlService {
     public:

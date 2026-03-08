@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QWidget>
-#include <QStringList>
+#include "UiConstants.hpp"
+
 #include <QObject>
 #include <QString>
-
-#include "UiConstants.hpp"
+#include <QStringList>
+#include <QWidget>
 
 class TagInput;
 class QLabel;

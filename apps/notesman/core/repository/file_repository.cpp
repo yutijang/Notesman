@@ -1,16 +1,17 @@
-#include <filesystem>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <optional>
-#include <vector>
-#include <utility>
-#include <sqlite3.h>
+#include "file_repository.hpp"
 
 #include "model.hpp"
 #include "sqldb_raii.hpp"
-#include "file_repository.hpp"
 #include "sqlite_utils.hpp"
+
+#include <filesystem>
+#include <optional>
+#include <sqlite3.h>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 namespace {
     inline std::string toUtf8String(std::filesystem::path const& p) {

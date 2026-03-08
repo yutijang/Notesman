@@ -1,15 +1,16 @@
-#include <QObject>
-#include <QTextCharFormat>
-#include <QFocusEvent>
-#include <QTextEdit>
+#include "CodeEditorLineHighlighter.hpp"
+
+#include "PlainTextEdit.hpp"
+
 #include <QColor>
 #include <QEvent>
-#include <QTextCursor>
+#include <QFocusEvent>
 #include <QList>
+#include <QObject>
+#include <QTextCharFormat>
+#include <QTextCursor>
+#include <QTextEdit>
 #include <qassert.h>
-
-#include "CodeEditorLineHighlighter.hpp"
-#include "PlainTextEdit.hpp"
 
 CodeEditorLineHighlighter::CodeEditorLineHighlighter(PlainTextEdit* editor)
     : QObject(editor), m_editor(editor) {

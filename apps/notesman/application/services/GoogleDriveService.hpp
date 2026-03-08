@@ -1,14 +1,14 @@
 #pragma once
 
-#include <functional>
-#include <QObject>
-#include <QString>
+#include "UiConstants.hpp"
+
 #include <QJsonObject>
 #include <QNetworkAccessManager>
+#include <QObject>
+#include <QString>
 #include <QStringList>
 #include <QtGlobal>
-
-#include "UiConstants.hpp"
+#include <functional>
 
 class OAuthManager;
 

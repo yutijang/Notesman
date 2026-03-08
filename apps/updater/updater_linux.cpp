@@ -1,20 +1,20 @@
+#include <chrono>
 #include <csignal>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <ios>
 #include <string>
-#include <system_error>
-#include <vector>
-#include <thread>
-#include <chrono>
-#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <system_error>
+#include <thread>
+#include <unistd.h>
+#include <vector>
 
 namespace fs = std::filesystem;
 
-void logUpdater(const std::string &msg) {
+void logUpdater(std::string const& msg) {
     std::ofstream f("/tmp/notesman_debug.log", std::ios::app);
     if (f.is_open()) { f << "[UPDATER] " << msg << '\n'; }
 }
@@ -28,8 +28,8 @@ int main(int argc, char** argv) {
     }
 
     std::error_code ec;
-    const fs::path currentApp = fs::weakly_canonical(argv[1], ec);
-    const fs::path newApp = fs::weakly_canonical(argv[2], ec);
+    fs::path const currentApp = fs::weakly_canonical(argv[1], ec);
+    fs::path const newApp = fs::weakly_canonical(argv[2], ec);
     if (ec || !fs::exists(currentApp) || !fs::exists(newApp)) { return 2; }
 
     logUpdater("currentApp: " + currentApp.string());
@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     std::this_thread::sleep_for(
         std::chrono::milliseconds(1000)); // NOLINT(readability-magic-numbers)
 
-    const fs::path targetApp = currentApp.parent_path() / newApp.filename();
+    fs::path const targetApp = currentApp.parent_path() / newApp.filename();
 
     bool copySuccess = fs::copy_file(newApp, targetApp, fs::copy_options::overwrite_existing, ec);
     if (!copySuccess) {
@@ -54,17 +54,17 @@ int main(int argc, char** argv) {
     // argv[2] = oldApp (currentApp)
     // argv[3] = updater path (selfPath)
 
-    const std::string app = targetApp.string();
-    const std::string oldAppStr = currentApp.string();
+    std::string const app = targetApp.string();
+    std::string const oldAppStr = currentApp.string();
 
-    const fs::path selfPath = fs::read_symlink("/proc/self/exe");
-    const std::string updaterStr = selfPath.string();
+    fs::path const selfPath = fs::read_symlink("/proc/self/exe");
+    std::string const updaterStr = selfPath.string();
 
     std::vector<std::string> argsStr{app, "--update-done", oldAppStr, updaterStr};
 
     std::vector<char*> args;
     args.reserve(argsStr.size());
-    for (auto &s : argsStr) {
+    for (auto& s : argsStr) {
         args.push_back(s.data()); // C++17+: writable buffer
     }
     args.push_back(nullptr);

@@ -1,15 +1,15 @@
 #pragma once
 
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <source_location>
 #include <concepts>
 #include <fmt/base.h>
+#include <fmt/format.h>
+#include <source_location>
 #include <spdlog/common.h>
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
-#include <fmt/format.h>
+#include <stdexcept>
+#include <string>
+#include <string_view>
 
 namespace Log {
     void init(std::string const& loggerName = "app",

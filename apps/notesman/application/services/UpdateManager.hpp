@@ -1,15 +1,15 @@
 #pragma once
 
-#include <optional>
-#include <QObject>
-#include <QString>
+#include "UpdateInfoSummary.hpp"
+
+#include <QAnyStringView>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QtTypes>
-#include <QAnyStringView>
+#include <QObject>
+#include <QString>
 #include <QStringView>
-
-#include "UpdateInfoSummary.hpp"
+#include <QtTypes>
+#include <optional>
 
 class UpdateManager final : public QObject {
         Q_OBJECT

@@ -1,16 +1,16 @@
-#include <windows.h>
-#include <unordered_set>
-#include <string>
-#include <filesystem>
-#include <system_error>
-#include <miniz.h>
-
 #include "Logger.hpp"
+
+#include <filesystem>
+#include <miniz.h>
+#include <string>
+#include <system_error>
+#include <unordered_set>
+#include <windows.h>
 
 namespace fs = std::filesystem;
 
 namespace {
-    std::string wstringToUtf8(const std::wstring &ws) {
+    std::string wstringToUtf8(std::wstring const& ws) {
         if (ws.empty()) { return {}; }
         int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, ws.data(), static_cast<int>(ws.size()),
                                              nullptr, 0, nullptr, nullptr);
@@ -21,7 +21,7 @@ namespace {
     }
 
     // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-    void clearFolder(const std::wstring &targetFolder, const std::wstring &resDirName) {
+    void clearFolder(std::wstring const& targetFolder, std::wstring const& resDirName) {
         std::unordered_set<std::wstring> keepFiles{L"temp_update", L"data.db", L"config.ini",
                                                    L"logs"};
 
@@ -35,7 +35,7 @@ namespace {
             return;
         }
 
-        for (const auto &entry : fs::directory_iterator(dirPath, ec)) {
+        for (auto const& entry : fs::directory_iterator(dirPath, ec)) {
             if (ec) {
                 Log::err("Error: {}", ec.message());
 
@@ -43,8 +43,8 @@ namespace {
                 continue;
             }
 
-            const auto &path = entry.path();
-            const auto name = path.filename().wstring();
+            auto const& path = entry.path();
+            auto const name = path.filename().wstring();
 
             if (keepFiles.contains(name)) { continue; }
 
@@ -59,8 +59,8 @@ namespace {
         }
     }
 
-    bool unzipToFolder(const std::wstring &zipPath, const std::wstring &folderInZip,
-                       const fs::path &destFolder, bool overwrite) {
+    bool unzipToFolder(std::wstring const& zipPath, std::wstring const& folderInZip,
+                       fs::path const& destFolder, bool overwrite) {
         if (!fs::exists(zipPath)) { return false; }
         fs::create_directories(destFolder);
 
@@ -75,7 +75,7 @@ namespace {
             if (folderUtf8.back() != '/') { folderUtf8 += '/'; }
         }
 
-        const mz_uint num = mz_zip_reader_get_num_files(&zip);
+        mz_uint const num = mz_zip_reader_get_num_files(&zip);
         for (mz_uint i = 0; i < num; ++i) {
             mz_zip_archive_file_stat st;
             if (mz_zip_reader_file_stat(&zip, i, &st) == 0) {
@@ -109,7 +109,7 @@ namespace {
         return true;
     }
 
-    bool copyRecursive(const fs::path &from, const fs::path &to) {
+    bool copyRecursive(fs::path const& from, fs::path const& to) {
         if (!fs::exists(from)) {
             Log::err("copyRecursive failed: source not found: {}", wstringToUtf8(from));
             return false;
@@ -157,12 +157,12 @@ namespace {
         // argv[4] = zip path
         // argv[5] = resource dir name
 
-        const auto appPID = std::stoul(argv[2]);
+        auto const appPID = std::stoul(argv[2]);
         waitForProcessExit(appPID);
 
-        const std::wstring appDir(argv[3]);
-        const std::wstring tempDir = appDir + L"\\temp_update";
-        const std::wstring zipPath(argv[4]);
+        std::wstring const appDir(argv[3]);
+        std::wstring const tempDir = appDir + L"\\temp_update";
+        std::wstring const zipPath(argv[4]);
         bool isUnzip = unzipToFolder(zipPath, L"Notesman-x64", tempDir, false);
         if (!isUnzip) {
             Log::err("Error unzip assets into temp_update folder");
@@ -176,12 +176,12 @@ namespace {
         // argv[4] = zip path
         // argv[5] = resource dir name
 
-        const std::wstring exePath = tempDir + L"\\updater.exe";
-        const std::wstring entryForStage2{L"--stage2"};
-        const std::wstring currentPID = std::to_wstring(getCurrentProcessId());
-        const std::wstring resDirName(argv[5]);
+        std::wstring const exePath = tempDir + L"\\updater.exe";
+        std::wstring const entryForStage2{L"--stage2"};
+        std::wstring const currentPID = std::to_wstring(getCurrentProcessId());
+        std::wstring const resDirName(argv[5]);
 
-        const std::wstring cmdLine = L"\"" + exePath + L"\" "    // "C:\...\temp_update\updater.exe"
+        std::wstring const cmdLine = L"\"" + exePath + L"\" "    // "C:\...\temp_update\updater.exe"
                                    + entryForStage2 + L" "       // --stage2
                                    + currentPID + L" "           // 1234
                                    + L"\"" + appDir + L"\" "     // "C:\Apps\Notesman"
@@ -221,17 +221,17 @@ namespace {
         // argv[4] = zip path
         // argv[5] = resource dir name
 
-        const auto stage1PID = std::stoul(argv[2]);
+        auto const stage1PID = std::stoul(argv[2]);
         waitForProcessExit(stage1PID);
 
-        const std::wstring appDir(argv[3]);
+        std::wstring const appDir(argv[3]);
 
         // delete all file/folder in app dir
         // except temp_update, data.db, config.ini, resources dir if exist
-        const std::wstring resDir(argv[5]);
+        std::wstring const resDir(argv[5]);
         clearFolder(appDir, resDir);
 
-        const std::wstring tempDir = appDir + L"\\temp_update";
+        std::wstring const tempDir = appDir + L"\\temp_update";
         bool isCopied = copyRecursive(tempDir, appDir);
         if (!isCopied) {
             Log::err("Error copy assets from: {} to: {}", wstringToUtf8(tempDir),
@@ -245,13 +245,13 @@ namespace {
         // argv[3] = temp_update dir path for delete
         // argv[4] = zip path
 
-        const std::wstring entryForUpdateDone{L"--update-done"};
-        const std::wstring currentPID = std::to_wstring(getCurrentProcessId());
-        const std::wstring zipPath(argv[4]);
+        std::wstring const entryForUpdateDone{L"--update-done"};
+        std::wstring const currentPID = std::to_wstring(getCurrentProcessId());
+        std::wstring const zipPath(argv[4]);
 
-        const std::wstring exePath = appDir + L"\\Notesman.exe";
+        std::wstring const exePath = appDir + L"\\Notesman.exe";
 
-        const std::wstring cmdLine = L"\"" + exePath + L"\" "  // "C:\Apps\Notesman.exe"
+        std::wstring const cmdLine = L"\"" + exePath + L"\" "  // "C:\Apps\Notesman.exe"
                                    + entryForUpdateDone + L" " // --update-done
                                    + currentPID + L" "         // 5678
                                    + L"\"" + tempDir + L"\" "  // "C:\Apps\temp_update"
@@ -291,7 +291,7 @@ int wmain(int argc, wchar_t* argv[]) {
         return 1;
     }
 
-    const std::wstring entry(argv[1]);
+    std::wstring const entry(argv[1]);
 
     if (entry == L"--stage1") {
         if (argc < 6) { // NOLINT(readability-magic-numbers)

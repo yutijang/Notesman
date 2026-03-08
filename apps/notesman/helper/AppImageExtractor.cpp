@@ -1,21 +1,21 @@
-#include <sys/stat.h>
-#include <unistd.h> // for ::chmod
-#include <QProcess>
-#include <QFile>
-#include <QDir>
-#include <QDirIterator>
-#include <QDateTime>
-#include <Qt>
-#include <QString>
-#include <QFileDevice>
-
 #include "AppImageExtractor.hpp"
 
+#include <QDateTime>
+#include <QDir>
+#include <QDirIterator>
+#include <QFile>
+#include <QFileDevice>
+#include <QProcess>
+#include <QString>
+#include <Qt>
+#include <sys/stat.h>
+#include <unistd.h> // for ::chmod
+
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-bool AppImageExtractor::extractUpdater(const QString &appImagePath, const QString &outputPath) {
+bool AppImageExtractor::extractUpdater(QString const& appImagePath, QString const& outputPath) {
     if (!QFile::exists(appImagePath)) { return false; }
 
-    const QString workDir =
+    QString const workDir =
         QDir::tempPath() + "/nm_extract_" + QString::number(QDateTime::currentMSecsSinceEpoch());
     if (!QDir().mkpath(workDir)) { return false; }
 
@@ -27,7 +27,7 @@ bool AppImageExtractor::extractUpdater(const QString &appImagePath, const QStrin
     if (!p.waitForStarted(5000)) { return false; }   // NOLINT(readability-magic-numbers)
     if (!p.waitForFinished(30000)) { return false; } // NOLINT(readability-magic-numbers)
 
-    const QString root = workDir + "/squashfs-root";
+    QString const root = workDir + "/squashfs-root";
     if (!QDir(root).exists()) { return false; }
 
     QString updater = root + "/usr/bin/updater_linux";

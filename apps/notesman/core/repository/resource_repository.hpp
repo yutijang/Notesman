@@ -1,14 +1,14 @@
 #pragma once
 
+#include "model.hpp"
+#include "sqldb_raii.hpp"
+
 #include <optional>
+#include <sqlite3.h>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-#include <sqlite3.h>
-
-#include "model.hpp"
-#include "sqldb_raii.hpp"
 
 class SQLiteDB;
 

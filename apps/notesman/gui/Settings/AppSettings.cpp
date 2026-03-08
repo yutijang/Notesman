@@ -1,13 +1,14 @@
+#include "AppSettings.hpp"
+
+#include "SettingsData.hpp"
+#include "UiConstants.hpp"
+
 #include <filesystem>
 #include <fstream>
 #include <ios>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 #include <utility>
-
-#include "AppSettings.hpp"
-#include "SettingsData.hpp"
-#include "UiConstants.hpp"
 
 bool AppSettings::load(std::filesystem::path const& path) {
     if (!std::filesystem::exists(path)) { return false; }

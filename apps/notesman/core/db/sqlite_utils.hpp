@@ -1,12 +1,12 @@
 #pragma once
 
+#include "Logger.hpp"
+
+#include <source_location>
 #include <sqlite3.h>
 #include <stdexcept>
 #include <string>
-#include <source_location>
 #include <string_view>
-
-#include "Logger.hpp"
 
 namespace sqlite {
     inline void checkBind(int rc, sqlite3* db,

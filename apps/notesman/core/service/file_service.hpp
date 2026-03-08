@@ -1,14 +1,14 @@
 #pragma once
 
-#include <string>
-#include <optional>
-#include <filesystem>
-#include <sqlite3.h>
-
-#include "model.hpp"
 #include "file_repository.hpp"
-#include "resource_repository.hpp"
 #include "file_text_content_repository.hpp"
+#include "model.hpp"
+#include "resource_repository.hpp"
+
+#include <filesystem>
+#include <optional>
+#include <sqlite3.h>
+#include <string>
 
 class FileService {
     public:

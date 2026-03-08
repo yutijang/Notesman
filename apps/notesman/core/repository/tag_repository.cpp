@@ -1,16 +1,17 @@
+#include "tag_repository.hpp"
+
+#include "model.hpp"
+#include "sqldb_raii.hpp"
+#include "sqlite_utils.hpp"
+
 #include <cstddef>
+#include <optional>
+#include <sqlite3.h>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <optional>
-#include <vector>
 #include <utility>
-#include <sqlite3.h>
-
-#include "sqldb_raii.hpp"
-#include "tag_repository.hpp"
-#include "model.hpp"
-#include "sqlite_utils.hpp"
+#include <vector>
 
 std::optional<sqlite3_int64> TagRepository::addTag(std::string_view name) {
     SQLiteStmt stmt(m_db.get(), "INSERT INTO tags (name) VALUES (?) ON CONFLICT(name) DO NOTHING;");

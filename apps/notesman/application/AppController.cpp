@@ -1,30 +1,11 @@
-#include <algorithm>
-#include <cstddef>
-#include <iterator>
-#include <filesystem>
-#include <memory>
-#include <string>
-#include <vector>
-#include <sqlite3.h>
-#include <QObject>
-#include <QFileInfo>
-#include <QDir>
-#include <QString>
-#include <QTranslator>
-#include <QApplication>
-#include <QStyleFactory>
-#include <QTimer>
-#include <QThread>
-#include <QRegularExpression>
-#include <QStringList>
-#include <Qt>
-#include <QtTypes>
-#include <QStandardPaths>
-
 #include "AppController.hpp"
+
 #include "AppSettings.hpp"
+#include "CorePaths.hpp"
+#include "DialogUtils.hpp"
 #include "DownloadManager.hpp"
 #include "GoogleDriveService.hpp"
+#include "Logger.hpp"
 #include "MainWindow.hpp"
 #include "NotesAppCore.hpp"
 #include "OAuthManager.hpp"
@@ -32,12 +13,32 @@
 #include "SettingsData.hpp"
 #include "UiConstants.hpp"
 #include "UpdateInfoSummary.hpp"
-#include "DialogUtils.hpp"
-#include "CorePaths.hpp"
-#include "Logger.hpp"
 #include "UpdateManager.hpp"
 #include "helper.hpp"
 #include "model.hpp"
+
+#include <QApplication>
+#include <QDir>
+#include <QFileInfo>
+#include <QObject>
+#include <QRegularExpression>
+#include <QStandardPaths>
+#include <QString>
+#include <QStringList>
+#include <QStyleFactory>
+#include <QThread>
+#include <QTimer>
+#include <QTranslator>
+#include <Qt>
+#include <QtTypes>
+#include <algorithm>
+#include <cstddef>
+#include <filesystem>
+#include <iterator>
+#include <memory>
+#include <sqlite3.h>
+#include <string>
+#include <vector>
 
 AppController::AppController(QObject* parent) : QObject(parent) {}
 

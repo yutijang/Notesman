@@ -1,31 +1,32 @@
-#include <filesystem>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QRadioButton>
-#include <QButtonGroup>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QComboBox>
-#include <QVariant>
-#include <QDir>
-#include <QMessageBox>
-#include <QTimer>
-#include <QSettings>
-#include <QFileDialog>
-#include <Qt>
-#include <QObject>
-#include <QFileInfo>
-#include <QStringList>
-#include <QIntValidator>
-#include <QLayout>
-
 #include "SettingsTabWidget.hpp"
-#include "UiConstants.hpp"
-#include "SettingsData.hpp"
+
 #include "DialogUtils.hpp"
-#include "SettingsManager.hpp"
 #include "Logger.hpp"
+#include "SettingsData.hpp"
+#include "SettingsManager.hpp"
+#include "UiConstants.hpp"
+
+#include <QButtonGroup>
+#include <QComboBox>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QHBoxLayout>
+#include <QIntValidator>
+#include <QLabel>
+#include <QLayout>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QObject>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QSettings>
+#include <QStringList>
+#include <QTimer>
+#include <QVBoxLayout>
+#include <QVariant>
+#include <Qt>
+#include <filesystem>
 
 namespace {
     constexpr int COUNTDOWN{60};

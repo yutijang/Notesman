@@ -1,19 +1,19 @@
-#include <algorithm>
-#include <string>
-#include <vector>
-#include <catch2/catch_test_macros.hpp>
-#include <sqlite3.h>
-
 #include "model.hpp"
 #include "sqldb_raii.hpp"
 #include "tag_repository.hpp"
+
+#include <algorithm>
+#include <catch2/catch_test_macros.hpp>
+#include <sqlite3.h>
+#include <string>
+#include <vector>
 
 namespace {
     SQLiteDB createInMemoryDB() {
         SQLiteDB db(":memory:");
         sqlite3* rawPtr = db.get();
 
-        const char* schema = R"SQL(
+        char const* schema = R"SQL(
             PRAGMA foreign_keys = ON;
 
             CREATE TABLE resources (
@@ -45,19 +45,19 @@ namespace {
         return db;
     }
 
-    Resource makeResource(const std::string &title, ResourceType type = ResourceType::PlainText) {
+    Resource makeResource(std::string const& title, ResourceType type = ResourceType::PlainText) {
         Resource r{};
         r.title = title;
         r.type = type;
         return r;
     }
 
-    sqlite3_int64 insertResource(SQLiteDB &db, const Resource &res) {
+    sqlite3_int64 insertResource(SQLiteDB& db, Resource const& res) {
         SQLiteStmt stmt(db.get(), "INSERT INTO resources (title, type) VALUES (?, ?);");
 
         sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT);
 
-        const auto typeStr = resourceTypeToString(res.type);
+        auto const typeStr = resourceTypeToString(res.type);
         sqlite3_bind_text(stmt.get(), 2, typeStr.data(), static_cast<int>(typeStr.size()),
                           SQLITE_TRANSIENT);
 
@@ -144,7 +144,7 @@ TEST_CASE("TagRepository query tags and resources", "[TagRepository][query]") {
         auto tags = repo.getTagsByResourceId(resA);
 
         REQUIRE(tags.size() == 2);
-        auto foundQt = std::ranges::any_of(tags, [](const auto &t) { return t.second == "qt"; });
+        auto foundQt = std::ranges::any_of(tags, [](auto const& t) { return t.second == "qt"; });
         REQUIRE(foundQt);
     }
 

@@ -1,3 +1,5 @@
+find_package(Qt6 COMPONENTS Test Widgets REQUIRED)
+
 # ------------------------------
 # GUI Tests
 # ------------------------------

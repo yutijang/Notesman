@@ -1,8 +1,8 @@
 #pragma once
 
+#include <QString>
 #include <optional>
 #include <vector>
-#include <QString>
 
 class EpubResolver {
     public:

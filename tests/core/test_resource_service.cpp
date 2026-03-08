@@ -1,3 +1,16 @@
+#include "Logger.hpp"
+#include "file_repository.hpp"
+#include "file_service.hpp"
+#include "file_text_content_repository.hpp"
+#include "model.hpp"
+#include "resource_repository.hpp"
+#include "resource_service.hpp"
+#include "sqldb_raii.hpp"
+#include "tag_repository.hpp"
+#include "text_content_repository.hpp"
+#include "url_repository.hpp"
+#include "url_service.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 #include <fstream>
@@ -8,22 +21,9 @@
 #include <string_view>
 #include <vector>
 
-#include "Logger.hpp"
-#include "file_repository.hpp"
-#include "file_service.hpp"
-#include "model.hpp"
-#include "resource_repository.hpp"
-#include "resource_service.hpp"
-#include "sqldb_raii.hpp"
-#include "tag_repository.hpp"
-#include "text_content_repository.hpp"
-#include "file_text_content_repository.hpp"
-#include "url_repository.hpp"
-#include "url_service.hpp"
-
 namespace {
     void createMinimalSchema(sqlite3* db) {
-        const char* schema = R"SQL(
+        char const* schema = R"SQL(
         -- =====================================================
         -- Core tables
         -- =====================================================

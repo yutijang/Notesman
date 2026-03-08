@@ -1,35 +1,37 @@
-#include <cstdint>
-#include <functional>
-#include <QString>
-#include <QNetworkReply>
-#include <QHttpPart>
-#include <QTcpServer>
-#include <QNetworkAccessManager>
-#include <QCoreApplication>
-#include <QFileInfo>
-#include <QUrlQuery>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QLocale>
-#include <QObject>
-#include <QFile>
-#include <QNetworkRequest>
-#include <QtGlobal>
-#include <QStringList>
-#include <QCryptographicHash>
-#include <Qt>
-#include <qassert.h>
-#include <stdexcept>
-
 #include "GoogleDriveService.hpp"
-#include "OAuthManager.hpp"
-#include "UiConstants.hpp"
-#include "database_maintenance.hpp"
+
 #include "CorePaths.hpp"
 #include "Logger.hpp"
-#include "helper.hpp"
+#include "OAuthManager.hpp"
 #include "SettingsManager.hpp"
+#include "UiConstants.hpp"
+#include "database_maintenance.hpp"
+#include "helper.hpp"
+
+#include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QFile>
+#include <QFileInfo>
+#include <QHttpPart>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QLocale>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QTcpServer>
+#include <QUrlQuery>
+#include <Qt>
+#include <QtGlobal>
+#include <QtTypes>
+#include <cstdint>
+#include <functional>
+#include <qassert.h>
+#include <stdexcept>
 
 GoogleDriveService::GoogleDriveService(OAuthManager* oauth, QObject* parent)
     : QObject(parent), m_oauth(oauth) {

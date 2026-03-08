@@ -1,11 +1,11 @@
 // #include <windows.h>
-#include <string>
-
 #include "simple_log.hpp"
 
+#include <string>
+
 namespace simple_log {
-    void write(const std::wstring &msg) {
-        const wchar_t* path = L"logs\\launcher.log";
+    void write(std::wstring const& msg) {
+        wchar_t const* path = L"logs\\launcher.log";
 
         // 1. Lấy thời gian hệ thống
         SYSTEMTIME st;

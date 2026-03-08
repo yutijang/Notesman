@@ -1,24 +1,26 @@
-#include <optional>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QUrl>
-#include <QNetworkInformation>
-#include <QTimer>
-#include <QJsonArray>
-#include <QJsonValue>
-#include <QVersionNumber>
-#include <QString>
-#include <QObject>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <Qt>
-
 #include "UpdateManager.hpp"
-#include "UpdateInfoSummary.hpp"
-#include "app_version.hpp"
-#include "UiConstants.hpp"
+
 #include "Logger.hpp"
 #include "SettingsManager.hpp"
+#include "UiConstants.hpp"
+#include "UpdateInfoSummary.hpp"
+#include "app_version.hpp"
+
+#include <QAnyStringView>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QNetworkInformation>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QObject>
+#include <QString>
+#include <QTimer>
+#include <QUrl>
+#include <QVersionNumber>
+#include <Qt>
+#include <optional>
 
 UpdateManager::UpdateManager(QObject* parent) : QObject(parent) {}
 

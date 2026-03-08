@@ -1,22 +1,23 @@
-#include <cassert>
-#include <string>
-#include <string_view>
-#include <stdexcept>
-#include <optional>
-#include <filesystem>
-#include <sqlite3.h>
-#include <utility>
-#include <vector>
+#include "resource_service.hpp"
 
+#include "Logger.hpp"
+#include "file_repository.hpp"
+#include "file_service.hpp"
+#include "helper.hpp"
 #include "model.hpp"
 #include "resource_repository.hpp"
-#include "file_repository.hpp"
 #include "tag_repository.hpp"
 #include "text_content_repository.hpp"
-#include "resource_service.hpp"
-#include "file_service.hpp"
-#include "Logger.hpp"
-#include "helper.hpp"
+
+#include <cassert>
+#include <filesystem>
+#include <optional>
+#include <sqlite3.h>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 sqlite3_int64 ResourceService::addTextResource(std::string const& title, std::string const& content,
