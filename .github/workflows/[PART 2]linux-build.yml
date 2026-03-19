@@ -53,24 +53,27 @@ jobs:
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
 
-      - name: Debug expected include
+      - name: Debug expected guard
         run: |
           cat > /tmp/test_expected.cpp << 'EOF'
           #include <expected>
           #include <cstdio>
           int main() {
-            std::expected<int, int> e = 42;
-            printf("OK: %d\n", e.value());
+            printf("__cplusplus = %ld\n", __cplusplus);
+            printf("_GLIBCXX_RELEASE = %d\n", _GLIBCXX_RELEASE);
+          #ifdef __cpp_lib_expected
+            printf("__cpp_lib_expected = %d\n", __cpp_lib_expected);
+          #else
+            printf("__cpp_lib_expected NOT defined\n");
+          #endif
           }
           EOF
-          
+
           clang++ \
             -isystem /usr/include/c++/14 \
             -isystem /usr/include/x86_64-linux-gnu/c++/14 \
-            -std=c++23 -v \
-            /tmp/test_expected.cpp -o /tmp/test_expected 2>&1 | head -50
-          
-          clang++ -std=c++23 -v /tmp/test_expected.cpp -o /tmp/test_expected 2>&1 | grep "Selected GCC"
+            -std=c++23 \
+            /tmp/test_expected.cpp -o /tmp/test_expected && /tmp/test_expected
           exit 1
 
       - name: Restore vcpkg & Qt6 artifacts
