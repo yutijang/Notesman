@@ -46,6 +46,13 @@ jobs:
             libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev \
             libwebkit2gtk-4.1-dev libgtk-3-dev libglib2.0-dev libgdk-pixbuf-2.0-dev libcairo2-dev
 
+      - name: Debug GCC toolchain path
+        run: |
+          ls /usr/lib/gcc/x86_64-linux-gnu/
+          clang++ --version
+          echo "#include <expected>" | clang++ --gcc-toolchain=/usr/lib/gcc/x86_64-linux-gnu/12 -std=c++23 -x c++ - -fsyntax-only && echo "OK"
+          exit 1
+
       - name: Fix Clang version to 18
         run: |
           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
