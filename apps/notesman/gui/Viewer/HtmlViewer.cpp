@@ -25,6 +25,9 @@
 #include "WebView2Widget.hpp"
 #elif defined(Q_OS_LINUX)
 #include "WebKitGTKGuard.hpp"
+
+#include <QCoreApplication>
+#include <QProcess>
 #endif
 
 namespace {

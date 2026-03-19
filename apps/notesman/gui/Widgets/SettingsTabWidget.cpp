@@ -7,10 +7,12 @@
 #include "UiConstants.hpp"
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QIntValidator>
 #include <QLabel>
@@ -21,6 +23,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSettings>
+#include <QSpinBox>
 #include <QStringList>
 #include <QTimer>
 #include <QVBoxLayout>
