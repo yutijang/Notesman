@@ -48,9 +48,9 @@ jobs:
 
       - name: Debug GCC toolchain path
         run: |
-          ls /usr/lib/gcc/x86_64-linux-gnu/
-          clang++ --version
-          echo "#include <expected>" | clang++ --gcc-toolchain=/usr/lib/gcc/x86_64-linux-gnu/12 -std=c++23 -x c++ - -fsyntax-only && echo "OK"
+          find /usr/include/c++ -name "expected" 2>/dev/null
+          find /usr/lib/gcc -name "expected" 2>/dev/null
+          dpkg -l | grep libstdc++
           exit 1
 
       - name: Fix Clang version to 18
