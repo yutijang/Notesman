@@ -53,7 +53,10 @@ void WebView2Widget::resizeEvent(QResizeEvent* e) {
 
     if (m_controller != nullptr) {
         QRect const r = rect();
-        RECT rc{r.left(), r.top(), r.left() + r.width(), r.top() + r.height()};
+        RECT rc{.left = r.left(),
+                .top = r.top(),
+                .right = r.left() + r.width(),
+                .bottom = r.top() + r.height()};
         m_controller->put_Bounds(rc);
     }
 }

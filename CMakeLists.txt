@@ -66,7 +66,7 @@ find_package(Qt6 COMPONENTS Core Gui Widgets Network Svg Concurrent REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(POPPLER_CPP REQUIRED IMPORTED_TARGET poppler-cpp)
 
 find_package(md4c CONFIG REQUIRED)
@@ -85,7 +85,8 @@ find_package(libzip CONFIG REQUIRED)
 FetchContent_Declare(
     qtkeychain
     GIT_REPOSITORY https://github.com/frankosterfeld/qtkeychain.git
-    GIT_TAG 0.15.0
+    GIT_TAG ad7344c45a86a4f66cbafc4b081b5f7b876cb0b7
+    GIT_SHALLOW TRUE
 )
 
 set(BUILD_TRANSLATIONS OFF CACHE BOOL "" FORCE)

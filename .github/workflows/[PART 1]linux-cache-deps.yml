@@ -21,14 +21,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
           fetch-tags: true
 
       - name: Restore vcpkg artifacts
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         id: restore-cache
         with:
           path: |
@@ -111,7 +111,7 @@ jobs:
           echo "Cleanup completed. Ready to save cache."
 
       - name: Save vcpkg artifacts (Force save even on failure)
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         if: steps.restore-cache.outputs.cache-matched-key == ''
         with:
           path: |
