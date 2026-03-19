@@ -38,6 +38,7 @@ jobs:
           sudo apt-get update -y && \
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config ninja-build \
+            gcc-12 g++-12 libstdc++-12-dev \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
             libsecret-1-dev clang lld \
             autoconf autoconf-archive automake libtool libltdl-dev gettext \
