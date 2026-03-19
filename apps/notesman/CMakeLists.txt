@@ -73,7 +73,7 @@ target_precompile_headers(notes-core
 
 target_link_libraries(notes-core
     PUBLIC
-        SQLite3::SQLite3
+        SQLite::SQLite3
         OpenSSL::SSL
         OpenSSL::Crypto
         common::logger
