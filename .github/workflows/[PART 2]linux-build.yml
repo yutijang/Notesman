@@ -46,14 +46,6 @@ jobs:
             libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev \
             libwebkit2gtk-4.1-dev libgtk-3-dev libglib2.0-dev libgdk-pixbuf-2.0-dev libcairo2-dev
 
-      - name: Debug GCC toolchain path
-        run: |
-          echo "#include <expected>" | clang++ \
-            -isystem /usr/include/c++/14 \
-            -isystem /usr/include/x86_64-linux-gnu/c++/14 \
-            -std=c++23 -x c++ - -fsyntax-only && echo "OK"
-          exit 1
-
       - name: Fix Clang version to 18
         run: |
           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
@@ -109,6 +101,7 @@ jobs:
           cmake -B build -S . \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_CXX_FLAGS="-isystem /usr/include/c++/14 -isystem /usr/include/x86_64-linux-gnu/c++/14" \
             -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }} \
             -DVCPKG_INSTALLED_DIR=${{ github.workspace }}/vcpkg_installed \
