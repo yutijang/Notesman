@@ -38,7 +38,7 @@ jobs:
           sudo apt-get update -y && \
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config ninja-build \
-            gcc-12 g++-12 libstdc++-12-dev \
+            gcc-14 g++-14 libstdc++-14-dev \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
             libsecret-1-dev clang lld \
             autoconf autoconf-archive automake libtool libltdl-dev gettext \
@@ -50,6 +50,8 @@ jobs:
         run: |
           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
 
       - name: Restore vcpkg & Qt6 artifacts
         uses: actions/cache/restore@v5
