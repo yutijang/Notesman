@@ -166,11 +166,12 @@ jobs:
           $content = @"
           set(VCPKG_TARGET_ARCHITECTURE x64)
           set(VCPKG_CRT_LINKAGE dynamic)
+          set(VCPKG_CMAKE_SYSTEM_NAME Windows)
           set(VCPKG_LIBRARY_LINKAGE dynamic)
-          set(VCPKG_PLATFORM_TOOLSET clang-cl)
           set(VCPKG_C_COMPILER clang-cl)
           set(VCPKG_CXX_COMPILER clang-cl)
           set(VCPKG_LINKER lld-link)
+          set(VCPKG_ENV_PASSTHROUGH_UNTOUCHED ON)
           "@
           $content | Out-File -FilePath "${{ github.workspace }}\vcpkg-triplets\x64-windows-clang.cmake" -Encoding utf8
 
