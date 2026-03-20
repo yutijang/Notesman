@@ -154,7 +154,8 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang-cl `
             -DCMAKE_LINKER=lld-link `
             -DCMAKE_C_COMPILER_LAUNCHER=ccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache `
+            -DBUILD_TESTING=OFF
             
       - name: Build project
         shell: pwsh
