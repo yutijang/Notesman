@@ -117,9 +117,7 @@ jobs:
       - name: Setup vcpkg (bootstrap)
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
           vcpkgGitCommitId: '8e9bf761065458834f671139282f37dc71b30f57'
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
           runVcpkgInstall: false
 
       - name: Prepare vcpkg cache directories
