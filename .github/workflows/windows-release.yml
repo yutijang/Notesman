@@ -219,6 +219,8 @@ jobs:
           Remove-Item "${{ env.RELEASE_DIR }}\styles" -Recurse
           Remove-Item "${{ env.RELEASE_DIR }}\opengl32sw.dll" -ErrorAction SilentlyContinue
           Remove-Item "${{ env.RELEASE_DIR }}\D3Dcompiler_47.dll" -ErrorAction SilentlyContinue
+          Remove-Item "${{ env.RELEASE_DIR }}\dxcompiler.dll" -ErrorAction SilentlyContinue
+          Remove-Item "${{ env.RELEASE_DIR }}\dxil.dll" -ErrorAction SilentlyContinue
 
           $allImagePlugins = Get-ChildItem "${{ env.RELEASE_DIR }}\imageformats\" -Filter "*.dll" -ErrorAction SilentlyContinue
           $essentialImagePlugins = @("qico.dll")
@@ -334,12 +336,17 @@ jobs:
 
           echo "version=$version" >> $env:GITHUB_OUTPUT
 
+      - name: Check vc_redist duplication
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse ${{ env.RELEASE_DIR }} -Filter vc_redist.x64.exe
+
       - name: Create ZIP package
         id: zip
         shell: pwsh
         run: |
           $zipName = "Notesman-x64-v${{ steps.get_version.outputs.version }}.zip"
-          Compress-Archive -Path ${{ env.RELEASE_DIR }} -DestinationPath $zipName -Force
+          Compress-Archive -Path "${{ env.RELEASE_DIR }}\*" -DestinationPath $zipName -Force
           echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
 
       - name: Upload artifact
