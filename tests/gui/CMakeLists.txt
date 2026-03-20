@@ -24,6 +24,4 @@ set_target_properties(gui-tests PROPERTIES
 )
 
 # add_test(NAME gui-tests COMMAND $<TARGET_FILE:gui-tests>)
-catch_discover_tests(gui-tests
-    PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
-)
+catch_discover_tests(gui-tests)
