@@ -1,0 +1,31 @@
+name: Modern C++ Environment
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      LLVM_VER: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LLVM/Clang ${{ env.LLVM_VER }}
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh ${{ env.LLVM_VER }} all
+          
+          sudo apt-get install -y \
+            libc++-${{ env.LLVM_VER }}-dev \
+            libc++abi-${{ env.LLVM_VER }}-dev
+
+      - name: Verify Toolchain
+        run: |
+          clang++-${{ env.LLVM_VER }} --version
+          clang++-${{ env.LLVM_VER }} -std=c++26 -stdlib=libc++ \
+            -lc++ -lc++abi \
+            -e main -o /dev/null <<EOF
+          #include <print>
+          int main() { std::print("Clang ${{ env.LLVM_VER }} with C++26\n"); return 0; }
+          EOF
+          
