@@ -2,9 +2,12 @@
 
 #include <filesystem>
 #include <miniz.h>
+#include <miniz_common.h>
+#include <miniz_zip.h>
 #include <string>
 #include <system_error>
 #include <unordered_set>
+#include <vector>
 #include <windows.h>
 
 namespace fs = std::filesystem;
