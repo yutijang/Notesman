@@ -59,6 +59,13 @@ jobs:
           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-22 100
           sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-22 100
 
+      - name: Install CMake 4.3.0 (Primary Build System)
+        run: |
+          wget -q https://github.com/Kitware/CMake/releases/download/v4.3.0/cmake-4.3.0-linux-x86_64.sh          
+          sudo sh cmake-4.3.0-linux-x86_64.sh --prefix=/usr/local --skip-license --exclude-subdir          
+          rm cmake-4.3.0-linux-x86_64.sh          
+          cmake --version
+          
       - name: Restore vcpkg & Qt6 artifacts
         uses: actions/cache/restore@v5
         id: restore-vcpkg
