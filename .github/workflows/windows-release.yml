@@ -20,7 +20,7 @@ env:
   VCPKG_MAX_CONCURRENCY: 8
   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Có thể xóa sau ngày 2/6/2026, khi Node 24 thành default
 
 jobs:
   build-and-release:
