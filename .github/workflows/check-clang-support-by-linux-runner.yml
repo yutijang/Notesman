@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      LLVM_VER: 20
+      LLVM_VER: 22
     steps:
       - uses: actions/checkout@v4
 
@@ -22,10 +22,26 @@ jobs:
       - name: Verify Toolchain
         run: |
           clang++-${{ env.LLVM_VER }} --version
-          clang++-${{ env.LLVM_VER }} -std=c++26 -stdlib=libc++ \
-            -lc++ -lc++abi \
-            -e main -o /dev/null <<EOF
-          #include <print>
-          int main() { std::print("Clang ${{ env.LLVM_VER }} with C++26\n"); return 0; }
-          EOF
           
+          cat <<EOF > test_feature.cpp
+          #include <print>
+          #include <vector>
+          #include <expected>
+
+          int main() {
+              std::print("Compiler: Clang ${{ env.LLVM_VER }}\n");
+              std::print("Standard: C++26 Ready\n");
+              
+              std::expected<int, const char*> res = 42;
+              if (res) std::print("Value: {}\n", *res);
+              
+              return 0;
+          }
+          EOF
+
+          clang++-${{ env.LLVM_VER }} -std=c++26 \
+            -stdlib=libc++ \
+            -lc++ -lc++abi \
+            test_feature.cpp -o test_bin
+
+          ./test_bin
