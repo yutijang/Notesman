@@ -159,9 +159,26 @@ jobs:
           echo "qt_dir=$qtDir" >> $env:GITHUB_OUTPUT
           echo "Qt6_DIR=$qtDir\lib\cmake\Qt6" >> $env:GITHUB_OUTPUT
 
+      - name: Create Custom Triplet
+        shell: pwsh
+        run: |
+          mkdir -p "${{ github.workspace }}\vcpkg-triplets"
+          $content = @"
+          set(VCPKG_TARGET_ARCHITECTURE x64)
+          set(VCPKG_CRT_LINKAGE dynamic)
+          set(VCPKG_LIBRARY_LINKAGE dynamic)
+          set(VCPKG_PLATFORM_TOOLSET clang-cl)
+          set(VCPKG_C_COMPILER clang-cl)
+          set(VCPKG_CXX_COMPILER clang-cl)
+          set(VCPKG_LINKER lld-link)
+          "@
+          $content | Out-File -FilePath "${{ github.workspace }}\vcpkg-triplets\x64-windows-clang.cmake" -Encoding utf8
+
       - name: Configure CMake (with MSVC toolchain + vcpkg)
         shell: pwsh
         run: |
+          clang-cl --version
+          lld-link --version
           $env:VCPKG_FORCE_SYSTEM_BINARIES = "1"
           $env:VCPKG_BINARY_SOURCES = "clear;files,$env:VCPKG_ROOT\archives,readwrite"
 
@@ -171,6 +188,8 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}\scripts\buildsystems\vcpkg.cmake" `
             -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE:FILEPATH="" `
             -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" `
+            -DVCPKG_TARGET_TRIPLET="x64-windows-clang" `
+            -DVCPKG_OVERLAY_TRIPLETS="${{ github.workspace }}\vcpkg-triplets" `
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl `
             -DCMAKE_LINKER=lld-link `
