@@ -39,18 +39,25 @@ jobs:
           sudo apt-get update -y && \
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config ninja-build \
-            libc++-18-dev libc++abi-18-dev \
             jq curl unzip zip ccache patchelf rsync libgl1-mesa-dev \
-            libsecret-1-dev clang lld \
+            libsecret-1-dev \
             autoconf autoconf-archive automake libtool libltdl-dev gettext \
             '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev \
             libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev \
             libwebkit2gtk-4.1-dev libgtk-3-dev libglib2.0-dev libgdk-pixbuf-2.0-dev libcairo2-dev
 
+      - name: Install LLVM 22 and libc++22
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 22 all          
+          sudo apt-get install -y libc++-22-dev libc++abi-22-dev
+
       - name: Fix Clang version to 18
         run: |
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-22 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-22 100
+          sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-22 100
 
       - name: Restore vcpkg & Qt6 artifacts
         uses: actions/cache/restore@v5

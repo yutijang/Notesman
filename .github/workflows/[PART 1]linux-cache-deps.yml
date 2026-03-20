@@ -41,8 +41,7 @@ jobs:
         if: steps.restore-cache.outputs.cache-matched-key == ''
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential clang lld \
-            libc++-18-dev libc++abi-18-dev \
+          sudo apt-get install -y build-essential \
             cmake ninja-build pkg-config \
             autoconf automake autoconf-archive libtool libltdl-dev python3 python3-pip \
             curl git unzip zip libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libxi-dev \
@@ -57,11 +56,20 @@ jobs:
             libfontconfig1-dev libfreetype6-dev libharfbuzz-dev libicu-dev libdbus-1-dev \
             libudev-dev libvulkan-dev libssl-dev libsecret-1-dev gperf libb2-dev
 
-      - name: Fix Clang version to 18
+      - name: Install LLVM 22 and libc++22
         if: steps.restore-cache.outputs.cache-matched-key == ''
         run: |
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 22 all          
+          sudo apt-get install -y libc++-22-dev libc++abi-22-dev
+
+      - name: Fix Clang version to 22
+        if: steps.restore-cache.outputs.cache-matched-key == ''
+        run: |
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-22 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-22 100
+          sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-22 100
           
       - name: Setup vcpkg
         if: steps.restore-cache.outputs.cache-matched-key == ''
