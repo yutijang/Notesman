@@ -1,0 +1,40 @@
+name: Check Latest CMake 4.3.0
+on: [push, workflow_dispatch]
+
+jobs:
+  cmake-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gpg
+
+      - name: Install CMake 4.3.0
+        run: |
+          CMAKE_VERSION=4.3.0
+          
+          wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
+          
+          sudo mkdir -p /opt/cmake
+          sudo sh cmake-${CMAKE_VERSION}-linux-x86_64.sh --prefix=/usr/local --skip-license
+          
+          hash -r
+
+      - name: Verify CMake Version
+        run: |
+          cmake --version
+          
+      - name: Test CMake 4.3 Feature (Script Mode)
+        run: |
+          cat <<EOF > CMakeLists.txt
+          cmake_minimum_required(VERSION 4.3)
+          project(TestProject LANGUAGES NONE)
+          message(STATUS "CMake Version: \${CMAKE_VERSION}")
+          
+          if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.3.0")
+              message(STATUS "Verification: CMake 4.3.0 is active and functional.")
+          endif()
+          EOF
+          
+          cmake -S . -B build
