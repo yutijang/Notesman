@@ -39,9 +39,29 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) { choco install ninja -y --no-progress --limit-output }
-          if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) { choco install cmake -y --no-progress --limit-output }
           if (-not (Get-Command ccache -ErrorAction SilentlyContinue)) { choco install ccache -y --no-progress --limit-output }
-          if (-not (Get-Command clang-cl -ErrorAction SilentlyContinue)) { choco install llvm -y --no-progress --limit-output }
+
+      - name: Install CMake 4.3.0 (Independent)
+        shell: pwsh
+        run: |
+          $cmake_ver = "4.3.0"
+          $url = "https://github.com/Kitware/CMake/releases/download/v$cmake_ver/cmake-$cmake_ver-windows-x86_64.zip"
+          Invoke-WebRequest -Uri $url -OutFile "cmake.zip"
+          Expand-Archive -Path "cmake.zip" -DestinationPath "$env:USERPROFILE\cmake-dist"
+
+          echo "$env:USERPROFILE\cmake-dist\cmake-$cmake_ver-windows-x86_64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          Remove-Item "cmake.zip"
+
+      - name: Install LLVM 22 (Independent)
+        shell: pwsh
+        run: |
+          $llvm_ver = "22.1.1" 
+          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-$llvm_ver/LLVM-$llvm_ver-win64.exe"
+          Invoke-WebRequest -Uri $url -OutFile "llvm_installer.exe"
+          Start-Process -FilePath ".\llvm_installer.exe" -ArgumentList "/S", "/D=$env:USERPROFILE\llvm-dist" -Wait
+
+          echo "$env:USERPROFILE\llvm-dist\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          Remove-Item "llvm_installer.exe"
 
       - name: Install pkg-config
         run: choco install pkgconfiglite --allow-empty-checksums -y
@@ -142,6 +162,7 @@ jobs:
       - name: Configure CMake (with MSVC toolchain + vcpkg)
         shell: pwsh
         run: |
+          $env:VCPKG_FORCE_SYSTEM_BINARIES = "1"
           $env:VCPKG_BINARY_SOURCES = "clear;files,$env:VCPKG_ROOT\archives,readwrite"
 
           cmake -B build -S . `
@@ -153,6 +174,7 @@ jobs:
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl `
             -DCMAKE_LINKER=lld-link `
+            -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-windows-msvc" `
             -DCMAKE_C_COMPILER_LAUNCHER=ccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache `
             -DBUILD_TESTING=OFF
