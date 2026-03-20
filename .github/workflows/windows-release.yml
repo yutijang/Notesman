@@ -224,8 +224,10 @@ jobs:
           Remove-Item "${{ env.RELEASE_DIR }}\styles" -Recurse
           Remove-Item "${{ env.RELEASE_DIR }}\opengl32sw.dll" -ErrorAction SilentlyContinue
           Remove-Item "${{ env.RELEASE_DIR }}\D3Dcompiler_47.dll" -ErrorAction SilentlyContinue
+          
           Remove-Item "${{ env.RELEASE_DIR }}\dxcompiler.dll" -ErrorAction SilentlyContinue
           Remove-Item "${{ env.RELEASE_DIR }}\dxil.dll" -ErrorAction SilentlyContinue
+          Remove-Item "${{ env.RELEASE_DIR }}\vc_redist.x64.exe" -ErrorAction SilentlyContinue
 
           $allImagePlugins = Get-ChildItem "${{ env.RELEASE_DIR }}\imageformats\" -Filter "*.dll" -ErrorAction SilentlyContinue
           $essentialImagePlugins = @("qico.dll")
