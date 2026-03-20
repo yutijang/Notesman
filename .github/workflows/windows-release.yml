@@ -171,7 +171,7 @@ jobs:
             -G "Ninja" `
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}\scripts\buildsystems\vcpkg.cmake" `
-            -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE:FILEPATH="" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-clang `
             -DQt6_DIR="${{ steps.find_qt.outputs['Qt6_DIR'] }}" `
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl `
