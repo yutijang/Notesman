@@ -343,17 +343,12 @@ jobs:
 
           echo "version=$version" >> $env:GITHUB_OUTPUT
 
-      - name: Check vc_redist duplication
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse ${{ env.RELEASE_DIR }} -Filter vc_redist.x64.exe
-
       - name: Create ZIP package
         id: zip
         shell: pwsh
         run: |
           $zipName = "Notesman-x64-v${{ steps.get_version.outputs.version }}.zip"
-          Compress-Archive -Path "${{ env.RELEASE_DIR }}\*" -DestinationPath $zipName -Force
+          Compress-Archive -Path "${{ env.RELEASE_DIR }}" -DestinationPath $zipName -Force
           echo "zip_name=$zipName" >> $env:GITHUB_OUTPUT
 
       - name: Upload artifact
