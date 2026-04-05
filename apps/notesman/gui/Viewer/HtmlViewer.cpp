@@ -43,6 +43,8 @@ namespace {
 #endif
         return false;
     }
+
+    constexpr int K_WAITSTART{3000};
 } // namespace
 
 HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title)) {
@@ -56,20 +58,22 @@ HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title
 
 std::unique_ptr<HtmlViewer> HtmlViewer::createFromFile(QString title, QString path,
                                                        ContentMode mode, QWidget* parent) {
-    if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
+    if (!ensureHtmlRuntimeAvailable(parent)) [[unlikely]] { return nullptr; }
 
     auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
-    view->initFromFile(std::move(path), mode);
+
+    if (!view->initFromFile(std::move(path), mode)) [[unlikely]] { return nullptr; }
 
     return view;
 }
 
 std::unique_ptr<HtmlViewer> HtmlViewer::createFromUrl(QString title, QUrl url, ContentMode mode,
                                                       QWidget* parent) {
-    if (!ensureHtmlRuntimeAvailable(parent)) { return nullptr; }
+    if (!ensureHtmlRuntimeAvailable(parent)) [[unlikely]] { return nullptr; }
 
     auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
-    view->initFromUrl(std::move(url), mode);
+
+    if (!view->initFromUrl(std::move(url), mode)) [[unlikely]] { return nullptr; }
 
     return view;
 }
@@ -84,48 +88,62 @@ void HtmlViewer::setupView() {
 #endif
 }
 
-void HtmlViewer::initFromFile(QString path, ContentMode mode) {
-    if (path.isEmpty()) { return; }
+bool HtmlViewer::initFromFile(QString path, ContentMode mode) {
+    if (path.isEmpty()) [[unlikely]] { return false; }
 
     m_htmlPath = std::move(path);
 
 #ifdef Q_OS_WIN
     if (m_view == nullptr) {
         Log::fatal("WebView2Widget failed to initialize.");
-        return;
+        return false;
     }
 
     QFileInfo fi(m_htmlPath);
     if (!fi.exists() || !fi.isFile()) {
         Log::warn("HtmlViewer open: path={}, exists={}, isFile={}",
                   fi.absoluteFilePath().toStdString(), fi.exists(), fi.isFile());
-        return;
+        return false;
     }
 
     QUrl const base = QUrl::fromLocalFile(fi.absolutePath() + "/");
 
     m_view->setContentMode(mode, base);
     m_view->loadFile(m_htmlPath);
+
+    return true;
 #elif defined(Q_OS_LINUX)
-    m_process = new QProcess(m_rootWidget);
+    auto process = std::make_unique<QProcess>(m_rootWidget);
 
     QString const program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
     QString const uri = QUrl::fromLocalFile(m_htmlPath).toString();
     QString const wTitle = QObject::tr("View detail resource: %1").arg(m_title);
 
-    m_process->start(program, {uri, wTitle});
+    process->start(program, {uri, wTitle});
+
+    if (!process->waitForStarted(K_WAITSTART)) [[unlikely]] {
+        Log::fatal("WebKitGTK process failed to initialize. Error: {}",
+                   process->errorString().toStdString());
+        return false;
+    }
+
+    if (m_process != nullptr) { m_process->deleteLater(); }
+
+    m_process = process.release();
+
+    return true;
 #endif
 }
 
-void HtmlViewer::initFromUrl(QUrl url, ContentMode mode) {
-    if (!url.isValid()) { return; }
+bool HtmlViewer::initFromUrl(QUrl url, ContentMode mode) {
+    if (!url.isValid()) [[unlikely]] { return false; }
 
     m_url = std::move(url);
 
 #ifdef Q_OS_WIN
-    if (m_view == nullptr) {
+    if (m_view == nullptr) [[unlikely]] {
         Log::fatal("WebView2Widget failed to initialize.");
-        return;
+        return false;
     }
 
     QUrl base = m_url;
@@ -135,14 +153,27 @@ void HtmlViewer::initFromUrl(QUrl url, ContentMode mode) {
 
     m_view->setContentMode(mode, base);
     m_view->loadUrl(m_url);
+
+    return true;
 #elif defined(Q_OS_LINUX)
-    m_process = new QProcess(m_rootWidget);
+    auto process = std::make_unique<QProcess>(m_rootWidget);
 
     QString const program = QCoreApplication::applicationDirPath() + "/webkitgtk_viewer";
     QString const wTitle = QObject::tr("View detail resource: %1").arg(m_title);
     QString const uri = m_url.toString(QUrl::FullyEncoded);
 
-    m_process->start(program, {uri, wTitle});
+    process->start(program, {uri, wTitle});
+    if (!process->waitForStarted(K_WAITSTART)) [[unlikely]] {
+        Log::fatal("WebKitGTK process failed to initialize. Error: {}",
+                   process->errorString().toStdString());
+        return false;
+    }
+
+    if (m_process != nullptr) { m_process->deleteLater(); }
+
+    m_process = process.release();
+
+    return true;
 #endif
 }
 

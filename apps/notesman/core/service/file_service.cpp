@@ -23,15 +23,15 @@
 // Tính hash file (SHA256)
 std::string FileService::computeFileHash(std::filesystem::path const& filePath) {
     std::ifstream file(filePath, std::ios::binary);
-    if (!file.is_open()) {
+    if (!file.is_open()) [[unlikely]] {
         throw std::runtime_error("Error, cannot open file: " + filePath.string());
     }
 
     EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-    if (ctx == nullptr) { throw std::runtime_error("Failed create EVP_MD_CTX"); }
+    if (ctx == nullptr) [[unlikely]] { throw std::runtime_error("Failed create EVP_MD_CTX"); }
 
     const EVP_MD* md = EVP_sha256();
-    if (EVP_DigestInit_ex(ctx, md, nullptr) != 1) {
+    if (EVP_DigestInit_ex(ctx, md, nullptr) != 1) [[unlikely]] {
         EVP_MD_CTX_free(ctx);
         throw std::runtime_error("EVP_DigestInit_ex failed");
     }
@@ -49,7 +49,7 @@ std::string FileService::computeFileHash(std::filesystem::path const& filePath) 
     std::array<unsigned char, EVP_MAX_MD_SIZE> hash{};
     unsigned int hashLen{};
 
-    if (EVP_DigestFinal_ex(ctx, hash.data(), &hashLen) != 1) {
+    if (EVP_DigestFinal_ex(ctx, hash.data(), &hashLen) != 1) [[unlikely]] {
         EVP_MD_CTX_free(ctx);
         throw std::runtime_error("EVP_DigestFinal_ex failed");
     }
@@ -113,13 +113,13 @@ std::optional<sqlite3_int64>
 // Đồng bộ lại hash (khi file thay đổi nội dung)
 void FileService::refreshFileHash(sqlite3_int64 resourceId) {
     auto fileEntryOpt = m_fileRepo.getFileById(resourceId);
-    if (!fileEntryOpt.has_value()) {
+    if (!fileEntryOpt.has_value()) [[unlikely]] {
         Log::err("No file entry for resource ID: {}", resourceId);
         throw std::runtime_error("No file entry for resource ID: " + std::to_string(resourceId));
     }
 
     auto const& entry = *fileEntryOpt;
-    if (!entry.stored_path.has_value()) {
+    if (!entry.stored_path.has_value()) [[unlikely]] {
         Log::err("File has no stored_path for resource ID: {}", resourceId);
         throw std::runtime_error("File has no stored_path for resource ID: " +
                                  std::to_string(resourceId));

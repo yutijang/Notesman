@@ -51,33 +51,33 @@
 #include <vector>
 
 namespace {
-    constexpr auto SERVER_NAME = "Notesman_InstanceLock";
-    constexpr int TIMEWAIT{100};
+    constexpr auto K_SERVER_NAME = "Notesman_InstanceLock";
+    constexpr int K_TIMEWAIT{100};
 } // namespace
 
 bool AppInitializer::ensureSingleInstance() {
     QLocalSocket socket;
-    socket.connectToServer(SERVER_NAME);
+    socket.connectToServer(K_SERVER_NAME);
 
-    if (socket.waitForConnected(TIMEWAIT)) {
+    if (socket.waitForConnected(K_TIMEWAIT)) {
 #if defined(Q_OS_WIN)
         AllowSetForegroundWindow(ASFW_ANY);
 #endif
         socket.write("activate");
         socket.flush();
-        socket.waitForBytesWritten(TIMEWAIT);
+        socket.waitForBytesWritten(K_TIMEWAIT);
         socket.disconnectFromServer();
 
         return false;
     }
 
-    QLocalServer::removeServer(SERVER_NAME);
+    QLocalServer::removeServer(K_SERVER_NAME);
     m_localServer = std::make_unique<QLocalServer>();
 
     QObject::connect(m_localServer.get(), &QLocalServer::newConnection, this,
                      &AppInitializer::onSecondInstanceMessage);
 
-    m_localServer->listen(SERVER_NAME);
+    m_localServer->listen(K_SERVER_NAME);
 
     return true;
 }
@@ -88,7 +88,7 @@ void AppInitializer::onSecondInstanceMessage() {
     std::unique_ptr<QLocalSocket> client(m_localServer->nextPendingConnection());
     if (!client) { return; }
 
-    if (!client->waitForReadyRead(TIMEWAIT)) { return; }
+    if (!client->waitForReadyRead(K_TIMEWAIT)) { return; }
 
     QByteArray const msg = client->readAll();
 

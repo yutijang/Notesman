@@ -79,7 +79,10 @@ void DownloadManager::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal
 }
 
 void DownloadManager::onDownloadFinished() {
-    if (m_currentReply == nullptr) { return; }
+    if (m_currentReply == nullptr) [[unlikely]] {
+        Log::err("onDownloadFinished called with null reply");
+        return;
+    }
 
     if (m_currentReply->error() == QNetworkReply::NoError) {
         m_outputFile.write(m_currentReply->readAll());

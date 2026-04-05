@@ -36,8 +36,8 @@ class HtmlViewer final : public IResourceViewer,
 
     private:
         HtmlViewer(QString title, QWidget* parent);
-        void initFromFile(QString path, ContentMode mode);
-        void initFromUrl(QUrl url, ContentMode mode);
+        bool initFromFile(QString path, ContentMode mode);
+        bool initFromUrl(QUrl url, ContentMode mode);
 
         // ===== IResourceViewer =====
         QWidget* widget() override;

@@ -159,7 +159,10 @@ void ResourceRepository::remove(sqlite3_int64 resourceId) {
 }
 
 void ResourceRepository::removeBatch(std::vector<sqlite3_int64> const& resourceIds) {
-    if (resourceIds.empty()) { return; }
+    if (resourceIds.empty()) {
+        Log::err("resourceIds must not be empty");
+        throw std::runtime_error("resourceIds must not be empty");
+    }
 
     char* errMsg{};
     if (sqlite3_exec(m_db.get(), "BEGIN TRANSACTION;", nullptr, nullptr, &errMsg) != SQLITE_OK) {

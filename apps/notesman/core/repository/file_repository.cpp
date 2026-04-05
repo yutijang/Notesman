@@ -87,14 +87,14 @@ void FileRepository::updateFile(sqlite3_int64 resourceId, std::filesystem::path 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 4, resourceId), m_db.get());
 
     int const rc = stmt.step();
-    if (rc != SQLITE_DONE) {
+    if (rc != SQLITE_DONE) [[unlikely]] {
         if (rc == SQLITE_CONSTRAINT) {
             throw std::runtime_error("updateFile: Constraint violation: " + storedUtf8);
         }
         sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "updateFile: " + storedUtf8);
     }
 
-    if (sqlite3_changes(m_db.get()) == 0) {
+    if (sqlite3_changes(m_db.get()) == 0) [[unlikely]] {
         throw std::runtime_error("Update failed: no rows updated for resource ID: " +
                                  std::to_string(resourceId));
     }

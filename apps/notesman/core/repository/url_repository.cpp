@@ -83,12 +83,12 @@ void UrlRepository::updateUrl(sqlite3_int64 resourceId, std::string_view url,
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 5, resourceId), m_db.get());
 
     int const rc = stmt.step();
-    if (rc == SQLITE_CONSTRAINT) {
+    if (rc == SQLITE_CONSTRAINT) [[unlikely]] {
         throw std::runtime_error("updateUrl: unique constraint violated, url=" + std::string(url));
     }
     sqlite::checkStep(rc, m_db.get(), SQLITE_DONE, "updateUrl");
 
-    if (sqlite3_changes(m_db.get()) == 0) {
+    if (sqlite3_changes(m_db.get()) == 0) [[unlikely]] {
         throw std::runtime_error("Update failed: no rows updated for resource ID: " +
                                  std::to_string(resourceId));
     }

@@ -22,7 +22,7 @@
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 sqlite3_int64 ResourceService::addTextResource(std::string const& title, std::string const& content,
                                                ResourceType type) {
-    if (type != ResourceType::PlainText) {
+    if (type != ResourceType::PlainText) [[unlikely]] {
         std::string msg{"addTextResource only supports ResourceType::plainText"};
         Log::err(msg);
         throw std::runtime_error(msg);
@@ -56,7 +56,7 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
                                                              bool includeContent) {
     // Lấy resource gốc
     auto resOpt = m_resRepo.getById(resourceId);
-    if (!resOpt.has_value()) { return std::nullopt; }
+    if (!resOpt.has_value()) [[unlikely]] { return std::nullopt; }
 
     // Lấy tag (có thể rỗng)
     auto tagPairs = m_tagRepo.getTagsByResourceId(resourceId);
@@ -220,7 +220,7 @@ void ResourceService::addTagsToResource(sqlite3_int64 resourceId,
 
 void ResourceService::removeTagFromResource(sqlite3_int64 resourceId, std::string const& tag) {
     auto tagIdOpt = m_tagRepo.getTagIdByName(tag);
-    if (!tagIdOpt.has_value()) { return; }
+    if (!tagIdOpt.has_value()) [[unlikely]] { return; }
 
     m_tagRepo.deleteTagFromResource({.resourceId = resourceId, .tagId = *tagIdOpt});
 }
