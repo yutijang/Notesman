@@ -18,6 +18,7 @@
 #include "ResourceSearchWorker.hpp"
 #include "ResourceViewService.hpp"
 #include "ResourceViewerDialog.hpp"
+#include "ResourceViewerFactory.hpp"
 #include "ResultsTable.hpp"
 #include "SanitizeFileName.hpp"
 #include "SettingsData.hpp"
@@ -235,6 +236,7 @@ void MainWindow::setCore(NotesAppCore* core) {
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_browseTab), true);
 }
 
+/*
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
                               QString const& path, QString const& url) {
@@ -340,6 +342,54 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const&
     }
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
 
+    dlg->exec();
+}
+*/
+void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
+                              QString const& path, QString const& url) {
+    // Resolve path trước khi truyền vào factory — factory chỉ nhận absolute path
+    QString const absolutePath = resolveResPath(path);
+
+    auto viewer = ResourceViewerFactory::create(id, type, title, absolutePath, url,
+                                                m_appController->currentTheme(),
+                                                *m_resourceViewService, this);
+    if (!viewer) { return; }
+
+#ifdef Q_OS_LINUX
+    if (viewer->usesExternalWindow()) {
+        if (m_viewerLocked) { return; }
+
+        m_viewerLocked = true;
+        this->setEnabled(false);
+
+        auto* htmlViewer = dynamic_cast<HtmlViewer*>(viewer.get());
+        if (htmlViewer == nullptr) {
+            m_viewerLocked = false;
+            this->setEnabled(true);
+            return;
+        }
+
+        QProcess* proc = htmlViewer->process();
+        if (proc == nullptr) {
+            m_viewerLocked = false;
+            this->setEnabled(true);
+            return;
+        }
+
+        m_externalViewer = std::move(viewer);
+
+        QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
+                         [this]() {
+                             m_externalViewer.reset();
+                             m_viewerLocked = false;
+                             this->setEnabled(true);
+                         });
+
+        return;
+    }
+#endif
+
+    auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
     dlg->exec();
 }
 

@@ -95,6 +95,12 @@ set(APP_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/application/NotesAppCore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/AppController.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/AppInitializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/NotesCoreFactory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/GuiCoreErrorHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/CoreErrorReporter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/ResourceViewerFactory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/PackerLauncher.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/AppUIApplier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/workers/ResourceSearchWorker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/UpdateManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/DownloadManager.cpp

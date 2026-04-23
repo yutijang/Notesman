@@ -1,5 +1,7 @@
 #include "AppInitializer.hpp"
 
+#include <utility>
+
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
@@ -9,24 +11,16 @@
 #include "CorePaths.hpp"
 #include "DialogUtils.hpp"
 #include "FontLoader.hpp"
+#include "GuiCoreErrorHandler.hpp"
 #include "Logger.hpp"
 #include "MainWindow.hpp"
-#include "NotesAppCore.hpp"
+#include "NotesCoreFactory.hpp"
 #include "SettingsManager.hpp"
 #include "app_version.hpp"
 #include "database_checker.hpp"
-#include "database_creator.hpp"
-#include "file_repository.hpp"
-#include "file_service.hpp"
-#include "file_text_content_repository.hpp"
 #include "resource_repository.hpp"
-#include "resource_service.hpp"
 #include "schema_version.hpp"
 #include "sqldb_raii.hpp"
-#include "tag_repository.hpp"
-#include "text_content_repository.hpp"
-#include "url_repository.hpp"
-#include "url_service.hpp"
 
 #include <QApplication>
 #include <QDir>
@@ -39,14 +33,10 @@
 #include <QTimer>
 #include <Qt>
 #include <algorithm>
-#include <array>
 #include <exception>
 #include <filesystem>
-#include <fstream>
-#include <ios>
 #include <memory>
 #include <string>
-#include <string_view>
 #include <system_error>
 #include <vector>
 
@@ -83,16 +73,16 @@ bool AppInitializer::ensureSingleInstance() {
 }
 
 void AppInitializer::onSecondInstanceMessage() {
-    if (!m_localServer || !m_localServer->hasPendingConnections()) { return; }
+    if (!m_localServer || !m_localServer->hasPendingConnections()) [[unlikely]] { return; }
 
     std::unique_ptr<QLocalSocket> client(m_localServer->nextPendingConnection());
-    if (!client) { return; }
+    if (!client) [[unlikely]] { return; }
 
-    if (!client->waitForReadyRead(K_TIMEWAIT)) { return; }
+    if (!client->waitForReadyRead(K_TIMEWAIT)) [[unlikely]] { return; }
 
     QByteArray const msg = client->readAll();
 
-    if (msg == "activate" && m_mainWindow) {
+    if (msg == "activate" && m_mainWindow) [[likely]] {
 #if defined(Q_OS_WIN)
         // kích hoạt cửa sổ
         HWND hwnd =
@@ -124,7 +114,7 @@ void AppInitializer::run() {
     setupInitializerConnections();
 
     auto const initCheck = initializeCore();
-    if (initCheck != InitFailureReason::Ok) {
+    if (initCheck != InitFailureReason::Ok) [[unlikely]] {
         switch (initCheck) {
             case InitFailureReason::Ok: // clang(-Wswitch)
             case InitFailureReason::UserCancelled: break;
@@ -151,15 +141,17 @@ void AppInitializer::run() {
 
     m_mainWindow->show();
 
-    QTimer::singleShot(0, [this]() { m_controller->oauthManager(); });
+    QTimer::singleShot(0, m_controller.get(), [this]() { m_controller->oauthManager(); });
 
     checkUpdateFlag();
 
-    if (settings->isCleanupEpubCache()) {
-        Q_EMIT cleanupEpubCacheRequest(settings->daysCleanupEpubCache());
-    }
-    if (settings->isCleanupMDCache()) {
-        Q_EMIT cleanupMDCacheRequest(settings->daysCleanupMDCache());
+    if (settings != nullptr) {
+        if (settings->isCleanupEpubCache()) {
+            Q_EMIT cleanupEpubCacheRequest(settings->daysCleanupEpubCache());
+        }
+        if (settings->isCleanupMDCache()) {
+            Q_EMIT cleanupMDCacheRequest(settings->daysCleanupMDCache());
+        }
     }
 }
 
@@ -167,111 +159,34 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
     QString const dbFullPath = CorePaths::databaseFile();
     std::filesystem::path const dbPath = dbFullPath.toStdString();
 
-    if (!std::filesystem::exists(dbPath)) {
-        auto const reply =
-            DialogUtils::showQuestion(m_mainWindow.get(), tr("Database Missing"),
-                                      tr("No database found. Would you like to create a new one?"));
+    GuiCoreErrorHandler handler(m_mainWindow.get());
+    auto result = NotesCoreFactory::createCore(dbPath, &handler);
 
-        if (reply == QMessageBox::Yes) {
-            createDatabase();
-        } else {
-            return InitFailureReason::UserCancelled;
-        }
+    if (result.reason != InitFailureReason::Ok) { return result.reason; }
+
+    // Move ownership từ CoreContext vào members của AppInitializer
+    // Lifetime gắn với AppInitializer — tồn tại suốt vòng đời ứng dụng
+    auto& ctx = *result.context;
+    m_db = std::move(ctx.db);
+    m_resRepo = std::move(ctx.resRepo);
+    m_fileRepo = std::move(ctx.fileRepo);
+    m_textRepo = std::move(ctx.textRepo);
+    m_fileTextRepo = std::move(ctx.fileTextRepo);
+    m_tagRepo = std::move(ctx.tagRepo);
+    m_urlRepo = std::move(ctx.urlRepo);
+    m_fileService = std::move(ctx.fileService);
+    m_urlService = std::move(ctx.urlService);
+    m_resService = std::move(ctx.resService);
+    m_core = std::move(ctx.core);
+
+    if (m_controller) {
+        m_controller->loadSettings();
+        m_controller->setCore(m_core.get());
     }
 
-    std::ifstream dbFile(dbPath, std::ios::binary);
-    if (!dbFile.is_open()) {
-        DialogUtils::showError(m_mainWindow.get(), tr("Error"),
-                               tr("Failed to open database file."));
-        return InitFailureReason::OpenFailed;
-    }
-
-    constexpr int const len{16};
-    std::array<char, len> header{};
-    dbFile.read(header.data(), header.size());
-    if (!dbFile || dbFile.gcount() != len) {
-        DialogUtils::showError(m_mainWindow.get(), tr("Error"),
-                               tr("Failed to read database header."));
-        return InitFailureReason::ReadFailed;
-    }
-
-    std::string_view headerView(header.data(), header.size());
-    if (!headerView.starts_with("SQLite format 3")) { // C++20+
-        DialogUtils::showError(m_mainWindow.get(), tr("Error"), tr("Invalid database file."));
-
-        auto const reply =
-            DialogUtils::showQuestion(m_mainWindow.get(), tr("Invalid Database"),
-                                      tr("The existing file is not a valid SQLite database.\n"
-                                         "Would you like to recreate it?"));
-
-        if (reply == QMessageBox::Yes) {
-            createDatabase();
-        } else {
-            return InitFailureReason::UserCancelled;
-        }
-    }
-
-    try {
-        m_db = std::make_unique<SQLiteDB>(dbPath.string());
-
-        auto const dbVerifyResult = verifyDatabase();
-        if (dbVerifyResult != InitFailureReason::Ok) { return dbVerifyResult; }
-
-        m_resRepo = std::make_unique<ResourceRepository>(*m_db);
-        m_fileRepo = std::make_unique<FileRepository>(*m_db);
-        m_textRepo = std::make_unique<TextContentRepository>(*m_db);
-        m_fileTextRepo = std::make_unique<FileTextContentRepository>(*m_db);
-        m_tagRepo = std::make_unique<TagRepository>(*m_db);
-        m_urlRepo = std::make_unique<UrlRepository>(*m_db);
-        m_fileService = std::make_unique<FileService>(*m_fileRepo, *m_resRepo, *m_fileTextRepo);
-        m_urlService = std::make_unique<UrlService>(*m_urlRepo, *m_resRepo);
-        m_resService = std::make_unique<ResourceService>(
-            *m_db, *m_resRepo, *m_fileRepo, *m_textRepo, *m_tagRepo, *m_fileService, *m_urlService);
-        m_core = std::make_unique<NotesAppCore>(*m_textRepo, *m_fileService, *m_urlService,
-                                                *m_resService);
-
-        if (m_controller) {
-            m_controller->loadSettings();
-            m_controller->setCore(m_core.get());
-        }
-
-        Q_EMIT coreReady(m_core.get());
-
-    } catch (std::exception const& ex) {
-        Log::err(ex.what());
-        DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(ex.what()));
-    }
+    Q_EMIT coreReady(m_core.get());
 
     return InitFailureReason::Ok;
-}
-
-void AppInitializer::createDatabase() {
-    QString const dbPath = CorePaths::databaseFile();
-    QString const schemaResourcePath = ":/schema/notes_manager_schema.sql";
-
-    // Đọc nội dung file .sql
-    QFile schemaFile(schemaResourcePath);
-    if (!schemaFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        Log::err("Schema resource not found: {}", schemaResourcePath.toStdString());
-        DialogUtils::showError(m_mainWindow.get(), tr("Error"),
-                               tr("Schema resource not found: %1").arg(schemaResourcePath));
-
-        return;
-    }
-
-    std::string const schemaSql = schemaFile.readAll().toStdString();
-    std::string const dbPathUtf8 = dbPath.toUtf8().constData();
-
-    if (std::string error; !DatabaseCreator::create(dbPathUtf8, schemaSql, error)) {
-        Log::err("Error create database: {}", error);
-        DialogUtils::showError(m_mainWindow.get(), tr("Error"), QString::fromStdString(error));
-        return;
-    }
-
-    DialogUtils::showInfo(m_mainWindow.get(), tr("Information"),
-                          tr("Database created successfully at %1").arg(dbPath));
-
-    initializeCore();
 }
 
 AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {

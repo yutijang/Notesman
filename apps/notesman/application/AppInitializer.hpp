@@ -9,6 +9,7 @@
 #include "AppController.hpp"
 #include "MainWindow.hpp"
 #include "NotesAppCore.hpp"
+#include "NotesCoreFactory.hpp"
 #include "file_repository.hpp"
 #include "file_service.hpp"
 #include "file_text_content_repository.hpp"
@@ -24,7 +25,6 @@
 #include <QLocalSocket>
 #include <QString>
 #include <QStringList>
-#include <cstdint>
 #include <memory>
 
 class AppInitializer final : public QObject {
@@ -36,7 +36,6 @@ class AppInitializer final : public QObject {
 
         bool ensureSingleInstance();
         void run();
-        void createDatabase();
         void closeDatabaseConnection(bool isUpload);
         void reinitializeDatabaseConnection();
 
@@ -49,15 +48,7 @@ class AppInitializer final : public QObject {
         void cleanupMDCacheRequest(int days);
 
     private: // NOLINT(readability-redundant-access-specifiers)
-        enum class InitFailureReason : std::uint8_t {
-            Ok,
-            UserCancelled,
-            OpenFailed,
-            ReadFailed,
-            VerifyDBCorrupted,
-            GetNullDBVersion,
-            DBOutdated
-        };
+        using InitFailureReason = NotesCoreFactory::InitFailureReason;
 
         InitFailureReason initializeCore();
         InitFailureReason verifyDatabase();

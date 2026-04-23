@@ -1,7 +1,9 @@
 #include "AppInitializer.hpp"
 #include "Logger.hpp"
+#include "PackerLauncher.hpp"
 
 #include <QApplication>
+#include <QStringList>
 
 #ifdef Q_OS_WIN
 #include "SecurityUtils.hpp"
@@ -16,7 +18,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // filter token
+    // filter token — argv[1] là launcher token, skip
     // NOLINTBEGIN
     int cleanArgc = 0;
     char* cleanArgv[64];
@@ -29,6 +31,12 @@ int main(int argc, char* argv[]) {
 #endif
 
     QApplication::setStyle("Fusion");
+
+    QStringList const args = QApplication::arguments();
+
+    // Ưu tiên 1: --update-done → AppInitializer xử lý bên trong checkUpdateFlag()
+    // Ưu tiên 2: --open-packer <path> → packer mode, không khởi tạo full GUI
+    if (args.size() >= 3 && args[1] == "--open-packer") { return PackerLauncher::run(args[2]); }
 
     AppInitializer initializer;
 
