@@ -4,6 +4,7 @@
 #include "AppController.hpp"
 #include "BrowseTabWidget.hpp"
 #include "CodeEditorLineHighlighter.hpp"
+#include "CorePaths.hpp"
 #include "DialogUtils.hpp"
 #include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"
@@ -35,6 +36,7 @@
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QItemSelection>
 #include <QKeySequence>
@@ -52,6 +54,7 @@
 #include <QPushButton>
 #include <QScreen>
 #include <QShowEvent>
+#include <QStandardPaths>
 #include <QStatusBar>
 #include <QString>
 #include <QStringList>
@@ -236,7 +239,8 @@ void MainWindow::setCore(NotesAppCore* core) {
 void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
                               QString const& path, QString const& url) {
     // Resolve path trước khi truyền vào factory — factory chỉ nhận absolute path
-    QString const absolutePath = resolveResPath(path);
+    QString const absolutePath =
+        CorePaths::resolveResourcePath(path, m_appController->resourceDir());
 
     auto viewer = ResourceViewerFactory::create(id, type, title, absolutePath, url,
                                                 m_appController->currentTheme(),
@@ -297,19 +301,8 @@ void MainWindow::showContextMenu(QPoint const& pos, std::int64_t id, ResourceTyp
     QMenu menu(this);
 
     QAction* addShortcutAction = menu.addAction(tr("Add Shortcut"));
-    QObject::connect(addShortcutAction, &QAction::triggered, this, [id, title]() {
-        ViewerPackHeader hdr{};
-        std::memcpy(hdr.magic, ViewerPackHeader::RVPK_MAGIC, 4);
-        hdr.version = 1;
-        hdr.resourceId = id;
-        hdr.themeMode = static_cast<std::uint8_t>(UiConst::Theme::Light);
-        hdr.language = static_cast<std::uint8_t>(UiConst::Language::English);
-
-        ViewerPackWriter writer;
-        auto result =
-            writer.write(ViewerPackUltis::sanitizeFileName(title.toStdString()) + ".rvpk", hdr);
-        Q_ASSERT(result.has_value());
-    });
+    QObject::connect(addShortcutAction, &QAction::triggered, this,
+                     [this, id, title]() { createPackerFile(id, title); });
 
     QAction* viewAction{};
     viewAction = menu.addAction(tr("View Resource"));
@@ -900,29 +893,6 @@ void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
 
 // --- END showContextMenu helper ---
 
-QString MainWindow::resolveResPath(QString const& path) {
-    QString absolutePath;
-
-    QFileInfo fi(path);
-
-    if (fi.isAbsolute()) {
-        absolutePath = fi.absoluteFilePath();
-    } else {
-        QDir baseDir(
-            QString::fromStdString(m_appController->resourceDir().lexically_normal().string()));
-
-        QString relativePath = path;
-
-        if (relativePath.startsWith("resources/") || relativePath.startsWith("resources\\")) {
-            relativePath = relativePath.mid(QString("resources/").length());
-        }
-
-        absolutePath = baseDir.absoluteFilePath(relativePath);
-    }
-
-    return absolutePath;
-}
-
 void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result,
                                             UiConst::CleanupMode mode) {
     QString typeText =
@@ -946,4 +916,42 @@ void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result,
     }
 
     Q_EMIT onCleanupFinished(mode);
+}
+
+void MainWindow::createPackerFile(std::int64_t id, QString const& title) {
+    auto const theme = m_appController->currentTheme();
+    auto const language = m_appController->currentLanguage();
+
+    QString const suggestedName =
+        QString::fromStdString(ViewerPackUltis::sanitizeFileName(title.toStdString())) + ".rvpk";
+
+    QString const defaultDir = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    QString const savePath = QFileDialog::getSaveFileName(
+        this, tr("Save Shortcut"), defaultDir + "/" + suggestedName, tr("Viewer Pack (*.rvpk)"));
+
+    if (savePath.isEmpty()) { return; } // user cancel
+
+    ViewerPackHeader hdr{};
+
+    // NOLINTNEXTLINE (-Wunsafe-buffer-usage-in-libc-call)
+    std::memcpy(hdr.magic, ViewerPackHeader::RVPK_MAGIC, sizeof(ViewerPackHeader::RVPK_MAGIC));
+    hdr.version = ViewerPackHeader::VERSION;
+    hdr.resourceId = id;
+    hdr.themeMode = static_cast<std::uint8_t>(theme);
+    hdr.language = static_cast<std::uint8_t>(language);
+    hdr.reserved1 = 0;
+
+    ViewerPackWriter writer;
+    auto result = writer.write(savePath.toStdString(), hdr);
+
+    if (!result.has_value()) {
+        Log::err("createPackerFile: failed to write .rvpk for resource {}", id);
+        DialogUtils::showError(this, tr("Error"),
+                               tr("Failed to create shortcut file.\nPlease check write permissions "
+                                  "for the selected location."));
+        return;
+    }
+
+    DialogUtils::showInfo(this, tr("Shortcut Created"),
+                          tr("Shortcut created successfully:\n%1").arg(savePath));
 }

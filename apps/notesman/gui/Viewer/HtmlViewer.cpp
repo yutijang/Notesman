@@ -136,7 +136,10 @@ bool HtmlViewer::initFromFile(QString path, ContentMode mode) {
 }
 
 bool HtmlViewer::initFromUrl(QUrl url, ContentMode mode) {
-    if (!url.isValid()) [[unlikely]] { return false; }
+    if (!url.isValid()) [[unlikely]] {
+        Log::fatal("url INVALID - {}", url.toString().toStdString());
+        return false;
+    }
 
     m_url = std::move(url);
 

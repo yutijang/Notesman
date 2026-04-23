@@ -76,6 +76,8 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
 
     if (includeContent) { fres.content = m_textRepo.getTextById(resourceId); }
 
+    fres.url = getUrlByResourceIdOnly(resourceId);
+
     return fres;
 }
 

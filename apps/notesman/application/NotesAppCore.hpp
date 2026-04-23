@@ -34,7 +34,8 @@ class NotesAppCore {
         [[nodiscard]]
         std::optional<sqlite3_int64> addUrlNote(std::string_view title, ResourceType type,
                                                 std::string_view rawUrl) const;
-        [[nodiscard]] std::optional<FullResource> getFullResource(sqlite3_int64 resourceId) const;
+        [[nodiscard]] std::optional<FullResource> getFullResource(sqlite3_int64 resourceId,
+                                                                  bool includeContent = true) const;
         [[nodiscard]] std::vector<FullResource> getAllFull() const;
 
         [[nodiscard]] std::vector<UnifiedSearchResult> getAllUnified() const;

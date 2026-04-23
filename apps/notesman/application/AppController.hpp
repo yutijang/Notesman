@@ -42,6 +42,10 @@ class AppController final : public QObject {
 
         [[nodiscard]] UiConst::Theme currentTheme() const noexcept { return m_settings->theme(); }
 
+        [[nodiscard]] UiConst::Language currentLanguage() const noexcept {
+            return m_settings->language();
+        }
+
         [[nodiscard]] QString lastUpdateInfoAssetHash() const noexcept {
             return m_lastUpdateInfoSummary.assetHash;
         }

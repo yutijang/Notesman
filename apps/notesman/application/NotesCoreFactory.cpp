@@ -148,8 +148,6 @@ NotesCoreFactory::CoreInitResult NotesCoreFactory::createCore(std::filesystem::p
         }
         return CoreInitResult(InitFailureReason::OpenFailed);
     }
-
-    return CoreInitResult(InitFailureReason::Ok);
 }
 
 bool NotesCoreFactory::internalCreateDatabase(std::filesystem::path const& dbPath,

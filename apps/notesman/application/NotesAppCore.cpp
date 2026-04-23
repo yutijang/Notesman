@@ -29,8 +29,9 @@ std::optional<sqlite3_int64> NotesAppCore::addUrlNote(std::string_view title, Re
     return m_resService.addUrlResource(title, type, rawUrl);
 }
 
-std::optional<FullResource> NotesAppCore::getFullResource(sqlite3_int64 resourceId) const {
-    return m_resService.getFullResource(resourceId);
+std::optional<FullResource> NotesAppCore::getFullResource(sqlite3_int64 resourceId,
+                                                          bool includeContent) const {
+    return m_resService.getFullResource(resourceId, includeContent);
 }
 
 std::vector<FullResource> NotesAppCore::getAllFull() const {

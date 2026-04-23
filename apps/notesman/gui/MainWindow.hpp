@@ -115,7 +115,6 @@ class MainWindow : public QMainWindow {
         static std::optional<ResourceType> extractTypeFromRow(ResultsTable* resultTable, int row);
         void runUpdate(QString const& filePath);
         void disableSyntaxHighlightingTheme();
-        QString resolveResPath(QString const& path);
 
         void onCheckUpdateClicked();
         void onAbout();
@@ -124,6 +123,8 @@ class MainWindow : public QMainWindow {
         void handleContextMenuDeleteAction(ResultsTable* resultTable);
 
         void notiFromCleanupCacheResult(UiConst::CleanupResult result, UiConst::CleanupMode mode);
+
+        void createPackerFile(std::int64_t id, QString const& title);
 
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(QString const& filePath);
