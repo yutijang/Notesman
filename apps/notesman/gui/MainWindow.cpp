@@ -4,16 +4,12 @@
 #include "AppController.hpp"
 #include "BrowseTabWidget.hpp"
 #include "CodeEditorLineHighlighter.hpp"
-#include "ContentMode.hpp"
 #include "DialogUtils.hpp"
-#include "EpubResolver.hpp"
 #include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"
 #include "InfoCornerWidget.hpp"
 #include "Logger.hpp"
-#include "MarkdownToHtml.hpp"
 #include "NotesAppCore.hpp"
-#include "PdfViewer.hpp"
 #include "PlainTextEdit.hpp"
 #include "ResourceSearchWorker.hpp"
 #include "ResourceViewService.hpp"
@@ -236,74 +232,15 @@ void MainWindow::setCore(NotesAppCore* core) {
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_browseTab), true);
 }
 
-/*
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
                               QString const& path, QString const& url) {
-    std::unique_ptr<IResourceViewer> viewer;
+    // Resolve path trước khi truyền vào factory — factory chỉ nhận absolute path
+    QString const absolutePath = resolveResPath(path);
 
-    switch (type) {
-        case ResourceType::PlainText:
-        case ResourceType::CCppCode : {
-            bool const editable = (type == ResourceType::PlainText && path.isEmpty());
-            UiConst::Theme const theme = m_appController->currentTheme();
-
-            viewer = std::make_unique<TextViewer>(static_cast<sqlite3_int64>(id), editable,
-                                                  *m_resourceViewService, theme, this);
-            break;
-        }
-        case ResourceType::HtmlDoc:
-        case ResourceType::Markdown: {
-            QString const absolutePath = resolveResPath(path);
-
-            if (type == ResourceType::Markdown) {
-                QString const htmlFileFromMd =
-                    MarkdownToHtml::convertFileToHtml(absolutePath, m_appController->isDarkTheme());
-                if (htmlFileFromMd.isEmpty()) { return; }
-                viewer =
-                    HtmlViewer::createFromFile(title, htmlFileFromMd, ContentMode::HtmlFile, this);
-            } else {
-                viewer =
-                    HtmlViewer::createFromFile(title, absolutePath, ContentMode::HtmlFile, this);
-            }
-
-            if (!viewer) {
-                Log::err("Invalid WebView2 runtime");
-                return;
-            }
-
-            break;
-        }
-        case ResourceType::Url: {
-            QUrl const qurl = QUrl::fromUserInput(url);
-            viewer = HtmlViewer::createFromUrl(title, qurl, ContentMode::Url, this);
-            if (!viewer) {
-                Log::err("Invalid WebView2 runtime");
-                return;
-            }
-            break;
-        }
-        case ResourceType::PdfDoc: {
-            viewer = std::make_unique<PdfViewer>(path, this);
-            break;
-        }
-        case ResourceType::EpubDoc: {
-            auto epubResolvedPathOtp = EpubResolver::resolveToHtml(path);
-            if (epubResolvedPathOtp) {
-                viewer = HtmlViewer::createFromFile(title, *epubResolvedPathOtp, ContentMode::Epub,
-                                                    this);
-                if (!viewer) {
-                    Log::err("Invalid WebView2 runtime");
-                    return;
-                }
-            }
-
-            break;
-        }
-        case ResourceType::Unknown:
-        case ResourceType::Count  : break;
-    }
-
+    auto viewer = ResourceViewerFactory::create(id, type, title, absolutePath, url,
+                                                m_appController->currentTheme(),
+                                                *m_resourceViewService, this);
     if (!viewer) { return; }
     {
 #ifdef Q_OS_LINUX
@@ -342,54 +279,6 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const&
     }
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
 
-    dlg->exec();
-}
-*/
-void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
-                              QString const& path, QString const& url) {
-    // Resolve path trước khi truyền vào factory — factory chỉ nhận absolute path
-    QString const absolutePath = resolveResPath(path);
-
-    auto viewer = ResourceViewerFactory::create(id, type, title, absolutePath, url,
-                                                m_appController->currentTheme(),
-                                                *m_resourceViewService, this);
-    if (!viewer) { return; }
-
-#ifdef Q_OS_LINUX
-    if (viewer->usesExternalWindow()) {
-        if (m_viewerLocked) { return; }
-
-        m_viewerLocked = true;
-        this->setEnabled(false);
-
-        auto* htmlViewer = dynamic_cast<HtmlViewer*>(viewer.get());
-        if (htmlViewer == nullptr) {
-            m_viewerLocked = false;
-            this->setEnabled(true);
-            return;
-        }
-
-        QProcess* proc = htmlViewer->process();
-        if (proc == nullptr) {
-            m_viewerLocked = false;
-            this->setEnabled(true);
-            return;
-        }
-
-        m_externalViewer = std::move(viewer);
-
-        QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
-                         [this]() {
-                             m_externalViewer.reset();
-                             m_viewerLocked = false;
-                             this->setEnabled(true);
-                         });
-
-        return;
-    }
-#endif
-
-    auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
     dlg->exec();
 }
 
