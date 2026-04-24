@@ -10,6 +10,7 @@
 #include "CorePaths.hpp"
 #include "FileAssociation.hpp"
 #include "FontLoader.hpp"
+#include "IpcConstants.hpp"
 #include "Logger.hpp"
 #include "NotesCoreFactory.hpp"
 #include "ResourceViewService.hpp"
@@ -26,19 +27,12 @@
 #include <QObject>
 #include <QString>
 #include <QTranslator>
+#include <QtTypes>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <sqlite3.h>
 #include <utility>
-
-namespace {
-    constexpr int K_IPC_TIMEOUT_MS = 200;
-
-    [[nodiscard]] QString packerServerName(sqlite3_int64 resourceId) {
-        return QStringLiteral("Notesman_Packer_%1").arg(resourceId);
-    }
-} // namespace
 
 int PackerLauncher::run(QString const& packerFilePath) {
     // Đọc và validate .rvpk header
@@ -54,15 +48,15 @@ int PackerLauncher::run(QString const& packerFilePath) {
     auto const language = static_cast<UiConst::Language>(header.language);
 
     // IPC check — phải trước khi init core/DB
-    QString const serverName = packerServerName(resourceId);
+    QString const serverName = IpcNames::packerServer(resourceId);
     {
         QLocalSocket probe;
         probe.connectToServer(serverName);
-        if (probe.waitForConnected(K_IPC_TIMEOUT_MS)) {
+        if (probe.waitForConnected(IpcNames::K_IPC_TIMEOUT_MS)) {
             // Đã có process với resourceId này → báo focus rồi thoát
             probe.write("activate");
             probe.flush();
-            probe.waitForBytesWritten(K_IPC_TIMEOUT_MS);
+            probe.waitForBytesWritten(IpcNames::K_IPC_TIMEOUT_MS);
             probe.disconnectFromServer();
             Log::info("packer instance for resource {} already running, activating.", resourceId);
             return 0;
@@ -77,15 +71,44 @@ int PackerLauncher::run(QString const& packerFilePath) {
         // Server vừa được process khác tạo trong khoảng thời gian race
         QLocalSocket retry;
         retry.connectToServer(serverName);
-        if (retry.waitForConnected(K_IPC_TIMEOUT_MS)) {
+        if (retry.waitForConnected(IpcNames::K_IPC_TIMEOUT_MS)) {
             retry.write("activate");
             retry.flush();
-            retry.waitForBytesWritten(K_IPC_TIMEOUT_MS);
+            retry.waitForBytesWritten(IpcNames::K_IPC_TIMEOUT_MS);
             retry.disconnectFromServer();
             return 0;
         }
         // Vẫn không connect được → tiếp tục mà không có IPC server (non-fatal)
         Log::warn("IPC server unavailable for resource {}, proceeding without it.", resourceId);
+    }
+
+    {
+        QLocalSocket guiProbe;
+        guiProbe.connectToServer(IpcNames::K_GUI_SERVER);
+
+        if (guiProbe.waitForConnected(IpcNames::K_IPC_TIMEOUT_MS)) {
+            // GUI đang chạy — query xem resourceId này có đang mở không
+            QByteArray const query =
+                QByteArray("query:") + QByteArray::number(static_cast<qlonglong>(resourceId));
+            guiProbe.write(query);
+            guiProbe.flush();
+
+            if (guiProbe.waitForReadyRead(IpcNames::K_IPC_TIMEOUT_MS)) {
+                QByteArray const response = guiProbe.readAll();
+
+                if (response == "found") {
+                    // Viewer đang mở trong GUI — gửi activate rồi thoát
+                    guiProbe.write(QByteArray("activate:") +
+                                   QByteArray::number(static_cast<qlonglong>(resourceId)));
+                    guiProbe.flush();
+                    guiProbe.waitForBytesWritten(IpcNames::K_IPC_TIMEOUT_MS);
+                    guiProbe.disconnectFromServer();
+                    Log::info("resource {} already open in GUI, activating.", resourceId);
+                    return 0;
+                }
+            }
+            guiProbe.disconnectFromServer();
+        }
     }
 
     // Apply theme + language + font custom

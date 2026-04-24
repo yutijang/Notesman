@@ -9,6 +9,7 @@
 #include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"
 #include "InfoCornerWidget.hpp"
+#include "IpcConstants.hpp"
 #include "Logger.hpp"
 #include "NotesAppCore.hpp"
 #include "PlainTextEdit.hpp"
@@ -43,6 +44,7 @@
 #include <QLabel>
 #include <QLatin1String>
 #include <QLineEdit>
+#include <QLocalSocket>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMessageBox>
@@ -238,6 +240,20 @@ void MainWindow::setCore(NotesAppCore* core) {
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
                               QString const& path, QString const& url) {
+    // Query packer process — kiểm tra resourceId có đang mở trong packer không
+    QString const packerServerName = IpcNames::packerServer(id);
+
+    QLocalSocket packerProbe;
+    packerProbe.connectToServer(packerServerName);
+    if (packerProbe.waitForConnected(200)) {
+        // Packer đang mở resource này → focus packer dialog rồi thoát
+        packerProbe.write("activate");
+        packerProbe.flush();
+        packerProbe.waitForBytesWritten(200);
+        packerProbe.disconnectFromServer();
+        return;
+    }
+
     // Resolve path trước khi truyền vào factory — factory chỉ nhận absolute path
     QString const absolutePath =
         CorePaths::resolveResourcePath(path, m_appController->resourceDir());
@@ -282,6 +298,9 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const&
 #endif
     }
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
+
+    Q_EMIT viewerDialogOpened(id, dlg);
+    QObject::connect(dlg, &QDialog::finished, [this, id]() { Q_EMIT viewerDialogClosed(id); });
 
     dlg->exec();
 }

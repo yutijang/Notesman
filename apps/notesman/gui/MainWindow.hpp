@@ -38,6 +38,7 @@ class QProgressDialog;
 class ResultsTable;
 class InfoCornerWidget;
 class QAction;
+class QDialog;
 
 // ----------------------------------------------------
 
@@ -92,6 +93,9 @@ class MainWindow : public QMainWindow {
 
         void deleteDatabaseFileRespondForward(QString const& msg);
         void onCleanupFinished(UiConst::CleanupMode mode);
+
+        void viewerDialogOpened(std::int64_t resourceId, QDialog* dlg);
+        void viewerDialogClosed(std::int64_t resourceId);
 
     protected:
         void showEvent(QShowEvent* event) override;

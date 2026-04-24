@@ -1,5 +1,7 @@
 #include "AppInitializer.hpp"
 
+#include <cstdint>
+
 #ifdef Q_OS_WIN
 #include <functional>
 #include <windows.h>
@@ -12,6 +14,7 @@
 #include "FileAssociation.hpp"
 #include "FontLoader.hpp"
 #include "GuiCoreErrorHandler.hpp"
+#include "IpcConstants.hpp"
 #include "Logger.hpp"
 #include "MainWindow.hpp"
 #include "NotesCoreFactory.hpp"
@@ -42,13 +45,12 @@
 #include <vector>
 
 namespace {
-    constexpr auto K_SERVER_NAME = "Notesman_InstanceLock";
     constexpr int K_TIMEWAIT{100};
 } // namespace
 
 bool AppInitializer::ensureSingleInstance() {
     QLocalSocket socket;
-    socket.connectToServer(K_SERVER_NAME);
+    socket.connectToServer(IpcNames::K_GUI_SERVER);
 
     if (socket.waitForConnected(K_TIMEWAIT)) {
 #if defined(Q_OS_WIN)
@@ -62,13 +64,13 @@ bool AppInitializer::ensureSingleInstance() {
         return false;
     }
 
-    QLocalServer::removeServer(K_SERVER_NAME);
+    QLocalServer::removeServer(IpcNames::K_GUI_SERVER);
     m_localServer = std::make_unique<QLocalServer>();
 
     QObject::connect(m_localServer.get(), &QLocalServer::newConnection, this,
                      &AppInitializer::onSecondInstanceMessage);
 
-    m_localServer->listen(K_SERVER_NAME);
+    m_localServer->listen(IpcNames::K_GUI_SERVER);
 
     return true;
 }
@@ -76,29 +78,64 @@ bool AppInitializer::ensureSingleInstance() {
 void AppInitializer::onSecondInstanceMessage() {
     if (!m_localServer || !m_localServer->hasPendingConnections()) [[unlikely]] { return; }
 
-    std::unique_ptr<QLocalSocket> client(m_localServer->nextPendingConnection());
-    if (!client) [[unlikely]] { return; }
+    QLocalSocket* client = m_localServer->nextPendingConnection();
+    if (client == nullptr) [[unlikely]] { return; }
 
-    if (!client->waitForReadyRead(K_TIMEWAIT)) [[unlikely]] { return; }
+    // Non-blocking — dùng signal thay vì waitForReadyRead
+    QObject::connect(client, &QLocalSocket::readyRead, [this, client]() {
+        QByteArray const msg = client->readAll();
 
-    QByteArray const msg = client->readAll();
-
-    if (msg == "activate" && m_mainWindow) [[likely]] {
+        if (msg == "activate") {
+            if (!m_mainWindow) { return; }
 #if defined(Q_OS_WIN)
-        // kích hoạt cửa sổ
-        HWND hwnd =
-            reinterpret_cast<HWND>(m_mainWindow->winId()); // NOLINT(performance-no-int-to-ptr)
-        if (IsIconic(hwnd) != 0) {
-            ShowWindow(hwnd, SW_RESTORE);                  // khôi phục nếu đang minimize
-        }
-        SetForegroundWindow(hwnd);
+            HWND hwnd =
+                reinterpret_cast<HWND>(m_mainWindow->winId()); // NOLINT(performance-no-int-to-ptr)
+            if (IsIconic(hwnd) != 0) { ShowWindow(hwnd, SW_RESTORE); }
+            SetForegroundWindow(hwnd);
 #elif defined(Q_OS_LINUX)
-        // Linux
-        if (m_mainWindow->isMinimized()) { m_mainWindow->showNormal(); }
-        m_mainWindow->raise();
-        m_mainWindow->activateWindow();
+            if (m_mainWindow->isMinimized()) { m_mainWindow->showNormal(); }
+            m_mainWindow->raise();
+            m_mainWindow->activateWindow();
 #endif
-    }
+            return;
+        }
+
+        // "query:<resourceId>"
+        if (msg.startsWith("query:")) {
+            bool ok = false;
+            std::int64_t const resourceId = msg.mid(6).toLongLong(&ok); // "query:" = 6 chars
+            if (!ok) { return; }
+
+            bool const found = m_activeViewers.contains(resourceId);
+            client->write(found ? "found" : "not-found");
+            client->flush();
+            return;
+        }
+
+        // "activate:<resourceId>"
+        if (msg.startsWith("activate:")) {
+            bool ok = false;
+            std::int64_t const resourceId = msg.mid(9).toLongLong(&ok); // "activate:" = 9 chars
+            if (!ok) { return; }
+
+            auto it = m_activeViewers.find(resourceId);
+            if (it == m_activeViewers.end()) { return; }
+
+            QDialog* dlg = it->second;
+#if defined(Q_OS_WIN)
+            HWND hwnd = reinterpret_cast<HWND>(dlg->winId()); // NOLINT(performance-no-int-to-ptr)
+            if (IsIconic(hwnd) != 0) { ShowWindow(hwnd, SW_RESTORE); }
+            SetForegroundWindow(hwnd);
+#elif defined(Q_OS_LINUX)
+            if (dlg->isMinimized()) { dlg->showNormal(); }
+            dlg->raise();
+            dlg->activateWindow();
+#endif
+            return;
+        }
+    });
+
+    QObject::connect(client, &QLocalSocket::disconnected, client, &QObject::deleteLater);
 }
 
 void AppInitializer::run() {
@@ -263,6 +300,11 @@ void AppInitializer::setupInitializerConnections() {
                      &AppController::cleanupOldEpubCache);
     QObject::connect(this, &AppInitializer::cleanupMDCacheRequest, m_controller.get(),
                      &AppController::cleanupOldMarkdownCache);
+
+    QObject::connect(m_mainWindow.get(), &MainWindow::viewerDialogOpened, this,
+                     &AppInitializer::registerViewerDialog);
+    QObject::connect(m_mainWindow.get(), &MainWindow::viewerDialogClosed, this,
+                     &AppInitializer::unregisterViewerDialog);
 }
 
 void AppInitializer::closeDatabaseConnection(bool isUpload) {
@@ -426,3 +468,11 @@ void AppInitializer::waitForProcessExitAsync(DWORD pid, std::function<void()> co
     timer->start();
 }
 #endif
+
+void AppInitializer::registerViewerDialog(std::int64_t resourceId, QDialog* dlg) {
+    m_activeViewers[resourceId] = dlg;
+}
+
+void AppInitializer::unregisterViewerDialog(std::int64_t resourceId) {
+    m_activeViewers.erase(resourceId);
+}

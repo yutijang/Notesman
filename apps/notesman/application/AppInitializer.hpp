@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QObject>
+#include <cstdint>
+#include <unordered_map>
 
 #ifdef Q_OS_WIN
 #include <functional>
@@ -27,6 +29,8 @@
 #include <QStringList>
 #include <memory>
 
+class QDialog;
+
 class AppInitializer final : public QObject {
         Q_OBJECT
 
@@ -38,6 +42,9 @@ class AppInitializer final : public QObject {
         void run();
         void closeDatabaseConnection(bool isUpload);
         void reinitializeDatabaseConnection();
+
+        void registerViewerDialog(std::int64_t resourceId, QDialog* dlg);
+        void unregisterViewerDialog(std::int64_t resourceId);
 
     Q_SIGNALS:
         void coreReady(NotesAppCore* core);
@@ -79,4 +86,6 @@ class AppInitializer final : public QObject {
         std::unique_ptr<AppController> m_controller;
         std::unique_ptr<QLocalServer> m_localServer;
         std::unique_ptr<NotesAppCore> m_core;
+
+        std::unordered_map<std::int64_t, QDialog*> m_activeViewers;
 };
