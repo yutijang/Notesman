@@ -1,8 +1,7 @@
 #include "AppInitializer.hpp"
 
-#include <utility>
-
 #ifdef Q_OS_WIN
+#include <functional>
 #include <windows.h>
 #endif
 
@@ -10,6 +9,7 @@
 #include "AppSettings.hpp"
 #include "CorePaths.hpp"
 #include "DialogUtils.hpp"
+#include "FileAssociation.hpp"
 #include "FontLoader.hpp"
 #include "GuiCoreErrorHandler.hpp"
 #include "Logger.hpp"
@@ -38,6 +38,7 @@
 #include <memory>
 #include <string>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -132,6 +133,13 @@ void AppInitializer::run() {
     }
 
     m_controller->loadSettings();
+
+#ifdef Q_OS_WIN
+    // Silent auto-repair: nếu path stale (app bị di chuyển) thì ghi lại
+    if (!FileAssociation::isUpToDate()) {
+        if (!FileAssociation::registerAssociation()) { Log::warn("auto-register failed."); }
+    }
+#endif
 
     AppSettings const* settings = m_controller->settings();
     if (settings != nullptr) {

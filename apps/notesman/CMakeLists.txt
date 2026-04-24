@@ -101,6 +101,7 @@ set(APP_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/application/ResourceViewerFactory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/PackerLauncher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/AppUIApplier.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/application/FileAssociation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/workers/ResourceSearchWorker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/UpdateManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/DownloadManager.cpp
@@ -192,7 +193,7 @@ target_link_libraries(notes-app-lib-core
 if (WIN32)
     target_link_libraries(notes-app-lib-core
         PRIVATE
-        unofficial::webview2::webview2 user32 ole32 oleaut32 shlwapi
+        unofficial::webview2::webview2 user32 ole32 oleaut32 shlwapi Shell32
     )
 endif()
 

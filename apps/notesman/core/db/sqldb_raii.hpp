@@ -45,11 +45,18 @@ class SQLiteDB {
                 throw std::runtime_error("Cannot open database: " + errorMSG);
             }
 
+            // Busy timeout: 2000ms — cho phép writer khác hoàn thành trước khi fail
+            sqlite3_busy_timeout(dbPtr, 2000); // NOLINT(readability-magic-numbers)
+
             // =======================================================
             // Bổ sung: Kích hoạt Foreign Keys (Best Practice)
+            // WAL mode: nhiều reader + 1 writer đồng thời, không block lẫn nhau
+            // synchronous=NORMAL: an toàn với WAL, hiệu năng tốt hơn FULL
             // =======================================================
-            char const* pragmaFKON = "PRAGMA foreign_keys = ON;";
-            rc = sqlite3_exec(dbPtr, pragmaFKON, nullptr, nullptr, nullptr);
+            char const* pragmaInit = "PRAGMA journal_mode=WAL;"
+                                     "PRAGMA synchronous=NORMAL;"
+                                     "PRAGMA foreign_keys=ON;";
+            rc = sqlite3_exec(dbPtr, pragmaInit, nullptr, nullptr, nullptr);
 
             if (rc != SQLITE_OK) {
                 // Xử lý lỗi: Nếu không thể bật PRAGMA, cần đóng DB và báo lỗi

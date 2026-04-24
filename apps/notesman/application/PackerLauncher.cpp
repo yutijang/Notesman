@@ -1,9 +1,14 @@
 #include "PackerLauncher.hpp"
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 #include "AppSettings.hpp"
 #include "AppUIApplier.hpp"
 #include "CoreErrorReporter.hpp"
 #include "CorePaths.hpp"
+#include "FileAssociation.hpp"
 #include "FontLoader.hpp"
 #include "Logger.hpp"
 #include "NotesCoreFactory.hpp"
@@ -16,6 +21,9 @@
 #include "model.hpp"
 
 #include <QFileInfo>
+#include <QLocalServer>
+#include <QLocalSocket>
+#include <QObject>
 #include <QString>
 #include <QTranslator>
 #include <cstdint>
@@ -23,6 +31,14 @@
 #include <memory>
 #include <sqlite3.h>
 #include <utility>
+
+namespace {
+    constexpr int K_IPC_TIMEOUT_MS = 200;
+
+    [[nodiscard]] QString packerServerName(sqlite3_int64 resourceId) {
+        return QStringLiteral("Notesman_Packer_%1").arg(resourceId);
+    }
+} // namespace
 
 int PackerLauncher::run(QString const& packerFilePath) {
     // Đọc và validate .rvpk header
@@ -37,6 +53,41 @@ int PackerLauncher::run(QString const& packerFilePath) {
     auto const theme = static_cast<UiConst::Theme>(header.themeMode);
     auto const language = static_cast<UiConst::Language>(header.language);
 
+    // IPC check — phải trước khi init core/DB
+    QString const serverName = packerServerName(resourceId);
+    {
+        QLocalSocket probe;
+        probe.connectToServer(serverName);
+        if (probe.waitForConnected(K_IPC_TIMEOUT_MS)) {
+            // Đã có process với resourceId này → báo focus rồi thoát
+            probe.write("activate");
+            probe.flush();
+            probe.waitForBytesWritten(K_IPC_TIMEOUT_MS);
+            probe.disconnectFromServer();
+            Log::info("packer instance for resource {} already running, activating.", resourceId);
+            return 0;
+        }
+    }
+
+    // Chưa có process nào → trở thành server cho resourceId này
+    QLocalServer::removeServer(serverName);
+    auto localServer = std::make_unique<QLocalServer>();
+    if (!localServer->listen(serverName)) {
+        Log::warn("listen failed for resource {}, retrying connect...", resourceId);
+        // Server vừa được process khác tạo trong khoảng thời gian race
+        QLocalSocket retry;
+        retry.connectToServer(serverName);
+        if (retry.waitForConnected(K_IPC_TIMEOUT_MS)) {
+            retry.write("activate");
+            retry.flush();
+            retry.waitForBytesWritten(K_IPC_TIMEOUT_MS);
+            retry.disconnectFromServer();
+            return 0;
+        }
+        // Vẫn không connect được → tiếp tục mà không có IPC server (non-fatal)
+        Log::warn("IPC server unavailable for resource {}, proceeding without it.", resourceId);
+    }
+
     // Apply theme + language + font custom
     std::unique_ptr<QTranslator> translator;
     AppUI::applyLanguage(language, translator);
@@ -49,6 +100,13 @@ int PackerLauncher::run(QString const& packerFilePath) {
     if (!settings.load(configPath)) {
         Log::warn("failed to load config, using default resourceDir.");
     }
+
+#ifdef Q_OS_WIN
+    if (!FileAssociation::isUpToDate()) {
+        // silent, non-fatal
+        if (!FileAssociation::registerAssociation()) { Log::warn("auto-register failed."); }
+    }
+#endif
 
     // Khởi tạo core
     // CoreErrorReporter: headless — askQuestion luôn false, lỗi ghi log
@@ -92,10 +150,40 @@ int PackerLauncher::run(QString const& packerFilePath) {
         return 1;
     }
 
-    // Hiển thị dialog ---
-    // CoreContext, viewService, translator đều alive cho đến khi dialog đóng
+    // Tạo dialog + kết nối IPC signal
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), nullptr};
+
+    // Khi nhận "activate" từ instance thứ 2 → focus dialog
+    QObject::connect(localServer.get(), &QLocalServer::newConnection, [&localServer, dlg]() {
+        if (!localServer->hasPendingConnections()) [[unlikely]] { return; }
+
+        // Gắn parent = localServer → Qt delete khi disconnect
+        QLocalSocket* client = localServer->nextPendingConnection();
+        if (!client) [[unlikely]] { return; }
+
+        QObject::connect(client, &QLocalSocket::readyRead, [client, dlg]() {
+            QByteArray const msg = client->readAll();
+            if (msg != "activate") { return; }
+#if defined(Q_OS_WIN)
+            HWND hwnd = reinterpret_cast<HWND>(dlg->winId()); // NOLINT(performance-no-int-to-ptr)
+            if (IsIconic(hwnd) != 0) { ShowWindow(hwnd, SW_RESTORE); }
+            SetForegroundWindow(hwnd);
+#else
+            if (dlg->isMinimized()) { dlg->showNormal(); }
+            dlg->raise();
+            dlg->activateWindow();
+#endif
+            // Auto cleanup khi disconnect
+            QObject::connect(client, &QLocalSocket::disconnected, client, &QObject::deleteLater);
+        });
+    });
+
+    // Blocking exec — server sống trong scope này
     dlg->exec();
+
+    // cleanup
+    localServer->close();
+    QLocalServer::removeServer(serverName);
 
     return 0;
 }

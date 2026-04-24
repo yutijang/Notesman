@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <memory>
 #include <sqlite3.h>
+#include <utility>
 
 std::unique_ptr<IResourceViewer>
     ResourceViewerFactory::create(std::int64_t id, ResourceType type, QString const& title,
@@ -78,5 +79,5 @@ std::unique_ptr<IResourceViewer>
         case ResourceType::Count  : break;
     }
 
-    return viewer;
+    return std::move(viewer);
 }

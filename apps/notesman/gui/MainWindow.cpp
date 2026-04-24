@@ -925,9 +925,13 @@ void MainWindow::createPackerFile(std::int64_t id, QString const& title) {
     QString const suggestedName =
         QString::fromStdString(ViewerPackUltis::sanitizeFileName(title.toStdString())) + ".rvpk";
 
-    QString const defaultDir = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
-    QString const savePath = QFileDialog::getSaveFileName(
-        this, tr("Save Shortcut"), defaultDir + "/" + suggestedName, tr("Viewer Pack (*.rvpk)"));
+    auto& settings = SettingsManager::instance();
+    QString const desktopDirAsDefault =
+        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    QString const kDefaultDir = settings.get("packer/lastSaveDir", desktopDirAsDefault).toString();
+    QString const savePath = QFileDialog::getSaveFileName(this, tr("Save Shortcut"),
+                                                          QDir(kDefaultDir).filePath(suggestedName),
+                                                          tr("Viewer Pack (*.rvpk)"));
 
     if (savePath.isEmpty()) { return; } // user cancel
 
@@ -945,12 +949,15 @@ void MainWindow::createPackerFile(std::int64_t id, QString const& title) {
     auto result = writer.write(savePath.toStdString(), hdr);
 
     if (!result.has_value()) {
-        Log::err("createPackerFile: failed to write .rvpk for resource {}", id);
+        Log::err("failed to write .rvpk for resource {}", id);
         DialogUtils::showError(this, tr("Error"),
                                tr("Failed to create shortcut file.\nPlease check write permissions "
                                   "for the selected location."));
         return;
     }
+
+    QFileInfo const packerFile(savePath);
+    settings.set("packer/lastSaveDir", packerFile.absoluteDir().path());
 
     DialogUtils::showInfo(this, tr("Shortcut Created"),
                           tr("Shortcut created successfully:\n%1").arg(savePath));

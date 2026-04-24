@@ -1,9 +1,9 @@
 #pragma once
 
+#include "IResourceViewer.hpp"
 #include "UiConstants.hpp"
 #include "model.hpp"
 
-#include <IResourceViewer.hpp>
 #include <QString>
 #include <cstdint>
 #include <memory>
