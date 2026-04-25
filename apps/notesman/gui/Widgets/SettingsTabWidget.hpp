@@ -110,7 +110,7 @@ class SettingsTabWidget final : public QWidget {
         QLabel* m_notiSettingsChangedLbl{};
         QPushButton* m_checkRemoteDBInfoBtn{};
 
-        bool m_isLinked{};
+        bool m_isGMAccountLinked{};
 
         // Cleanup cache EPUB + Markdown
         QGroupBox* m_cleanupCacheGBox{};

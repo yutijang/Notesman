@@ -579,7 +579,7 @@ void SettingsTabWidget::handleAfterLinkAccount(QString const& htmlTextEmail) {
 
     m_addressUserGMLoginLbl->setText(htmlTextEmail);
 
-    m_isLinked = true;
+    m_isGMAccountLinked = true;
 
     m_linkGDBtn->setEnabled(true);
     m_linkGDBtn->setText(tr("Unlink"));
@@ -591,7 +591,7 @@ void SettingsTabWidget::handleAfterLinkAccount(QString const& htmlTextEmail) {
 }
 
 void SettingsTabWidget::handleAfterUnlinkAccount() {
-    m_isLinked = false;
+    m_isGMAccountLinked = false;
     m_addressUserGMLoginLbl->clear();
     m_linkGDBtn->setText(tr("Link Gmail for backup database to Google Drive"));
     m_linkGDBtn->setMaximumWidth(340); // NOLINT(readability-magic-numbers)
@@ -602,7 +602,7 @@ void SettingsTabWidget::handleAfterUnlinkAccount() {
 }
 
 void SettingsTabWidget::onLinkBtnClicked() {
-    if (!m_isLinked) {
+    if (!m_isGMAccountLinked) {
         // Chưa liên kết → yêu cầu AppController bắt đầu OAuth
         m_linkGDBtn->setEnabled(false);
         showLoginStatus();
