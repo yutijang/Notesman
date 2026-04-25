@@ -28,9 +28,11 @@ class DownloadManager final : public QObject {
         void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
         void onDownloadFinished();
         void onDownloadError(QNetworkReply::NetworkError code);
+        void abortDownload();
 
         QNetworkAccessManager m_networkManager;
         QNetworkReply* m_currentReply{};
         QFile m_outputFile;
         QTimer m_timeoutTimer;
+        bool m_isAborted{false};
 };

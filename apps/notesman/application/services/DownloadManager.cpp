@@ -15,17 +15,7 @@ DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
     m_timeoutTimer.setSingleShot(true);
 
     QObject::connect(&m_timeoutTimer, &QTimer::timeout, this, [this] {
-        if (m_currentReply != nullptr) {
-            m_currentReply->disconnect(this);
-            m_currentReply->abort();
-            m_currentReply->deleteLater();
-            m_currentReply = nullptr;
-        }
-
-        if (m_outputFile.isOpen()) { m_outputFile.close(); }
-        if (!m_outputFile.fileName().isEmpty()) { m_outputFile.remove(); }
-
-        m_timeoutTimer.stop();
+        abortDownload();
 
         Log::info("Stop download update because internet connection is too slow");
 
@@ -44,6 +34,8 @@ DownloadManager::~DownloadManager() {
 }
 
 void DownloadManager::startDownload(QUrl const& url, QString const& outputFilePath) {
+    m_isAborted = false;
+
     if (m_currentReply != nullptr) {
         Log::info("Another download is already in progress.");
         Q_EMIT downloadFailed(tr("Another download is already in progress."));
@@ -79,8 +71,8 @@ void DownloadManager::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal
 }
 
 void DownloadManager::onDownloadFinished() {
-    if (m_currentReply == nullptr) [[unlikely]] {
-        Log::err("onDownloadFinished called with null reply");
+    if (m_currentReply == nullptr || m_isAborted) [[unlikely]] {
+        Log::err("onDownloadFinished called with null reply or abort cause");
         return;
     }
 
@@ -92,17 +84,36 @@ void DownloadManager::onDownloadFinished() {
 
     m_currentReply->deleteLater();
     m_currentReply = nullptr;
-
     m_timeoutTimer.stop();
 }
 
 void DownloadManager::onDownloadError(QNetworkReply::NetworkError /*unused*/) {
+    if (m_currentReply == nullptr || m_isAborted) [[unlikely]] {
+        Log::err("onDownloadError called with null reply or abort cause");
+        return;
+    }
+
     Q_EMIT downloadFailed(m_currentReply->errorString());
 
     m_outputFile.close();
     m_outputFile.remove(); // xoá file lỗi
     m_currentReply->deleteLater();
     m_currentReply = nullptr;
+    m_timeoutTimer.stop();
+}
+
+void DownloadManager::abortDownload() {
+    m_isAborted = true;
+
+    if (m_currentReply != nullptr) {
+        m_currentReply->disconnect(this);
+        m_currentReply->abort();
+        m_currentReply->deleteLater();
+        m_currentReply = nullptr;
+    }
 
     m_timeoutTimer.stop();
+
+    if (m_outputFile.isOpen()) { m_outputFile.close(); }
+    if (!m_outputFile.fileName().isEmpty()) { m_outputFile.remove(); }
 }
