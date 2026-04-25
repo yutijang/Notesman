@@ -6,6 +6,7 @@
 #include "CodeEditorLineHighlighter.hpp"
 #include "CorePaths.hpp"
 #include "DialogUtils.hpp"
+#include "FileAssociation.hpp"
 #include "HtmlViewer.hpp"
 #include "IResourceViewer.hpp"
 #include "InfoCornerWidget.hpp"
@@ -353,6 +354,10 @@ void MainWindow::setAppController(AppController* controller) {
         if (index == settingsTabIndex && m_appController) {
             SettingsData const ui = m_appController->currentUiSettings();
             Q_EMIT settingsUiRefreshRequest(ui);
+
+#ifdef Q_OS_WIN
+            Q_EMIT handleFileAssociationStatusRequest(FileAssociation::isUpToDate());
+#endif
         }
     });
 
@@ -435,6 +440,16 @@ void MainWindow::setAppController(AppController* controller) {
                      });
     QObject::connect(this, &MainWindow::onCleanupFinished, m_settingsTab,
                      &SettingsTabWidget::handleButtonAfterCleanup);
+#ifdef Q_OS_WIN
+    QObject::connect(this, &MainWindow::handleFileAssociationStatusRequest, m_settingsTab,
+                     &SettingsTabWidget::handleFileAssociationStatus);
+
+    QObject::connect(m_settingsTab, &SettingsTabWidget::onFileAssociationBtnClicked,
+                     m_appController, &AppController::handleFileAssociationBtnRequest);
+
+    QObject::connect(m_appController, &AppController::refreshFileAssociationStatus, m_settingsTab,
+                     &SettingsTabWidget::handleFileAssociationStatus);
+#endif
 }
 
 void MainWindow::changeEvent(QEvent* event) {

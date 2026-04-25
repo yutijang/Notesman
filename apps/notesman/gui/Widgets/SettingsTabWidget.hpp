@@ -50,6 +50,8 @@ class SettingsTabWidget final : public QWidget {
 
         void handleButtonAfterCleanup(UiConst::CleanupMode mode);
 
+        void handleFileAssociationStatus(bool isRegistered);
+
     Q_SIGNALS:
         void applySettingsRequested(SettingsData const& data);
         void defaultSettingsRequested();
@@ -64,6 +66,8 @@ class SettingsTabWidget final : public QWidget {
 
         void cleanupEpubCacheNowRequest();
         void cleanupMDCacheNowRequest();
+
+        void onFileAssociationBtnClicked();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void setupUi();
@@ -89,6 +93,7 @@ class SettingsTabWidget final : public QWidget {
         [[nodiscard]] QVBoxLayout* setupAccountLinkGroup();
         [[nodiscard]] QWidget* setupLoginStatusGroup();
         [[nodiscard]] QGroupBox* setupCleanupGroup();
+        [[nodiscard]] QGroupBox* setupFileAssociation();
 
         QRadioButton* m_langEnRad{};
         QRadioButton* m_langViRad{};
@@ -132,4 +137,7 @@ class SettingsTabWidget final : public QWidget {
         QLabel* m_info2{};
         QLabel* m_info3{};
         QLabel* m_info4{};
+
+        QLabel* m_associationStatusLbl{};
+        QPushButton* m_regAssociationBtn{};
 };

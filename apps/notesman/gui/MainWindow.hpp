@@ -97,6 +97,8 @@ class MainWindow : public QMainWindow {
         void viewerDialogOpened(std::int64_t resourceId, QDialog* dlg);
         void viewerDialogClosed(std::int64_t resourceId);
 
+        void handleFileAssociationStatusRequest(bool isRegistered);
+
     protected:
         void showEvent(QShowEvent* event) override;
         void closeEvent(QCloseEvent* event) override;

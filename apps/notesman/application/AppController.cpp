@@ -4,6 +4,7 @@
 #include "CorePaths.hpp"
 #include "DialogUtils.hpp"
 #include "DownloadManager.hpp"
+#include "FileAssociation.hpp"
 #include "GoogleDriveService.hpp"
 #include "Logger.hpp"
 #include "MainWindow.hpp"
@@ -624,4 +625,30 @@ UiConst::CleanupResult AppController::cleanupOldEpubCacheNow() {
 
 UiConst::CleanupResult AppController::cleanupOldMarkdownCacheNow() {
     return cleanupOldMarkdownCache(0);
+}
+
+void AppController::handleFileAssociationBtnRequest() {
+#ifdef Q_OS_WIN
+    bool ok = FileAssociation::isUpToDate();
+    if (ok) {
+        FileAssociation::unregisterAssociation();
+
+        Q_EMIT settingsUpdateStatus("File association unregistered",
+                                    UiConst::SettingsMessageState::Updated);
+        ok = false;
+    } else {
+        if (FileAssociation::registerAssociation()) {
+            // cập nhật status label: "Registered"
+            Q_EMIT settingsUpdateStatus("File association registration successful",
+                                        UiConst::SettingsMessageState::Updated);
+            ok = true;
+        } else {
+            // cập nhật status label: "Failed"
+            Q_EMIT settingsUpdateStatus("File association registration failed",
+                                        UiConst::SettingsMessageState::Updated);
+        }
+    }
+
+    Q_EMIT refreshFileAssociationStatus(ok);
+#endif
 }

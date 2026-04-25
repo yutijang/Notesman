@@ -94,6 +94,8 @@ class AppController final : public QObject {
         static UiConst::CleanupResult cleanupOldEpubCacheNow();
         static UiConst::CleanupResult cleanupOldMarkdownCacheNow();
 
+        void handleFileAssociationBtnRequest();
+
     Q_SIGNALS:
         // waitting for using
         // void languageChanged();
@@ -120,6 +122,8 @@ class AppController final : public QObject {
         void deleteDatabaseFileRequest();
 
         void deleteDatabaseFileRespondForward(QString const& msg);
+
+        void refreshFileAssociationStatus(bool isRegistered);
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void addTagsToResource(sqlite3_int64 resourceId, QStringList const& tags) const;

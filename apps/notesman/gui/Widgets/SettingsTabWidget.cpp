@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QIntValidator>
@@ -55,6 +56,7 @@ void SettingsTabWidget::setupUi() {
     contentLayout->addLayout(setupThemeGroup());
     contentLayout->addLayout(setupResourceDirGroup());
     contentLayout->addLayout(setupResourceManagerTypeGroup());
+    contentLayout->addWidget(setupFileAssociation());
     contentLayout->addWidget(setupCleanupGroup());
     contentLayout->addWidget(new QWidget);
     contentLayout->addLayout(setupAccountLinkGroup());
@@ -117,6 +119,9 @@ void SettingsTabWidget::setupConnections() {
         m_cleanupMDCacheNowBtn->setEnabled(false);
         Q_EMIT cleanupMDCacheNowRequest();
     });
+
+    QObject::connect(m_regAssociationBtn, &QPushButton::clicked,
+                     [this] { Q_EMIT onFileAssociationBtnClicked(); });
 
     // Gán lại thuộc tính động cho nút browse
     m_resDirBtn->setProperty("targetEdit", QVariant::fromValue(m_resDirInp));
@@ -397,11 +402,39 @@ QHBoxLayout* SettingsTabWidget::setupButtonGroup() {
     return buttonLayout;
 }
 
+QGroupBox* SettingsTabWidget::setupFileAssociation() {
+    auto* fileAssociationGB = new QGroupBox();
+    fileAssociationGB->setTitle(tr("File association .rvpk"));
+    fileAssociationGB->setFlat(true);
+    fileAssociationGB->setObjectName("GroupBox");
+
+    auto* gridLayout = new QGridLayout(fileAssociationGB);
+
+    gridLayout->setContentsMargins(15, 15, 15, 15);
+    gridLayout->setHorizontalSpacing(0);
+    gridLayout->setVerticalSpacing(10);
+
+    auto* statusTagLbl = new QLabel(tr("Status: "));
+    m_associationStatusLbl = new QLabel(tr("Unregistered"));
+
+    m_regAssociationBtn = new QPushButton(tr("Register"));
+    m_regAssociationBtn->setFixedWidth(120);
+
+    gridLayout->addWidget(statusTagLbl, 0, 0, Qt::AlignRight | Qt::AlignVCenter);
+    gridLayout->addWidget(m_associationStatusLbl, 0, 1, Qt::AlignLeft | Qt::AlignVCenter);
+
+    gridLayout->setColumnStretch(2, 1);
+
+    gridLayout->addWidget(m_regAssociationBtn, 0, 3);
+
+    return fileAssociationGB;
+}
+
 QGroupBox* SettingsTabWidget::setupCleanupGroup() {
     m_cleanupCacheGBox = new QGroupBox();
-    m_cleanupCacheGBox->setTitle("Cleanup EPUB && Markdown files cache");
+    m_cleanupCacheGBox->setTitle(tr("Cleanup EPUB && Markdown files cache"));
     m_cleanupCacheGBox->setFlat(true);
-    m_cleanupCacheGBox->setObjectName("CleanupGroupBox");
+    m_cleanupCacheGBox->setObjectName("GroupBox");
     m_cleanupCacheGBox->setMinimumHeight(100);     // NOLINT(readability-magic-numbers)
 
     auto* mainLayout = new QVBoxLayout(m_cleanupCacheGBox);
@@ -745,4 +778,10 @@ void SettingsTabWidget::handleButtonAfterCleanup(UiConst::CleanupMode mode) {
     } else if (mode == UiConst::CleanupMode::Markdown) {
         m_cleanupMDCacheNowBtn->setEnabled(true);
     }
+}
+
+void SettingsTabWidget::handleFileAssociationStatus(bool isRegistered) {
+    m_regAssociationBtn->setText(isRegistered ? tr("Unregister") : tr("Register"));
+    m_associationStatusLbl->setText(isRegistered ? tr("Registered") : tr("Unregistered"));
+    m_associationStatusLbl->setStyleSheet(isRegistered ? "color: green;" : "");
 }

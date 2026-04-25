@@ -233,13 +233,13 @@ QProgressBar::chunk {
     margin: 1px;
 }
 
-QGroupBox#CleanupGroupBox {
+QGroupBox#GroupBox {
     border: 1px solid #C0C0C0;
     border-radius: 4px;
     margin-top: 0.5em;
 }
 
-QGroupBox#CleanupGroupBox::title {
+QGroupBox#GroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top left;
     left: 10px;
