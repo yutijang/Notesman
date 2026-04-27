@@ -124,12 +124,18 @@ int PackerLauncher::run(QString const& packerFilePath) {
         Log::warn("failed to load config, using default resourceDir.");
     }
 
-#ifdef Q_OS_WIN
-    if (!FileAssociation::isUpToDate()) {
-        // silent, non-fatal
-        if (!FileAssociation::registerAssociation()) { Log::warn("auto-register failed."); }
-    }
-#endif
+    /**
+     * Temporarily disabled startup auto-registration;
+     * deferring to the existing manual option in Settings.
+     */
+    /*
+    #ifdef Q_OS_WIN
+        if (!FileAssociation::isUpToDate()) {
+            // silent, non-fatal
+            if (!FileAssociation::registerAssociation()) { Log::warn("auto-register failed."); }
+        }
+    #endif
+    */
 
     // Khởi tạo core
     // CoreErrorReporter: headless — askQuestion luôn false, lỗi ghi log

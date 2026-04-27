@@ -171,12 +171,18 @@ void AppInitializer::run() {
 
     m_controller->loadSettings();
 
-#ifdef Q_OS_WIN
-    // Silent auto-repair: nếu path stale (app bị di chuyển) thì ghi lại
-    if (!FileAssociation::isUpToDate()) {
-        if (!FileAssociation::registerAssociation()) { Log::warn("auto-register failed."); }
-    }
-#endif
+    /**
+     * Temporarily disabled startup auto-registration;
+     * deferring to the existing manual option in Settings.
+     */
+    /*
+    #ifdef Q_OS_WIN
+        // Silent auto-repair: nếu path stale (app bị di chuyển) thì ghi lại
+        if (!FileAssociation::isUpToDate()) {
+            if (!FileAssociation::registerAssociation()) { Log::warn("auto-register failed."); }
+        }
+    #endif
+    */
 
     AppSettings const* settings = m_controller->settings();
     if (settings != nullptr) {

@@ -1,13 +1,15 @@
 #include "FileAssociation.hpp"
 
-#ifdef Q_OS_WIN
 #include "Logger.hpp"
 
 #include <QCoreApplication>
 #include <QString>
 #include <filesystem>
-#include <shlobj.h> // SHChangeNotify
 #include <string>
+
+#ifdef Q_OS_WIN
+
+#include <shlobj.h> // SHChangeNotify
 #include <windows.h>
 
 namespace {
@@ -147,4 +149,8 @@ namespace FileAssociation {
         Log::info("unregistered.");
     }
 } // namespace FileAssociation
+#endif
+
+#ifdef Q_OS_LINUX
+
 #endif
