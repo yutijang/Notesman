@@ -4,11 +4,11 @@
 #include <windows.h>
 #else
 #include <climits>
+#include <cstdio>
 #include <cstdlib>
 #include <linux/limits.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #endif
 
 #include <filesystem>

@@ -628,7 +628,6 @@ UiConst::CleanupResult AppController::cleanupOldMarkdownCacheNow() {
 }
 
 void AppController::handleFileAssociationBtnRequest() {
-#ifdef Q_OS_WIN
     bool ok = FileAssociation::isUpToDate();
     if (ok) {
         FileAssociation::unregisterAssociation();
@@ -650,5 +649,4 @@ void AppController::handleFileAssociationBtnRequest() {
     }
 
     Q_EMIT refreshFileAssociationStatus(ok);
-#endif
 }
