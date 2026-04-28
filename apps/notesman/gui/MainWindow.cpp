@@ -246,7 +246,13 @@ void MainWindow::setCore(NotesAppCore* core) {
 void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
                               QString const& path, QString const& url) {
     // Query packer process — kiểm tra resourceId có đang mở trong packer không
-    QString const packerServerName = IpcNames::packerServer(id);
+    auto const uuidOpt = m_core->getResourceUuid(id);
+    if (!uuidOpt) {
+        Log::err("Get uuid failed, resource id: {}", id);
+        return;
+    }
+
+    QString const packerServerName = IpcNames::packerServer(uuidOpt->c_str());
 
     QLocalSocket packerProbe;
     packerProbe.connectToServer(packerServerName);
@@ -282,7 +288,7 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const&
                 return;
             }
 
-            QProcess* proc = htmlViewer->process();
+            QProcess* proc = htmlViewer->externalProcess();
             if (proc == nullptr) {
                 m_viewerLocked = false;
                 this->setEnabled(true);

@@ -14,7 +14,10 @@
 #include <vector>
 
 std::optional<sqlite3_int64> TagRepository::addTag(std::string_view name) {
-    SQLiteStmt stmt(m_db.get(), "INSERT INTO tags (name) VALUES (?) ON CONFLICT(name) DO NOTHING;");
+    static constexpr char const* sql =
+        "INSERT INTO tags (name) VALUES (?) ON CONFLICT(name) DO NOTHING;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
                                         SQLITE_TRANSIENT),
@@ -38,8 +41,10 @@ std::vector<sqlite3_int64> TagRepository::addTags(std::vector<std::string> const
     tagIds.reserve(names.size());
 
     try {
-        SQLiteStmt insertStmt(m_db.get(),
-                              "INSERT INTO tags (name) VALUES (?) ON CONFLICT(name) DO NOTHING;");
+        static constexpr char const* sql =
+            "INSERT INTO tags (name) VALUES (?) ON CONFLICT(name) DO NOTHING;";
+
+        SQLiteStmt insertStmt(m_db.get(), sql);
 
         for (auto const& name : names) {
             insertStmt.reset();
@@ -79,7 +84,9 @@ std::vector<sqlite3_int64> TagRepository::addTags(std::vector<std::string> const
 }
 
 std::optional<sqlite3_int64> TagRepository::getTagIdByName(std::string_view name) {
-    SQLiteStmt stmt(m_db.get(), "SELECT id FROM tags WHERE name = ?;");
+    static constexpr char const* sql = "SELECT id FROM tags WHERE name = ?;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
                                         SQLITE_TRANSIENT),
@@ -99,7 +106,10 @@ std::optional<sqlite3_int64> TagRepository::getTagIdByName(std::string_view name
 }
 
 void TagRepository::linkResourceIdWithTag(ParamIDs const& param) {
-    SQLiteStmt stmt(m_db.get(), "INSERT INTO resource_tags (resource_id, tag_id) VALUES (?, ?);");
+    static constexpr char const* sql =
+        "INSERT INTO resource_tags (resource_id, tag_id) VALUES (?, ?);";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, param.resourceId), m_db.get());
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 2, param.tagId), m_db.get());
@@ -115,8 +125,12 @@ void TagRepository::linkResourceWithTags(sqlite3_int64 resourceId,
     sqlite3_step(beginStmt.get());
 
     try {
-        SQLiteStmt stmt(m_db.get(),
-                        "INSERT OR IGNORE INTO resource_tags (resource_id, tag_id) VALUES (?, ?);");
+        static constexpr char const* sql = R"(
+            INSERT OR IGNORE INTO resource_tags (resource_id, tag_id)
+            VALUES (?, ?);
+        )";
+
+        SQLiteStmt stmt(m_db.get(), sql);
 
         for (auto tagId : tagIds) {
             stmt.reset();
@@ -139,8 +153,16 @@ void TagRepository::linkResourceWithTags(sqlite3_int64 resourceId,
 
 std::vector<std::pair<sqlite3_int64, std::string>>
     TagRepository::getTagsByResourceId(sqlite3_int64 resourceId) {
-    SQLiteStmt stmt(m_db.get(), "SELECT t.id, t.name FROM tags t JOIN resource_tags rt ON t.id = "
-                                "rt.tag_id WHERE rt.resource_id = ?;");
+    static constexpr char const* sql = R"(
+        SELECT
+            t.id,
+            t.name
+        FROM tags t
+        JOIN resource_tags rt ON t.id = rt.tag_id
+        WHERE rt.resource_id = ?;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
@@ -158,7 +180,9 @@ std::vector<std::pair<sqlite3_int64, std::string>>
 }
 
 std::vector<std::pair<sqlite3_int64, std::string>> TagRepository::getAllTags() {
-    SQLiteStmt stmt(m_db.get(), "SELECT id, name FROM tags;");
+    static constexpr char const* sql = "SELECT id, name FROM tags;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     std::vector<std::pair<sqlite3_int64, std::string>> results;
     while (stmt.step() == SQLITE_ROW) {
@@ -173,7 +197,7 @@ std::vector<std::pair<sqlite3_int64, std::string>> TagRepository::getAllTags() {
 std::vector<Resource> TagRepository::getResourcesViaTags(std::vector<std::string> const& tags) {
     if (tags.empty()) { return {}; }
 
-    std::string sql = "SELECT r.id, r.title, r.type, r.created_at, r.updated_at "
+    std::string sql = "SELECT r.id, r.uuid, r.title, r.type, r.created_at, r.updated_at "
                       "FROM resources r ";
 
     // JOIN nhiều lần để đảm bảo AND
@@ -203,10 +227,11 @@ std::vector<Resource> TagRepository::getResourcesViaTags(std::vector<std::string
     while (stmt.step() == SQLITE_ROW) {
         Resource res{};
         res.id = stmt.getColumnInt64(0);
-        res.title = stmt.getColumnText(1);
-        res.type = resourceTypeFromString(stmt.getColumnText(2));
-        res.created_at = stmt.getColumnText(3);
-        res.updated_at = stmt.getColumnText(4);
+        res.uuid = stmt.getColumnText(1);
+        res.title = stmt.getColumnText(2);
+        res.type = resourceTypeFromString(stmt.getColumnText(3));
+        res.created_at = stmt.getColumnText(4);
+        res.updated_at = stmt.getColumnText(5);
         results.emplace_back(std::move(res));
     }
 
@@ -214,9 +239,19 @@ std::vector<Resource> TagRepository::getResourcesViaTags(std::vector<std::string
 }
 
 std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name) {
-    SQLiteStmt stmt(m_db.get(),
-                    "SELECT r.id, r.title, r.type FROM resources r JOIN resource_tags rt ON r.id = "
-                    "rt.resource_id JOIN tags t ON t.id = rt. tag_id WHERE t.name = ?;");
+    static constexpr char const* sql = R"(
+        SELECT
+            r.id,
+            r.uuid,
+            r.title,
+            r.type
+        FROM resources r
+        JOIN resource_tags rt ON r.id = rt.resource_id
+        JOIN tags t ON t.id = rt.tag_id
+        WHERE t.name = ?;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
                                         SQLITE_TRANSIENT),
@@ -228,11 +263,12 @@ std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name
         Resource res{};
 
         res.id = stmt.getColumnInt64(0);
+        res.uuid = stmt.getColumnText(1);
 
-        res.title = stmt.getColumnText(1);
+        res.title = stmt.getColumnText(2);
 
-        if (sqlite3_column_type(stmt.get(), 2) != SQLITE_NULL) {
-            res.type = resourceTypeFromString(stmt.getColumnText(2));
+        if (sqlite3_column_type(stmt.get(), 3) != SQLITE_NULL) {
+            res.type = resourceTypeFromString(stmt.getColumnText(3));
         } else {
             res.type = resourceTypeFromString("");
         }
@@ -246,7 +282,13 @@ std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name
 }
 
 void TagRepository::deleteTagFromResource(ParamIDs const& params) {
-    SQLiteStmt stmt(m_db.get(), "DELETE FROM resource_tags WHERE resource_id = ? AND tag_id = ?;");
+    static constexpr char const* sql = R"(
+        DELETE FROM resource_tags
+        WHERE resource_id = ?
+        AND tag_id = ?;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, params.resourceId), m_db.get());
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 2, params.tagId), m_db.get());
@@ -255,7 +297,9 @@ void TagRepository::deleteTagFromResource(ParamIDs const& params) {
 }
 
 void TagRepository::deleteAllTagsFromResource(sqlite3_int64 resourceId) {
-    SQLiteStmt stmt(m_db.get(), "DELETE FROM resource_tags WHERE resource_id = ?;");
+    static constexpr char const* sql = "DELETE FROM resource_tags WHERE resource_id = ?;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
     sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "deleteAllTagsFromResource");

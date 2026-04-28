@@ -682,14 +682,14 @@ void AppController::createPackerFile(std::int64_t id, QString const& title) {
     // NOLINTNEXTLINE (-Wunsafe-buffer-usage-in-libc-call)
     std::memcpy(hdr.magic, ViewerPackHeader::RVPK_MAGIC, sizeof(ViewerPackHeader::RVPK_MAGIC));
     hdr.version = ViewerPackHeader::VERSION;
+    hdr.headerSize = sizeof(ViewerPackHeader);
     hdr.resourceId = id;
 
-    auto const createAtOpt = m_core->getResourceCreatedAt(id);
-    if (!createAtOpt || createAtOpt->size() != ViewerPackHeader::CREATED_AT_LENGTH) {
-        throw std::runtime_error("Invalid created_at");
+    auto const uuidOpt = m_core->getResourceUuid(id);
+    if (!uuidOpt || uuidOpt->size() != ViewerPackHeader::UUID_LENGTH) {
+        throw std::runtime_error("Invalid uuid");
     }
-    std::memcpy(hdr.createdAt, createAtOpt->data(), ViewerPackHeader::CREATED_AT_LENGTH);
-    hdr.createdAt[ViewerPackHeader::CREATED_AT_LENGTH] = '\0';
+    std::memcpy(hdr.uuid, uuidOpt->data(), ViewerPackHeader::UUID_LENGTH);
 
     hdr.themeMode = static_cast<std::uint8_t>(theme);
     hdr.language = static_cast<std::uint8_t>(language);

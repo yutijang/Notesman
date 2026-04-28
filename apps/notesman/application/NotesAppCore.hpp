@@ -46,7 +46,7 @@ class NotesAppCore {
         void deleteResources(std::vector<sqlite3_int64> const& resourceIds);
 
         [[nodiscard]]
-        std::optional<std::string> getResourceCreatedAt(sqlite3_int64 resourceId) const;
+        std::optional<std::string> getResourceUuid(sqlite3_int64 resourceId) const;
 
         // ========= Search =========
         [[nodiscard]]

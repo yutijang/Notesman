@@ -54,8 +54,8 @@ void NotesAppCore::deleteResources(std::vector<sqlite3_int64> const& resourceIds
     m_resService.deleteResources(resourceIds);
 }
 
-std::optional<std::string> NotesAppCore::getResourceCreatedAt(sqlite3_int64 resourceId) const {
-    return m_resService.getResourceCreatedAt(resourceId);
+std::optional<std::string> NotesAppCore::getResourceUuid(sqlite3_int64 resourceId) const {
+    return m_resService.getResourceUuid(resourceId);
 }
 
 // ========= Search =========

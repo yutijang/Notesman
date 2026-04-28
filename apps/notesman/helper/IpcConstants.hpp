@@ -1,10 +1,9 @@
 #pragma once
 #include <QString>
-#include <cstdint>
 
 namespace IpcNames {
-    inline QString packerServer(std::int64_t resourceId) {
-        return QStringLiteral("Notesman_Packer_%1").arg(resourceId);
+    inline QString packerServer(char const* uuid) {
+        return QStringLiteral("Notesman_Packer_%1").arg(uuid);
     }
 
     constexpr auto K_GUI_SERVER = "Notesman_InstanceLock";

@@ -1,3 +1,4 @@
+#include <csignal>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -85,6 +86,19 @@ namespace {
                          }),
                          nullptr);
     }
+
+    GtkWindow* g_window = nullptr;
+
+    void onSigUsr1(int /*sig*/) {
+        if (g_window == nullptr) { return; }
+        // g_idle_add: signal handler không được gọi GTK trực tiếp (not main thread safe)
+        g_idle_add(
+            [](gpointer data) -> gboolean {
+                gtk_window_present(GTK_WINDOW(data));
+                return G_SOURCE_REMOVE;
+            },
+            g_window);
+    }
 } // namespace
 
 int main(int argc, char** argv) {
@@ -96,6 +110,10 @@ int main(int argc, char** argv) {
     }
 
     GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+    g_window = GTK_WINDOW(window);
+    std::signal(SIGUSR1, onSigUsr1);
+
     gtk_window_set_default_size(GTK_WINDOW(window), 1024, 768);
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
 

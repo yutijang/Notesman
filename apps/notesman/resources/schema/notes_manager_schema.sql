@@ -2,11 +2,15 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS resources (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid        TEXT NOT NULL UNIQUE DEFAULT (lower(hex(randomblob(16)))),
+
     title       TEXT NOT NULL COLLATE NOCASE,
     type        TEXT NOT NULL,          -- 'text', 'cpp', 'pdf', 'epub'
     file_hash   TEXT UNIQUE NULL,       -- Kiểm tra trùng lặp file
+
     created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
     UNIQUE (title, type)
 );
 

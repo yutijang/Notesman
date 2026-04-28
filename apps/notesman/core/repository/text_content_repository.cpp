@@ -13,7 +13,10 @@
 #include <vector>
 
 void TextContentRepository::insertText(sqlite3_int64 resourceId, std::string_view text) {
-    SQLiteStmt stmt(m_db.get(), "INSERT INTO text_content(resource_id, content) VALUES (?, ?)");
+    static constexpr char const* sql =
+        "INSERT INTO text_content(resource_id, content) VALUES (?, ?)";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, text.data(), static_cast<int>(text.size()),
@@ -24,7 +27,9 @@ void TextContentRepository::insertText(sqlite3_int64 resourceId, std::string_vie
 }
 
 std::optional<std::string> TextContentRepository::getTextById(sqlite3_int64 resourceId) {
-    SQLiteStmt stmt(m_db.get(), "SELECT content FROM text_content WHERE resource_id = ?;");
+    static constexpr char const* sql = "SELECT content FROM text_content WHERE resource_id = ?;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
@@ -43,7 +48,9 @@ std::optional<std::string> TextContentRepository::getTextById(sqlite3_int64 reso
 }
 
 void TextContentRepository::updateText(sqlite3_int64 resourceId, std::string_view newText) {
-    SQLiteStmt stmt(m_db.get(), "UPDATE text_content SET content = ? WHERE resource_id = ?;");
+    static constexpr char const* sql = "UPDATE text_content SET content = ? WHERE resource_id = ?;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, newText.data(),
                                         static_cast<int>(newText.size()), SQLITE_TRANSIENT),
@@ -59,7 +66,9 @@ void TextContentRepository::updateText(sqlite3_int64 resourceId, std::string_vie
 }
 
 bool TextContentRepository::exists(sqlite3_int64 resourceId) {
-    SQLiteStmt stmt(m_db.get(), "SELECT 1 FROM text_content WHERE resource_id = ? LIMIT 1;");
+    static constexpr char const* sql = "SELECT 1 FROM text_content WHERE resource_id = ? LIMIT 1;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
@@ -67,7 +76,9 @@ bool TextContentRepository::exists(sqlite3_int64 resourceId) {
 }
 
 std::vector<std::pair<sqlite3_int64, std::string>> TextContentRepository::getAllTexts() {
-    SQLiteStmt stmt(m_db.get(), "SELECT resource_id, content FROM text_content;");
+    static constexpr char const* sql = "SELECT resource_id, content FROM text_content;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     std::vector<std::pair<sqlite3_int64, std::string>> results;
 
@@ -79,12 +90,18 @@ std::vector<std::pair<sqlite3_int64, std::string>> TextContentRepository::getAll
 // Tạm thời không sử dụng
 std::vector<std::pair<sqlite3_int64, std::string>>
     TextContentRepository::searchByContentFTS(std::string_view keyword) {
-    SQLiteStmt stmt(m_db.get(), "SELECT tc.resource_id, tc.content "
-                                "FROM text_content_fts AS fts "
-                                "JOIN text_content AS tc "
-                                "ON tc.resource_id = fts.rowid "
-                                "WHERE text_content_fts MATCH ? "
-                                "ORDER BY bm25(text_content_fts);");
+    static constexpr char const* sql = R"(
+        SELECT
+            tc.resource_id,
+            tc.content
+        FROM text_content_fts AS fts
+        JOIN text_content AS tc
+        ON tc.resource_id = fts.rowid
+        WHERE text_content_fts MATCH ?
+        ORDER BY bm25(text_content_fts);
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, keyword.data(),
                                         static_cast<int>(keyword.size()), SQLITE_TRANSIENT),

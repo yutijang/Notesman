@@ -110,9 +110,12 @@ inline std::unordered_map<std::string_view, ResourceType> const K_EXT_MAP{
 
 struct Resource {
         sqlite3_int64 id{};    //> id của resource
+        std::string uuid;
+
         std::string title;     //> tiêu đề của tài nguyên
         ResourceType type;     //> plainText, cCppCode, htmlDoc, pdfDoc, epubDoc for viewer/behavior
         std::string file_hash; //> hash file (có thể rỗng nếu là text)
+                               //
         std::string created_at; //> timestamp tạo
         std::string updated_at; //> timestamp cập nhật
 };

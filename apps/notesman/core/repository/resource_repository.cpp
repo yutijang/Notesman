@@ -1,5 +1,6 @@
 #include "resource_repository.hpp"
 
+#include "Logger.hpp"
 #include "model.hpp"
 #include "sqldb_raii.hpp"
 #include "sqlite_utils.hpp"
@@ -14,7 +15,12 @@
 #include <vector>
 
 sqlite3_int64 ResourceRepository::insert(Resource const& res) {
-    SQLiteStmt stmt(m_db.get(), "INSERT INTO resources (title, type, file_hash) VALUES (?, ?, ?);");
+    static constexpr char const* sql = R"(
+        INSERT INTO resources (title, type, file_hash)
+        VALUES (?, ?, ?);
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT),
                       m_db.get());
@@ -38,9 +44,19 @@ sqlite3_int64 ResourceRepository::insert(Resource const& res) {
 }
 
 std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
-    static constexpr char const* sql = "SELECT id, title, type, file_hash, created_at, updated_at "
-                                       "FROM resources "
-                                       "WHERE id = ?;";
+    static constexpr char const* sql = R"(
+        SELECT
+            id,
+            uuid,
+            title,
+            type,
+            file_hash,
+            created_at,
+            updated_at
+        FROM resources
+        WHERE id = ?;
+    )";
+
     SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
@@ -50,11 +66,9 @@ std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
     return std::nullopt;
 }
 
-std::optional<std::string>
-    ResourceRepository::getResourceCreatedAt(sqlite3_int64 resourceId) const {
-    static constexpr char const* sql = "SELECT created_at "
-                                       "FROM resources "
-                                       "WHERE id = ?;";
+std::optional<std::string> ResourceRepository::getResourceUuid(sqlite3_int64 resourceId) const {
+    static constexpr char const* sql = "SELECT uuid FROM resources WHERE id = ?;";
+
     SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
@@ -65,8 +79,18 @@ std::optional<std::string>
 }
 
 std::vector<Resource> ResourceRepository::getAll() {
-    static constexpr char const* sql = "SELECT id, title, type, file_hash, created_at, updated_at "
-                                       "FROM resources;";
+    static constexpr char const* sql = R"(
+        SELECT
+            id,
+            uuid,
+            title,
+            type,
+            file_hash,
+            created_at,
+            updated_at
+        FROM resources;
+    )";
+
     SQLiteStmt stmt(m_db.get(), sql);
 
     std::vector<Resource> results;
@@ -76,12 +100,19 @@ std::vector<Resource> ResourceRepository::getAll() {
 }
 
 std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::string_view keyword) {
-    static constexpr char const* sql =
-        "SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at "
-        "FROM resources r "
-        "JOIN resources_fts "
-        "ON r.id = resources_fts.rowid "
-        "WHERE resources_fts.title MATCH ?;";
+    static constexpr char const* sql = R"(
+        SELECT
+            r.id,
+            r.uuid,
+            r.title,
+            r.type,
+            r.file_hash,
+            r.created_at,
+            r.updated_at
+        FROM resources r
+        JOIN resources_fts ON r.id = resources_fts.rowid
+        WHERE resources_fts.title MATCH ?;
+    )";
 
     SQLiteStmt stmt(m_db.get(), sql);
 
@@ -110,8 +141,20 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
 }
 
 std::optional<Resource> ResourceRepository::getByFileHash(std::string_view hash) {
-    SQLiteStmt stmt(m_db.get(), "SELECT id, title, type, file_hash, created_at, updated_at FROM "
-                                "resources WHERE file_hash = ?;");
+    static constexpr char const* sql = R"(
+        SELECT
+            id,
+            uuid,
+            title,
+            type,
+            file_hash,
+            created_at,
+            updated_at
+        FROM resources
+        WHERE file_hash = ?;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()),
                                         SQLITE_TRANSIENT),
@@ -130,7 +173,15 @@ std::optional<Resource> ResourceRepository::getByFileHash(std::string_view hash)
 
 std::optional<std::pair<std::string, std::string>>
     ResourceRepository::getTimestamps(sqlite3_int64 resourceID) {
-    SQLiteStmt stmt(m_db.get(), "SELECT created_at, updated_at FROM resources WHERE id = ?;");
+    static constexpr char const* sql = R"(
+        SELECT
+            created_at,
+            updated_at
+        FROM resources
+        WHERE id = ?;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceID), m_db.get());
 
@@ -151,8 +202,15 @@ std::optional<std::pair<std::string, std::string>>
 }
 
 void ResourceRepository::update(Resource const& res) {
-    SQLiteStmt stmt(m_db.get(), "UPDATE resources SET title = ?, type = ?, updated_at = "
-                                "CURRENT_TIMESTAMP WHERE id = ?;");
+    static constexpr char const* sql = R"(
+        UPDATE resources
+        SET title = ?,
+            type = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?;
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT),
                       m_db.get());
@@ -166,7 +224,9 @@ void ResourceRepository::update(Resource const& res) {
 }
 
 void ResourceRepository::remove(sqlite3_int64 resourceId) {
-    SQLiteStmt stmt(m_db.get(), "DELETE FROM resources WHERE id = ?;");
+    static constexpr char const* sql = "DELETE FROM resources WHERE id = ?;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
     sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "remove");
@@ -213,7 +273,9 @@ void ResourceRepository::removeBatch(std::vector<sqlite3_int64> const& resourceI
 }
 
 void ResourceRepository::updateFileHash(sqlite3_int64 resourceID, std::string_view hash) {
-    SQLiteStmt stmt(m_db.get(), "UPDATE resources SET file_hash = ? WHERE id = ?;");
+    static constexpr char const* sql = "UPDATE resources SET file_hash = ? WHERE id = ?;";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()),
                                         SQLITE_TRANSIENT),
@@ -223,9 +285,17 @@ void ResourceRepository::updateFileHash(sqlite3_int64 resourceID, std::string_vi
 }
 
 bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) const {
-    SQLiteStmt stmt(
-        m_db.get(),
-        "SELECT EXISTS (SELECT 1 FROM resources WHERE title = ? AND type = ? LIMIT 1);");
+    static constexpr char const* sql = R"(
+        SELECT EXISTS (
+            SELECT 1
+            FROM resources
+            WHERE title = ?
+            AND type = ?
+            LIMIT 1
+        );
+    )";
+
+    SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, title.data(), static_cast<int>(title.size()),
                                         SQLITE_TRANSIENT),
@@ -361,6 +431,7 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
         static constexpr char const* sqlPhase2 = R"(
             SELECT
                 r.id,
+                r.uuid,
                 r.title,
                 r.type,
                 r.file_hash,
@@ -409,7 +480,7 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
             UnifiedSearchResult item{};
             item.res = resourceFromStmt(stmt);
 
-            int const reason = sqlite3_column_int(stmt.get(), 9);
+            int const reason = sqlite3_column_int(stmt.get(), 10);
 
             ResourceFlags flags{};
             if ((reason & 1) != 0) { flags |= ResourceFlags::MatchTag; }
@@ -423,13 +494,13 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
 
             if (hasAnyFlags(item.flags, ResourceFlags::MatchText | ResourceFlags::MatchFileText)) {
                 // NOLINTNEXTLINE(readability-magic-numbers)
-                if (auto snippet = stmt.getColumnText(8); !snippet.empty()) {
+                if (auto snippet = stmt.getColumnText(9); !snippet.empty()) {
                     item.rawSnippet = snippet;
                     item.flags |= ResourceFlags::HasSnippet;
                 }
             }
 
-            item.url = stmt.getColumnText(6);
+            item.url = stmt.getColumnText(7);
 
             results.push_back(std::move(item));
         }
@@ -451,7 +522,7 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
 std::vector<UnifiedSearchResult>
     ResourceRepository::searchByContentUnified(std::string_view keyword) {
     static constexpr char const* sql = R"(
-        SELECT r.id, r.title, r.type, r.file_hash, r.created_at, r.updated_at, 
+        SELECT r.id, r.uuid, r.title, r.type, r.file_hash, r.created_at, r.updated_at, 
             MIN(m.score) AS final_score, 
             m.snip AS snippet
         FROM resources r
@@ -492,7 +563,7 @@ std::vector<UnifiedSearchResult>
     while ((rc = stmt.step()) == SQLITE_ROW) {
         Resource res = resourceFromStmt(stmt);
 
-        auto snippet = stmt.getColumnText(7); // NOLINT(readability-magic-numbers)
+        auto snippet = stmt.getColumnText(8); // NOLINT(readability-magic-numbers)
 
         UnifiedSearchResult item{.res = std::move(res),
                                  .displaySubText = {},
@@ -515,14 +586,15 @@ Resource ResourceRepository::resourceFromStmt(SQLiteStmt const& stmt) {
     Resource res{};
 
     res.id = stmt.getColumnInt64(0);
-    res.title = stmt.getColumnText(1);
+    res.uuid = stmt.getColumnText(1);
+    res.title = stmt.getColumnText(2);
 
-    auto type = stmt.getColumnText(2);
+    auto type = stmt.getColumnText(3);
     res.type = type.empty() ? ResourceType::Unknown : resourceTypeFromString(type);
 
-    res.file_hash = stmt.getColumnText(3);
-    res.created_at = stmt.getColumnText(4);
-    res.updated_at = stmt.getColumnText(5); // NOLINT(readability-magic-numbers)
+    res.file_hash = stmt.getColumnText(4);
+    res.created_at = stmt.getColumnText(5); // NOLINT(readability-magic-numbers)
+    res.updated_at = stmt.getColumnText(6); // NOLINT(readability-magic-numbers)
 
     return res;
 }
@@ -531,6 +603,7 @@ std::vector<UnifiedSearchResult> ResourceRepository::getAllResourcesByType(Resou
     static constexpr char const* sql = R"(
         SELECT
             r.id,
+            r.uuid,
             r.title,
             r.updated_at,
             ru.url AS raw_url,
@@ -560,13 +633,14 @@ std::vector<UnifiedSearchResult> ResourceRepository::getAllResourcesByType(Resou
         UnifiedSearchResult item{};
 
         item.res.id = stmt.getColumnInt64(0);
-        item.res.title = stmt.getColumnText(1);
+        item.res.uuid = stmt.getColumnText(1);
+        item.res.title = stmt.getColumnText(2);
         item.res.type = type;
-        item.res.updated_at = stmt.getColumnText(2);
+        item.res.updated_at = stmt.getColumnText(3);
 
-        if (std::string url = stmt.getColumnText(3); !url.empty()) { item.url = url; }
+        if (std::string url = stmt.getColumnText(4); !url.empty()) { item.url = url; }
 
-        if (std::string tagStr = stmt.getColumnText(4); !tagStr.empty()) {
+        if (std::string tagStr = stmt.getColumnText(5); !tagStr.empty()) {
             item.tags = splitTags(tagStr, ", ");
         }
 

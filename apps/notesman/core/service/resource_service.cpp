@@ -368,6 +368,6 @@ void ResourceService::validateIsFile(UnifiedSearchResult& item) {
     }
 }
 
-std::optional<std::string> ResourceService::getResourceCreatedAt(sqlite3_int64 resourceId) const {
-    return m_resRepo.getResourceCreatedAt(resourceId);
+std::optional<std::string> ResourceService::getResourceUuid(sqlite3_int64 resourceId) const {
+    return m_resRepo.getResourceUuid(resourceId);
 }

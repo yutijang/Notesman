@@ -1,9 +1,11 @@
 #include "PackerLauncher.hpp"
 
-#include <string_view>
-
 #ifdef Q_OS_WIN
 #include <windows.h>
+#elif defined(Q_OS_LINUX)
+#include <QEventLoop>
+#include <QProcess>
+#include <csignal>
 #endif
 
 #include "AppSettings.hpp"
@@ -34,6 +36,7 @@
 #include <filesystem>
 #include <memory>
 #include <sqlite3.h>
+#include <string_view>
 #include <utility>
 
 int PackerLauncher::run(QString const& packerFilePath) {
@@ -46,11 +49,12 @@ int PackerLauncher::run(QString const& packerFilePath) {
 
     ViewerPackHeader const& header = readerResult->header();
     auto const resourceId = static_cast<sqlite3_int64>(header.resourceId);
+    auto const* const uuid = header.uuid;
     auto const theme = static_cast<UiConst::Theme>(header.themeMode);
     auto const language = static_cast<UiConst::Language>(header.language);
 
     // IPC check — phải trước khi init core/DB
-    QString const serverName = IpcNames::packerServer(resourceId);
+    QString const serverName = IpcNames::packerServer(uuid);
     {
         QLocalSocket probe;
         probe.connectToServer(serverName);
@@ -60,7 +64,7 @@ int PackerLauncher::run(QString const& packerFilePath) {
             probe.flush();
             probe.waitForBytesWritten(IpcNames::K_IPC_TIMEOUT_MS);
             probe.disconnectFromServer();
-            Log::info("packer instance for resource {} already running, activating.", resourceId);
+            Log::info("packer instance for resource {} already running, activating.", uuid);
             return 0;
         }
     }
@@ -69,7 +73,7 @@ int PackerLauncher::run(QString const& packerFilePath) {
     QLocalServer::removeServer(serverName);
     auto localServer = std::make_unique<QLocalServer>();
     if (!localServer->listen(serverName)) {
-        Log::warn("listen failed for resource {}, retrying connect...", resourceId);
+        Log::warn("listen failed for resource {}, retrying connect...", uuid);
         // Server vừa được process khác tạo trong khoảng thời gian race
         QLocalSocket retry;
         retry.connectToServer(serverName);
@@ -81,7 +85,7 @@ int PackerLauncher::run(QString const& packerFilePath) {
             return 0;
         }
         // Vẫn không connect được → tiếp tục mà không có IPC server (non-fatal)
-        Log::warn("IPC server unavailable for resource {}, proceeding without it.", resourceId);
+        Log::warn("IPC server unavailable for resource {}, proceeding without it.", uuid);
     }
 
     {
@@ -90,8 +94,7 @@ int PackerLauncher::run(QString const& packerFilePath) {
 
         if (guiProbe.waitForConnected(IpcNames::K_IPC_TIMEOUT_MS)) {
             // GUI đang chạy — query xem resourceId này có đang mở không
-            QByteArray const query =
-                QByteArray("query:") + QByteArray::number(static_cast<qlonglong>(resourceId));
+            QByteArray const query = QByteArray("query:") + uuid;
             guiProbe.write(query);
             guiProbe.flush();
 
@@ -100,12 +103,11 @@ int PackerLauncher::run(QString const& packerFilePath) {
 
                 if (response == "found") {
                     // Viewer đang mở trong GUI — gửi activate rồi thoát
-                    guiProbe.write(QByteArray("activate:") +
-                                   QByteArray::number(static_cast<qlonglong>(resourceId)));
+                    guiProbe.write(QByteArray("activate:") + uuid);
                     guiProbe.flush();
                     guiProbe.waitForBytesWritten(IpcNames::K_IPC_TIMEOUT_MS);
                     guiProbe.disconnectFromServer();
-                    Log::info("resource {} already open in GUI, activating.", resourceId);
+                    Log::info("resource {} already open in GUI, activating.", uuid);
                     return 0;
                 }
             }
@@ -162,7 +164,7 @@ int PackerLauncher::run(QString const& packerFilePath) {
 
     FullResource const& res = *fullResourceOpt;
 
-    if (res.resource.created_at != std::string_view(header.createdAt)) {
+    if (res.resource.uuid != std::string_view(header.uuid)) {
         QMessageBox::warning(
             nullptr, QObject::tr("Invalid resource"),
             QObject::tr("The file does not match the current database.\n"
@@ -188,6 +190,36 @@ int PackerLauncher::run(QString const& packerFilePath) {
         Log::err("failed to create viewer for resource {}.", resourceId);
         return 1;
     }
+
+#ifdef Q_OS_LINUX
+    if (viewer->usesExternalWindow()) {
+        QProcess* const proc = viewer->externalProcess();
+        if (proc == nullptr) { return 1; }
+
+        QEventLoop loop;
+
+        QObject::connect(localServer.get(), &QLocalServer::newConnection, [&localServer, proc]() {
+            if (!localServer->hasPendingConnections()) [[unlikely]] { return; }
+            QLocalSocket* client = localServer->nextPendingConnection();
+            if (!client) [[unlikely]] { return; }
+
+            QObject::connect(client, &QLocalSocket::readyRead, [client, proc]() {
+                QByteArray const msg = client->readAll();
+                if (msg != "activate") { return; }
+                ::kill(proc->processId(), SIGUSR1);
+                QObject::connect(client, &QLocalSocket::disconnected, client,
+                                 &QObject::deleteLater);
+            });
+        });
+
+        QObject::connect(proc, &QProcess::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+
+        localServer->close();
+        QLocalServer::removeServer(serverName);
+        return 0;
+    }
+#endif
 
     // Tạo dialog + kết nối IPC signal
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), nullptr};

@@ -9,13 +9,15 @@
 #include <string_view>
 
 void FileTextContentRepository::upsertText(sqlite3_int64 resourceId, std::string_view text) {
-    static constexpr char const* sql =
-        "INSERT INTO file_text_content (resource_id, content, extracted_at) "
-        "VALUES (?, ?, CURRENT_TIMESTAMP) "
-        "ON CONFLICT(resource_id) DO UPDATE SET "
-        "content = excluded.content, "
-        "extracted_at = CURRENT_TIMESTAMP "
-        "WHERE content IS NOT excluded.content;";
+    static constexpr char const* sql = R"(
+        INSERT INTO file_text_content (resource_id, content, extracted_at)
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(resource_id) DO UPDATE SET
+            content = excluded.content,
+            extracted_at = CURRENT_TIMESTAMP
+        WHERE content IS NOT excluded.content;
+    )";
+
     SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
@@ -30,8 +32,12 @@ void FileTextContentRepository::upsertText(sqlite3_int64 resourceId, std::string
 }
 
 std::optional<std::string> FileTextContentRepository::getTextById(sqlite3_int64 resourceId) {
-    static constexpr char const* sql =
-        "SELECT content FROM file_text_content WHERE resource_id = ?;";
+    static constexpr char const* sql = R"(
+        SELECT content
+        FROM file_text_content
+        WHERE resource_id = ?;
+    )";
+
     SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
@@ -45,8 +51,13 @@ std::optional<std::string> FileTextContentRepository::getTextById(sqlite3_int64 
 }
 
 bool FileTextContentRepository::isIndexed(sqlite3_int64 resourceId) {
-    static constexpr char const* sql =
-        "SELECT 1 FROM file_text_content WHERE resource_id = ? LIMIT 1;";
+    static constexpr char const* sql = R"(
+        SELECT 1
+        FROM file_text_content
+        WHERE resource_id = ?
+        LIMIT 1;
+    )";
+
     SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
