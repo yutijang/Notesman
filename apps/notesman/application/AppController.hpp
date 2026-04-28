@@ -14,6 +14,7 @@
 #include <QStringList>
 #include <QTcpServer>
 #include <QTranslator>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <sqlite3.h>
@@ -95,6 +96,8 @@ class AppController final : public QObject {
         static UiConst::CleanupResult cleanupOldMarkdownCacheNow();
 
         void handleFileAssociationBtnRequest();
+
+        void createPackerFile(std::int64_t id, QString const& title);
 
     Q_SIGNALS:
         // waitting for using

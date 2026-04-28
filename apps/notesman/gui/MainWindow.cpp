@@ -67,6 +67,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <Qt>
+#include <QtEnvironmentVariables>
 #include <QtTypes>
 #include <cstdint>
 #include <cstring>
@@ -81,8 +82,11 @@
 #if defined(Q_OS_LINUX)
 #include "AppImageExtractor.hpp"
 
+#include <cerrno>
+#include <cstdlib>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #elif defined(Q_OS_WIN)
 #include "helper.hpp"
@@ -322,7 +326,7 @@ void MainWindow::showContextMenu(QPoint const& pos, std::int64_t id, ResourceTyp
 
     QAction* addShortcutAction = menu.addAction(tr("Add Shortcut"));
     QObject::connect(addShortcutAction, &QAction::triggered, this,
-                     [this, id, title]() { createPackerFile(id, title); });
+                     [this, id, title]() { m_appController->createPackerFile(id, title); });
 
     QAction* viewAction{};
     viewAction = menu.addAction(tr("View Resource"));
@@ -945,49 +949,4 @@ void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result,
     }
 
     Q_EMIT onCleanupFinished(mode);
-}
-
-void MainWindow::createPackerFile(std::int64_t id, QString const& title) {
-    auto const theme = m_appController->currentTheme();
-    auto const language = m_appController->currentLanguage();
-
-    QString const suggestedName =
-        QString::fromStdString(ViewerPackUltis::sanitizeFileName(title.toStdString())) + ".rvpk";
-
-    auto& settings = SettingsManager::instance();
-    QString const desktopDirAsDefault =
-        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
-    QString const kDefaultDir = settings.get("packer/lastSaveDir", desktopDirAsDefault).toString();
-    QString const savePath = QFileDialog::getSaveFileName(this, tr("Save Shortcut"),
-                                                          QDir(kDefaultDir).filePath(suggestedName),
-                                                          tr("Viewer Pack (*.rvpk)"));
-
-    if (savePath.isEmpty()) { return; } // user cancel
-
-    ViewerPackHeader hdr{};
-
-    // NOLINTNEXTLINE (-Wunsafe-buffer-usage-in-libc-call)
-    std::memcpy(hdr.magic, ViewerPackHeader::RVPK_MAGIC, sizeof(ViewerPackHeader::RVPK_MAGIC));
-    hdr.version = ViewerPackHeader::VERSION;
-    hdr.resourceId = id;
-    hdr.themeMode = static_cast<std::uint8_t>(theme);
-    hdr.language = static_cast<std::uint8_t>(language);
-    hdr.reserved1 = 0;
-
-    ViewerPackWriter writer;
-    auto result = writer.write(savePath.toStdString(), hdr);
-
-    if (!result.has_value()) {
-        Log::err("failed to write .rvpk for resource {}", id);
-        DialogUtils::showError(this, tr("Error"),
-                               tr("Failed to create shortcut file.\nPlease check write permissions "
-                                  "for the selected location."));
-        return;
-    }
-
-    QFileInfo const packerFile(savePath);
-    settings.set("packer/lastSaveDir", packerFile.absoluteDir().path());
-
-    DialogUtils::showInfo(this, tr("Shortcut Created"),
-                          tr("Shortcut created successfully:\n%1").arg(savePath));
 }

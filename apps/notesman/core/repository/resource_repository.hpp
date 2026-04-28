@@ -42,6 +42,9 @@ class ResourceRepository {
 
         std::vector<UnifiedSearchResult> getAllResourcesByType(ResourceType type);
 
+        [[nodiscard]]
+        std::optional<std::string> getResourceCreatedAt(sqlite3_int64 resourceId) const;
+
     private:
         static Resource resourceFromStmt(SQLiteStmt const& stmt);
         static std::vector<std::string> splitTags(std::string_view s, std::string_view delimiter);

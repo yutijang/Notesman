@@ -8,6 +8,7 @@
 #include <QString>
 #include <QStringList>
 #include <QtGlobal>
+#include <QtTypes>
 #include <functional>
 
 class OAuthManager;

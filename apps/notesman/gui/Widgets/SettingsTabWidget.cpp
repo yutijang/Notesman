@@ -410,15 +410,15 @@ QGroupBox* SettingsTabWidget::setupFileAssociation() {
 
     auto* gridLayout = new QGridLayout(fileAssociationGB);
 
-    gridLayout->setContentsMargins(15, 15, 15, 15);
+    gridLayout->setContentsMargins(15, 15, 15, 15); // NOLINT(readability-magic-numbers)
     gridLayout->setHorizontalSpacing(0);
-    gridLayout->setVerticalSpacing(10);
+    gridLayout->setVerticalSpacing(10);             // NOLINT(readability-magic-numbers)
 
     auto* statusTagLbl = new QLabel(tr("Status: "));
     m_associationStatusLbl = new QLabel(tr("Unregistered"));
 
     m_regAssociationBtn = new QPushButton(tr("Register"));
-    m_regAssociationBtn->setFixedWidth(120);
+    m_regAssociationBtn->setFixedWidth(120); // NOLINT(readability-magic-numbers)
 
     gridLayout->addWidget(statusTagLbl, 0, 0, Qt::AlignRight | Qt::AlignVCenter);
     gridLayout->addWidget(m_associationStatusLbl, 0, 1, Qt::AlignLeft | Qt::AlignVCenter);

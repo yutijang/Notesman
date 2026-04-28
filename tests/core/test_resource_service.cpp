@@ -133,7 +133,7 @@ TEST_CASE("ResourceService addFileResource delegates correctly", "[ResourceServi
     auto file = fileRepo.getFileById(id);
     REQUIRE(file.has_value());
     CHECK(file->is_managed);
-    CHECK(file->original_path.find("rs_test.txt") != std::string::npos);
+    CHECK(file->original_path.contains("rs_test.txt"));
 }
 
 TEST_CASE("ResourceService getFullResource combines repositories correctly", "[ResourceService]") {

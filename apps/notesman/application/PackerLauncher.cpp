@@ -1,5 +1,7 @@
 #include "PackerLauncher.hpp"
 
+#include <string_view>
+
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
@@ -8,7 +10,6 @@
 #include "AppUIApplier.hpp"
 #include "CoreErrorReporter.hpp"
 #include "CorePaths.hpp"
-#include "FileAssociation.hpp"
 #include "FontLoader.hpp"
 #include "IpcConstants.hpp"
 #include "Logger.hpp"
@@ -24,6 +25,7 @@
 #include <QFileInfo>
 #include <QLocalServer>
 #include <QLocalSocket>
+#include <QMessageBox>
 #include <QObject>
 #include <QString>
 #include <QTranslator>
@@ -159,6 +161,14 @@ int PackerLauncher::run(QString const& packerFilePath) {
     }
 
     FullResource const& res = *fullResourceOpt;
+
+    if (res.resource.created_at != std::string_view(header.createdAt)) {
+        QMessageBox::warning(
+            nullptr, QObject::tr("Invalid resource"),
+            QObject::tr("The file does not match the current database.\n"
+                        "The resource may have been deleted or the data has been reset."));
+        return 1;
+    }
 
     QString const title = QString::fromStdString(res.resource.title);
 

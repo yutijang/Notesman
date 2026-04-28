@@ -2,6 +2,7 @@
 
 #include "cpphighlightertheme.hpp"
 
+#include <QApplication>
 #include <QColor>
 #include <QObject>
 #include <QPalette>

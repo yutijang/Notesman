@@ -16,6 +16,7 @@
 #include <QNetworkRequest>
 #include <QObject>
 #include <QString>
+#include <QStringView>
 #include <QTimer>
 #include <QUrl>
 #include <QVersionNumber>

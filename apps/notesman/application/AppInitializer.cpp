@@ -11,7 +11,6 @@
 #include "AppSettings.hpp"
 #include "CorePaths.hpp"
 #include "DialogUtils.hpp"
-#include "FileAssociation.hpp"
 #include "FontLoader.hpp"
 #include "GuiCoreErrorHandler.hpp"
 #include "IpcConstants.hpp"

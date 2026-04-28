@@ -50,6 +50,20 @@ std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
     return std::nullopt;
 }
 
+std::optional<std::string>
+    ResourceRepository::getResourceCreatedAt(sqlite3_int64 resourceId) const {
+    static constexpr char const* sql = "SELECT created_at "
+                                       "FROM resources "
+                                       "WHERE id = ?;";
+    SQLiteStmt stmt(m_db.get(), sql);
+
+    sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
+
+    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnText(0); }
+
+    return std::nullopt;
+}
+
 std::vector<Resource> ResourceRepository::getAll() {
     static constexpr char const* sql = "SELECT id, title, type, file_hash, created_at, updated_at "
                                        "FROM resources;";

@@ -130,8 +130,6 @@ class MainWindow : public QMainWindow {
 
         void notiFromCleanupCacheResult(UiConst::CleanupResult result, UiConst::CleanupMode mode);
 
-        void createPackerFile(std::int64_t id, QString const& title);
-
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(QString const& filePath);
 #elif defined(Q_OS_LINUX)

@@ -11,15 +11,20 @@
 #include "NotesAppCore.hpp"
 #include "OAuthManager.hpp"
 #include "ResourceSearchWorker.hpp"
+#include "SanitizeFileName.hpp"
 #include "SettingsData.hpp"
+#include "SettingsManager.hpp"
 #include "UiConstants.hpp"
 #include "UpdateInfoSummary.hpp"
 #include "UpdateManager.hpp"
+#include "ViewerPackHeader.hpp"
+#include "ViewerPackWriter.hpp"
 #include "helper.hpp"
 #include "model.hpp"
 
 #include <QApplication>
 #include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QObject>
 #include <QRegularExpression>
@@ -33,11 +38,15 @@
 #include <Qt>
 #include <QtTypes>
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <iterator>
 #include <memory>
 #include <sqlite3.h>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -649,4 +658,57 @@ void AppController::handleFileAssociationBtnRequest() {
     }
 
     Q_EMIT refreshFileAssociationStatus(ok);
+}
+
+void AppController::createPackerFile(std::int64_t id, QString const& title) {
+    auto const theme = currentTheme();
+    auto const language = currentLanguage();
+
+    QString const suggestedName =
+        QString::fromStdString(ViewerPackUltis::sanitizeFileName(title.toStdString())) + ".rvpk";
+
+    auto& settings = SettingsManager::instance();
+    QString const desktopDirAsDefault =
+        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    QString const kDefaultDir = settings.get("packer/lastSaveDir", desktopDirAsDefault).toString();
+    QString const savePath = QFileDialog::getSaveFileName(m_mainWindow, tr("Save Shortcut"),
+                                                          QDir(kDefaultDir).filePath(suggestedName),
+                                                          tr("Viewer Pack (*.rvpk)"));
+
+    if (savePath.isEmpty()) { return; } // user cancel
+
+    ViewerPackHeader hdr{};
+
+    // NOLINTNEXTLINE (-Wunsafe-buffer-usage-in-libc-call)
+    std::memcpy(hdr.magic, ViewerPackHeader::RVPK_MAGIC, sizeof(ViewerPackHeader::RVPK_MAGIC));
+    hdr.version = ViewerPackHeader::VERSION;
+    hdr.resourceId = id;
+
+    auto const createAtOpt = m_core->getResourceCreatedAt(id);
+    if (!createAtOpt || createAtOpt->size() != ViewerPackHeader::CREATED_AT_LENGTH) {
+        throw std::runtime_error("Invalid created_at");
+    }
+    std::memcpy(hdr.createdAt, createAtOpt->data(), ViewerPackHeader::CREATED_AT_LENGTH);
+    hdr.createdAt[ViewerPackHeader::CREATED_AT_LENGTH] = '\0';
+
+    hdr.themeMode = static_cast<std::uint8_t>(theme);
+    hdr.language = static_cast<std::uint8_t>(language);
+    hdr.reserved1 = 0;
+
+    ViewerPackWriter writer;
+    auto result = writer.write(savePath.toStdString(), hdr);
+
+    if (!result.has_value()) {
+        Log::err("failed to write .rvpk for resource {}", id);
+        DialogUtils::showError(m_mainWindow, tr("Error"),
+                               tr("Failed to create shortcut file.\nPlease check write permissions "
+                                  "for the selected location."));
+        return;
+    }
+
+    QFileInfo const packerFile(savePath);
+    settings.set("packer/lastSaveDir", packerFile.absoluteDir().path());
+
+    DialogUtils::showInfo(m_mainWindow, tr("Shortcut Created"),
+                          tr("Shortcut created successfully:\n%1").arg(savePath));
 }
