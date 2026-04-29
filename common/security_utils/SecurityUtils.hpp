@@ -1,12 +1,14 @@
 #pragma once
 
-#include <array>
+// clang-format off
+#include <windows.h>
 #include <bcrypt.h>
+// clang-format on
+
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <shellapi.h>
-#include <windows.h>
-
 
 namespace security_utils {
     // Key và Secret dùng chung

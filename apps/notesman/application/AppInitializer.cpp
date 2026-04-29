@@ -1,7 +1,5 @@
 #include "AppInitializer.hpp"
 
-#include <cstdint>
-
 #ifdef Q_OS_WIN
 #include <functional>
 #include <windows.h>
@@ -35,6 +33,7 @@
 #include <QTimer>
 #include <Qt>
 #include <algorithm>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <memory>

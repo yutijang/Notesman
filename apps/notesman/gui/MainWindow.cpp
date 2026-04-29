@@ -19,15 +19,12 @@
 #include "ResourceViewerDialog.hpp"
 #include "ResourceViewerFactory.hpp"
 #include "ResultsTable.hpp"
-#include "SanitizeFileName.hpp"
 #include "SettingsData.hpp"
 #include "SettingsManager.hpp"
 #include "SettingsTabWidget.hpp"
 #include "TextViewer.hpp"
 #include "UiConstants.hpp"
 #include "UpdateInfoSummary.hpp"
-#include "ViewerPackHeader.hpp"
-#include "ViewerPackWriter.hpp"
 #include "app_version.hpp"
 #include "cpphighlighter.hpp"
 #include "cpphighlightertheme.hpp"
@@ -70,7 +67,6 @@
 #include <QtEnvironmentVariables>
 #include <QtTypes>
 #include <cstdint>
-#include <cstring>
 #include <memory>
 #include <optional>
 #include <qminmax.h>
@@ -256,11 +252,11 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const&
 
     QLocalSocket packerProbe;
     packerProbe.connectToServer(packerServerName);
-    if (packerProbe.waitForConnected(200)) {
+    if (packerProbe.waitForConnected(200)) { // NOLINT(readability-magic-numbers)
         // Packer đang mở resource này → focus packer dialog rồi thoát
         packerProbe.write("activate");
         packerProbe.flush();
-        packerProbe.waitForBytesWritten(200);
+        packerProbe.waitForBytesWritten(200); // NOLINT(readability-magic-numbers)
         packerProbe.disconnectFromServer();
         return;
     }
