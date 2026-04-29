@@ -117,9 +117,9 @@ void AddTabWidget::onClearButtonClicked() {
 }
 
 void AddTabWidget::onBrowseFile() {
-    auto& settings = SettingsManager::instance();
+    auto& qSettings = SettingsManager::instance();
 
-    QString const kDefaultDir = settings.get("addTab/lastBrowseDir", QDir::homePath()).toString();
+    QString const kDefaultDir = qSettings.get("addTab/lastBrowseDir", QDir::homePath()).toString();
 
     QString const fileFilter = buildResourceFileFilter();
     QString const filePath =
@@ -135,7 +135,7 @@ void AddTabWidget::onBrowseFile() {
         m_titleInp->setText(fileInfo.completeBaseName());
     }
 
-    if (fileInfo.exists()) { settings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path()); }
+    if (fileInfo.exists()) { qSettings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path()); }
 
     auto const typeOpt = resourceTypeFromFile(filePath.toStdString());
     if (!typeOpt.has_value()) {

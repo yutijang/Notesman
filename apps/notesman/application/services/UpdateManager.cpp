@@ -45,17 +45,17 @@ void UpdateManager::checkForUpdates(QString const& versionCheckUrl) {
     request.setRawHeader("Accept", "application/vnd.github.v3+json");
     request.setRawHeader("X-GitHub-Api-Version", "2022-11-28");
 
-    auto& settings = SettingsManager::instance();
+    auto& qSettings = SettingsManager::instance();
 
     // Check for rollback
-    QString const appliedVersion = settings.get("update/applied_version").toString();
+    QString const appliedVersion = qSettings.get("update/applied_version").toString();
     if (!appliedVersion.isEmpty() && appliedVersion != app::meta::VERSION) {
         int const compare = compareVersionsQt(app::meta::VERSION, appliedVersion);
         if (compare < 0) {
-            settings.remove("update/applied_etag");
-            settings.remove("update/applied_version");
-            settings.remove("update/pending_etag");
-            settings.remove("update/pending_version");
+            qSettings.remove("update/applied_etag");
+            qSettings.remove("update/applied_version");
+            qSettings.remove("update/pending_etag");
+            qSettings.remove("update/pending_version");
 
             QString const msg = QStringLiteral("Rollback detected: local=%1, applied=%2")
                                     .arg(app::meta::VERSION)
@@ -65,7 +65,7 @@ void UpdateManager::checkForUpdates(QString const& versionCheckUrl) {
         }
     }
 
-    QString const pendingVersion = settings.get("update/pending_version").toString();
+    QString const pendingVersion = qSettings.get("update/pending_version").toString();
     if (!pendingVersion.isEmpty()) {
         int const compare = compareVersionsQt(app::meta::VERSION, pendingVersion);
         if (compare < 0) {
@@ -74,7 +74,7 @@ void UpdateManager::checkForUpdates(QString const& versionCheckUrl) {
         }
     }
 
-    QString const appliedETag = settings.get("update/applied_etag").toString();
+    QString const appliedETag = qSettings.get("update/applied_etag").toString();
     if (!appliedETag.isEmpty()) { request.setRawHeader("If-None-Match", appliedETag.toUtf8()); }
 
     QNetworkReply* reply = m_networkManager.get(request);
@@ -128,13 +128,13 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
     QString const latestVersion = releaseObj.value("tag_name").toString();
     auto const removeVer = normalizeVersionQt(latestVersion);
 
-    auto& settings = SettingsManager::instance();
+    auto& qSettings = SettingsManager::instance();
 
     int const checkForUpdate = compareVersionsQt(app::meta::VERSION, removeVer);
     // Không có cập nhật mới
     if (checkForUpdate >= 0) {
-        settings.remove("update/pending_etag");
-        settings.remove("update/pending_version");
+        qSettings.remove("update/pending_etag");
+        qSettings.remove("update/pending_version");
 
         Q_EMIT noUpdateAvailable();
 
@@ -155,8 +155,8 @@ void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
         return;
     }
 
-    settings.set("update/pending_etag", pendingETag);
-    settings.set("update/pending_version", removeVer.toString());
+    qSettings.set("update/pending_etag", pendingETag);
+    qSettings.set("update/pending_version", removeVer.toString());
 
     updateInfo->tagName = latestVersion;
 

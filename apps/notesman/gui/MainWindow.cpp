@@ -189,15 +189,15 @@ void MainWindow::handleSettingsStateChange(UiConst::SettingsMessageState state) 
 }
 
 void MainWindow::showEvent(QShowEvent* event) {
-    QMainWindow::showEvent(event);                // Gọi base trước
+    QMainWindow::showEvent(event);                 // Gọi base trước
 
-    auto& settings = SettingsManager::instance(); // Tạo INI/JSON config
+    auto& qSettings = SettingsManager::instance(); // Tạo INI/JSON config
 
     // Đọc vị trí lưu
-    int x = settings.get("window/main_posX", -1).toInt();
-    int y = settings.get("window/main_posY", -1).toInt();
-    int w = settings.get("window/main_width", width()).toInt();
-    int h = settings.get("window/main_height", height()).toInt();
+    int x = qSettings.get("window/main_posX", -1).toInt();
+    int y = qSettings.get("window/main_posY", -1).toInt();
+    int w = qSettings.get("window/main_width", width()).toInt();
+    int h = qSettings.get("window/main_height", height()).toInt();
 
     if (x != -1 && y != -1) {
         // Dùng vị trí lưu (và kích thước nếu cần)
@@ -217,11 +217,11 @@ void MainWindow::showEvent(QShowEvent* event) {
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     // Lưu vị trí và kích thước
-    auto& settings = SettingsManager::instance();
-    settings.set("window/main_posX", x());
-    settings.set("window/main_posY", y());
-    settings.set("window/main_width", width());
-    settings.set("window/main_height", height());
+    auto& qSettings = SettingsManager::instance();
+    qSettings.set("window/main_posX", x());
+    qSettings.set("window/main_posY", y());
+    qSettings.set("window/main_width", width());
+    qSettings.set("window/main_height", height());
 
     QMainWindow::closeEvent(event); // Gọi base để đóng
 }

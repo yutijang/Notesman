@@ -56,40 +56,32 @@ void AppController::loadSettings() {
     std::filesystem::path const configPath =
         std::filesystem::path(CorePaths::configFile().toStdString());
 
-    m_settings = std::make_unique<AppSettings>();
-
     if (!std::filesystem::exists(configPath)) {
-        Q_EMIT settingsLoaded(m_settings->toUiSettings());
+        Q_EMIT settingsLoaded(m_settings.toUiSettings());
         return;
     }
 
-    if (!m_settings->load(configPath)) {
-        if (!m_settings->save(configPath)) {
-            Q_EMIT settingsLoaded(m_settings->toUiSettings());
+    if (!m_settings.load(configPath)) {
+        if (!m_settings.save(configPath)) {
+            Q_EMIT settingsLoaded(m_settings.toUiSettings());
             DialogUtils::showError(m_mainWindow, tr("Error"), tr("Can not save config file"));
         }
     }
 
-    Q_EMIT initialSettingsLoaded(m_settings->toUiSettings());
+    Q_EMIT initialSettingsLoaded(m_settings.toUiSettings());
 }
 
 void AppController::saveSettings() {
     std::filesystem::path const configPath =
         std::filesystem::path(CorePaths::configFile().toStdString());
-    if (m_settings) {
-        if (!m_settings->save(configPath)) {
-            DialogUtils::showError(m_mainWindow, tr("Error"), tr("Can not save config file"));
-        }
+
+    if (!m_settings.save(configPath)) {
+        DialogUtils::showError(m_mainWindow, tr("Error"), tr("Can not save config file"));
     }
 }
 
 void AppController::updateSettings(AppSettings const& newSettings) {
-    if (!m_settings) {
-        m_settings = std::make_unique<AppSettings>();
-    } else {
-        *m_settings = newSettings;
-    }
-
+    m_settings = newSettings;
     saveSettings();
 }
 
@@ -280,25 +272,19 @@ void AppController::handleDefaultSettingsRequest() {
 }
 
 void AppController::handleApplySettingsRequest(SettingsData const& data) {
-    auto* settings = m_settings.get();
-    if (settings == nullptr) {
-        DialogUtils::showError(m_mainWindow, tr("Error"), tr("Core is not initialized."));
-        return;
-    }
+    m_settings.setLanguage(data.language);
+    m_settings.setTheme(data.theme);
 
-    settings->setLanguage(data.language);
-    settings->setTheme(data.theme);
+    if (!data.resourceDir.empty()) { m_settings.setResourceDir(data.resourceDir); }
 
-    if (!data.resourceDir.empty()) { settings->setResourceDir(data.resourceDir); }
+    m_settings.setManagedResources(data.isManagedResource);
+    m_settings.setResourceDirCustomized(data.isResourceDirCustomized);
+    m_settings.setCleanupEpubCache(data.isEpubCleanupCache);
+    m_settings.setCleanupMDCache(data.isMDCleanupCache);
+    m_settings.setExpiredCleanupEpubCache(data.expiredCleanupEpubCache);
+    m_settings.setExpiredCleanupMDCache(data.expiredCleanupMDCache);
 
-    settings->setManagedResources(data.isManagedResource);
-    settings->setResourceDirCustomized(data.isResourceDirCustomized);
-    settings->setCleanupEpubCache(data.isEpubCleanupCache);
-    settings->setCleanupMDCache(data.isMDCleanupCache);
-    settings->setExpiredCleanupEpubCache(data.expiredCleanupEpubCache);
-    settings->setExpiredCleanupMDCache(data.expiredCleanupMDCache);
-
-    if (settings->isDirty()) {
+    if (m_settings.isDirty()) {
         applyLanguage(data.language);
         applyTheme(data.theme);
 
@@ -312,7 +298,7 @@ void AppController::handleApplySettingsRequest(SettingsData const& data) {
         }
 
         saveSettings();
-        settings->markDirty(false);
+        m_settings.markDirty(false);
 
         Q_EMIT requestSyntaxHighlightingUpdate(data.theme);
 
@@ -328,9 +314,9 @@ void AppController::handleApplySettingsRequest(SettingsData const& data) {
 void AppController::handleAddNoteRequest(QString const& title, QString const& textContent,
                                          QString const& filePath, QString const& url,
                                          QStringList const& tags, UiConst::AddResMode mode) {
-    if (mode == UiConst::AddResMode::File && m_settings->isManagedResources()) {
-        auto const& resDir = m_settings->resourceDir();
-        bool const needStrictCheck = !m_settings->isDefaultResourceDir();
+    if (mode == UiConst::AddResMode::File && m_settings.isManagedResources()) {
+        auto const& resDir = m_settings.resourceDir();
+        bool const needStrictCheck = !m_settings.isDefaultResourceDir();
 
         if (needStrictCheck &&
             (!std::filesystem::exists(resDir) || !std::filesystem::is_directory(resDir))) {
@@ -456,7 +442,7 @@ void AppController::handleSearchRequest(QString const& keyword, QString const& m
 }
 
 SettingsData AppController::currentUiSettings() const {
-    return m_settings->toUiSettings();
+    return m_settings.toUiSettings();
 }
 
 SettingsData AppController::defaultUiSettings() {
@@ -556,7 +542,7 @@ sqlite_int64 AppController::handleFileMode(std::string const& title,
         contentToIndex = Utils::readFileToString(filePath);
     }
 
-    auto resId = m_core->addFileNote(filePath, title, outType, m_settings->isManagedResources(),
+    auto resId = m_core->addFileNote(filePath, title, outType, m_settings.isManagedResources(),
                                      contentToIndex);
 
     Q_EMIT addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::Good);
@@ -667,10 +653,10 @@ void AppController::createPackerFile(std::int64_t id, QString const& title) {
     QString const suggestedName =
         QString::fromStdString(ViewerPackUltis::sanitizeFileName(title.toStdString())) + ".rvpk";
 
-    auto& settings = SettingsManager::instance();
+    auto& qSettings = SettingsManager::instance();
     QString const desktopDirAsDefault =
         QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
-    QString const kDefaultDir = settings.get("packer/lastSaveDir", desktopDirAsDefault).toString();
+    QString const kDefaultDir = qSettings.get("packer/lastSaveDir", desktopDirAsDefault).toString();
     QString const savePath = QFileDialog::getSaveFileName(m_mainWindow, tr("Save Shortcut"),
                                                           QDir(kDefaultDir).filePath(suggestedName),
                                                           tr("Viewer Pack (*.rvpk)"));
@@ -707,7 +693,7 @@ void AppController::createPackerFile(std::int64_t id, QString const& title) {
     }
 
     QFileInfo const packerFile(savePath);
-    settings.set("packer/lastSaveDir", packerFile.absoluteDir().path());
+    qSettings.set("packer/lastSaveDir", packerFile.absoluteDir().path());
 
     DialogUtils::showInfo(m_mainWindow, tr("Shortcut Created"),
                           tr("Shortcut created successfully:\n%1").arg(savePath));

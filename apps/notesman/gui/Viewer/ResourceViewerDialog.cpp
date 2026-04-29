@@ -50,12 +50,12 @@ void ResourceViewerDialog::showEvent(QShowEvent* event) {
 }
 
 void ResourceViewerDialog::closeEvent(QCloseEvent* event) {
-    auto& settings = SettingsManager::instance();
+    auto& qSettings = SettingsManager::instance();
 
-    settings.set("window/dialog_viewer_posX", x());
-    settings.set("window/dialog_viewer_posY", y());
-    settings.set("window/dialog_viewer_width", width());
-    settings.set("window/dialog_viewer_height", height());
+    qSettings.set("window/dialog_viewer_posX", x());
+    qSettings.set("window/dialog_viewer_posY", y());
+    qSettings.set("window/dialog_viewer_width", width());
+    qSettings.set("window/dialog_viewer_height", height());
 
     if (m_viewer) {
         if (!m_viewer->onClose(this)) {
@@ -105,12 +105,12 @@ void ResourceViewerDialog::setupActions() {
 }
 
 void ResourceViewerDialog::restoreGeometryLogic() {
-    auto& settings = SettingsManager::instance();
+    auto& qSettings = SettingsManager::instance();
 
-    int const savedX = settings.get("window/dialog_viewer_posX", -1).toInt();
-    int const savedY = settings.get("window/dialog_viewer_posY", -1).toInt();
-    int const savedW = settings.get("window/dialog_viewer_width", -1).toInt();
-    int const savedH = settings.get("window/dialog_viewer_height", -1).toInt();
+    int const savedX = qSettings.get("window/dialog_viewer_posX", -1).toInt();
+    int const savedY = qSettings.get("window/dialog_viewer_posY", -1).toInt();
+    int const savedW = qSettings.get("window/dialog_viewer_width", -1).toInt();
+    int const savedH = qSettings.get("window/dialog_viewer_height", -1).toInt();
 
     static constexpr QSize kDefaultSize{800, 800};
 

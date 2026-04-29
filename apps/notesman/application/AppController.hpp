@@ -35,16 +35,22 @@ class AppController final : public QObject {
         void saveSettings();
         void updateSettings(AppSettings const& newSettings);
 
-        [[nodiscard]] AppSettings const* settings() const noexcept { return m_settings.get(); }
-
-        [[nodiscard]] bool isDarkTheme() const noexcept {
-            return m_settings->theme() == UiConst::Theme::Dark;
+        [[nodiscard]]
+        AppSettings const& settings() const noexcept {
+            return m_settings;
         }
 
-        [[nodiscard]] UiConst::Theme currentTheme() const noexcept { return m_settings->theme(); }
+        [[nodiscard]] bool isDarkTheme() const noexcept {
+            return m_settings.theme() == UiConst::Theme::Dark;
+        }
+
+        [[nodiscard]]
+        UiConst::Theme currentTheme() const noexcept {
+            return m_settings.theme();
+        }
 
         [[nodiscard]] UiConst::Language currentLanguage() const noexcept {
-            return m_settings->language();
+            return m_settings.language();
         }
 
         [[nodiscard]] QString lastUpdateInfoAssetHash() const noexcept {
@@ -55,11 +61,11 @@ class AppController final : public QObject {
         [[nodiscard]] static SettingsData defaultUiSettings();
 
         [[nodiscard]] std::filesystem::path resourceDir() const noexcept {
-            return m_settings->resourceDir();
+            return m_settings.resourceDir();
         }
 
         [[nodiscard]] bool isManagedResources() const noexcept {
-            return m_settings->isManagedResources();
+            return m_settings.isManagedResources();
         }
 
         void applyLanguage(UiConst::Language lang);
@@ -140,7 +146,8 @@ class AppController final : public QObject {
 
         void displayInfoGMUserLinked(QString const& email);
 
-        std::unique_ptr<AppSettings> m_settings;
+        AppSettings m_settings;
+
         std::unique_ptr<QTranslator> m_translator;
         std::unique_ptr<UpdateManager> m_updateManager;
         std::unique_ptr<DownloadManager> m_downloadManager;

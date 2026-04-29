@@ -25,27 +25,27 @@ class SettingsManager {
         // --- Wrapper ---
         QVariant get(QString const& key, QVariant const& defaultValue = {}) const {
             std::lock_guard<std::mutex> lock(m_mutex);
-            return m_settings.value(key, defaultValue);
+            return m_qSettings.value(key, defaultValue);
         }
 
         void set(QString const& key, QVariant const& value) {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_settings.setValue(key, value);
+            m_qSettings.setValue(key, value);
         }
 
         void remove(QString const& key) {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_settings.remove(key);
+            m_qSettings.remove(key);
         }
 
         void clear() {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_settings.clear();
+            m_qSettings.clear();
         }
 
     private:
-        SettingsManager() : m_settings(app::meta::NAME, QStringLiteral("configs")) {}
+        SettingsManager() : m_qSettings(app::meta::NAME, QStringLiteral("configs")) {}
 
-        QSettings m_settings;
+        QSettings m_qSettings;
         mutable std::mutex m_mutex;
 };

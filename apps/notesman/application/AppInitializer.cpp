@@ -182,11 +182,8 @@ void AppInitializer::run() {
     #endif
     */
 
-    AppSettings const* settings = m_controller->settings();
-    if (settings != nullptr) {
-        m_controller->applyLanguage(settings->language());
-        m_controller->applyTheme(settings->theme());
-    }
+    m_controller->applyLanguage(m_controller->settings().language());
+    m_controller->applyTheme(m_controller->settings().theme());
 
     m_mainWindow->show();
 
@@ -194,13 +191,11 @@ void AppInitializer::run() {
 
     checkUpdateFlag();
 
-    if (settings != nullptr) {
-        if (settings->isCleanupEpubCache()) {
-            Q_EMIT cleanupEpubCacheRequest(settings->daysCleanupEpubCache());
-        }
-        if (settings->isCleanupMDCache()) {
-            Q_EMIT cleanupMDCacheRequest(settings->daysCleanupMDCache());
-        }
+    if (m_controller->settings().isCleanupEpubCache()) {
+        Q_EMIT cleanupEpubCacheRequest(m_controller->settings().daysCleanupEpubCache());
+    }
+    if (m_controller->settings().isCleanupMDCache()) {
+        Q_EMIT cleanupMDCacheRequest(m_controller->settings().daysCleanupMDCache());
     }
 }
 
@@ -388,16 +383,16 @@ void AppInitializer::checkUpdateFlag() {
 }
 
 void AppInitializer::saveETagOnUpdateSuccess() {
-    auto& settings = SettingsManager::instance();
+    auto& qSettings = SettingsManager::instance();
 
-    QString const pendingETag = settings.get("update/pending_etag").toString();
-    QString const pendingVersion = settings.get("update/pending_version").toString();
+    QString const pendingETag = qSettings.get("update/pending_etag").toString();
+    QString const pendingVersion = qSettings.get("update/pending_version").toString();
 
     // Chỉ xác nhận thành công nếu version khớp
     if (!pendingETag.isEmpty() && !pendingVersion.isEmpty() &&
         pendingVersion == app::meta::VERSION) {
-        settings.set("update/applied_etag", pendingETag);
-        settings.set("update/applied_version", pendingVersion);
+        qSettings.set("update/applied_etag", pendingETag);
+        qSettings.set("update/applied_version", pendingVersion);
 
         Log::info("Update applied successfully. Version: {}, ETag: {}",
                   pendingVersion.toStdString(), pendingETag.toStdString());
@@ -407,8 +402,8 @@ void AppInitializer::saveETagOnUpdateSuccess() {
     }
 
     // Dù thành công hay thất bại, pending đều phải bị xóa
-    settings.remove("update/pending_etag");
-    settings.remove("update/pending_version");
+    qSettings.remove("update/pending_etag");
+    qSettings.remove("update/pending_version");
 }
 
 void AppInitializer::handleUpdateCleanup(QStringList const& args) {

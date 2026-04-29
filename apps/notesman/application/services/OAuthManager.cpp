@@ -100,9 +100,9 @@ void OAuthManager::processTokenJson(QJsonObject const& json) {
     if (!refresh.isEmpty()) { saveRefreshToken(refresh); }
 
     // Lưu vào Settings
-    auto& settings = SettingsManager::instance();
-    settings.set(KEY_ACCESS_TOKEN, m_accessToken);
-    settings.set(KEY_TOKEN_EXPIRY, m_accessTokenExpiry.toSecsSinceEpoch());
+    auto& qSettings = SettingsManager::instance();
+    qSettings.set(KEY_ACCESS_TOKEN, m_accessToken);
+    qSettings.set(KEY_TOKEN_EXPIRY, m_accessTokenExpiry.toSecsSinceEpoch());
 }
 
 void OAuthManager::openBrowser(QUrl const& url) {
@@ -365,9 +365,9 @@ void OAuthManager::handleUnlinkGMRequested() {
 
     job->start();
 
-    auto& settings = SettingsManager::instance();
-    settings.remove(KEY_ACCESS_TOKEN);
-    settings.remove(KEY_TOKEN_EXPIRY);
+    auto& qSettings = SettingsManager::instance();
+    qSettings.remove(KEY_ACCESS_TOKEN);
+    qSettings.remove(KEY_TOKEN_EXPIRY);
 
     m_isLogin = false;
 
@@ -460,9 +460,9 @@ QString OAuthManager::accessToken() {
 void OAuthManager::tryAutoLogin() {
     if (m_isLogin) { return; }
 
-    auto& settings = SettingsManager::instance();
-    m_accessToken = settings.get(KEY_ACCESS_TOKEN).toString();
-    qint64 expirySecs = settings.get(KEY_TOKEN_EXPIRY).toLongLong();
+    auto& qSettings = SettingsManager::instance();
+    m_accessToken = qSettings.get(KEY_ACCESS_TOKEN).toString();
+    qint64 expirySecs = qSettings.get(KEY_TOKEN_EXPIRY).toLongLong();
     m_accessTokenExpiry = QDateTime::fromSecsSinceEpoch(expirySecs, QTimeZone::utc());
 
     QString token = accessToken();

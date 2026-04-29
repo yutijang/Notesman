@@ -209,9 +209,9 @@ void SettingsTabWidget::onBrowseBtnClicked() {
     auto* targetEdit = senderButton->property("targetEdit").value<QLineEdit*>();
     if (targetEdit == nullptr) { return; }
 
-    auto& settings = SettingsManager::instance();
+    auto& qSettings = SettingsManager::instance();
     QString const kDefaultDir =
-        settings.get(QStringLiteral("settingsTab/lastBrowseDir"), QDir::homePath()).toString();
+        qSettings.get(QStringLiteral("settingsTab/lastBrowseDir"), QDir::homePath()).toString();
 
     QString dirPath =
         QFileDialog::getExistingDirectory(this, tr("Select Output Folder"), kDefaultDir);
@@ -222,7 +222,7 @@ void SettingsTabWidget::onBrowseBtnClicked() {
 
         // Get parent path
         QString const parentDir = QFileInfo(cleanPath).absoluteDir().absolutePath();
-        settings.set(QStringLiteral("settingsTab/lastBrowseDir"), parentDir);
+        qSettings.set(QStringLiteral("settingsTab/lastBrowseDir"), parentDir);
     }
 }
 
