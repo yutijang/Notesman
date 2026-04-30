@@ -131,15 +131,11 @@ void MainWindow::setupBrowseTab() {
                      &BrowseTabWidget::updateColumnWidths);
 
     m_resultsTbl = m_browseTab->resultsTable();
-    m_deleteResourceAction = new QAction(tr("Delete Resource"), this);
-    m_deleteResourceAction->setIcon(QIcon(":/icons/erase.ico"));
+    m_deleteResourceAction = createDeleteAction(this);
     m_deleteResourceAction->setShortcut(QKeySequence::Delete);
     m_deleteResourceAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_deleteResourceAction->setEnabled(false);
     m_resultsTbl->addAction(m_deleteResourceAction);
-
-    QObject::connect(m_deleteResourceAction, &QAction::triggered, this,
-                     [this] { handleContextMenuDeleteAction(m_resultsTbl); });
 
     QObject::connect(m_resultsTbl->selectionModel(), &QItemSelectionModel::selectionChanged, this,
                      [this](QItemSelection const& sel, QItemSelection const&) {
@@ -326,20 +322,20 @@ void MainWindow::showContextMenu(QPoint const& pos, std::int64_t id, ResourceTyp
 
     QMenu menu(this);
 
-    QAction* addShortcutAction = menu.addAction(tr("Add Shortcut"));
-    QObject::connect(addShortcutAction, &QAction::triggered, this,
-                     [this, id, title]() { m_appController->createPackerFile(id, title); });
-
-    QAction* viewAction{};
-    viewAction = menu.addAction(tr("View Resource"));
+    QAction* viewAction = menu.addAction(tr("View Resource"));
     viewAction->setIcon(QIcon(":/icons/view.ico"));
     QObject::connect(viewAction, &QAction::triggered, this, [this, id, type, title, path, url]() {
         viewResource(id, type, title, path, url);
     });
 
+    QAction* addShortcutAction = menu.addAction(tr("Add Shortcut"));
+    addShortcutAction->setIcon(QIcon(":/icons/add.ico"));
+    QObject::connect(addShortcutAction, &QAction::triggered, this,
+                     [this, id, title]() { m_appController->createPackerFile(id, title); });
+
     menu.addSeparator();
 
-    menu.addAction(m_deleteResourceAction);
+    menu.addAction(createDeleteAction(&menu));
 
     menu.exec(m_resultsTbl->viewport()->mapToGlobal(
         pos + QPoint(5, 5))); // NOLINT(readability-magic-numbers)
@@ -854,11 +850,21 @@ void MainWindow::disableSyntaxHighlightingTheme() {
 
 // --- BEGIN showContextMenu helper ---
 
-void MainWindow::handleContextMenuDeleteAction(ResultsTable* resultTable) {
-    if (resultTable == nullptr) { return; }
+QAction* MainWindow::createDeleteAction(QObject* parent) const {
+    auto* action = new QAction(tr("Delete Resource"), parent);
+    action->setIcon(QIcon(":/icons/erase.ico"));
 
-    auto const selectedRows = resultTable->selectionModel()->selectedRows();
-    if (selectedRows.empty()) { return; }
+    QObject::connect(action, &QAction::triggered, this, &MainWindow::deleteSelectedResources);
+
+    return action;
+}
+
+void MainWindow::deleteSelectedResources() {
+    auto* table = m_resultsTbl;
+    if (table == nullptr) { return; }
+
+    auto const selectedRows = m_resultsTbl->selectionModel()->selectedRows();
+    if (selectedRows.isEmpty()) { return; }
 
     std::vector<sqlite3_int64> idsToDelete;
     auto const idsToDelCount =
@@ -868,26 +874,38 @@ void MainWindow::handleContextMenuDeleteAction(ResultsTable* resultTable) {
     QString textSel;
     if (idsToDelCount == 1) {
         auto const& index = selectedRows[0];
-        auto* itemSel = resultTable->item(index.row(), 1);
+        auto* itemSel = table->item(index.row(), 1);
         if (itemSel != nullptr) { textSel = itemSel->text(); }
     }
 
     for (QModelIndex const& idx : selectedRows) {
-        sqlite3_int64 const id = extractIdFromRow(resultTable, idx.row());
+        sqlite3_int64 const id = extractIdFromRow(table, idx.row());
         if (id > 0) { idsToDelete.push_back(id); }
     }
 
-    removeSelectedRowsFromTable(resultTable, selectedRows);
+    if (!confirmDelete(idsToDelCount, textSel)) { return; }
 
-    m_core->deleteResources(idsToDelete);
+    removeSelectedRowsFromTable(table, selectedRows);
 
-    if (idsToDelCount > 1) {
-        updateStatus(tr("Deleted %1 resources").arg(idsToDelCount), UiConst::NOTI_TIMEOUT);
-    } else if (!textSel.isEmpty()) {
-        updateStatus(tr("Deleted %1").arg(textSel), UiConst::NOTI_TIMEOUT);
+    deleteResourcesByIds(idsToDelete);
+
+    notifyDeleteResult(idsToDelCount, textSel);
+}
+
+void MainWindow::notifyDeleteResult(std::size_t const& count, QString const& name) {
+    if (count > 1) {
+        updateStatus(tr("Deleted %1 resources").arg(count), UiConst::NOTI_TIMEOUT);
+    } else if (!name.isEmpty()) {
+        updateStatus(tr("Deleted %1").arg(name), UiConst::NOTI_TIMEOUT);
     } else {
         updateStatus(tr("Deleted resource"), UiConst::NOTI_TIMEOUT);
     }
+}
+
+void MainWindow::deleteResourcesByIds(std::vector<sqlite3_int64> const& idsToDelete) {
+    if (idsToDelete.empty()) { return; }
+
+    m_core->deleteResources(idsToDelete);
 }
 
 sqlite3_int64 MainWindow::extractIdFromRow(ResultsTable* resultTable, int row) {
@@ -924,6 +942,22 @@ void MainWindow::removeSelectedRowsFromTable(ResultsTable* table,
     table->setCurrentIndex(QModelIndex());
     table->clearFocus();
     table->viewport()->update();
+}
+
+bool MainWindow::confirmDelete(std::size_t count, QString const& name) {
+    QString message;
+
+    if (count > 1) {
+        message = tr("Delete %1 resources?").arg(count);
+    } else if (!name.isEmpty()) {
+        message = tr("Delete \"%1\"?").arg(name);
+    } else {
+        message = tr("Delete selected resource?");
+    }
+
+    auto const reply = DialogUtils::showQuestion(this, tr("Confirm Delete"), message);
+
+    return reply == QMessageBox::Yes;
 }
 
 // --- END showContextMenu helper ---

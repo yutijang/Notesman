@@ -75,7 +75,7 @@ class AppController final : public QObject {
 
         UpdateManager* updateManager();
         DownloadManager* downloadManager();
-        void oauthManager();
+        void ensureOAuth();
         void updateTranslatedStrings();
 
         void handleGetAllDataRequest();
@@ -151,6 +151,7 @@ class AppController final : public QObject {
         std::unique_ptr<QTranslator> m_translator;
         std::unique_ptr<UpdateManager> m_updateManager;
         std::unique_ptr<DownloadManager> m_downloadManager;
+
         std::unique_ptr<OAuthManager> m_oauthManager;
         std::unique_ptr<GoogleDriveService> m_GDService;
 

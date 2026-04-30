@@ -19,7 +19,7 @@ struct ViewerPackHeader final {
     public:
         static constexpr char RVPK_MAGIC[4] = {'R', 'V', 'P', 'K'};
         static constexpr std::uint16_t VERSION{2};
-        static constexpr std::size_t UUID_LENGTH = 32;
+        static constexpr std::size_t UUID_LENGTH{32};
 
         // ---------------------------------------------------------------------
         // Identity

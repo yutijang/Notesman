@@ -187,7 +187,7 @@ void AppInitializer::run() {
 
     m_mainWindow->show();
 
-    QTimer::singleShot(0, m_controller.get(), [this]() { m_controller->oauthManager(); });
+    QTimer::singleShot(0, m_controller.get(), [this]() { m_controller->ensureOAuth(); });
 
     checkUpdateFlag();
 

@@ -13,10 +13,12 @@
 #include <QString>
 #include <QStringList>
 #include <QtTypes>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <sqlite3.h>
+#include <vector>
 
 // ----------------------------------------------------
 // Forward Declarations cho các Widgets con (Best Practice)
@@ -126,7 +128,11 @@ class MainWindow : public QMainWindow {
         void onAbout();
 
         void handleSettingsStateChange(UiConst::SettingsMessageState state);
-        void handleContextMenuDeleteAction(ResultsTable* resultTable);
+        void notifyDeleteResult(std::size_t const& count, QString const& name);
+        void deleteResourcesByIds(std::vector<sqlite3_int64> const& idsToDelete);
+        void deleteSelectedResources();
+        QAction* createDeleteAction(QObject* parent) const;
+        bool confirmDelete(std::size_t count, QString const& name);
 
         void notiFromCleanupCacheResult(UiConst::CleanupResult result, UiConst::CleanupMode mode);
 

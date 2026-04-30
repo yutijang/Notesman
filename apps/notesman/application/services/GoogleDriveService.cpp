@@ -33,10 +33,8 @@
 #include <qassert.h>
 #include <stdexcept>
 
-GoogleDriveService::GoogleDriveService(OAuthManager* oauth, QObject* parent)
-    : QObject(parent), m_oauth(oauth) {
-    Q_ASSERT(m_oauth != nullptr);
-}
+GoogleDriveService::GoogleDriveService(OAuthManager& oauth, QObject* parent)
+    : QObject(parent), m_oauth(oauth) {}
 
 // --- BEGIN Upload/download database ---
 
@@ -69,7 +67,7 @@ void GoogleDriveService::uploadDatabase(std::function<void(bool)> const& done) {
 
     QUrl url("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart");
     QNetworkRequest req(url);
-    req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
+    req.setRawHeader("Authorization", "Bearer " + m_oauth.accessToken().toUtf8());
 
     auto* reply = m_networkManager.post(req, multi);
     multi->setParent(reply); // will be deleted with reply
@@ -93,7 +91,7 @@ void GoogleDriveService::findAndGatherDatabaseFileInfo(
     url.setQuery(q);
 
     QNetworkRequest req(url);
-    req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
+    req.setRawHeader("Authorization", "Bearer " + m_oauth.accessToken().toUtf8());
     req.setRawHeader("Accept", "application/json");
 
     auto* reply = m_networkManager.get(req);
@@ -134,7 +132,7 @@ void GoogleDriveService::updateDatabase(QString const& fileId,
                    "?uploadType=media");
 
     QNetworkRequest req(url);
-    req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
+    req.setRawHeader("Authorization", "Bearer " + m_oauth.accessToken().toUtf8());
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-sqlite3");
 
     auto* reply = m_networkManager.sendCustomRequest(req, "PATCH", file);
@@ -153,7 +151,7 @@ void GoogleDriveService::downloadDatabase(QString const& fileId,
     QUrl const url("https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media");
 
     QNetworkRequest req(url);
-    req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
+    req.setRawHeader("Authorization", "Bearer " + m_oauth.accessToken().toUtf8());
     req.setRawHeader("Accept", "application/x-sqlite3, application/octet-stream");
 
     auto* reply = m_networkManager.get(req);
@@ -309,7 +307,7 @@ void GoogleDriveService::deleteDatabaseFile(QString const& fileId,
 
     QUrl url("https://www.googleapis.com/drive/v3/files/" + fileId);
     QNetworkRequest req(url);
-    req.setRawHeader("Authorization", "Bearer " + m_oauth->accessToken().toUtf8());
+    req.setRawHeader("Authorization", "Bearer " + m_oauth.accessToken().toUtf8());
 
     auto* reply = m_networkManager.deleteResource(req); // Gửi lệnh DELETE
 

@@ -193,10 +193,10 @@ DownloadManager* AppController::downloadManager() {
     return m_downloadManager.get();
 }
 
-void AppController::oauthManager() {
+void AppController::ensureOAuth() {
     if (m_oauthManager == nullptr || m_GDService == nullptr) {
         m_oauthManager = std::make_unique<OAuthManager>();
-        m_GDService = std::make_unique<GoogleDriveService>(m_oauthManager.get());
+        m_GDService = std::make_unique<GoogleDriveService>(*m_oauthManager, this);
 
         if (m_oauthManager != nullptr) {
             QObject::connect(m_oauthManager.get(), &OAuthManager::gmailLinked, this,

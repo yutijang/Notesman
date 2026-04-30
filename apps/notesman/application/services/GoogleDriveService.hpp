@@ -17,7 +17,7 @@ class GoogleDriveService final : public QObject {
         Q_OBJECT
 
     public:
-        explicit GoogleDriveService(OAuthManager* oauth, QObject* parent = nullptr);
+        explicit GoogleDriveService(OAuthManager& oauth, QObject* parent = nullptr);
         ~GoogleDriveService() override = default;
 
         void getDBInfo();
@@ -67,5 +67,5 @@ class GoogleDriveService final : public QObject {
         static DriveFileInfo parseFileInfo(QJsonObject const& obj);
 
         QNetworkAccessManager m_networkManager;
-        OAuthManager* m_oauth;
+        OAuthManager& m_oauth; // non-owning dependency
 };
