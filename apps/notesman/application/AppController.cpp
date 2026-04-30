@@ -194,48 +194,47 @@ DownloadManager* AppController::downloadManager() {
 }
 
 void AppController::ensureOAuth() {
-    if (m_oauthManager == nullptr || m_GDService == nullptr) {
-        m_oauthManager = std::make_unique<OAuthManager>();
-        m_GDService = std::make_unique<GoogleDriveService>(*m_oauthManager, this);
+    if (m_drive != nullptr) { return; }
 
-        if (m_oauthManager != nullptr) {
-            QObject::connect(m_oauthManager.get(), &OAuthManager::gmailLinked, this,
-                             &AppController::displayInfoGMUserLinked);
-            QObject::connect(m_oauthManager.get(), &OAuthManager::gmailUnlinked, this,
-                             &AppController::gmailUnlinked);
+    m_drive = std::make_unique<GDContext>(this);
 
-            QObject::connect(m_GDService.get(), &GoogleDriveService::onDownloadDBBtnRequest,
-                             m_mainWindow, &MainWindow::startDownloadDBForward);
-            QObject::connect(m_GDService.get(), &GoogleDriveService::onUploadDBBtnRequest,
-                             m_mainWindow, &MainWindow::startUploadDBForward);
+    auto* oauth = m_drive->oauth.get();
+    auto* service = m_drive->service.get();
 
-            QObject::connect(m_GDService.get(), &GoogleDriveService::returnDBInfo, m_mainWindow,
-                             &MainWindow::returnDBInfoForward);
+    QObject::connect(oauth, &OAuthManager::gmailLinked, this,
+                     &AppController::displayInfoGMUserLinked);
+    QObject::connect(oauth, &OAuthManager::gmailUnlinked, this, &AppController::gmailUnlinked);
 
-            QObject::connect(m_oauthManager.get(), &OAuthManager::loginFailed, m_mainWindow,
-                             &MainWindow::loginFailedForward);
+    QObject::connect(service, &GoogleDriveService::onDownloadDBBtnRequest, m_mainWindow,
+                     &MainWindow::startDownloadDBForward);
+    QObject::connect(service, &GoogleDriveService::onUploadDBBtnRequest, m_mainWindow,
+                     &MainWindow::startUploadDBForward);
 
-            QObject::connect(this, &AppController::cancelLoginRequestedForward,
-                             m_oauthManager.get(), &OAuthManager::cancelCurrentLogin);
+    QObject::connect(service, &GoogleDriveService::returnDBInfo, m_mainWindow,
+                     &MainWindow::returnDBInfoForward);
 
-            QObject::connect(m_GDService.get(), &GoogleDriveService::closeConnectDBRequest, this,
-                             &AppController::closeConnectDBRequestForward);
-            QObject::connect(m_GDService.get(), &GoogleDriveService::reconnectDBRequest, this,
-                             &AppController::reconnectDBRequestForward);
+    QObject::connect(oauth, &OAuthManager::loginFailed, m_mainWindow,
+                     &MainWindow::loginFailedForward);
 
-            QObject::connect(this, &AppController::dbClosedForward, m_GDService.get(),
-                             &GoogleDriveService::onConnectClosedForUpload);
-            QObject::connect(this, &AppController::dbClosedForward, m_GDService.get(),
-                             &GoogleDriveService::onConnectClosedForDownload);
+    QObject::connect(this, &AppController::cancelLoginRequestedForward, oauth,
+                     &OAuthManager::cancelCurrentLogin);
 
-            QObject::connect(this, &AppController::deleteDatabaseFileRequest, m_GDService.get(),
-                             &GoogleDriveService::handleDeleteDatabaseFileRequest);
-            QObject::connect(m_GDService.get(), &GoogleDriveService::deleteDatabaseFileRespond,
-                             this, &AppController::deleteDatabaseFileRespondForward);
+    QObject::connect(service, &GoogleDriveService::closeConnectDBRequest, this,
+                     &AppController::closeConnectDBRequestForward);
+    QObject::connect(service, &GoogleDriveService::reconnectDBRequest, this,
+                     &AppController::reconnectDBRequestForward);
 
-            m_oauthManager->tryAutoLogin();
-        }
-    }
+    QObject::connect(this, &AppController::dbClosedForward, service,
+                     &GoogleDriveService::onConnectClosedForUpload);
+    QObject::connect(this, &AppController::dbClosedForward, service,
+                     &GoogleDriveService::onConnectClosedForDownload);
+
+    QObject::connect(this, &AppController::deleteDatabaseFileRequest, service,
+                     &GoogleDriveService::handleDeleteDatabaseFileRequest);
+    QObject::connect(service, &GoogleDriveService::deleteDatabaseFileRespond, this,
+                     &AppController::deleteDatabaseFileRespondForward);
+
+    oauth->tryAutoLogin();
 }
 
 void AppController::handleGetAllDataRequest() {
@@ -466,15 +465,17 @@ void AppController::onUpdateDecision(bool accepted, UpdateInfoSummary const& upd
 }
 
 void AppController::handleLoginGMRequested() {
-    if (m_oauthManager != nullptr) { m_oauthManager->handleLoginGMRequested(); }
+    if (m_drive != nullptr) { m_drive->oauth->handleLoginGMRequested(); }
 }
 
 void AppController::handleUnlinkGMRequested(bool isDeleteDB) {
-    if (m_oauthManager == nullptr) { return; }
+    if (m_drive == nullptr) { return; }
 
-    if (isDeleteDB && m_GDService != nullptr) {
+    auto* service = m_drive->service.get();
+
+    if (isDeleteDB) {
         QObject::connect(
-            m_GDService.get(), &GoogleDriveService::deleteDatabaseFileRespond, this,
+            service, &GoogleDriveService::deleteDatabaseFileRespond, this,
             [this](QString const& msg) {
                 Log::info("Cleanup on Cloud finished: {}. Now revoking token...",
                           msg.toStdString());
@@ -491,15 +492,15 @@ void AppController::handleUnlinkGMRequested(bool isDeleteDB) {
 
 void AppController::finalizeUnlink() {
     m_currentLinkedEmail.clear();
-    m_oauthManager->handleUnlinkGMRequested();
+    m_drive->oauth->handleUnlinkGMRequested();
 }
 
 void AppController::uploadDbAuto() {
-    if (m_GDService != nullptr) { m_GDService->uploadDbAuto(); }
+    if (m_drive != nullptr) { m_drive->service->uploadDbAuto(); }
 }
 
 void AppController::downloadDbAuto() {
-    if (m_GDService != nullptr) { m_GDService->downloadDbAuto(); }
+    if (m_drive != nullptr) { m_drive->service->downloadDbAuto(); }
 }
 
 void AppController::updateTranslatedStrings() {
@@ -513,7 +514,7 @@ void AppController::updateTranslatedStrings() {
 }
 
 void AppController::handleGetDBInfoRequested() {
-    if (m_GDService != nullptr) { m_GDService->getDBInfo(); }
+    if (m_drive != nullptr) { m_drive->service->getDBInfo(); }
 }
 
 void AppController::displayInfoGMUserLinked(QString const& email) {

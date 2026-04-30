@@ -152,8 +152,20 @@ class AppController final : public QObject {
         std::unique_ptr<UpdateManager> m_updateManager;
         std::unique_ptr<DownloadManager> m_downloadManager;
 
-        std::unique_ptr<OAuthManager> m_oauthManager;
-        std::unique_ptr<GoogleDriveService> m_GDService;
+        // std::unique_ptr<OAuthManager> m_oauthManager;
+        // std::unique_ptr<GoogleDriveService> m_GDService;
+
+        struct GDContext {
+                std::unique_ptr<OAuthManager> oauth;         // khai báo trước
+                std::unique_ptr<GoogleDriveService> service; // khai báo sau
+
+                GDContext(QObject* parent) {
+                    oauth = std::make_unique<OAuthManager>();
+                    service = std::make_unique<GoogleDriveService>(*oauth, parent);
+                }
+        };
+
+        std::unique_ptr<GDContext> m_drive;
 
         NotesAppCore* m_core{};
         MainWindow* m_mainWindow{};
