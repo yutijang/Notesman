@@ -85,7 +85,7 @@ find_package(libzip CONFIG REQUIRED)
 FetchContent_Declare(
     qtkeychain
     GIT_REPOSITORY https://github.com/frankosterfeld/qtkeychain.git
-    GIT_TAG ad7344c45a86a4f66cbafc4b081b5f7b876cb0b7
+    GIT_TAG aa6da344e1a20b9194e12bace3665caeea6b6304
     GIT_SHALLOW TRUE
 )
 

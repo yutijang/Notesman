@@ -367,7 +367,7 @@ jobs:
 
       - name: Get existing release body
         id: get_release
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.RELEASE_AUTHOR_PAT }}
           script: |
@@ -383,7 +383,7 @@ jobs:
             }
 
       - name: Update Linux section in release body
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.RELEASE_AUTHOR_PAT }}
           script: |
@@ -413,7 +413,7 @@ jobs:
             });
 
       - name: Upload Linux assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
           files: release/*.AppImage
