@@ -13,6 +13,8 @@
 class QPainter;
 
 class ResourceTitleDelegate final : public QStyledItemDelegate {
+        Q_OBJECT
+
     public:
         using QStyledItemDelegate::QStyledItemDelegate;
 

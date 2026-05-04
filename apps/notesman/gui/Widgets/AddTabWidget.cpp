@@ -193,6 +193,8 @@ void AddTabWidget::retranslateUi() {
 
     if (m_tagInp != nullptr) { m_tagInp->retranslateUi(); }
 
+    m_toggleCodeHighlighterChkb->setText(tr("Toggle syntax highlight"));
+
     m_addBtn->setText(tr("Add"));
     m_clearBtn->setText(tr("Clear"));
 }
@@ -222,7 +224,7 @@ QWidget* AddTabWidget::setupResouceGroup() {
     m_addResTypeGroup = new QButtonGroup(this);
     m_textRad = new QRadioButton(tr("Text"));
     m_fileRad = new QRadioButton("File");
-    m_urlRad = new QRadioButton(tr("Url"));
+    m_urlRad = new QRadioButton("Url");
     m_textRad->setChecked(true);
 
     m_addResTypeGroup->addButton(m_textRad, static_cast<int>(UiConst::AddResMode::Text));
@@ -261,7 +263,7 @@ QWidget* AddTabWidget::setupFilePathGroup() {
     m_filepathInp = new QLineEdit();
     m_filepathInp->setPlaceholderText(tr("Enter file path..."));
 
-    m_urlInpLbl = new QLabel(tr("Url"));
+    m_urlInpLbl = new QLabel("Url");
     m_urlInp = new QLineEdit();
     m_urlInp->setPlaceholderText(tr("Enter url of web page..."));
 
@@ -307,7 +309,7 @@ QWidget* AddTabWidget::setupTextEditorGroup() {
     auto* toolbarLayout = new QHBoxLayout(toolbar);
     toolbarLayout->setContentsMargins(0, 0, 0, 3);
 
-    m_toggleCodeHighlighterChkb = new QCheckBox("Toggle syntax highlight", toolbar);
+    m_toggleCodeHighlighterChkb = new QCheckBox(tr("Toggle syntax highlight"), toolbar);
     m_toggleCodeHighlighterChkb->setChecked(true);
     toolbarLayout->addStretch(1);
     toolbarLayout->addWidget(m_toggleCodeHighlighterChkb);

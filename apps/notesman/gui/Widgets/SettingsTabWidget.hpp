@@ -139,5 +139,8 @@ class SettingsTabWidget final : public QWidget {
         QLabel* m_info4{};
 
         QLabel* m_associationStatusLbl{};
+        QLabel* m_statusTagLbl{};
+        QGroupBox* m_fileAssociationGB{};
         QPushButton* m_regAssociationBtn{};
+        bool m_isFileAssociated{};
 };

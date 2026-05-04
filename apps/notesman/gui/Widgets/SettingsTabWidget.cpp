@@ -137,6 +137,27 @@ void SettingsTabWidget::retranslateUi() {
     m_resDirLbl->setText(tr("Resource storage directory"));
     m_resManLbl->setText(tr("Notes file management type"));
 
+    m_fileAssociationGB->setTitle(tr("File association .rvpk"));
+    m_statusTagLbl->setText(tr("Status: "));
+    handleFileAssociationStatus(m_isFileAssociated);
+
+    m_cleanupCacheGBox->setTitle(tr("Cleanup EPUB && Markdown files cache"));
+    // EPUB
+    if (m_cleanupEpubAfterChk != nullptr) {
+        m_cleanupEpubAfterChk->setText(tr("Cleanup files older than"));
+    }
+    if (m_cleanupEpubCacheNowBtn != nullptr) {
+        m_cleanupEpubCacheNowBtn->setText(tr("Cleanup now"));
+    }
+    if (m_expiredEpubSpbx != nullptr) { m_expiredEpubSpbx->setSuffix(tr(" days")); }
+
+    // Markdown
+    if (m_cleanupMDAfterChk != nullptr) {
+        m_cleanupMDAfterChk->setText(tr("Cleanup files older than"));
+    }
+    if (m_cleanupMDCacheNowBtn != nullptr) { m_cleanupMDCacheNowBtn->setText(tr("Cleanup now")); }
+    if (m_expiredMDSpbx != nullptr) { m_expiredMDSpbx->setSuffix(tr(" days")); }
+
     auto updateCombo = [this](UiConst::ResManKind kind, QString const& text) {
         int idx = m_resManCom->findData(QVariant::fromValue(kind));
         if (idx != -1) { m_resManCom->setItemText(idx, text); }
@@ -403,31 +424,31 @@ QHBoxLayout* SettingsTabWidget::setupButtonGroup() {
 }
 
 QGroupBox* SettingsTabWidget::setupFileAssociation() {
-    auto* fileAssociationGB = new QGroupBox();
-    fileAssociationGB->setTitle(tr("File association .rvpk"));
-    fileAssociationGB->setFlat(true);
-    fileAssociationGB->setObjectName("GroupBox");
+    m_fileAssociationGB = new QGroupBox();
+    m_fileAssociationGB->setTitle(tr("File association .rvpk"));
+    m_fileAssociationGB->setFlat(true);
+    m_fileAssociationGB->setObjectName("GroupBox");
 
-    auto* gridLayout = new QGridLayout(fileAssociationGB);
+    auto* gridLayout = new QGridLayout(m_fileAssociationGB);
 
     gridLayout->setContentsMargins(15, 15, 15, 15); // NOLINT(readability-magic-numbers)
     gridLayout->setHorizontalSpacing(0);
     gridLayout->setVerticalSpacing(10);             // NOLINT(readability-magic-numbers)
 
-    auto* statusTagLbl = new QLabel(tr("Status: "));
+    m_statusTagLbl = new QLabel(tr("Status: "));
     m_associationStatusLbl = new QLabel(tr("Unregistered"));
 
     m_regAssociationBtn = new QPushButton(tr("Register"));
     m_regAssociationBtn->setFixedWidth(120); // NOLINT(readability-magic-numbers)
 
-    gridLayout->addWidget(statusTagLbl, 0, 0, Qt::AlignRight | Qt::AlignVCenter);
+    gridLayout->addWidget(m_statusTagLbl, 0, 0, Qt::AlignRight | Qt::AlignVCenter);
     gridLayout->addWidget(m_associationStatusLbl, 0, 1, Qt::AlignLeft | Qt::AlignVCenter);
 
     gridLayout->setColumnStretch(2, 1);
 
     gridLayout->addWidget(m_regAssociationBtn, 0, 3);
 
-    return fileAssociationGB;
+    return m_fileAssociationGB;
 }
 
 QGroupBox* SettingsTabWidget::setupCleanupGroup() {
@@ -781,6 +802,8 @@ void SettingsTabWidget::handleButtonAfterCleanup(UiConst::CleanupMode mode) {
 }
 
 void SettingsTabWidget::handleFileAssociationStatus(bool isRegistered) {
+    m_isFileAssociated = isRegistered;
+
     m_regAssociationBtn->setText(isRegistered ? tr("Unregister") : tr("Register"));
     m_associationStatusLbl->setText(isRegistered ? tr("Registered") : tr("Unregistered"));
     m_associationStatusLbl->setStyleSheet(isRegistered ? "color: green;" : "");

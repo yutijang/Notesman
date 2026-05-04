@@ -16,4 +16,5 @@ namespace UiConst {
     enum class AddResMode : std::uint8_t { Text, File, Url };
     enum class CleanupResult : std::uint8_t { PathError, AlreadyEmpty, Success };
     enum class CleanupMode : std::uint8_t { Epub, Markdown };
+    enum class StatusState : std::uint8_t { Ready, Busy, Error };
 } // namespace UiConst

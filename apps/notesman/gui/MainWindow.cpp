@@ -110,7 +110,9 @@ void MainWindow::buildUi() {
     setupAddTab();
     setupSettingsTab();
     setupIconInfo();
-    statusBar()->showMessage(tr("Ready"), 0);
+
+    m_statusState = UiConst::StatusState::Ready;
+    updateStatusBar();
 
     m_tabWidget->setCurrentWidget(m_browseTab);
 }
@@ -491,6 +493,8 @@ void MainWindow::retranslateUi() {
         case UiConst::SettingsMessageState::None: break;
     }
     // =================================
+
+    updateStatusBar();
 }
 
 void MainWindow::applySyntaxHighlightingTheme(UiConst::Theme theme) {
@@ -985,4 +989,12 @@ void MainWindow::notiFromCleanupCacheResult(UiConst::CleanupResult result,
     }
 
     Q_EMIT onCleanupFinished(mode);
+}
+
+void MainWindow::updateStatusBar() {
+    switch (m_statusState) {
+        case UiConst::StatusState::Ready: statusBar()->showMessage(tr("Ready")); break;
+        case UiConst::StatusState::Busy : statusBar()->showMessage(tr("Busy")); break;
+        case UiConst::StatusState::Error: statusBar()->showMessage(tr("Error")); break;
+    }
 }

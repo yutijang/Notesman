@@ -136,6 +136,8 @@ class MainWindow : public QMainWindow {
 
         void notiFromCleanupCacheResult(UiConst::CleanupResult result, UiConst::CleanupMode mode);
 
+        void updateStatusBar();
+
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(QString const& filePath);
 #elif defined(Q_OS_LINUX)
@@ -172,4 +174,6 @@ class MainWindow : public QMainWindow {
 
         // ResourceViewService* m_resourceViewService{};
         std::unique_ptr<ResourceViewService> m_resourceViewService;
+
+        UiConst::StatusState m_statusState{UiConst::StatusState::Ready};
 };
