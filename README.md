@@ -31,16 +31,87 @@ This repository is maintained solely by the owner to track personal development 
 </details>
 
 ## Features
-In TO-DO List
+### Resource Management
+- Manage multiple types of learning materials:
+  - Plain text notes
+  - Source code / snippets
+  - eBooks (`.epub`, `.pdf`)
+  - Documents (`.html`, `.md`)
+  - Web page (URL)
+- Centralized storage using **SQLite3**
+
+### Fast Retrieval
+- Tag-based organization for quick classification
+- Full-text search powered by **FTS5**
+  - Efficient content indexing
+  - Fast lookup across all stored resources
+
+### Lightweight Preview
+- Custom resource packer
+  - Quickly preview content without launching the full application
+  - Designed for fast access and minimal overhead
+
+### Cloud Integration
+- Google Drive integration via **Gmail + OAuth2**
+  - Upload and store database files
+  - Personal cloud backup support
+
+### Data Handling
+- Structured and persistent local storage
+- Optimized for fast read/query operations
 
 ## Prerequisites
-In TO-DO List
+### Toolchain
+| Platform | Compiler              |
+| -------- | --------------------- |
+| Windows  | `clang-cl` + MSVC STL |
+| Linux    | `clang++`             |
+
+### Required Software
+- CMake ≥ 3.20
+- Ninja
+- Qt6 (Core, Widgets, LinguistTools)
+- LLVM/Clang
 
 ## Building & Running
-In TO-DO List
+1. ### Clone repository
+```bash
+git clone https://github.com/yutijang/Notesman.git
+cd Notesman
+```
+2. ### Configure
+#### Windows (clang-cl)
+```bash
+cmake -B build -G Ninja ^
+  -DCMAKE_C_COMPILER=clang-cl ^
+  -DCMAKE_CXX_COMPILER=clang-cl ^
+  -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc"
+```
+#### Linux (clang++)
+```bash
+cmake -B build -G Ninja \
+  -DCMAKE_C_COMPILER=clang \
+  -DCMAKE_CXX_COMPILER=clang++ \
+  -DCMAKE_PREFIX_PATH=/path/to/qt
+```
+3. ### Build
+```bash
+cmake --build build
+```
+4. ### Run
+```bash
+./bin/Notesman
+```
 
 ## Usage
-In TO-DO List
+### Basic Workflow
+1. Launch application
+2. Navigate between tabs:
+   - Browse notes
+   - Add new notes
+   - Settings
+3. Create / edit notes
+4. Data is saved automatically
 
 ## License
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/yutijang/Notesman?tab=License-1-ov-file)
