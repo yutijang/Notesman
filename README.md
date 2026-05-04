@@ -74,34 +74,34 @@ This repository is maintained solely by the owner to track personal development 
 - LLVM/Clang
 
 ## Building & Running
-1. ### Clone repository
-```bash
-git clone https://github.com/yutijang/Notesman.git
-cd Notesman
-```
-2. ### Configure
-#### Windows (clang-cl)
-```bash
-cmake -B build -G Ninja ^
-  -DCMAKE_C_COMPILER=clang-cl ^
-  -DCMAKE_CXX_COMPILER=clang-cl ^
-  -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc"
-```
-#### Linux (clang++)
-```bash
-cmake -B build -G Ninja \
-  -DCMAKE_C_COMPILER=clang \
-  -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_PREFIX_PATH=/path/to/qt
-```
-3. ### Build
-```bash
-cmake --build build
-```
-4. ### Run
-```bash
-./bin/Notesman
-```
+1. #### Clone repository
+   ```bash
+   git clone https://github.com/yutijang/Notesman.git
+   cd Notesman
+   ```
+2. #### Configure
+   #### Windows (clang-cl)
+   ```bash
+   cmake -B build -G Ninja ^
+     -DCMAKE_C_COMPILER=clang-cl ^
+     -DCMAKE_CXX_COMPILER=clang-cl ^
+     -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc"
+   ```
+   #### Linux (clang++)
+   ```bash
+   cmake -B build -G Ninja \
+     -DCMAKE_C_COMPILER=clang \
+     -DCMAKE_CXX_COMPILER=clang++ \
+     -DCMAKE_PREFIX_PATH=/path/to/qt
+   ```
+3. #### Build
+   ```bash
+   cmake --build build
+   ```
+4. #### Run
+   ```bash
+   ./bin/Notesman
+   ```
 
 ## Usage
 ### Basic Workflow
