@@ -5,13 +5,13 @@
 #include <QNetworkAccessManager>
 #include <QObject>
 #include <QString>
-#include <QTcpServer>
 #include <QUrl>
 #include <functional>
 
 class QTcpSocket;
 class QNetworkReply;
 class QTimer;
+class QTcpServer;
 
 class OAuthManager final : public QObject {
         Q_OBJECT

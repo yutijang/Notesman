@@ -4,12 +4,13 @@
 
 #include <QAnyStringView>
 #include <QNetworkAccessManager>
-#include <QNetworkReply>
 #include <QObject>
 #include <QString>
 #include <QStringView>
 #include <QtTypes>
 #include <optional>
+
+class QNetworkReply;
 
 class UpdateManager final : public QObject {
         Q_OBJECT

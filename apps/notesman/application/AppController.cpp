@@ -52,6 +52,8 @@
 
 AppController::AppController(QObject* parent) : QObject(parent) {}
 
+AppController::~AppController() = default;
+
 void AppController::loadSettings() {
     std::filesystem::path const configPath =
         std::filesystem::path(CorePaths::configFile().toStdString());

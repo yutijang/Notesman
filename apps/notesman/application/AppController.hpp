@@ -1,13 +1,11 @@
 #pragma once
 
 #include "AppSettings.hpp"
-#include "DownloadManager.hpp"
 #include "GoogleDriveService.hpp"
 #include "OAuthManager.hpp"
 #include "SettingsData.hpp"
 #include "UiConstants.hpp"
 #include "UpdateInfoSummary.hpp"
-#include "UpdateManager.hpp"
 #include "model.hpp"
 
 #include <QObject>
@@ -23,13 +21,15 @@
 
 class NotesAppCore;
 class MainWindow;
+class DownloadManager;
+class UpdateManager;
 
 class AppController final : public QObject {
         Q_OBJECT
 
     public:
         explicit AppController(QObject* parent = nullptr);
-        ~AppController() override = default;
+        ~AppController() override;
 
         void loadSettings();
         void saveSettings();
