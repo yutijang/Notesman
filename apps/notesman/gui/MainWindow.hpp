@@ -138,6 +138,17 @@ class MainWindow : public QMainWindow {
 
         void updateStatusBar();
 
+        //
+        void setupSettingsConnections();
+        void setupTabConnections();
+        void setupBrowseConnections();
+        void setupAddTabConnections();
+        void setupUpdateConnections();
+        void setupGoogleDriveConnections();
+        void setupDatabaseConnections();
+        void setupCleanupConnections();
+        void setupFileAssociationConnections();
+
 #if defined(Q_OS_WIN)
         void handleWindowsUpdate(QString const& filePath);
 #elif defined(Q_OS_LINUX)

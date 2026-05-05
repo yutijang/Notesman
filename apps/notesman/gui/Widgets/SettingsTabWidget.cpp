@@ -1,7 +1,6 @@
 #include "SettingsTabWidget.hpp"
 
 #include "DialogUtils.hpp"
-#include "Logger.hpp"
 #include "SettingsData.hpp"
 #include "SettingsManager.hpp"
 #include "UiConstants.hpp"

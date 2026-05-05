@@ -676,6 +676,7 @@ void AppController::createPackerFile(std::int64_t id, QString const& title) {
     if (!uuidOpt || uuidOpt->size() != ViewerPackHeader::UUID_LENGTH) {
         throw std::runtime_error("Invalid uuid");
     }
+    // NOLINTNEXTLINE (-Wunsafe-buffer-usage-in-libc-call)
     std::memcpy(hdr.uuid, uuidOpt->data(), ViewerPackHeader::UUID_LENGTH);
 
     hdr.themeMode = static_cast<std::uint8_t>(theme);

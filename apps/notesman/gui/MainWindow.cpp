@@ -346,13 +346,43 @@ void MainWindow::showContextMenu(QPoint const& pos, std::int64_t id, ResourceTyp
 void MainWindow::setAppController(AppController* controller) {
     m_appController = controller;
 
+    setupSettingsConnections();
+    setupTabConnections();
+    setupBrowseConnections();
+    setupAddTabConnections();
+    setupUpdateConnections();
+    setupGoogleDriveConnections();
+    setupDatabaseConnections();
+    setupCleanupConnections();
+    setupFileAssociationConnections();
+}
+
+// -----------------
+void MainWindow::setupSettingsConnections() {
     QObject::connect(m_appController, &AppController::settingsLoaded, this,
                      [this](SettingsData const& settings) {
                          if (m_tabWidget->currentIndex() == 2) {
                              Q_EMIT settingsUiRefreshRequest(settings);
                          }
                      });
+    QObject::connect(this, &MainWindow::settingsUiRefreshRequest, m_settingsTab,
+                     &SettingsTabWidget::handleUiRefreshRequest);
+    QObject::connect(m_settingsTab, &SettingsTabWidget::defaultSettingsRequested, m_appController,
+                     &AppController::handleDefaultSettingsRequest);
+    QObject::connect(m_settingsTab, &SettingsTabWidget::applySettingsRequested, m_appController,
+                     &AppController::handleApplySettingsRequest);
+    QObject::connect(m_appController, &AppController::settingsUpdateStatus, this,
+                     [this](QString const&, UiConst::SettingsMessageState state,
+                            UiConst::SettingsTabNotiLevel /*unused*/) {
+                         this->handleSettingsStateChange(state);
+                     });
+    QObject::connect(m_appController, &AppController::settingsUpdateStatus, m_settingsTab,
+                     &SettingsTabWidget::showNotification);
+    QObject::connect(m_appController, &AppController::initialSettingsLoaded, m_settingsTab,
+                     &SettingsTabWidget::handleInitialSettingsLoad);
+}
 
+void MainWindow::setupTabConnections() {
     QObject::connect(m_tabWidget, &QTabWidget::currentChanged, this, [this](int index) {
         constexpr int settingsTabIndex{2};
         if (index == settingsTabIndex && m_appController) {
@@ -362,47 +392,42 @@ void MainWindow::setAppController(AppController* controller) {
             Q_EMIT handleFileAssociationStatusRequest(FileAssociation::isUpToDate());
         }
     });
+}
 
-    QObject::connect(this, &MainWindow::settingsUiRefreshRequest, m_settingsTab,
-                     &SettingsTabWidget::handleUiRefreshRequest);
+void MainWindow::setupBrowseConnections() {
     QObject::connect(m_browseTab, &BrowseTabWidget::loadAllDataRequested, m_appController,
                      &AppController::handleGetAllDataRequest);
     QObject::connect(m_browseTab, &BrowseTabWidget::loadResourceByTypeRequested, m_appController,
                      &AppController::handleLoadResourceByTypeRequest);
-    QObject::connect(m_appController, &AppController::displayResultForGetAll, m_browseTab,
-                     &BrowseTabWidget::displayResults);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::defaultSettingsRequested, m_appController,
-                     &AppController::handleDefaultSettingsRequest);
-    QObject::connect(m_appController, &AppController::settingsUpdateStatus, this,
-                     [this](QString const&, UiConst::SettingsMessageState state,
-                            UiConst::SettingsTabNotiLevel /*unused*/) {
-                         this->handleSettingsStateChange(state);
-                     });
-
-    QObject::connect(m_appController, &AppController::settingsUpdateStatus, m_settingsTab,
-                     &SettingsTabWidget::showNotification);
-    QObject::connect(m_appController, &AppController::initialSettingsLoaded, m_settingsTab,
-                     &SettingsTabWidget::handleInitialSettingsLoad);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::applySettingsRequested, m_appController,
-                     &AppController::handleApplySettingsRequest);
-    QObject::connect(m_appController, &AppController::requestSyntaxHighlightingUpdate, this,
-                     &MainWindow::handleSyntaxHighlightingUpdate);
-    QObject::connect(m_addTab, &AddTabWidget::applySyntaxHighlighterRequest, this,
-                     &MainWindow::handleSyntaxHighlightingFromAddTabRequested);
-    QObject::connect(m_appController, &AppController::addTabNotiRequest, m_addTab,
-                     &AddTabWidget::showNotification);
-    QObject::connect(m_addTab, &AddTabWidget::addNoteRequested, m_appController,
-                     &AppController::handleAddNoteRequest);
-    QObject::connect(m_appController, &AppController::resetAddTabInputsRequest, m_addTab,
-                     &AddTabWidget::resetAddTabInputs);
     QObject::connect(m_browseTab, &BrowseTabWidget::searchRequested, m_appController,
                      &AppController::handleSearchRequest);
+    QObject::connect(m_appController, &AppController::displayResultForGetAll, m_browseTab,
+                     &BrowseTabWidget::displayResults);
     QObject::connect(m_appController, &AppController::searchFinishedFromController, m_browseTab,
                      &BrowseTabWidget::handleResultsSearchRequested);
+}
+
+void MainWindow::setupAddTabConnections() {
+    QObject::connect(m_addTab, &AddTabWidget::addNoteRequested, m_appController,
+                     &AppController::handleAddNoteRequest);
+    QObject::connect(m_appController, &AppController::addTabNotiRequest, m_addTab,
+                     &AddTabWidget::showNotification);
+    QObject::connect(m_appController, &AppController::resetAddTabInputsRequest, m_addTab,
+                     &AddTabWidget::resetAddTabInputs);
+    QObject::connect(m_addTab, &AddTabWidget::applySyntaxHighlighterRequest, this,
+                     &MainWindow::handleSyntaxHighlightingFromAddTabRequested);
+    QObject::connect(m_appController, &AppController::requestSyntaxHighlightingUpdate, this,
+                     &MainWindow::handleSyntaxHighlightingUpdate);
+}
+
+void MainWindow::setupUpdateConnections() {
     QObject::connect(this, &MainWindow::checkUpdateRequest, m_appController,
                      &AppController::handleCheckUpdateRequested);
     QObject::connect(this, &MainWindow::updateDecision, m_appController,
                      &AppController::onUpdateDecision);
+}
+
+void MainWindow::setupGoogleDriveConnections() {
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleLogin, m_appController,
                      &AppController::handleLoginGMRequested);
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleUnlink, m_appController,
@@ -411,6 +436,13 @@ void MainWindow::setAppController(AppController* controller) {
                      &SettingsTabWidget::handleAfterLinkAccount);
     QObject::connect(m_appController, &AppController::gmailUnlinked, m_settingsTab,
                      &SettingsTabWidget::handleAfterUnlinkAccount);
+    QObject::connect(m_settingsTab, &SettingsTabWidget::cancelLoginRequested, m_appController,
+                     &AppController::cancelLoginRequestedForward);
+    QObject::connect(this, &MainWindow::loginFailedForward, m_settingsTab,
+                     &SettingsTabWidget::handleLoginFailed);
+}
+
+void MainWindow::setupDatabaseConnections() {
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestUpload, m_appController,
                      &AppController::uploadDbAuto);
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestDownload, m_appController,
@@ -419,17 +451,15 @@ void MainWindow::setAppController(AppController* controller) {
                      &SettingsTabWidget::handleDownloadDBRequested);
     QObject::connect(this, &MainWindow::startUploadDBForward, m_settingsTab,
                      &SettingsTabWidget::handleUploadDBRequested);
-    QObject::connect(this, &MainWindow::loginFailedForward, m_settingsTab,
-                     &SettingsTabWidget::handleLoginFailed);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::cancelLoginRequested, m_appController,
-                     &AppController::cancelLoginRequestedForward);
     QObject::connect(m_settingsTab, &SettingsTabWidget::requestDBInfo, m_appController,
                      &AppController::handleGetDBInfoRequested);
     QObject::connect(this, &MainWindow::returnDBInfoForward, m_settingsTab,
                      &SettingsTabWidget::handleDBInfoGot);
     QObject::connect(m_appController, &AppController::deleteDatabaseFileRespondForward,
                      m_settingsTab, &SettingsTabWidget::handleDeleteDBFileRespond);
+}
 
+void MainWindow::setupCleanupConnections() {
     QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController,
                      [this] {
                          auto result = AppController::cleanupOldEpubCacheNow();
@@ -442,7 +472,9 @@ void MainWindow::setAppController(AppController* controller) {
                      });
     QObject::connect(this, &MainWindow::onCleanupFinished, m_settingsTab,
                      &SettingsTabWidget::handleButtonAfterCleanup);
+}
 
+void MainWindow::setupFileAssociationConnections() {
     QObject::connect(this, &MainWindow::handleFileAssociationStatusRequest, m_settingsTab,
                      &SettingsTabWidget::handleFileAssociationStatus);
     QObject::connect(m_settingsTab, &SettingsTabWidget::onFileAssociationBtnClicked,
@@ -450,6 +482,8 @@ void MainWindow::setAppController(AppController* controller) {
     QObject::connect(m_appController, &AppController::refreshFileAssociationStatus, m_settingsTab,
                      &SettingsTabWidget::handleFileAssociationStatus);
 }
+
+// -----------------
 
 void MainWindow::changeEvent(QEvent* event) {
     if (event->type() == QEvent::LanguageChange) { retranslateUi(); }
