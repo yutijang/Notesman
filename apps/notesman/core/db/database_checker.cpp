@@ -1,8 +1,10 @@
 #include "database_checker.hpp"
 
+#include "Logger.hpp"
 #include "sqldb_raii.hpp"
 
 #include <cstddef>
+#include <exception>
 #include <optional>
 #include <sqlite3.h>
 #include <stdexcept>
@@ -38,9 +40,16 @@ bool DatabaseChecker::checkIntegrity(std::vector<std::string>& messages) {
         sqlite3_finalize(stmt);
     };
 
-    runPragma("PRAGMA integrity_check;", "integrity_check");
-    runPragma("PRAGMA foreign_key_check;", "foreign_key_check");
-    // runPragma("PRAGMA quick_check;", "quick_check");
+    try {
+        runPragma("PRAGMA integrity_check;", "integrity_check");
+        runPragma("PRAGMA foreign_key_check;", "foreign_key_check");
+        // runPragma("PRAGMA quick_check;", "quick_check");
+    } catch (std::exception const& ex) {
+        ok = false;
+        messages.emplace_back(ex.what());
+
+        Log::err(ex.what());
+    }
 
     return ok;
 }

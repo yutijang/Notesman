@@ -67,6 +67,7 @@
 #include <QtEnvironmentVariables>
 #include <QtTypes>
 #include <cstdint>
+#include <exception>
 #include <memory>
 #include <optional>
 #include <qminmax.h>
@@ -332,8 +333,11 @@ void MainWindow::showContextMenu(QPoint const& pos, std::int64_t id, ResourceTyp
 
     QAction* addShortcutAction = menu.addAction(tr("Add Shortcut"));
     addShortcutAction->setIcon(QIcon(":/icons/add.ico"));
-    QObject::connect(addShortcutAction, &QAction::triggered, this,
-                     [this, id, title]() { m_appController->createPackerFile(id, title); });
+    QObject::connect(addShortcutAction, &QAction::triggered, this, [this, id, title]() {
+        try {
+            m_appController->createPackerFile(id, title);
+        } catch (std::exception const& ex) { Log::err(ex.what()); }
+    });
 
     menu.addSeparator();
 
