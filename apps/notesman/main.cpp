@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
     // filter token — argv[1] là launcher token, skip
     // NOLINTBEGIN
-    int cleanArgc = 0;
+    int cleanArgc{};
     char* cleanArgv[64];
     cleanArgv[cleanArgc++] = argv[0];
     for (int i = 2; i < argc && cleanArgc < 64; ++i) { cleanArgv[cleanArgc++] = argv[i]; }

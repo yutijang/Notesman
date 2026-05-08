@@ -2,6 +2,8 @@
 
 #include "Logger.hpp"
 
+#include <QString>
+
 void CoreErrorReporter::showError(QString const& title, QString const& message) {
     Log::err("[{}] {}", title.toStdString(), message.toStdString());
 }

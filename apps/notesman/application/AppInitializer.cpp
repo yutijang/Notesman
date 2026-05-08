@@ -100,7 +100,7 @@ void AppInitializer::onSecondInstanceMessage() {
 
         // "query:<resourceId>"
         if (msg.startsWith("query:")) {
-            bool ok = false;
+            bool ok{};
             std::int64_t const resourceId = msg.mid(6).toLongLong(&ok); // "query:" = 6 chars
             if (!ok) { return; }
 
@@ -112,7 +112,7 @@ void AppInitializer::onSecondInstanceMessage() {
 
         // "activate:<resourceId>"
         if (msg.startsWith("activate:")) {
-            bool ok = false;
+            bool ok{};
             std::int64_t const resourceId = msg.mid(9).toLongLong(&ok); // "activate:" = 9 chars
             if (!ok) { return; }
 

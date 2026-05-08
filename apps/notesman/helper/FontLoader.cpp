@@ -30,5 +30,7 @@ void FontLoader::loadCustomFontOnce() {
         Log::warn("No font families found in {}", fontPath.toStdString());
     }
 
-    QFontDatabase::addApplicationFont(":/fonts/JetBrainsMono-Regular.ttf");
+    if (QFontDatabase::addApplicationFont(":/fonts/JetBrainsMono-Regular.ttf") == -1) {
+        Log::warn("Failed to load secondary font: JetBrainsMono");
+    }
 }
