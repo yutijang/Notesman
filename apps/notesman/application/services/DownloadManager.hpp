@@ -22,13 +22,17 @@ class DownloadManager final : public QObject {
         void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
         void downloadFinished(QString const& filePath);
         void downloadFailed(QString const& errorString);
-        void downloadFailCauseTimeoutRequest();
+        void downloadTimedOut();
 
     private: // NOLINT(readability-redundant-access-specifiers)
         void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
         void onDownloadFinished();
         void onDownloadError(QNetworkReply::NetworkError code);
         void abortDownload();
+
+        void cleanupReply() noexcept;
+        void cleanupOutputFile(bool removeFile) noexcept;
+        void cleanupDownloadSession(bool removeFile) noexcept;
 
         QNetworkAccessManager m_networkManager;
         QNetworkReply* m_currentReply{};

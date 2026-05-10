@@ -10,8 +10,12 @@
 #include <QtGlobal>
 #include <QtTypes>
 
+namespace {
+    constexpr int DEFAULT_TIMEOUT_MS{10'000};
+} // namespace
+
 DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
-    m_timeoutTimer.setInterval(10'000); // NOLINT(readability-magic-numbers)
+    m_timeoutTimer.setInterval(DEFAULT_TIMEOUT_MS); // NOLINT(readability-magic-numbers)
     m_timeoutTimer.setSingleShot(true);
 
     QObject::connect(&m_timeoutTimer, &QTimer::timeout, this, [this] {
@@ -19,18 +23,14 @@ DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
 
         Log::info("Stop download update because internet connection is too slow");
 
-        Q_EMIT downloadFailCauseTimeoutRequest();
+        Q_EMIT downloadTimedOut();
         Q_EMIT downloadFailed(
             tr("Download failed.\nYour internet connection is too slow.\nPlease try again later!"));
     });
 }
 
 DownloadManager::~DownloadManager() {
-    if (m_currentReply != nullptr) {
-        m_currentReply->abort();
-        m_currentReply->deleteLater();
-    }
-    if (m_outputFile.isOpen()) { m_outputFile.close(); }
+    cleanupDownloadSession(false);
 }
 
 void DownloadManager::startDownload(QUrl const& url, QString const& outputFilePath) {
@@ -49,8 +49,12 @@ void DownloadManager::startDownload(QUrl const& url, QString const& outputFilePa
     if (!m_outputFile.open(QIODevice::WriteOnly)) {
         Log::err("Cannot write to file: {}", outputFilePath.toStdString());
         Q_EMIT downloadFailed(tr("Cannot write to file: %1").arg(outputFilePath));
-        m_currentReply->deleteLater();
-        m_currentReply = nullptr;
+
+        if (m_currentReply != nullptr) {
+            m_currentReply->deleteLater();
+            m_currentReply = nullptr;
+        }
+
         return;
     }
 
@@ -95,25 +99,36 @@ void DownloadManager::onDownloadError(QNetworkReply::NetworkError /*unused*/) {
 
     Q_EMIT downloadFailed(m_currentReply->errorString());
 
-    m_outputFile.close();
-    m_outputFile.remove(); // xoá file lỗi
-    m_currentReply->deleteLater();
-    m_currentReply = nullptr;
-    m_timeoutTimer.stop();
+    cleanupDownloadSession(true);
 }
 
 void DownloadManager::abortDownload() {
     m_isAborted = true;
 
-    if (m_currentReply != nullptr) {
-        m_currentReply->disconnect(this);
-        m_currentReply->abort();
-        m_currentReply->deleteLater();
-        m_currentReply = nullptr;
-    }
+    cleanupReply();
+
+    cleanupDownloadSession(true);
+}
+
+void DownloadManager::cleanupReply() noexcept {
+    if (m_currentReply == nullptr) { return; }
+
+    m_currentReply->disconnect(this);
+    m_currentReply->abort();
+    m_currentReply->deleteLater();
+    m_currentReply = nullptr;
+}
+
+void DownloadManager::cleanupOutputFile(bool removeFile) noexcept {
+    if (m_outputFile.isOpen()) { m_outputFile.close(); }
+
+    if (removeFile && !m_outputFile.fileName().isEmpty()) { m_outputFile.remove(); }
+}
+
+void DownloadManager::cleanupDownloadSession(bool const removeFile) noexcept {
+    cleanupReply();
 
     m_timeoutTimer.stop();
 
-    if (m_outputFile.isOpen()) { m_outputFile.close(); }
-    if (!m_outputFile.fileName().isEmpty()) { m_outputFile.remove(); }
+    cleanupOutputFile(removeFile);
 }

@@ -12,8 +12,8 @@
 
 class FileService {
     public:
-        FileService(FileRepository& fileRepo, ResourceRepository& resRepo,
-                    FileTextContentRepository& fileTextRepo) noexcept
+        explicit FileService(FileRepository& fileRepo, ResourceRepository& resRepo,
+                             FileTextContentRepository& fileTextRepo) noexcept
             : m_fileRepo(fileRepo), m_resRepo(resRepo), m_fileTextRepo(fileTextRepo) {}
 
         // Tính hash file (SHA256)

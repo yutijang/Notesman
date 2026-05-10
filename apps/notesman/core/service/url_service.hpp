@@ -11,7 +11,7 @@
 
 class UrlService {
     public:
-        UrlService(UrlRepository& urlRepo, ResourceRepository& resRepo) noexcept
+        explicit UrlService(UrlRepository& urlRepo, ResourceRepository& resRepo) noexcept
             : m_urlRepo(urlRepo), m_resRepo(resRepo) {}
 
         // Core CURD

@@ -16,8 +16,8 @@
 
 class NotesAppCore {
     public:
-        NotesAppCore(TextContentRepository& textRepo, FileService& fileService,
-                     UrlService& urlService, ResourceService& resService)
+        explicit NotesAppCore(TextContentRepository& textRepo, FileService& fileService,
+                              UrlService& urlService, ResourceService& resService)
             : m_textRepo(textRepo), m_fileService(fileService), m_urlService(urlService),
               m_resService(resService) {}
 

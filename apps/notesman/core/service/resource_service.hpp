@@ -18,9 +18,10 @@
 
 class ResourceService {
     public:
-        ResourceService(SQLiteDB& db, ResourceRepository& resRepo, FileRepository& fileRepo,
-                        TextContentRepository& textRepo, TagRepository& tagRepo,
-                        FileService& fileService, UrlService& urlService) noexcept
+        explicit ResourceService(SQLiteDB& db, ResourceRepository& resRepo,
+                                 FileRepository& fileRepo, TextContentRepository& textRepo,
+                                 TagRepository& tagRepo, FileService& fileService,
+                                 UrlService& urlService) noexcept
             : m_db(db), m_resRepo(resRepo), m_fileRepo(fileRepo), m_textRepo(textRepo),
               m_tagRepo(tagRepo), m_fileService(fileService), m_urlService(urlService) {}
 
