@@ -14,53 +14,57 @@
 #include <memory>
 
 namespace AppUI {
-    void applyTheme(UiConst::Theme theme) {
-        QString qssPath;
-        QColor linkColor;
 
-        switch (theme) {
-            case UiConst::Theme::Light:
-                qssPath = ":/qss/light.qss";
-                linkColor = QColor("#0000EE");
-                break;
-            case UiConst::Theme::Dark:
-                qssPath = ":/qss/dark.qss";
-                linkColor = QColor("#4FC3F7");
-                break;
-        }
+void applyTheme(UiConst::Theme theme) {
+    QString qssPath;
+    QColor linkColor;
 
-        QPalette palette = qApp->palette();
-        palette.setColor(QPalette::Link, linkColor);
-        qApp->setPalette(palette);
-
-        QFile qssFile(qssPath);
-        if (qssFile.open(QFile::ReadOnly | QFile::Text)) {
-            QString const styleSheet = QString::fromUtf8(qssFile.readAll());
-            qApp->setStyleSheet(styleSheet);
-            qssFile.close();
-        } else {
-            qApp->setStyle(QStyleFactory::create("Fusion"));
-            qApp->setStyleSheet("");
-        }
-
-        qApp->setFont(qApp->font());
+    switch (theme) {
+        case UiConst::Theme::Light:
+            qssPath = ":/qss/light.qss";
+            linkColor = QColor("#0000EE");
+            break;
+        case UiConst::Theme::Dark:
+            qssPath = ":/qss/dark.qss";
+            linkColor = QColor("#4FC3F7");
+            break;
     }
 
-    void applyLanguage(UiConst::Language lang, std::unique_ptr<QTranslator>& translator) {
-        if (translator) { qApp->removeTranslator(translator.get()); }
+    QPalette palette = qApp->palette();
+    palette.setColor(QPalette::Link, linkColor);
+    qApp->setPalette(palette);
 
-        if (lang == UiConst::Language::Vietnamese) {
-            translator = std::make_unique<QTranslator>();
-            if (translator->load(":/i18n/app_vi.qm")) {
-                qApp->installTranslator(translator.get());
-            } else {
-                translator.reset();
-            }
+    QFile qssFile(qssPath);
+    if (qssFile.open(QFile::ReadOnly | QFile::Text)) {
+        QString const styleSheet = QString::fromUtf8(qssFile.readAll());
+        qApp->setStyleSheet(styleSheet);
+        qssFile.close();
+    } else {
+        qApp->setStyle(QStyleFactory::create("Fusion"));
+        qApp->setStyleSheet("");
+    }
+
+    qApp->setFont(qApp->font());
+}
+
+void applyLanguage(UiConst::Language lang, std::unique_ptr<QTranslator>& translator) {
+    if (translator) {
+        qApp->removeTranslator(translator.get());
+    }
+
+    if (lang == UiConst::Language::Vietnamese) {
+        translator = std::make_unique<QTranslator>();
+        if (translator->load(":/i18n/app_vi.qm")) {
+            qApp->installTranslator(translator.get());
         } else {
             translator.reset();
         }
-
-        QEvent event(QEvent::LanguageChange);
-        QCoreApplication::sendEvent(qApp, &event);
+    } else {
+        translator.reset();
     }
+
+    QEvent event(QEvent::LanguageChange);
+    QCoreApplication::sendEvent(qApp, &event);
+}
+
 } // namespace AppUI

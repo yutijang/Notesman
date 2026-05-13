@@ -13,7 +13,9 @@ std::uint32_t computeCrc32(void const* data, std::size_t size) {
     auto const* bytes = static_cast<std::uint8_t const*>(data);
     for (std::size_t i = 0; i < size; ++i) {
         crc ^= bytes[i];
-        for (int bit = 0; bit < 8; ++bit) { crc = (crc >> 1) ^ (((crc & 1U) != 0U) ? poly : 0U); }
+        for (int bit = 0; bit < 8; ++bit) {
+            crc = (crc >> 1) ^ (((crc & 1U) != 0U) ? poly : 0U);
+        }
     }
 
     return ~crc;

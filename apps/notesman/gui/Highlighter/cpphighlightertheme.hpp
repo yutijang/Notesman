@@ -3,16 +3,16 @@
 #include <QColor>
 
 struct CppHighlighterTheme {
-        QColor type;
-        QColor string;
-        QColor comment;
-        QColor number;
-        QColor preprocessor;
-        QColor function;
-        QColor identifier;
-        QColor flowKwFormat;
-        QColor builtinKwFormat;
-        QColor delimiter;
+    QColor type;
+    QColor string;
+    QColor comment;
+    QColor number;
+    QColor preprocessor;
+    QColor function;
+    QColor identifier;
+    QColor flowKwFormat;
+    QColor builtinKwFormat;
+    QColor delimiter;
 };
 
 inline CppHighlighterTheme createLightTheme() {

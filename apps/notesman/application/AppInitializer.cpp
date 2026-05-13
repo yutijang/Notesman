@@ -43,7 +43,9 @@
 #include <vector>
 
 namespace {
-    constexpr int K_TIMEWAIT{100};
+
+constexpr int K_TIMEWAIT{100};
+
 } // namespace
 
 bool AppInitializer::ensureSingleInstance() {
@@ -65,7 +67,9 @@ bool AppInitializer::ensureSingleInstance() {
     QLocalServer::removeServer(IpcNames::K_GUI_SERVER);
     m_localServer = std::make_unique<QLocalServer>();
 
-    QObject::connect(m_localServer.get(), &QLocalServer::newConnection, this,
+    QObject::connect(m_localServer.get(),
+                     &QLocalServer::newConnection,
+                     this,
                      &AppInitializer::onSecondInstanceMessage);
 
     m_localServer->listen(IpcNames::K_GUI_SERVER);
@@ -74,21 +78,29 @@ bool AppInitializer::ensureSingleInstance() {
 }
 
 void AppInitializer::onSecondInstanceMessage() {
-    if (!m_localServer || !m_localServer->hasPendingConnections()) [[unlikely]] { return; }
+    if (!m_localServer || !m_localServer->hasPendingConnections()) [[unlikely]] {
+        return;
+    }
 
     QLocalSocket* client = m_localServer->nextPendingConnection();
-    if (client == nullptr) [[unlikely]] { return; }
+    if (client == nullptr) [[unlikely]] {
+        return;
+    }
 
     // Non-blocking — dùng signal thay vì waitForReadyRead
     QObject::connect(client, &QLocalSocket::readyRead, [this, client]() {
         QByteArray const msg = client->readAll();
 
         if (msg == "activate") {
-            if (!m_mainWindow) { return; }
+            if (!m_mainWindow) {
+                return;
+            }
 #if defined(Q_OS_WIN)
             HWND hwnd =
                 reinterpret_cast<HWND>(m_mainWindow->winId()); // NOLINT(performance-no-int-to-ptr)
-            if (IsIconic(hwnd) != 0) { ShowWindow(hwnd, SW_RESTORE); }
+            if (IsIconic(hwnd) != 0) {
+                ShowWindow(hwnd, SW_RESTORE);
+            }
             SetForegroundWindow(hwnd);
 #elif defined(Q_OS_LINUX)
             if (m_mainWindow->isMinimized()) { m_mainWindow->showNormal(); }
@@ -102,7 +114,9 @@ void AppInitializer::onSecondInstanceMessage() {
         if (msg.startsWith("query:")) {
             bool ok{};
             std::int64_t const resourceId = msg.mid(6).toLongLong(&ok); // "query:" = 6 chars
-            if (!ok) { return; }
+            if (!ok) {
+                return;
+            }
 
             bool const found = m_activeViewers.contains(resourceId);
             client->write(found ? "found" : "not-found");
@@ -114,15 +128,21 @@ void AppInitializer::onSecondInstanceMessage() {
         if (msg.startsWith("activate:")) {
             bool ok{};
             std::int64_t const resourceId = msg.mid(9).toLongLong(&ok); // "activate:" = 9 chars
-            if (!ok) { return; }
+            if (!ok) {
+                return;
+            }
 
             auto it = m_activeViewers.find(resourceId);
-            if (it == m_activeViewers.end()) { return; }
+            if (it == m_activeViewers.end()) {
+                return;
+            }
 
             QDialog* dlg = it->second;
 #if defined(Q_OS_WIN)
             HWND hwnd = reinterpret_cast<HWND>(dlg->winId()); // NOLINT(performance-no-int-to-ptr)
-            if (IsIconic(hwnd) != 0) { ShowWindow(hwnd, SW_RESTORE); }
+            if (IsIconic(hwnd) != 0) {
+                ShowWindow(hwnd, SW_RESTORE);
+            }
             SetForegroundWindow(hwnd);
 #elif defined(Q_OS_LINUX)
             if (dlg->isMinimized()) { dlg->showNormal(); }
@@ -187,7 +207,9 @@ void AppInitializer::run() {
 
     m_mainWindow->show();
 
-    QTimer::singleShot(0, m_controller.get(), [this]() { m_controller->ensureOAuth(); });
+    QTimer::singleShot(0, m_controller.get(), [this]() {
+        m_controller->ensureOAuth();
+    });
 
     checkUpdateFlag();
 
@@ -206,7 +228,9 @@ AppInitializer::InitFailureReason AppInitializer::initializeCore() {
     GuiCoreErrorHandler handler(m_mainWindow.get());
     auto result = NotesCoreFactory::createCore(dbPath, &handler);
 
-    if (result.reason != InitFailureReason::Ok) { return result.reason; }
+    if (result.reason != InitFailureReason::Ok) {
+        return result.reason;
+    }
 
     // Move ownership từ CoreContext vào members của AppInitializer
     // Lifetime gắn với AppInitializer — tồn tại suốt vòng đời ứng dụng
@@ -238,11 +262,14 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
 
     if (std::vector<std::string> issues; !checker.checkIntegrity(issues)) {
         QString msg = tr("Database integrity check failed:\n");
-        for (auto const& e : issues) { msg += QString::fromStdString(e) + "\n"; }
+        for (auto const& e : issues) {
+            msg += QString::fromStdString(e) + "\n";
+        }
 
         Log::err(msg.toStdString());
         DialogUtils::showError(
-            m_mainWindow.get(), tr("Database Corrupted"),
+            m_mainWindow.get(),
+            tr("Database Corrupted"),
             tr("The application has detected that the database file is corrupted or damaged.\n\n"
                "Error details:\n"
                "%1\n\n"
@@ -259,12 +286,16 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
     }
 
     auto const verOpt = checker.getDBVersion();
-    if (!verOpt.has_value()) { return InitFailureReason::GetNullDBVersion; }
+    if (!verOpt.has_value()) {
+        return InitFailureReason::GetNullDBVersion;
+    }
 
     if (int const currentVersion = *verOpt; currentVersion < app::meta::SCHEMA_VERSION) {
         Log::err("Database version is outdated, current verison: {}, required version: {}",
-                 currentVersion, app::meta::SCHEMA_VERSION);
-        DialogUtils::showInfo(m_mainWindow.get(), tr("Incompatible Database"),
+                 currentVersion,
+                 app::meta::SCHEMA_VERSION);
+        DialogUtils::showInfo(m_mainWindow.get(),
+                              tr("Incompatible Database"),
                               tr("Database version (%1) is outdated (Required: %2).\n\n"
                                  "To fix this problem:\n"
                                  "1. Close the application completely\n"
@@ -284,25 +315,40 @@ AppInitializer::InitFailureReason AppInitializer::verifyDatabase() {
 
 void AppInitializer::setupInitializerConnections() {
     // B. Initializer báo cáo Core đã sẵn sàng -> Window nhận
-    QObject::connect(this, &AppInitializer::coreReady, m_mainWindow.get(), &MainWindow::setCore,
+    QObject::connect(this,
+                     &AppInitializer::coreReady,
+                     m_mainWindow.get(),
+                     &MainWindow::setCore,
                      Qt::UniqueConnection);
 
-    QObject::connect(m_controller.get(), &AppController::closeConnectDBRequestForward, this,
+    QObject::connect(m_controller.get(),
+                     &AppController::closeConnectDBRequestForward,
+                     this,
                      &AppInitializer::closeDatabaseConnection);
-    QObject::connect(m_controller.get(), &AppController::reconnectDBRequestForward, this,
+    QObject::connect(m_controller.get(),
+                     &AppController::reconnectDBRequestForward,
+                     this,
                      &AppInitializer::reinitializeDatabaseConnection);
 
-    QObject::connect(this, &AppInitializer::dbClosed, m_controller.get(),
-                     &AppController::dbClosedForward);
+    QObject::connect(
+        this, &AppInitializer::dbClosed, m_controller.get(), &AppController::dbClosedForward);
 
-    QObject::connect(this, &AppInitializer::cleanupEpubCacheRequest, m_controller.get(),
+    QObject::connect(this,
+                     &AppInitializer::cleanupEpubCacheRequest,
+                     m_controller.get(),
                      &AppController::cleanupOldEpubCache);
-    QObject::connect(this, &AppInitializer::cleanupMDCacheRequest, m_controller.get(),
+    QObject::connect(this,
+                     &AppInitializer::cleanupMDCacheRequest,
+                     m_controller.get(),
                      &AppController::cleanupOldMarkdownCache);
 
-    QObject::connect(m_mainWindow.get(), &MainWindow::viewerDialogOpened, this,
+    QObject::connect(m_mainWindow.get(),
+                     &MainWindow::viewerDialogOpened,
+                     this,
                      &AppInitializer::registerViewerDialog);
-    QObject::connect(m_mainWindow.get(), &MainWindow::viewerDialogClosed, this,
+    QObject::connect(m_mainWindow.get(),
+                     &MainWindow::viewerDialogClosed,
+                     this,
                      &AppInitializer::unregisterViewerDialog);
 }
 
@@ -315,7 +361,9 @@ void AppInitializer::closeDatabaseConnection(bool isUpload) {
 }
 
 void AppInitializer::reinitializeDatabaseConnection() {
-    if (!m_db) { return; }
+    if (!m_db) {
+        return;
+    }
 
     try {
         std::string const filename = m_db->getFilename();
@@ -334,14 +382,18 @@ void AppInitializer::reinitializeDatabaseConnection() {
         }
 
         Q_EMIT dbOpened();
-    } catch (std::exception const& ex) { Log::fatal("Fatal error: {}", ex.what()); }
+    } catch (std::exception const& ex) {
+        Log::fatal("Fatal error: {}", ex.what());
+    }
 }
 
 void AppInitializer::checkUpdateFlag() {
     QStringList const args = QApplication::arguments();
 
-    if (bool isUpdateDone =
-            std::ranges::any_of(args, [](QString const& arg) { return arg == "--update-done"; });
+    if (bool isUpdateDone = std::ranges::any_of(args,
+                                                [](QString const& arg) {
+                                                    return arg == "--update-done";
+                                                });
         !isUpdateDone) {
         return;
     }
@@ -362,7 +414,9 @@ void AppInitializer::checkUpdateFlag() {
         saveETagOnUpdateSuccess();
     });
 #elif defined(Q_OS_LINUX)
-    if (args.size() < 4) { return; }
+    if (args.size() < 4) {
+        return;
+    }
 
     namespace fs = std::filesystem;
 
@@ -375,7 +429,9 @@ void AppInitializer::checkUpdateFlag() {
     }
 
     fs::path const binPath(args[3].toStdString());
-    if (fs::exists(binPath)) { fs::remove(binPath); }
+    if (fs::exists(binPath)) {
+        fs::remove(binPath);
+    }
 
     displayNotiUpdateComplete();
     saveETagOnUpdateSuccess();
@@ -395,10 +451,12 @@ void AppInitializer::saveETagOnUpdateSuccess() {
         qSettings.set("update/applied_version", pendingVersion);
 
         Log::info("Update applied successfully. Version: {}, ETag: {}",
-                  pendingVersion.toStdString(), pendingETag.toStdString());
+                  pendingVersion.toStdString(),
+                  pendingETag.toStdString());
     } else {
         Log::warn("Update mismatch: Expected {}, but binary version is {}",
-                  pendingVersion.toStdString(), QString(app::meta::VERSION).toStdString());
+                  pendingVersion.toStdString(),
+                  QString(app::meta::VERSION).toStdString());
     }
 
     // Dù thành công hay thất bại, pending đều phải bị xóa
@@ -415,14 +473,17 @@ void AppInitializer::handleUpdateCleanup(QStringList const& args) {
         if (ec) {
             Log::err("Failed to remove temp_update: {}", ec.message());
             DialogUtils::showError(
-                m_mainWindow.get(), tr("Error"),
+                m_mainWindow.get(),
+                tr("Error"),
                 tr("Failed to remove temp_update: %1").arg(QString::fromStdString(ec.message())));
             return;
         }
     }
 
     std::filesystem::path zipPath(args[4].toStdWString());
-    if (std::filesystem::exists(zipPath)) { std::filesystem::remove(zipPath, ec); }
+    if (std::filesystem::exists(zipPath)) {
+        std::filesystem::remove(zipPath, ec);
+    }
 
     // defer dialog until UI is ready
     displayNotiUpdateComplete();
@@ -431,7 +492,8 @@ void AppInitializer::handleUpdateCleanup(QStringList const& args) {
 void AppInitializer::displayNotiUpdateComplete() {
     QTimer::singleShot(0, m_mainWindow.get(), [this]() {
         QString const kLinkColor = (m_controller->isDarkTheme()) ? "#4FC3F7" : "#0000EE";
-        DialogUtils::showInfo(m_mainWindow.get(), tr("Update complete"),
+        DialogUtils::showInfo(m_mainWindow.get(),
+                              tr("Update complete"),
                               tr("Application has been updated successfully.<br>"
                                  "Version: v%1<br>"
                                  "Changelog: <a href=\"%2\" style=\"color: %3; "

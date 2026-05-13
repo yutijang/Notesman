@@ -16,17 +16,23 @@
 
 namespace urls = boost::urls;
 
-std::optional<sqlite3_int64> UrlService::addUrlResource(std::string_view title, ResourceType type,
-                                                        std::string_view rawUrl) {
+std::optional<sqlite3_int64>
+    UrlService::addUrlResource(std::string_view title, ResourceType type, std::string_view rawUrl) {
     auto normalizedUrl = normalizeUrl(rawUrl);
-    if (!normalizedUrl) { return std::nullopt; }
+    if (!normalizedUrl) {
+        return std::nullopt;
+    }
 
-    if (auto resIdOpt = m_urlRepo.getResourceIdByNormalizedUrl(*normalizedUrl)) { return resIdOpt; }
+    if (auto resIdOpt = m_urlRepo.getResourceIdByNormalizedUrl(*normalizedUrl)) {
+        return resIdOpt;
+    }
 
     // NOLINTNEXTLINE (-Wmissing-designated-field-initializers)
     sqlite3_int64 resourceId = m_resRepo.insert({.title = std::string(title), .type = type});
     auto partsOpt = getUrlParts(*normalizedUrl);
-    if (!partsOpt) { return std::nullopt; }
+    if (!partsOpt) {
+        return std::nullopt;
+    }
 
     m_urlRepo.insertUrl(resourceId, rawUrl, *normalizedUrl, partsOpt->domain, partsOpt->path);
 
@@ -88,14 +94,18 @@ std::optional<std::string> UrlService::normalizeUrl(std::string_view rawUrl) {
         std::vector<std::pair<std::string, std::string>> params;
         params.reserve(view.size());
 
-        for (auto const& p : view) { params.emplace_back(p.key, p.value); }
+        for (auto const& p : view) {
+            params.emplace_back(p.key, p.value);
+        }
 
         std::ranges::sort(params);
 
         u.remove_query();
         auto out = u.params();
 
-        for (auto const& [k, v] : params) { out.append(boost::urls::param_view{k, v}); }
+        for (auto const& [k, v] : params) {
+            out.append(boost::urls::param_view{k, v});
+        }
     }
 
     return std::string(u.buffer());

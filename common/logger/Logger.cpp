@@ -24,49 +24,52 @@
 #include <vector>
 
 namespace {
-    std::once_flag gOnce;
 
-    std::filesystem::path getExeDir() {
+std::once_flag gOnce;
+
+std::filesystem::path getExeDir() {
 #if defined(_WIN32)
-        wchar_t buf[MAX_PATH];
-        GetModuleFileNameW(nullptr, buf, MAX_PATH);
-        return std::filesystem::path(buf).parent_path();
+    wchar_t buf[MAX_PATH];
+    GetModuleFileNameW(nullptr, buf, MAX_PATH);
+    return std::filesystem::path(buf).parent_path();
 #else
-        char buf[PATH_MAX];
-        ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-        if (len <= 0) { return std::filesystem::current_path(); }
-        buf[len] = '\0';
-        return std::filesystem::path(buf).parent_path();
-#endif
+    char buf[PATH_MAX];
+    ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (len <= 0) {
+        return std::filesystem::current_path();
     }
+    buf[len] = '\0';
+    return std::filesystem::path(buf).parent_path();
+#endif
+}
 
 #ifdef _DEBUG
-    bool hasConsole() {
+bool hasConsole() {
 #if defined(_WIN32)
-        DWORD mode{};
-        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-        return h != INVALID_HANDLE_VALUE && h != nullptr && (GetConsoleMode(h, &mode) != 0);
+    DWORD mode{};
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    return h != INVALID_HANDLE_VALUE && h != nullptr && (GetConsoleMode(h, &mode) != 0);
 #else
-        return ::isatty(STDOUT_FILENO);
+    return ::isatty(STDOUT_FILENO);
 #endif
-    }
+}
 #endif
 
-    std::filesystem::path getLogDir() {
+std::filesystem::path getLogDir() {
 #if defined(_WIN32)
-        return getExeDir() / "logs";
+    return getExeDir() / "logs";
 #else
-        if (char const* xdg = std::getenv("XDG_STATE_HOME")) {
-            return std::filesystem::path(xdg) / "notesman" / "logs";
-        }
-
-        if (char const* home = std::getenv("HOME")) {
-            return std::filesystem::path(home) / ".local/state/notesman/logs";
-        }
-
-        return std::filesystem::temp_directory_path() / "notesman/logs";
-#endif
+    if (char const* xdg = std::getenv("XDG_STATE_HOME")) {
+        return std::filesystem::path(xdg) / "notesman" / "logs";
     }
+
+    if (char const* home = std::getenv("HOME")) {
+        return std::filesystem::path(home) / ".local/state/notesman/logs";
+    }
+
+    return std::filesystem::temp_directory_path() / "notesman/logs";
+#endif
+}
 
 } // namespace
 

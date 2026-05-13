@@ -130,7 +130,9 @@ QStringList TagInput::getAllTags() const {
 
     for (auto* btn : std::as_const(m_tags)) {
         QString tagText = btn->text();
-        if (!tagText.isEmpty()) { tags.append(tagText); }
+        if (!tagText.isEmpty()) {
+            tags.append(tagText);
+        }
     }
 
     QString currentText = m_input->text().trimmed();
@@ -139,7 +141,9 @@ QStringList TagInput::getAllTags() const {
         for (QString const& tag : currentTags) {
             QString trimmedTag = tag.trimmed();
             if (!trimmedTag.isEmpty()) {
-                if (!tags.contains(trimmedTag)) { tags.append(trimmedTag); }
+                if (!tags.contains(trimmedTag)) {
+                    tags.append(trimmedTag);
+                }
             }
         }
     }
@@ -155,7 +159,9 @@ void TagInput::onReturnPressed() {
 
         for (QString const& tag : tags) {
             QString trimmedTag = tag.trimmed();
-            if (!trimmedTag.isEmpty()) { addTag(trimmedTag); }
+            if (!trimmedTag.isEmpty()) {
+                addTag(trimmedTag);
+            }
         }
 
         m_input->clear();

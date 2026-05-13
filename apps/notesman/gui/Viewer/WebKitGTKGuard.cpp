@@ -3,7 +3,9 @@
 #include <dlfcn.h>
 
 namespace {
-    constexpr char const* K_WEB_KIT_GTK_SONAME = "libwebkit2gtk-4.1.so.0";
+
+constexpr char const* K_WEB_KIT_GTK_SONAME{"libwebkit2gtk-4.1.so.0"};
+
 } // namespace
 
 WebKitGTKGuard& WebKitGTKGuard::instance() {
@@ -18,7 +20,9 @@ WebKitGTKGuard::WebKitGTKGuard() {
 }
 
 WebKitGTKGuard::~WebKitGTKGuard() {
-    if (m_handle != nullptr) { dlclose(m_handle); }
+    if (m_handle != nullptr) {
+        dlclose(m_handle);
+    }
 }
 
 bool WebKitGTKGuard::available() const noexcept {

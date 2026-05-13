@@ -24,8 +24,11 @@
 #include <Qt>
 #include <sqlite3.h>
 
-TextViewer::TextViewer(sqlite3_int64 resourceId, bool editable, ResourceViewService& viewService,
-                       UiConst::Theme theme, QWidget* parent)
+TextViewer::TextViewer(sqlite3_int64 resourceId,
+                       bool editable,
+                       ResourceViewService& viewService,
+                       UiConst::Theme theme,
+                       QWidget* parent)
     : m_resourceId(resourceId), m_editable(editable), m_viewService(viewService),
       m_currentTheme(theme) {
     m_rootWidget = new QWidget(parent);
@@ -65,18 +68,24 @@ bool TextViewer::isEditable() const {
 }
 
 bool TextViewer::hasUnsavedChanges() const {
-    if (!isEditable() || m_editor == nullptr) { return false; }
+    if (!isEditable() || m_editor == nullptr) {
+        return false;
+    }
 
     return m_editor->toPlainText() != m_originalContent;
 }
 
 bool TextViewer::onClose(QWidget* parent) {
-    if (!hasUnsavedChanges()) { return true; }
+    if (!hasUnsavedChanges()) {
+        return true;
+    }
 
-    auto const reply = DialogUtils::showQuestion(parent, QObject::tr("Unsaved changes"),
-                                                 QObject::tr("Save changes before closing?"));
+    auto const reply = DialogUtils::showQuestion(
+        parent, QObject::tr("Unsaved changes"), QObject::tr("Save changes before closing?"));
 
-    if (reply == QMessageBox::Cancel) { return false; }
+    if (reply == QMessageBox::Cancel) {
+        return false;
+    }
 
     if (reply == QMessageBox::Yes) {
         auto const content = m_editor->toPlainText();
@@ -88,7 +97,9 @@ bool TextViewer::onClose(QWidget* parent) {
 }
 
 void TextViewer::setupToolbar(QToolBar* toolbar) {
-    if (toolbar == nullptr) { return; }
+    if (toolbar == nullptr) {
+        return;
+    }
 
     // ===== Save =====
     auto* actionSave = toolbar->addAction(QObject::tr("Save"));
@@ -96,7 +107,9 @@ void TextViewer::setupToolbar(QToolBar* toolbar) {
     actionSave->setEnabled(isEditable());
 
     QObject::connect(actionSave, &QAction::triggered, toolbar, [this]() {
-        if (!isEditable()) { return; }
+        if (!isEditable()) {
+            return;
+        }
 
         m_originalContent = m_editor->toPlainText();
         m_viewService.saveTextResource(m_resourceId, m_originalContent);
@@ -106,7 +119,9 @@ void TextViewer::setupToolbar(QToolBar* toolbar) {
     auto* actionReload = toolbar->addAction(QObject::tr("Reload"));
     actionReload->setIcon(QIcon(":/icons/load.ico"));
 
-    QObject::connect(actionReload, &QAction::triggered, toolbar, [this]() { loadContent(); });
+    QObject::connect(actionReload, &QAction::triggered, toolbar, [this]() {
+        loadContent();
+    });
 
     // ===== Toggle Syntax Highlight =====
     auto* actionToggleSH = toolbar->addAction(QObject::tr("Toggle"));
@@ -116,8 +131,8 @@ void TextViewer::setupToolbar(QToolBar* toolbar) {
     QIcon toggleIcon;
     QPixmap const pixmap(":/icons/syntax.ico");
     toggleIcon.addPixmap(pixmap, QIcon::Normal, QIcon::On);
-    toggleIcon.addPixmap(toggleIcon.pixmap(pixmap.size(), QIcon::Disabled), QIcon::Normal,
-                         QIcon::Off);
+    toggleIcon.addPixmap(
+        toggleIcon.pixmap(pixmap.size(), QIcon::Disabled), QIcon::Normal, QIcon::Off);
     actionToggleSH->setIcon(toggleIcon);
 
     QObject::connect(
@@ -141,18 +156,24 @@ void TextViewer::setupToolbar(QToolBar* toolbar) {
     actionSearch->setShortcut(QKeySequence::Find);
     actionSearch->setToolTip(QObject::tr("Search (Ctrl+F)"));
 
-    QObject::connect(actionSearch, &QAction::triggered, toolbar, [this]() { startSearch(); });
+    QObject::connect(actionSearch, &QAction::triggered, toolbar, [this]() {
+        startSearch();
+    });
 
     // Find next / previous
     auto* actFindNext = new QAction(m_rootWidget);
     actFindNext->setShortcut(Qt::Key_F3);
     actFindNext->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    QObject::connect(actFindNext, &QAction::triggered, m_rootWidget, [this]() { findNext(); });
+    QObject::connect(actFindNext, &QAction::triggered, m_rootWidget, [this]() {
+        findNext();
+    });
 
     auto* actFindPrev = new QAction(m_rootWidget);
     actFindPrev->setShortcut(Qt::SHIFT | Qt::Key_F3);
     actFindPrev->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    QObject::connect(actFindPrev, &QAction::triggered, m_rootWidget, [this]() { findPrevious(); });
+    QObject::connect(actFindPrev, &QAction::triggered, m_rootWidget, [this]() {
+        findPrevious();
+    });
 
     m_rootWidget->addAction(actFindNext);
     m_rootWidget->addAction(actFindPrev);
@@ -160,18 +181,25 @@ void TextViewer::setupToolbar(QToolBar* toolbar) {
 
 void TextViewer::startSearch() {
     bool ok{};
-    QString const text =
-        QInputDialog::getText(m_rootWidget, QObject::tr("Search"), QObject::tr("Find:"),
-                              QLineEdit::Normal, m_lastSearchText, &ok);
+    QString const text = QInputDialog::getText(m_rootWidget,
+                                               QObject::tr("Search"),
+                                               QObject::tr("Find:"),
+                                               QLineEdit::Normal,
+                                               m_lastSearchText,
+                                               &ok);
 
-    if (!ok || text.isEmpty()) { return; }
+    if (!ok || text.isEmpty()) {
+        return;
+    }
 
     m_lastSearchText = text;
     findNext();
 }
 
 void TextViewer::findNext() {
-    if (m_lastSearchText.isEmpty()) { return; }
+    if (m_lastSearchText.isEmpty()) {
+        return;
+    }
 
     if (!m_editor->find(m_lastSearchText)) {
         // wrap around
@@ -183,7 +211,9 @@ void TextViewer::findNext() {
 }
 
 void TextViewer::findPrevious() {
-    if (m_lastSearchText.isEmpty()) { return; }
+    if (m_lastSearchText.isEmpty()) {
+        return;
+    }
 
     if (!m_editor->find(m_lastSearchText, QTextDocument::FindBackward)) {
         QTextCursor c = m_editor->textCursor();
@@ -218,7 +248,9 @@ void TextViewer::loadContent() {
 }
 
 void TextViewer::applySyntaxHighlightingTheme() {
-    if (m_editor == nullptr) { return; }
+    if (m_editor == nullptr) {
+        return;
+    }
 
     // Chọn theme tô màu
     CppHighlighterTheme const hlTheme =
@@ -241,16 +273,22 @@ void TextViewer::applySyntaxHighlightingTheme() {
 }
 
 void TextViewer::disableSyntaxHighlightingTheme() {
-    if (m_editor == nullptr) { return; }
+    if (m_editor == nullptr) {
+        return;
+    }
 
-    if (m_cppHighlighter != nullptr) { m_cppHighlighter->stopGradualRehighlight(); }
+    if (m_cppHighlighter != nullptr) {
+        m_cppHighlighter->stopGradualRehighlight();
+    }
 
     delete m_cppHighlighter;
     m_cppHighlighter = nullptr;
 }
 
 void TextViewer::applyLineHighlighter() {
-    if (m_lineHighlighter != nullptr) { return; }
+    if (m_lineHighlighter != nullptr) {
+        return;
+    }
 
     m_lineHighlighter = new CodeEditorLineHighlighter(m_editor);
     if (m_currentTheme == UiConst::Theme::Light) {
@@ -261,7 +299,9 @@ void TextViewer::applyLineHighlighter() {
 }
 
 void TextViewer::setupHighlighter() {
-    if (m_editor == nullptr) { return; }
+    if (m_editor == nullptr) {
+        return;
+    }
 
     CppHighlighterTheme const hlTheme =
         (m_currentTheme == UiConst::Theme::Dark) ? createDarkTheme() : createLightTheme();

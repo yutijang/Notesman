@@ -75,7 +75,9 @@ void UpdateManager::checkForUpdates(QString const& versionCheckUrl) {
     }
 
     QString const appliedETag = qSettings.get("update/applied_etag").toString();
-    if (!appliedETag.isEmpty()) { request.setRawHeader("If-None-Match", appliedETag.toUtf8()); }
+    if (!appliedETag.isEmpty()) {
+        request.setRawHeader("If-None-Match", appliedETag.toUtf8());
+    }
 
     QNetworkReply* reply = m_networkManager.get(request);
 
@@ -91,12 +93,15 @@ void UpdateManager::checkForUpdates(QString const& versionCheckUrl) {
     });
     timeoutTimer->start();
 
-    QObject::connect(reply, &QNetworkReply::finished, this,
-                     [this, reply]() { onVersionReplyFinished(reply); });
+    QObject::connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        onVersionReplyFinished(reply);
+    });
 }
 
 void UpdateManager::onVersionReplyFinished(QNetworkReply* reply) {
-    if (reply == nullptr) { return; }
+    if (reply == nullptr) {
+        return;
+    }
 
     auto const status = reply->error();
     if (status != QNetworkReply::NoError) {
@@ -193,7 +198,9 @@ std::optional<UpdateManager::UpdateInfo> UpdateManager::findAssetInfo(QJsonDocum
     }
 
     // Nếu không tìm thấy asset, thông tin không toàn vẹn, trả về thông tin rỗng mặc định
-    if (downloadInfo.assetName.isEmpty()) { return std::nullopt; }
+    if (downloadInfo.assetName.isEmpty()) {
+        return std::nullopt;
+    }
 
     auto const jsonObj = assets[assetIdx].toObject();
     downloadInfo.assetDownloadURL = jsonObj["browser_download_url"].toString();
@@ -204,7 +211,9 @@ std::optional<UpdateManager::UpdateInfo> UpdateManager::findAssetInfo(QJsonDocum
 }
 
 QStringView UpdateManager::normalizeVersionQt(QStringView version) {
-    if (version.startsWith(u'v', Qt::CaseInsensitive)) { return version.mid(1); }
+    if (version.startsWith(u'v', Qt::CaseInsensitive)) {
+        return version.mid(1);
+    }
     return version;
 }
 
@@ -213,7 +222,8 @@ int UpdateManager::compareVersionsQt(QAnyStringView vLocal, QAnyStringView vRemo
     auto const remoteVersion = QVersionNumber::fromString(vRemote);
 
     if (localVersion.isNull() || remoteVersion.isNull()) {
-        Log::err("Invalid version format, local: {}, remote: {}", vLocal.toString().toStdString(),
+        Log::err("Invalid version format, local: {}, remote: {}",
+                 vLocal.toString().toStdString(),
                  vRemote.toString().toStdString());
         return 0;
     }
@@ -222,7 +232,9 @@ int UpdateManager::compareVersionsQt(QAnyStringView vLocal, QAnyStringView vRemo
 }
 
 QString UpdateManager::extractHash(QString const& digest) {
-    if (digest.startsWith(QStringLiteral("sha256:"))) { return digest.mid(sizeof("sha256:") - 1); }
+    if (digest.startsWith(QStringLiteral("sha256:"))) {
+        return digest.mid(sizeof("sha256:") - 1);
+    }
     return digest;
 }
 

@@ -31,20 +31,28 @@
 #endif
 
 namespace {
-    bool ensureHtmlRuntimeAvailable(QWidget* parent) {
-#ifdef Q_OS_WIN
-        if (WebView2Guard::instance().available()) { return true; }
-        DialogUtils::showError(parent, QObject::tr("Missing Runtime"),
-                               QObject::tr("Microsoft WebView2 Runtime is not installed."));
-#elif defined(Q_OS_LINUX)
-        if (WebKitGTKGuard::instance().available()) { return true; }
-        DialogUtils::showError(parent, QObject::tr("Missing Runtime"),
-                               QObject::tr("WebKitGTK runtime library is missing."));
-#endif
-        return false;
-    }
 
-    constexpr int K_WAITSTART{3000};
+bool ensureHtmlRuntimeAvailable(QWidget* parent) {
+#ifdef Q_OS_WIN
+    if (WebView2Guard::instance().available()) {
+        return true;
+    }
+    DialogUtils::showError(parent,
+                           QObject::tr("Missing Runtime"),
+                           QObject::tr("Microsoft WebView2 Runtime is not installed."));
+#elif defined(Q_OS_LINUX)
+    if (WebKitGTKGuard::instance().available()) {
+        return true;
+    }
+    DialogUtils::showError(parent,
+                           QObject::tr("Missing Runtime"),
+                           QObject::tr("WebKitGTK runtime library is missing."));
+#endif
+    return false;
+}
+
+constexpr int K_WAITSTART{3000};
+
 } // namespace
 
 HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title)) {
@@ -56,24 +64,32 @@ HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title
 #endif
 }
 
-std::unique_ptr<HtmlViewer> HtmlViewer::createFromFile(QString title, QString path,
-                                                       ContentMode mode, QWidget* parent) {
-    if (!ensureHtmlRuntimeAvailable(parent)) [[unlikely]] { return nullptr; }
+std::unique_ptr<HtmlViewer>
+    HtmlViewer::createFromFile(QString title, QString path, ContentMode mode, QWidget* parent) {
+    if (!ensureHtmlRuntimeAvailable(parent)) [[unlikely]] {
+        return nullptr;
+    }
 
     auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
 
-    if (!view->initFromFile(std::move(path), mode)) [[unlikely]] { return nullptr; }
+    if (!view->initFromFile(std::move(path), mode)) [[unlikely]] {
+        return nullptr;
+    }
 
     return view;
 }
 
-std::unique_ptr<HtmlViewer> HtmlViewer::createFromUrl(QString title, QUrl url, ContentMode mode,
-                                                      QWidget* parent) {
-    if (!ensureHtmlRuntimeAvailable(parent)) [[unlikely]] { return nullptr; }
+std::unique_ptr<HtmlViewer>
+    HtmlViewer::createFromUrl(QString title, QUrl url, ContentMode mode, QWidget* parent) {
+    if (!ensureHtmlRuntimeAvailable(parent)) [[unlikely]] {
+        return nullptr;
+    }
 
     auto view = std::unique_ptr<HtmlViewer>(new HtmlViewer(std::move(title), parent));
 
-    if (!view->initFromUrl(std::move(url), mode)) [[unlikely]] { return nullptr; }
+    if (!view->initFromUrl(std::move(url), mode)) [[unlikely]] {
+        return nullptr;
+    }
 
     return view;
 }
@@ -89,7 +105,9 @@ void HtmlViewer::setupView() {
 }
 
 bool HtmlViewer::initFromFile(QString path, ContentMode mode) {
-    if (path.isEmpty()) [[unlikely]] { return false; }
+    if (path.isEmpty()) [[unlikely]] {
+        return false;
+    }
 
     m_htmlPath = std::move(path);
 
@@ -102,7 +120,9 @@ bool HtmlViewer::initFromFile(QString path, ContentMode mode) {
     QFileInfo fi(m_htmlPath);
     if (!fi.exists() || !fi.isFile()) {
         Log::warn("HtmlViewer open: path={}, exists={}, isFile={}",
-                  fi.absoluteFilePath().toStdString(), fi.exists(), fi.isFile());
+                  fi.absoluteFilePath().toStdString(),
+                  fi.exists(),
+                  fi.isFile());
         return false;
     }
 
@@ -127,7 +147,9 @@ bool HtmlViewer::initFromFile(QString path, ContentMode mode) {
         return false;
     }
 
-    if (m_process != nullptr) { m_process->deleteLater(); }
+    if (m_process != nullptr) {
+        m_process->deleteLater();
+    }
 
     m_process = process.release();
 
@@ -172,7 +194,9 @@ bool HtmlViewer::initFromUrl(QUrl url, ContentMode mode) {
         return false;
     }
 
-    if (m_process != nullptr) { m_process->deleteLater(); }
+    if (m_process != nullptr) {
+        m_process->deleteLater();
+    }
 
     m_process = process.release();
 
@@ -189,10 +213,14 @@ QWidget* HtmlViewer::widget() {
 }
 
 void HtmlViewer::setupToolbar(QToolBar* toolbar) {
-    if (toolbar == nullptr) { return; }
+    if (toolbar == nullptr) {
+        return;
+    }
 
 #ifdef Q_OS_WIN
-    if (m_view == nullptr) { return; }
+    if (m_view == nullptr) {
+        return;
+    }
 
     if (!supportsSearch()) {
         toolbar->setVisible(false);
@@ -204,23 +232,30 @@ void HtmlViewer::setupToolbar(QToolBar* toolbar) {
     actSearch->setShortcut(QKeySequence::Find);
     QObject::connect(actSearch, &QAction::triggered, toolbar, [this]() {
         bool ok{};
-        QString const text =
-            QInputDialog::getText(m_rootWidget, QObject::tr("Search"), QObject::tr("Find:"),
-                                  QLineEdit::Normal, m_lastSearchText, &ok);
-        if (!ok || text.isEmpty()) { return; }
+        QString const text = QInputDialog::getText(m_rootWidget,
+                                                   QObject::tr("Search"),
+                                                   QObject::tr("Find:"),
+                                                   QLineEdit::Normal,
+                                                   m_lastSearchText,
+                                                   &ok);
+        if (!ok || text.isEmpty()) {
+            return;
+        }
         m_lastSearchText = text;
         m_view->find(text, false);
     });
 
     auto* actNext = new QAction(m_rootWidget);
     actNext->setShortcut(Qt::Key_F3);
-    QObject::connect(actNext, &QAction::triggered, m_rootWidget,
-                     [this]() { m_view->find(m_lastSearchText, false); });
+    QObject::connect(actNext, &QAction::triggered, m_rootWidget, [this]() {
+        m_view->find(m_lastSearchText, false);
+    });
 
     auto* actPrev = new QAction(m_rootWidget);
     actPrev->setShortcut(Qt::SHIFT | Qt::Key_F3);
-    QObject::connect(actPrev, &QAction::triggered, m_rootWidget,
-                     [this]() { m_view->find(m_lastSearchText, true); });
+    QObject::connect(actPrev, &QAction::triggered, m_rootWidget, [this]() {
+        m_view->find(m_lastSearchText, true);
+    });
 
     m_rootWidget->addAction(actNext);
     m_rootWidget->addAction(actPrev);

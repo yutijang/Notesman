@@ -35,27 +35,28 @@
 #include <string_view>
 
 namespace {
-    unsigned short oauthPort() {
-        static unsigned short const port = findFreePort();
-        return port;
-    }
 
-    QString redirectUri() {
-        return QStringLiteral("http://localhost:%1").arg(oauthPort());
-    }
+unsigned short oauthPort() {
+    static unsigned short const port = findFreePort();
+    return port;
+}
 
-    constexpr auto GOOGLE_OAUTH2_AUTH_URL =
-        QLatin1StringView("https://accounts.google.com/o/oauth2/v2/auth");
-    constexpr auto GOOGLE_OAUTH2_TOKEN_URL =
-        QLatin1StringView("https://oauth2.googleapis.com/token");
-    constexpr auto GOOGLE_OAUTH2_SCOPE_DRIVE =
-        QLatin1StringView("openid email https://www.googleapis.com/auth/drive.appdata");
-    constexpr auto CLIENT_ID = QLatin1StringView(OAuthConfig::CLIENT_ID);
-    constexpr auto CLIENT_SECRET = QLatin1StringView(OAuthConfig::CLIENT_SECRET);
-    constexpr auto KEY_ACCESS_TOKEN = "google/access_token";
-    constexpr auto KEY_TOKEN_EXPIRY = "google/access_token_expiry";
-    constexpr auto KEY_REFRESH_TOKEN = "Notesman_google_refresh_token";
-    constexpr int LOGIN_TIMEOUT{60'000};
+QString redirectUri() {
+    return QStringLiteral("http://localhost:%1").arg(oauthPort());
+}
+
+constexpr auto GOOGLE_OAUTH2_AUTH_URL =
+    QLatin1StringView("https://accounts.google.com/o/oauth2/v2/auth");
+constexpr auto GOOGLE_OAUTH2_TOKEN_URL = QLatin1StringView("https://oauth2.googleapis.com/token");
+constexpr auto GOOGLE_OAUTH2_SCOPE_DRIVE =
+    QLatin1StringView("openid email https://www.googleapis.com/auth/drive.appdata");
+constexpr auto CLIENT_ID = QLatin1StringView(OAuthConfig::CLIENT_ID);
+constexpr auto CLIENT_SECRET = QLatin1StringView(OAuthConfig::CLIENT_SECRET);
+constexpr auto KEY_ACCESS_TOKEN = "google/access_token";
+constexpr auto KEY_TOKEN_EXPIRY = "google/access_token_expiry";
+constexpr auto KEY_REFRESH_TOKEN = "Notesman_google_refresh_token";
+constexpr int LOGIN_TIMEOUT{60'000};
+
 } // namespace
 
 // --- BEGIN helper ---
@@ -82,14 +83,18 @@ QString OAuthManager::sha256Base64Url(QString const& input) {
 
 void OAuthManager::cleanupAuthServer() {
     if (m_oauthServer != nullptr) {
-        if (m_oauthServer->isListening()) { m_oauthServer->close(); }
+        if (m_oauthServer->isListening()) {
+            m_oauthServer->close();
+        }
         m_oauthServer->deleteLater();
         m_oauthServer = nullptr;
     }
 }
 
 void OAuthManager::processTokenJson(QJsonObject const& json) {
-    if (json.isEmpty()) { return; }
+    if (json.isEmpty()) {
+        return;
+    }
 
     m_accessToken = json["access_token"].toString();
     int const expiresIn = json["expires_in"].toInt();
@@ -97,7 +102,9 @@ void OAuthManager::processTokenJson(QJsonObject const& json) {
 
     // Xử lý refresh token nếu có (thường chỉ có ở lần exchange đầu tiên)
     QString const refresh = json["refresh_token"].toString();
-    if (!refresh.isEmpty()) { saveRefreshToken(refresh); }
+    if (!refresh.isEmpty()) {
+        saveRefreshToken(refresh);
+    }
 
     // Lưu vào Settings
     auto& qSettings = SettingsManager::instance();
@@ -125,7 +132,8 @@ void OAuthManager::openBrowser(QUrl const& url) {
 #endif
 }
 
-QString OAuthManager::htmlResponde(QString const& title, QString const& header,
+QString OAuthManager::htmlResponde(QString const& title,
+                                   QString const& header,
                                    QString const& message) noexcept {
     return QStringLiteral(
                R"html(<!DOCTYPE html>
@@ -147,7 +155,9 @@ QString OAuthManager::htmlResponde(QString const& title, QString const& header,
 void OAuthManager::handleOAuthRedirect() {
     QTcpSocket* socket = m_oauthServer->nextPendingConnection();
 
-    QObject::connect(socket, &QTcpSocket::readyRead, [this, socket] { handleRedirect(socket); });
+    QObject::connect(socket, &QTcpSocket::readyRead, [this, socket] {
+        handleRedirect(socket);
+    });
 }
 
 void OAuthManager::handleRedirect(QTcpSocket* socket) {
@@ -231,8 +241,9 @@ void OAuthManager::exchangeAuthCodeForTokens(QString const& authCode) {
 
     auto* reply = m_networkManager.post(req, bodyData);
 
-    QObject::connect(reply, &QNetworkReply::finished,
-                     [this, reply]() { handlePostFinished(reply); });
+    QObject::connect(reply, &QNetworkReply::finished, [this, reply]() {
+        handlePostFinished(reply);
+    });
 }
 
 void OAuthManager::handlePostFinished(QNetworkReply* reply) {
@@ -304,8 +315,8 @@ void OAuthManager::handleLoginGMRequested() {
 
     // Khởi tạo server local
     m_oauthServer = new QTcpServer(this);
-    QObject::connect(m_oauthServer, &QTcpServer::newConnection, this,
-                     &OAuthManager::handleOAuthRedirect);
+    QObject::connect(
+        m_oauthServer, &QTcpServer::newConnection, this, &OAuthManager::handleOAuthRedirect);
 
     if (!m_oauthServer->listen(QHostAddress::LocalHost, oauthPort())) {
         Log::warn("Cannot start local OAuth server");
@@ -398,9 +409,13 @@ void OAuthManager::requestNewAccessToken(QString const& refreshToken,
         auto const json = QJsonDocument::fromJson(reply->readAll());
         reply->deleteLater();
 
-        if (json.isObject()) { processTokenJson(json.object()); }
+        if (json.isObject()) {
+            processTokenJson(json.object());
+        }
 
-        if (finishedCallback) { finishedCallback(); }
+        if (finishedCallback) {
+            finishedCallback();
+        }
     });
 }
 
@@ -426,7 +441,9 @@ QString OAuthManager::loadRefreshToken() {
     job.setKey(KEY_REFRESH_TOKEN);
 
     QEventLoop loop;
-    QObject::connect(&job, &QKeychain::Job::finished, [&]() { loop.quit(); });
+    QObject::connect(&job, &QKeychain::Job::finished, [&]() {
+        loop.quit();
+    });
     job.start();
     loop.exec();
 
@@ -446,7 +463,9 @@ QString OAuthManager::accessToken() {
         QString const refresh = loadRefreshToken();
         if (!refresh.isEmpty()) {
             QEventLoop loop;
-            requestNewAccessToken(refresh, [&]() { loop.quit(); });
+            requestNewAccessToken(refresh, [&]() {
+                loop.quit();
+            });
             loop.exec();
         } else {
             Log::warn("No refresh token available, login required");
@@ -458,7 +477,9 @@ QString OAuthManager::accessToken() {
 }
 
 void OAuthManager::tryAutoLogin() {
-    if (m_isLogin) { return; }
+    if (m_isLogin) {
+        return;
+    }
 
     auto& qSettings = SettingsManager::instance();
     m_accessToken = qSettings.get(KEY_ACCESS_TOKEN).toString();

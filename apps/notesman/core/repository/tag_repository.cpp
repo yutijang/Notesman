@@ -19,19 +19,24 @@ std::optional<sqlite3_int64> TagRepository::addTag(std::string_view name) {
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "Insert tag");
 
-    if (sqlite3_changes(m_db.get()) == 0) { return getTagIdByName(name); }
+    if (sqlite3_changes(m_db.get()) == 0) {
+        return getTagIdByName(name);
+    }
 
     return sqlite3_last_insert_rowid(m_db.get());
 }
 
 std::vector<sqlite3_int64> TagRepository::addTags(std::vector<std::string> const& names) {
-    if (names.empty()) { return {}; }
+    if (names.empty()) {
+        return {};
+    }
 
     // Mở transaction để tăng hiệu năng
     SQLiteStmt beginStmt(m_db.get(), "BEGIN TRANSACTION;");
@@ -50,8 +55,11 @@ std::vector<sqlite3_int64> TagRepository::addTags(std::vector<std::string> const
             insertStmt.reset();
             insertStmt.clearBindings();
 
-            sqlite::checkBind(sqlite3_bind_text(insertStmt.get(), 1, name.c_str(),
-                                                static_cast<int>(name.size()), SQLITE_TRANSIENT),
+            sqlite::checkBind(sqlite3_bind_text(insertStmt.get(),
+                                                1,
+                                                name.c_str(),
+                                                static_cast<int>(name.size()),
+                                                SQLITE_TRANSIENT),
                               m_db.get());
 
             sqlite::checkStep(insertStmt.step(), m_db.get(), SQLITE_DONE, "Insert tag");
@@ -88,15 +96,20 @@ std::optional<sqlite3_int64> TagRepository::getTagIdByName(std::string_view name
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     int const rc = stmt.step();
 
-    if (rc == SQLITE_ROW) { return stmt.getColumnInt64(0); }
+    if (rc == SQLITE_ROW) {
+        return stmt.getColumnInt64(0);
+    }
 
-    if (rc == SQLITE_DONE) { return std::nullopt; }
+    if (rc == SQLITE_DONE) {
+        return std::nullopt;
+    }
 
     if (rc != SQLITE_ROW && rc != SQLITE_DONE) {
         sqlite::checkStep(rc, m_db.get(), SQLITE_ROW, "getTagIdByName (unexpected rc)");
@@ -195,7 +208,9 @@ std::vector<std::pair<sqlite3_int64, std::string>> TagRepository::getAllTags() {
 }
 
 std::vector<Resource> TagRepository::getResourcesViaTags(std::vector<std::string> const& tags) {
-    if (tags.empty()) { return {}; }
+    if (tags.empty()) {
+        return {};
+    }
 
     std::string sql = "SELECT r.id, r.uuid, r.title, r.type, r.created_at, r.updated_at "
                       "FROM resources r ";
@@ -211,15 +226,20 @@ std::vector<Resource> TagRepository::getResourcesViaTags(std::vector<std::string
 
     sql += "WHERE ";
     for (std::size_t i = 0; i < tags.size(); ++i) {
-        if (i > 0) { sql += " AND "; }
+        if (i > 0) {
+            sql += " AND ";
+        }
         sql += "t" + std::to_string(i) + ".name = ?";
     }
 
     SQLiteStmt stmt(m_db.get(), sql);
 
     for (std::size_t i = 0; i < tags.size(); ++i) {
-        sqlite::checkBind(sqlite3_bind_text(stmt.get(), static_cast<int>(i + 1), tags[i].data(),
-                                            static_cast<int>(tags[i].size()), SQLITE_TRANSIENT),
+        sqlite::checkBind(sqlite3_bind_text(stmt.get(),
+                                            static_cast<int>(i + 1),
+                                            tags[i].data(),
+                                            static_cast<int>(tags[i].size()),
+                                            SQLITE_TRANSIENT),
                           m_db.get());
     }
 
@@ -253,9 +273,10 @@ std::vector<Resource> TagRepository::getResourcesViaOneTag(std::string_view name
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, name.data(), static_cast<int>(name.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, name.data(), static_cast<int>(name.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     std::vector<Resource> results;
     int rc{};

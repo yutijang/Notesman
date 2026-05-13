@@ -13,11 +13,12 @@
 #include <utility>
 
 namespace {
-    double quantizeDpi(double dpi) noexcept {
-        return std::round(dpi / 4.0) * 4.0; // NOLINT(readability-magic-numbers)
-    }
 
-    constexpr double K_PDF_POINTS_PER_INCH = 72.0;
+double quantizeDpi(double dpi) noexcept {
+    return std::round(dpi / 4.0) * 4.0; // NOLINT(readability-magic-numbers)
+}
+
+constexpr double K_PDF_POINTS_PER_INCH = 72.0;
 } // namespace
 
 PdfPageWidget::PdfPageWidget(std::unique_ptr<poppler::page> page, QWidget* parent)
@@ -33,7 +34,9 @@ PdfPageWidget::PdfPageWidget(std::unique_ptr<poppler::page> page, QWidget* paren
 }
 
 void PdfPageWidget::setScale(double scale) {
-    if (std::abs(m_scale - scale) < 0.001) { return; } // NOLINT(readability-magic-numbers)
+    if (std::abs(m_scale - scale) < 0.001) {
+        return;
+    } // NOLINT(readability-magic-numbers)
 
     m_scale = scale;
 
@@ -47,14 +50,20 @@ void PdfPageWidget::setScale(double scale) {
 }
 
 void PdfPageWidget::renderIfNeeded(double dpi, RenderQuality quality) {
-    if (!m_page) { return; }
+    if (!m_page) {
+        return;
+    }
 
     double const targetDpi = quantizeDpi(dpi);
 
     constexpr double kDpiEpsilon = 0.25;
-    if (m_rendered && std::abs(m_currentDpi - targetDpi) < kDpiEpsilon) { return; }
+    if (m_rendered && std::abs(m_currentDpi - targetDpi) < kDpiEpsilon) {
+        return;
+    }
 
-    if (width() <= 0 || height() <= 0) { return; }
+    if (width() <= 0 || height() <= 0) {
+        return;
+    }
 
     poppler::page_renderer renderer;
 
@@ -64,10 +73,15 @@ void PdfPageWidget::renderIfNeeded(double dpi, RenderQuality quality) {
     }
 
     auto img = renderer.render_page(m_page.get(), targetDpi, targetDpi);
-    if (!img.is_valid()) { return; }
+    if (!img.is_valid()) {
+        return;
+    }
 
-    m_image = QImage(reinterpret_cast<uchar const*>(img.data()), img.width(), img.height(),
-                     img.bytes_per_row(), QImage::Format_ARGB32)
+    m_image = QImage(reinterpret_cast<uchar const*>(img.data()),
+                     img.width(),
+                     img.height(),
+                     img.bytes_per_row(),
+                     QImage::Format_ARGB32)
                   .copy();
 
     m_currentDpi = targetDpi;
@@ -77,7 +91,9 @@ void PdfPageWidget::renderIfNeeded(double dpi, RenderQuality quality) {
 }
 
 void PdfPageWidget::paintEvent(QPaintEvent* /*event*/) {
-    if (!m_rendered || m_image.isNull()) { return; }
+    if (!m_rendered || m_image.isNull()) {
+        return;
+    }
 
     QPainter p(this);
     p.setRenderHint(QPainter::SmoothPixmapTransform, false);
@@ -85,7 +101,9 @@ void PdfPageWidget::paintEvent(QPaintEvent* /*event*/) {
 }
 
 void PdfPageWidget::releaseImage() {
-    if (!m_rendered) { return; }
+    if (!m_rendered) {
+        return;
+    }
 
     m_image = QImage{};
     m_rendered = false;

@@ -12,7 +12,9 @@
 #include <Qt>
 
 namespace {
-    constexpr auto INFO_ICON_SIZE = QSize(18, 18);
+
+constexpr auto INFO_ICON_SIZE = QSize(18, 18);
+
 } // namespace
 
 InfoCornerWidget::InfoCornerWidget(QWidget* parent) : QToolButton(parent) {
@@ -24,7 +26,9 @@ InfoCornerWidget::InfoCornerWidget(QWidget* parent) : QToolButton(parent) {
     setCursor(Qt::PointingHandCursor);
 
     auto* menu = new QMenu(this);
-    menu->addAction(QIcon(":/icons/update.ico"), tr("Check for updates"), this,
+    menu->addAction(QIcon(":/icons/update.ico"),
+                    tr("Check for updates"),
+                    this,
                     &InfoCornerWidget::onCheckUpdate);
     menu->addSeparator();
     menu->addAction(QIcon(":/icons/about.ico"), tr("About"), this, &InfoCornerWidget::onAbout);

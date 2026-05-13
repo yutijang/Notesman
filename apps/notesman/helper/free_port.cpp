@@ -28,55 +28,61 @@ static constexpr SockHandle INVALID_SOCK = -1;
 
 // ---------------- RAII: Socket ----------------
 class Socket {
-    public:
-        explicit Socket(SockHandle fd) noexcept : m_fd{fd} {}
+  public:
+    explicit Socket(SockHandle fd) noexcept : m_fd{fd} {}
 
-        ~Socket() {
-            if (m_fd != INVALID_SOCK) {
+    ~Socket() {
+        if (m_fd != INVALID_SOCK) {
 #if defined(_WIN32)
-                ::closesocket(m_fd);
+            ::closesocket(m_fd);
 #else
-                ::close(m_fd);
+            ::close(m_fd);
 #endif
-            }
         }
+    }
 
-        // Non-copy
-        Socket(Socket const&) = delete;
-        Socket& operator=(Socket const&) = delete;
+    // Non-copy
+    Socket(Socket const&) = delete;
+    Socket& operator=(Socket const&) = delete;
 
-        // Move
-        Socket(Socket&& other) noexcept : m_fd{other.m_fd} { other.m_fd = INVALID_SOCK; }
+    // Move
+    Socket(Socket&& other) noexcept : m_fd{other.m_fd} {
+        other.m_fd = INVALID_SOCK;
+    }
 
-        Socket& operator=(Socket&& other) noexcept {
-            if (this != &other) {
-                m_fd = other.m_fd;
-                other.m_fd = INVALID_SOCK;
-            }
-            return *this;
+    Socket& operator=(Socket&& other) noexcept {
+        if (this != &other) {
+            m_fd = other.m_fd;
+            other.m_fd = INVALID_SOCK;
         }
+        return *this;
+    }
 
-        [[nodiscard]] SockHandle get() const noexcept { return m_fd; }
+    [[nodiscard]] SockHandle get() const noexcept {
+        return m_fd;
+    }
 
-    private:
-        SockHandle m_fd;
+  private:
+    SockHandle m_fd;
 };
 
 // ---------------- RAII: Winsock (Windows only) ----------------
 #if defined(_WIN32)
 class WSA {
-    public:
-        WSA() {
-            WSADATA wsa{};
-            if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-                throw std::runtime_error{"WSAStartup failed"};
-            }
+  public:
+    WSA() {
+        WSADATA wsa{};
+        if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+            throw std::runtime_error{"WSAStartup failed"};
         }
+    }
 
-        ~WSA() { WSACleanup(); }
+    ~WSA() {
+        WSACleanup();
+    }
 
-        WSA(const WSA&) = delete;
-        WSA& operator=(const WSA&) = delete;
+    WSA(const WSA&) = delete;
+    WSA& operator=(const WSA&) = delete;
 };
 #endif
 

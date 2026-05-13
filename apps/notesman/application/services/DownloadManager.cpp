@@ -11,7 +11,9 @@
 #include <QtTypes>
 
 namespace {
-    constexpr int DEFAULT_TIMEOUT_MS{10'000};
+
+constexpr int DEFAULT_TIMEOUT_MS{10'000};
+
 } // namespace
 
 DownloadManager::DownloadManager(QObject* parent) : QObject(parent) {
@@ -61,12 +63,14 @@ void DownloadManager::startDownload(QUrl const& url, QString const& outputFilePa
     Q_EMIT downloadStarted();
     m_timeoutTimer.start();
 
-    QObject::connect(m_currentReply, &QNetworkReply::downloadProgress, this,
+    QObject::connect(m_currentReply,
+                     &QNetworkReply::downloadProgress,
+                     this,
                      &DownloadManager::onDownloadProgress);
-    QObject::connect(m_currentReply, &QNetworkReply::finished, this,
-                     &DownloadManager::onDownloadFinished);
-    QObject::connect(m_currentReply, &QNetworkReply::errorOccurred, this,
-                     &DownloadManager::onDownloadError);
+    QObject::connect(
+        m_currentReply, &QNetworkReply::finished, this, &DownloadManager::onDownloadFinished);
+    QObject::connect(
+        m_currentReply, &QNetworkReply::errorOccurred, this, &DownloadManager::onDownloadError);
 }
 
 void DownloadManager::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
@@ -111,7 +115,9 @@ void DownloadManager::abortDownload() {
 }
 
 void DownloadManager::cleanupReply() noexcept {
-    if (m_currentReply == nullptr) { return; }
+    if (m_currentReply == nullptr) {
+        return;
+    }
 
     m_currentReply->disconnect(this);
     m_currentReply->abort();
@@ -120,9 +126,13 @@ void DownloadManager::cleanupReply() noexcept {
 }
 
 void DownloadManager::cleanupOutputFile(bool removeFile) noexcept {
-    if (m_outputFile.isOpen()) { m_outputFile.close(); }
+    if (m_outputFile.isOpen()) {
+        m_outputFile.close();
+    }
 
-    if (removeFile && !m_outputFile.fileName().isEmpty()) { m_outputFile.remove(); }
+    if (removeFile && !m_outputFile.fileName().isEmpty()) {
+        m_outputFile.remove();
+    }
 }
 
 void DownloadManager::cleanupDownloadSession(bool const removeFile) noexcept {

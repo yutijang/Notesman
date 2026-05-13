@@ -57,9 +57,23 @@ void CppHighlighter::initRules() {
          .format = m_preprocessorFormat});
 
     // --- PHÂN NHÓM ---
-    QStringList const flowKeywords = {"for",      "if",     "else",   "do",      "while", "break",
-                                      "continue", "switch", "case",   "return",  "using", "try",
-                                      "catch",    "new",    "delete", "default", "throw"};
+    QStringList const flowKeywords = {"for",
+                                      "if",
+                                      "else",
+                                      "do",
+                                      "while",
+                                      "break",
+                                      "continue",
+                                      "switch",
+                                      "case",
+                                      "return",
+                                      "using",
+                                      "try",
+                                      "catch",
+                                      "new",
+                                      "delete",
+                                      "default",
+                                      "throw"};
 
     QStringList const builtinKeywords = {
         "alignas",     "xor_eq",    "alignof",   "and",          "and_eq",       "asm",
@@ -88,8 +102,14 @@ void CppHighlighter::initRules() {
     }
 
     // Types (common)
-    QStringList const types = {"std::string",     "std::vector", "std::map", "std::unique_ptr",
-                               "std::shared_ptr", "int32_t",     "uint32_t", "size_t"};
+    QStringList const types = {"std::string",
+                               "std::vector",
+                               "std::map",
+                               "std::unique_ptr",
+                               "std::shared_ptr",
+                               "int32_t",
+                               "uint32_t",
+                               "size_t"};
     for (auto const& t : types) {
         m_rules.push_back(
             {.pattern = QRegularExpression("\\b" + t + "\\b"), .format = m_typeFormat});
@@ -174,7 +194,9 @@ void CppHighlighter::rehighlightGradually(QTextDocument* doc, int batchSize, int
     // stop any previous run
     stopGradualRehighlight();
 
-    if (doc == nullptr) { return; }
+    if (doc == nullptr) {
+        return;
+    }
 
     m_targetDoc = doc;
     m_batchSize = std::max(1, batchSize);
@@ -184,8 +206,8 @@ void CppHighlighter::rehighlightGradually(QTextDocument* doc, int batchSize, int
     m_gradualTimer = new QTimer(this);
     m_gradualTimer->setInterval(std::max(1, intervalMs));
 
-    QObject::connect(m_gradualTimer, &QTimer::timeout, this,
-                     &CppHighlighter::onGradualTimerTimeout);
+    QObject::connect(
+        m_gradualTimer, &QTimer::timeout, this, &CppHighlighter::onGradualTimerTimeout);
 
     // start
     m_gradualTimer->start();
@@ -219,7 +241,9 @@ void CppHighlighter::onGradualTimerTimeout() {
     }
 
     // if finished
-    if (m_currentBlockIndex >= totalBlocks) { stopGradualRehighlight(); }
+    if (m_currentBlockIndex >= totalBlocks) {
+        stopGradualRehighlight();
+    }
 }
 
 void CppHighlighter::handleSingleLineComment(QString const& text) {
@@ -229,7 +253,9 @@ void CppHighlighter::handleSingleLineComment(QString const& text) {
         auto const match = it.next();
         int const start = static_cast<int const>(match.capturedStart());
         int const len = static_cast<int const>(match.capturedLength());
-        if (len <= 0) { continue; }
+        if (len <= 0) {
+            continue;
+        }
 
         // if comment overlaps a string (i.e. existing color == string color) skip
         bool inString = false;
@@ -240,7 +266,9 @@ void CppHighlighter::handleSingleLineComment(QString const& text) {
                 break;
             }
         }
-        if (inString) { continue; }
+        if (inString) {
+            continue;
+        }
 
         QTextCharFormat f = m_commentFormat;
         if (f.foreground().color().isValid()) {
@@ -255,7 +283,9 @@ void CppHighlighter::handleMultilineComment(QString const& text) {
     QRegularExpression endRE(R"(\*/)");
     setCurrentBlockState(0);
     int startIndex = 0;
-    if (previousBlockState() != 1) { startIndex = static_cast<int>(text.indexOf(startRE)); }
+    if (previousBlockState() != 1) {
+        startIndex = static_cast<int>(text.indexOf(startRE));
+    }
 
     while (startIndex >= 0) {
         int endIndex = static_cast<int>(text.indexOf(endRE, startIndex));
@@ -295,7 +325,9 @@ void CppHighlighter::handleIdentifierFallback(QString const& text, QColor const&
         auto const m = it.next();
         int const s = static_cast<int const>(m.capturedStart());
         int const l = static_cast<int const>(m.capturedLength());
-        if (l <= 0) { continue; }
+        if (l <= 0) {
+            continue;
+        }
 
         // If any char already has non-default color, skip
         bool alreadyColored = false;
@@ -306,7 +338,9 @@ void CppHighlighter::handleIdentifierFallback(QString const& text, QColor const&
                 break;
             }
         }
-        if (alreadyColored) { continue; }
+        if (alreadyColored) {
+            continue;
+        }
 
         QTextCharFormat idf = m_identifierFormat;
         if (idf.foreground().color().isValid()) {
@@ -323,7 +357,9 @@ void CppHighlighter::applyNormalRules(QString const& text, QColor const& default
             auto const match = it.next();
             int const start = static_cast<int const>(match.capturedStart());
             int const len = static_cast<int const>(match.capturedLength());
-            if (len <= 0) { continue; }
+            if (len <= 0) {
+                continue;
+            }
 
             // check whether any char in this range is already formatted (i.e. not default)
             bool alreadyFormatted = false;
@@ -354,7 +390,9 @@ void CppHighlighter::applyStringlikeRules(QString const& text) {
             auto const match = it.next();
             int const start = static_cast<int const>(match.capturedStart());
             int const len = static_cast<int const>(match.capturedLength());
-            if (len <= 0) { continue; }
+            if (len <= 0) {
+                continue;
+            }
 
             QTextCharFormat f = rule.format;
             if (f.foreground().color().isValid()) {

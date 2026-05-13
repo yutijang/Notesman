@@ -23,7 +23,9 @@ int main(int argc, char* argv[]) {
     int cleanArgc{};
     char* cleanArgv[64];
     cleanArgv[cleanArgc++] = argv[0];
-    for (int i = 2; i < argc && cleanArgc < 64; ++i) { cleanArgv[cleanArgc++] = argv[i]; }
+    for (int i = 2; i < argc && cleanArgc < 64; ++i) {
+        cleanArgv[cleanArgc++] = argv[i];
+    }
     // NOLINTEND
     QApplication app(cleanArgc, cleanArgv);
 #else
@@ -36,7 +38,9 @@ int main(int argc, char* argv[]) {
 
     // Ưu tiên 1: --update-done → AppInitializer xử lý bên trong checkUpdateFlag()
     // Ưu tiên 2: --open-packer <path> → packer mode, không khởi tạo full GUI
-    if (args.size() >= 3 && args[1] == "--open-packer") { return PackerLauncher::run(args[2]); }
+    if (args.size() >= 3 && args[1] == "--open-packer") {
+        return PackerLauncher::run(args[2]);
+    }
 
     AppInitializer initializer;
 

@@ -64,20 +64,22 @@ void AddTabWidget::setupConnections() {
     QObject::connect(m_addBtn, &QPushButton::clicked, this, &AddTabWidget::onAddButtonClicked);
     QObject::connect(m_clearBtn, &QPushButton::clicked, this, &AddTabWidget::onClearButtonClicked);
 
-    QObject::connect(m_addResTypeGroup, &QButtonGroup::idClicked, this,
-                     &AddTabWidget::onAddResTypeModeChanged);
+    QObject::connect(
+        m_addResTypeGroup, &QButtonGroup::idClicked, this, &AddTabWidget::onAddResTypeModeChanged);
 
-    QObject::connect(m_toggleCodeHighlighterChkb, &QCheckBox::toggled, this,
+    QObject::connect(m_toggleCodeHighlighterChkb,
+                     &QCheckBox::toggled,
+                     this,
                      &AddTabWidget::onToggleCodeHighlighter);
 
-    QObject::connect(m_titleInp, &QLineEdit::textChanged, this,
-                     &AddTabWidget::updateAddAndClearButtons);
-    QObject::connect(m_textEdt, &PlainTextEdit::textChanged, this,
-                     &AddTabWidget::updateAddAndClearButtons);
-    QObject::connect(m_filepathInp, &QLineEdit::textChanged, this,
-                     &AddTabWidget::updateAddAndClearButtons);
-    QObject::connect(m_urlInp, &QLineEdit::textChanged, this,
-                     &AddTabWidget::updateAddAndClearButtons);
+    QObject::connect(
+        m_titleInp, &QLineEdit::textChanged, this, &AddTabWidget::updateAddAndClearButtons);
+    QObject::connect(
+        m_textEdt, &PlainTextEdit::textChanged, this, &AddTabWidget::updateAddAndClearButtons);
+    QObject::connect(
+        m_filepathInp, &QLineEdit::textChanged, this, &AddTabWidget::updateAddAndClearButtons);
+    QObject::connect(
+        m_urlInp, &QLineEdit::textChanged, this, &AddTabWidget::updateAddAndClearButtons);
 
     QObject::connect(m_browseBtn, &QPushButton::clicked, this, &AddTabWidget::onBrowseFile);
 }
@@ -113,7 +115,9 @@ void AddTabWidget::onClearButtonClicked() {
     auto const reply = DialogUtils::showQuestion(
         this, tr("Caution"), tr("Would you like to clear content in all data field?"));
 
-    if (reply == QMessageBox::Yes) { resetAddTabInputs(); }
+    if (reply == QMessageBox::Yes) {
+        resetAddTabInputs();
+    }
 }
 
 void AddTabWidget::onBrowseFile() {
@@ -125,7 +129,9 @@ void AddTabWidget::onBrowseFile() {
     QString const filePath =
         QFileDialog::getOpenFileName(this, tr("Select Resource File"), kDefaultDir, fileFilter);
 
-    if (filePath.isEmpty()) { return; }
+    if (filePath.isEmpty()) {
+        return;
+    }
 
     m_filepathInp->setText(QDir::toNativeSeparators(filePath));
 
@@ -135,7 +141,9 @@ void AddTabWidget::onBrowseFile() {
         m_titleInp->setText(fileInfo.completeBaseName());
     }
 
-    if (fileInfo.exists()) { qSettings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path()); }
+    if (fileInfo.exists()) {
+        qSettings.set("addTab/lastBrowseDir", fileInfo.absoluteDir().path());
+    }
 
     auto const typeOpt = resourceTypeFromFile(filePath.toStdString());
     if (!typeOpt.has_value()) {
@@ -191,7 +199,9 @@ void AddTabWidget::retranslateUi() {
 
     m_urlInp->setPlaceholderText(tr("Enter url of web page..."));
 
-    if (m_tagInp != nullptr) { m_tagInp->retranslateUi(); }
+    if (m_tagInp != nullptr) {
+        m_tagInp->retranslateUi();
+    }
 
     m_toggleCodeHighlighterChkb->setText(tr("Toggle syntax highlight"));
 

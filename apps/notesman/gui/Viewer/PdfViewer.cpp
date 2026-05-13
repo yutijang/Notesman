@@ -25,10 +25,13 @@ PdfViewer::PdfViewer(QString pdfPath, QWidget* parent) : m_pdfPath(std::move(pdf
     m_scrollDebounce.setSingleShot(true);
     m_scrollDebounce.setInterval(40); // NOLINT(readability-magic-numbers)
 
-    QObject::connect(&m_scrollDebounce, &QTimer::timeout, m_rootWidget,
-                     [this] { renderVisiblePages(); });
+    QObject::connect(&m_scrollDebounce, &QTimer::timeout, m_rootWidget, [this] {
+        renderVisiblePages();
+    });
 
-    QTimer::singleShot(0, m_rootWidget, [this] { loadDocument(); });
+    QTimer::singleShot(0, m_rootWidget, [this] {
+        loadDocument();
+    });
 }
 
 PdfViewer::~PdfViewer() {
@@ -51,8 +54,10 @@ void PdfViewer::setupUi(QWidget* parent) {
     m_scrollArea = new QScrollArea(m_rootWidget);
     m_scrollArea->setWidgetResizable(true);
 
-    QObject::connect(m_scrollArea->verticalScrollBar(), &QScrollBar::valueChanged, m_rootWidget,
-                     [this] { onScroll(); });
+    QObject::connect(
+        m_scrollArea->verticalScrollBar(), &QScrollBar::valueChanged, m_rootWidget, [this] {
+            onScroll();
+        });
 
     m_pagesContainer = new QWidget;
     m_pagesLayout = new QVBoxLayout(m_pagesContainer);
@@ -71,14 +76,19 @@ void PdfViewer::setupToolbar(QToolBar* toolbar) {
 }
 
 void PdfViewer::loadDocument() {
-    if (m_docWatcher.isRunning()) { return; }
+    if (m_docWatcher.isRunning()) {
+        return;
+    }
 
-    QObject::connect(&m_docWatcher, &QFutureWatcher<std::shared_ptr<poppler::document>>::finished,
-                     m_rootWidget, [this]() {
+    QObject::connect(&m_docWatcher,
+                     &QFutureWatcher<std::shared_ptr<poppler::document>>::finished,
+                     m_rootWidget,
+                     [this]() {
                          auto doc = m_docWatcher.result();
 
                          if (!doc) {
-                             QMessageBox::critical(m_rootWidget, QObject::tr("PDF error"),
+                             QMessageBox::critical(m_rootWidget,
+                                                   QObject::tr("PDF error"),
                                                    QObject::tr("Cannot open PDF file."));
                              return;
                          }
@@ -97,14 +107,18 @@ void PdfViewer::loadDocument() {
 
 void PdfViewer::clearPages() {
     while (auto* item = m_pagesLayout->takeAt(0)) {
-        if (auto* w = item->widget()) { w->deleteLater(); }
+        if (auto* w = item->widget()) {
+            w->deleteLater();
+        }
         delete item;
     }
 }
 
 void PdfViewer::createPageWidgets() {
     m_pageCreateIndex = 1;
-    QTimer::singleShot(0, m_rootWidget, [this] { createPageWidgetsStep(); });
+    QTimer::singleShot(0, m_rootWidget, [this] {
+        createPageWidgetsStep();
+    });
 }
 
 void PdfViewer::onScroll() {
@@ -119,7 +133,9 @@ void PdfViewer::onScroll() {
 }
 
 void PdfViewer::renderVisiblePages() {
-    if (m_rendering) { return; }
+    if (m_rendering) {
+        return;
+    }
     m_rendering = true;
 
     auto* vp = m_scrollArea->viewport();
@@ -148,13 +164,17 @@ void PdfViewer::renderVisiblePages() {
     int const count = m_pagesLayout->count();
     for (int i = 0; i < count && rendered < kMaxPagesPerPass; ++i) {
         auto* page = qobject_cast<PdfPageWidget*>(m_pagesLayout->itemAt(i)->widget());
-        if (page == nullptr) { continue; }
+        if (page == nullptr) {
+            continue;
+        }
 
         QRect const pageRect = page->geometry();
 
         if (!pageRect.intersects(prefetchRect)) {
             QRect const farRect = viewportRect.adjusted(0, -vh * 4, 0, vh * 4);
-            if (!pageRect.intersects(farRect)) { page->releaseImage(); }
+            if (!pageRect.intersects(farRect)) {
+                page->releaseImage();
+            }
             continue;
         }
 
@@ -162,8 +182,9 @@ void PdfViewer::renderVisiblePages() {
             (lowQualityPass ? 96.0 : screenDpi) *
             (static_cast<double>(page->width()) / static_cast<double>(page->baseSize().width()));
 
-        page->renderIfNeeded(dpi, lowQualityPass ? PdfPageWidget::RenderQuality::Fast
-                                                 : PdfPageWidget::RenderQuality::High);
+        page->renderIfNeeded(dpi,
+                             lowQualityPass ? PdfPageWidget::RenderQuality::Fast
+                                            : PdfPageWidget::RenderQuality::High);
         ++rendered;
     }
 
@@ -179,21 +200,27 @@ void PdfViewer::renderVisiblePages() {
     m_rendering = false;
 
     if (needNextPass) {
-        QTimer::singleShot(0, m_rootWidget, [this] { renderVisiblePages(); });
+        QTimer::singleShot(0, m_rootWidget, [this] {
+            renderVisiblePages();
+        });
     }
 }
 
 void PdfViewer::updatePageScaleToFitWidth() {
     auto* vp = m_scrollArea->viewport();
     int const viewportW = vp->width();
-    if (viewportW <= 0) { return; }
+    if (viewportW <= 0) {
+        return;
+    }
 
     constexpr int margin = 16;
 
     int const count = m_pagesLayout->count();
     for (int i = 0; i < count; ++i) {
         auto* page = qobject_cast<PdfPageWidget*>(m_pagesLayout->itemAt(i)->widget());
-        if (page == nullptr) { continue; }
+        if (page == nullptr) {
+            continue;
+        }
 
         double const scale =
             static_cast<double>(viewportW - margin) / static_cast<double>(page->baseSize().width());
@@ -203,7 +230,9 @@ void PdfViewer::updatePageScaleToFitWidth() {
 }
 
 void PdfViewer::createPageWidgetsStep() {
-    if (!m_document) { return; }
+    if (!m_document) {
+        return;
+    }
 
     constexpr int kPagesPerBatch = 2;
 
@@ -232,7 +261,9 @@ void PdfViewer::createPageWidgetsStep() {
     }
 
     if (m_pageCreateIndex < total) {
-        QTimer::singleShot(0, m_rootWidget, [this] { createPageWidgetsStep(); });
+        QTimer::singleShot(0, m_rootWidget, [this] {
+            createPageWidgetsStep();
+        });
     } else {
         m_pagesLayout->addStretch();
         updatePageScaleToFitWidth();
@@ -241,10 +272,14 @@ void PdfViewer::createPageWidgetsStep() {
 }
 
 void PdfViewer::createAndRenderFirstPageImmediately() {
-    if (!m_document) { return; }
+    if (!m_document) {
+        return;
+    }
 
     auto page = std::unique_ptr<poppler::page>(m_document->create_page(0));
-    if (!page) { return; }
+    if (!page) {
+        return;
+    }
 
     auto* widget = new PdfPageWidget(std::move(page), m_pagesContainer);
     m_pagesLayout->addWidget(widget);
@@ -255,5 +290,7 @@ void PdfViewer::createAndRenderFirstPageImmediately() {
     double const dpi = std::min<double>(vp->logicalDpiX(), 144.0);
 
     widget->renderIfNeeded(dpi, PdfPageWidget::RenderQuality::Fast);
-    QTimer::singleShot(0, m_rootWidget, [this] { renderVisiblePages(); });
+    QTimer::singleShot(0, m_rootWidget, [this] {
+        renderVisiblePages();
+    });
 }

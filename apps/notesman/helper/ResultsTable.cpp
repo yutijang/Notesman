@@ -46,11 +46,17 @@ void ResultsTable::changeEvent(QEvent* event) {
     if (event->type() == QEvent::ApplicationFontChange) {
         QFont const f = qApp->font();
         setFont(f);
-        if (horizontalHeader() != nullptr) { horizontalHeader()->setFont(f); }
-        if (verticalHeader() != nullptr) { verticalHeader()->setFont(f); }
+        if (horizontalHeader() != nullptr) {
+            horizontalHeader()->setFont(f);
+        }
+        if (verticalHeader() != nullptr) {
+            verticalHeader()->setFont(f);
+        }
         for (int row = 0; row < rowCount(); ++row) {
             for (int col = 0; col < columnCount(); ++col) {
-                if (auto* item = this->item(row, col)) { item->setFont(f); }
+                if (auto* item = this->item(row, col)) {
+                    item->setFont(f);
+                }
             }
         }
         viewport()->update();
@@ -67,7 +73,9 @@ void ResultsTable::resizeEvent(QResizeEvent* event) {
 void ResultsTable::updateLastHeaderBorder() {
     auto* hHeader = horizontalHeader();
     auto* vScrollBar = verticalScrollBar();
-    if ((hHeader == nullptr) || (vScrollBar == nullptr)) { return; }
+    if ((hHeader == nullptr) || (vScrollBar == nullptr)) {
+        return;
+    }
 
     bool isVisible = vScrollBar->isVisible();
 

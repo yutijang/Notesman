@@ -28,7 +28,9 @@ std::string FileService::computeFileHash(std::filesystem::path const& filePath) 
     }
 
     EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-    if (ctx == nullptr) [[unlikely]] { throw std::runtime_error("Failed create EVP_MD_CTX"); }
+    if (ctx == nullptr) [[unlikely]] {
+        throw std::runtime_error("Failed create EVP_MD_CTX");
+    }
 
     const EVP_MD* md = EVP_sha256();
     if (EVP_DigestInit_ex(ctx, md, nullptr) != 1) [[unlikely]] {
@@ -58,21 +60,27 @@ std::string FileService::computeFileHash(std::filesystem::path const& filePath) 
 
     std::ostringstream oss;
     oss << std::hex << std::setfill('0');
-    for (unsigned int i = 0; i < hashLen; ++i) { oss << std::setw(2) << static_cast<int>(hash[i]); }
+    for (unsigned int i = 0; i < hashLen; ++i) {
+        oss << std::setw(2) << static_cast<int>(hash[i]);
+    }
 
     return oss.str();
 }
 
 // Thêm file vào DB kèm hash
 sqlite3_int64 FileService::addFileResource(std::filesystem::path const& filepath,
-                                           std::string const& title, ResourceType type,
-                                           bool isManaged, std::string const& contentToIndex) {
+                                           std::string const& title,
+                                           ResourceType type,
+                                           bool isManaged,
+                                           std::string const& contentToIndex) {
     // Tính hash của file
     std::string hash = computeFileHash(filepath);
 
     // Kiểm tra hash có tồn tại chưa
     auto existing = m_resRepo.getByFileHash(hash);
-    if (existing.has_value()) { return existing->id; } // đã tồn tại -> trả về resource_id
+    if (existing.has_value()) {
+        return existing->id;
+    } // đã tồn tại -> trả về resource_id
 
     // Xử lý lưu trữ file vật lý
     std::filesystem::path storedPath;
@@ -92,7 +100,9 @@ sqlite3_int64 FileService::addFileResource(std::filesystem::path const& filepath
     m_fileRepo.insertFile(resourceId, storedPath, filepath, isManaged);
 
     // Lưu nội dung để search FTS5
-    if (!contentToIndex.empty()) { m_fileTextRepo.upsertText(resourceId, contentToIndex); }
+    if (!contentToIndex.empty()) {
+        m_fileTextRepo.upsertText(resourceId, contentToIndex);
+    }
 
     return resourceId;
 }
@@ -101,11 +111,15 @@ sqlite3_int64 FileService::addFileResource(std::filesystem::path const& filepath
 std::optional<sqlite3_int64>
     FileService::findResourceByFile(std::filesystem::path const& filepath) {
     // Kiểm tra trước với original_path
-    if (auto byOriginal = m_fileRepo.getResourceIdByOriginalPath(filepath)) { return byOriginal; }
+    if (auto byOriginal = m_fileRepo.getResourceIdByOriginalPath(filepath)) {
+        return byOriginal;
+    }
 
     // Kiểm tra theo hash
     std::string hash = computeFileHash(filepath);
-    if (auto byHash = m_resRepo.getByFileHash(hash)) { return byHash->id; }
+    if (auto byHash = m_resRepo.getByFileHash(hash)) {
+        return byHash->id;
+    }
 
     return std::nullopt;
 }

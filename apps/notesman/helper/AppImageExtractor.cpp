@@ -13,22 +13,32 @@
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 bool AppImageExtractor::extractUpdater(QString const& appImagePath, QString const& outputPath) {
-    if (!QFile::exists(appImagePath)) { return false; }
+    if (!QFile::exists(appImagePath)) {
+        return false;
+    }
 
     QString const workDir =
         QDir::tempPath() + "/nm_extract_" + QString::number(QDateTime::currentMSecsSinceEpoch());
-    if (!QDir().mkpath(workDir)) { return false; }
+    if (!QDir().mkpath(workDir)) {
+        return false;
+    }
 
     ::chmod(appImagePath.toLocal8Bit().constData(), 0755); // NOLINT(readability-magic-numbers)
 
     QProcess p;
     p.setWorkingDirectory(workDir);
     p.start(appImagePath, {"--appimage-extract"});
-    if (!p.waitForStarted(5000)) { return false; }   // NOLINT(readability-magic-numbers)
-    if (!p.waitForFinished(30000)) { return false; } // NOLINT(readability-magic-numbers)
+    if (!p.waitForStarted(5000)) {
+        return false;
+    } // NOLINT(readability-magic-numbers)
+    if (!p.waitForFinished(30000)) {
+        return false;
+    } // NOLINT(readability-magic-numbers)
 
     QString const root = workDir + "/squashfs-root";
-    if (!QDir(root).exists()) { return false; }
+    if (!QDir(root).exists()) {
+        return false;
+    }
 
     QString updater = root + "/usr/bin/updater_linux";
     if (!QFile::exists(updater)) {
@@ -42,10 +52,14 @@ bool AppImageExtractor::extractUpdater(QString const& appImagePath, QString cons
         }
     }
 
-    if (!QFile::exists(updater)) { return false; }
+    if (!QFile::exists(updater)) {
+        return false;
+    }
 
     QFile::remove(outputPath);
-    if (!QFile::copy(updater, outputPath)) { return false; }
+    if (!QFile::copy(updater, outputPath)) {
+        return false;
+    }
 
     QFile::setPermissions(outputPath, QFile::permissions(outputPath) | QFileDevice::ExeOwner);
 

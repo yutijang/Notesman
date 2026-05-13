@@ -43,7 +43,9 @@ void GoogleDriveService::uploadDatabase(std::function<void(bool)> const& done) {
     auto* file = new QFile(filePath);
     if (!file->open(QIODevice::ReadOnly)) {
         Log::warn("Cannot open data.db");
-        if (done) { done(false); }
+        if (done) {
+            done(false);
+        }
         delete file;
         return;
     }
@@ -74,9 +76,13 @@ void GoogleDriveService::uploadDatabase(std::function<void(bool)> const& done) {
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         bool const ok = (reply->error() == QNetworkReply::NoError);
-        if (!ok) { Log::warn("Upload failed: {}", reply->errorString().toStdString()); }
+        if (!ok) {
+            Log::warn("Upload failed: {}", reply->errorString().toStdString());
+        }
         reply->deleteLater();
-        if (done) { done(ok); }
+        if (done) {
+            done(ok);
+        }
     });
 }
 
@@ -109,11 +115,14 @@ void GoogleDriveService::findAndGatherDatabaseFileInfo(
         } else {
             QByteArray errorData = reply->readAll();
             Log::info("Find file error: {} - Server response content: {}",
-                      reply->errorString().toStdString(), errorData.toStdString());
+                      reply->errorString().toStdString(),
+                      errorData.toStdString());
         }
 
         reply->deleteLater();
-        if (done) { done(info); }
+        if (done) {
+            done(info);
+        }
     });
 }
 
@@ -123,7 +132,9 @@ void GoogleDriveService::updateDatabase(QString const& fileId,
     auto* file = new QFile(filePath);
     if (!file->open(QIODevice::ReadOnly)) {
         Log::warn("Cannot open data.db for update");
-        if (done) { done(false); }
+        if (done) {
+            done(false);
+        }
         delete file;
         return;
     }
@@ -140,9 +151,13 @@ void GoogleDriveService::updateDatabase(QString const& fileId,
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, done]() {
         bool const ok = (reply->error() == QNetworkReply::NoError);
-        if (!ok) { Log::warn("Update failed: {}", reply->errorString().toStdString()); }
+        if (!ok) {
+            Log::warn("Update failed: {}", reply->errorString().toStdString());
+        }
         reply->deleteLater();
-        if (done) { done(ok); }
+        if (done) {
+            done(ok);
+        }
     });
 }
 
@@ -163,12 +178,15 @@ void GoogleDriveService::downloadDatabase(QString const& fileId,
         reply->abort();
         reply->deleteLater();
         delete file;
-        if (done) { done(false); }
+        if (done) {
+            done(false);
+        }
         return;
     }
 
-    QObject::connect(reply, &QNetworkReply::readyRead,
-                     [reply, file]() { file->write(reply->readAll()); });
+    QObject::connect(reply, &QNetworkReply::readyRead, [reply, file]() {
+        file->write(reply->readAll());
+    });
 
     QObject::connect(reply, &QNetworkReply::finished, this, [reply, file, done]() {
         QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
@@ -186,7 +204,9 @@ void GoogleDriveService::downloadDatabase(QString const& fileId,
         bool const ok = (reply->error() == QNetworkReply::NoError);
         file->deleteLater();
         reply->deleteLater();
-        if (done) { done(ok); }
+        if (done) {
+            done(ok);
+        }
     });
 }
 
@@ -196,7 +216,9 @@ void GoogleDriveService::uploadDbAuto() {
 }
 
 void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
-    if (!isUpload) { return; }
+    if (!isUpload) {
+        return;
+    }
 
     findAndGatherDatabaseFileInfo([this](DriveFileInfo const& info) {
         auto const localDBMD5Checksum = calculateFileMD5(CorePaths::databaseFile());
@@ -204,7 +226,8 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
         if (info.isExists) {
             if (localDBMD5Checksum == info.md5Checksum) {
                 Q_EMIT onUploadDBBtnRequest(
-                    false, tr("Database is already in sync, upload/update not necessary."),
+                    false,
+                    tr("Database is already in sync, upload/update not necessary."),
                     UiConst::SettingsTabNotiLevel::Good);
                 Q_EMIT reconnectDBRequest();
                 return;
@@ -222,19 +245,23 @@ void GoogleDriveService::onConnectClosedForUpload(bool isUpload) {
         try {
             QString const filePath = CorePaths::databaseFile();
             DatabaseMaintenance::compact(filePath.toStdString());
-        } catch (std::runtime_error const& ex) { Log::err("Compact error: {}", ex.what()); }
+        } catch (std::runtime_error const& ex) {
+            Log::err("Compact error: {}", ex.what());
+        }
 
         auto finish = [this, info](bool success) {
             if (success) {
                 findAndGatherDatabaseFileInfo([this](DriveFileInfo const& newInfo) {
                     SettingsManager::instance().set("sync/data_file_version", newInfo.version);
-                    Q_EMIT onUploadDBBtnRequest(false, tr("Compacted and uploaded new file!"),
+                    Q_EMIT onUploadDBBtnRequest(false,
+                                                tr("Compacted and uploaded new file!"),
                                                 UiConst::SettingsTabNotiLevel::Good);
                     Q_EMIT reconnectDBRequest();
                 });
             } else {
                 Q_EMIT onUploadDBBtnRequest(
-                    false, tr("Failed to save to Drive (permission, storage, or network)"),
+                    false,
+                    tr("Failed to save to Drive (permission, storage, or network)"),
                     UiConst::SettingsTabNotiLevel::Caution);
                 Q_EMIT reconnectDBRequest();
             }
@@ -254,11 +281,14 @@ void GoogleDriveService::downloadDbAuto() {
 }
 
 void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
-    if (isUpload) { return; }
+    if (isUpload) {
+        return;
+    }
 
     findAndGatherDatabaseFileInfo([this](DriveFileInfo const& info) {
         if (!info.isExists) {
-            Q_EMIT onDownloadDBBtnRequest(false, tr("No database found or access denied"),
+            Q_EMIT onDownloadDBBtnRequest(false,
+                                          tr("No database found or access denied"),
                                           UiConst::SettingsTabNotiLevel::Caution);
             Q_EMIT reconnectDBRequest();
             return;
@@ -268,7 +298,8 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
 
         if (localDBMD5Checksum == info.md5Checksum) {
             Q_EMIT onDownloadDBBtnRequest(
-                false, tr("Database is already in sync, download not necessary."),
+                false,
+                tr("Database is already in sync, download not necessary."),
                 UiConst::SettingsTabNotiLevel::Good);
             Q_EMIT reconnectDBRequest();
             return;
@@ -301,7 +332,9 @@ void GoogleDriveService::onConnectClosedForDownload(bool isUpload) {
 void GoogleDriveService::deleteDatabaseFile(QString const& fileId,
                                             std::function<void(bool)> const& done) {
     if (fileId.isEmpty()) {
-        if (done) { done(false); }
+        if (done) {
+            done(false);
+        }
         return;
     }
 
@@ -317,11 +350,14 @@ void GoogleDriveService::deleteDatabaseFile(QString const& fileId,
         bool const ok = (reply->error() == QNetworkReply::NoError || statusCode == 404);
 
         if (!ok) {
-            Log::warn("Delete file failed: {} (Status: {})", reply->errorString().toStdString(),
+            Log::warn("Delete file failed: {} (Status: {})",
+                      reply->errorString().toStdString(),
                       statusCode);
         }
         reply->deleteLater();
-        if (done) { done(ok); }
+        if (done) {
+            done(ok);
+        }
     });
 }
 
@@ -350,10 +386,14 @@ void GoogleDriveService::getDBInfo() {
 
 QString GoogleDriveService::calculateFileMD5(QString const& filePath) {
     QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly)) { return {}; }
+    if (!file.open(QIODevice::ReadOnly)) {
+        return {};
+    }
 
     QCryptographicHash hash(QCryptographicHash::Md5);
-    while (!file.atEnd()) { hash.addData(file.read(8192)); } // NOLINT(readability-magic-numbers)
+    while (!file.atEnd()) {
+        hash.addData(file.read(8192));
+    } // NOLINT(readability-magic-numbers)
     return hash.result().toHex();
 }
 

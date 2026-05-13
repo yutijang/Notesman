@@ -88,7 +88,9 @@ void AppController::updateSettings(AppSettings const& newSettings) {
 }
 
 void AppController::applyLanguage(UiConst::Language lang) {
-    if (m_translator) { qApp->removeTranslator(m_translator.get()); }
+    if (m_translator) {
+        qApp->removeTranslator(m_translator.get());
+    }
 
     if (lang == UiConst::Language::Vietnamese) {
         m_translator = std::make_unique<QTranslator>();
@@ -144,7 +146,9 @@ void AppController::applyTheme(UiConst::Theme theme) {
     qApp->setFont(qApp->font());
 
     // Áp dụng theme tô màu cho code editor
-    if (m_mainWindow != nullptr) { m_mainWindow->applySyntaxHighlightingTheme(theme); }
+    if (m_mainWindow != nullptr) {
+        m_mainWindow->applySyntaxHighlightingTheme(theme);
+    }
 }
 
 void AppController::setMainWindow(MainWindow* window) {
@@ -161,11 +165,17 @@ UpdateManager* AppController::updateManager() {
 
         // Kết nối signal tới MainWindow
         if (m_mainWindow != nullptr) {
-            QObject::connect(m_updateManager.get(), &UpdateManager::updateAvailable, m_mainWindow,
+            QObject::connect(m_updateManager.get(),
+                             &UpdateManager::updateAvailable,
+                             m_mainWindow,
                              &MainWindow::onUpdateAvailable);
-            QObject::connect(m_updateManager.get(), &UpdateManager::noUpdateAvailable, m_mainWindow,
+            QObject::connect(m_updateManager.get(),
+                             &UpdateManager::noUpdateAvailable,
+                             m_mainWindow,
                              &MainWindow::onNoUpdateAvailable);
-            QObject::connect(m_updateManager.get(), &UpdateManager::updateCheckFailed, m_mainWindow,
+            QObject::connect(m_updateManager.get(),
+                             &UpdateManager::updateCheckFailed,
+                             m_mainWindow,
                              &MainWindow::onUpdateCheckFailed);
         }
     }
@@ -178,16 +188,26 @@ DownloadManager* AppController::downloadManager() {
         m_downloadManager = std::make_unique<DownloadManager>(this);
 
         if (m_mainWindow != nullptr) {
-            QObject::connect(m_downloadManager.get(), &DownloadManager::downloadStarted,
-                             m_mainWindow, &MainWindow::onDownloadStarted);
-            QObject::connect(m_downloadManager.get(), &DownloadManager::downloadProgress,
-                             m_mainWindow, &MainWindow::onDownloadProgress);
-            QObject::connect(m_downloadManager.get(), &DownloadManager::downloadFinished,
-                             m_mainWindow, &MainWindow::onDownloadFinished);
-            QObject::connect(m_downloadManager.get(), &DownloadManager::downloadFailed,
-                             m_mainWindow, &MainWindow::onDownloadFailed);
-            QObject::connect(m_downloadManager.get(), &DownloadManager::downloadTimedOut,
-                             m_mainWindow, &MainWindow::handleDownloadFailCauseTimeout);
+            QObject::connect(m_downloadManager.get(),
+                             &DownloadManager::downloadStarted,
+                             m_mainWindow,
+                             &MainWindow::onDownloadStarted);
+            QObject::connect(m_downloadManager.get(),
+                             &DownloadManager::downloadProgress,
+                             m_mainWindow,
+                             &MainWindow::onDownloadProgress);
+            QObject::connect(m_downloadManager.get(),
+                             &DownloadManager::downloadFinished,
+                             m_mainWindow,
+                             &MainWindow::onDownloadFinished);
+            QObject::connect(m_downloadManager.get(),
+                             &DownloadManager::downloadFailed,
+                             m_mainWindow,
+                             &MainWindow::onDownloadFailed);
+            QObject::connect(m_downloadManager.get(),
+                             &DownloadManager::downloadTimedOut,
+                             m_mainWindow,
+                             &MainWindow::handleDownloadFailCauseTimeout);
         }
     }
 
@@ -195,51 +215,73 @@ DownloadManager* AppController::downloadManager() {
 }
 
 void AppController::ensureOAuth() {
-    if (m_drive != nullptr) { return; }
+    if (m_drive != nullptr) {
+        return;
+    }
 
     m_drive = std::make_unique<GDContext>(this);
 
     auto* oauth = m_drive->oauth.get();
     auto* service = m_drive->service.get();
 
-    QObject::connect(oauth, &OAuthManager::gmailLinked, this,
-                     &AppController::displayInfoGMUserLinked);
+    QObject::connect(
+        oauth, &OAuthManager::gmailLinked, this, &AppController::displayInfoGMUserLinked);
     QObject::connect(oauth, &OAuthManager::gmailUnlinked, this, &AppController::gmailUnlinked);
 
-    QObject::connect(service, &GoogleDriveService::onDownloadDBBtnRequest, m_mainWindow,
+    QObject::connect(service,
+                     &GoogleDriveService::onDownloadDBBtnRequest,
+                     m_mainWindow,
                      &MainWindow::startDownloadDBForward);
-    QObject::connect(service, &GoogleDriveService::onUploadDBBtnRequest, m_mainWindow,
+    QObject::connect(service,
+                     &GoogleDriveService::onUploadDBBtnRequest,
+                     m_mainWindow,
                      &MainWindow::startUploadDBForward);
 
-    QObject::connect(service, &GoogleDriveService::returnDBInfo, m_mainWindow,
-                     &MainWindow::returnDBInfoForward);
+    QObject::connect(
+        service, &GoogleDriveService::returnDBInfo, m_mainWindow, &MainWindow::returnDBInfoForward);
 
-    QObject::connect(oauth, &OAuthManager::loginFailed, m_mainWindow,
-                     &MainWindow::loginFailedForward);
+    QObject::connect(
+        oauth, &OAuthManager::loginFailed, m_mainWindow, &MainWindow::loginFailedForward);
 
-    QObject::connect(this, &AppController::cancelLoginRequestedForward, oauth,
+    QObject::connect(this,
+                     &AppController::cancelLoginRequestedForward,
+                     oauth,
                      &OAuthManager::cancelCurrentLogin);
 
-    QObject::connect(service, &GoogleDriveService::closeConnectDBRequest, this,
+    QObject::connect(service,
+                     &GoogleDriveService::closeConnectDBRequest,
+                     this,
                      &AppController::closeConnectDBRequestForward);
-    QObject::connect(service, &GoogleDriveService::reconnectDBRequest, this,
+    QObject::connect(service,
+                     &GoogleDriveService::reconnectDBRequest,
+                     this,
                      &AppController::reconnectDBRequestForward);
 
-    QObject::connect(this, &AppController::dbClosedForward, service,
+    QObject::connect(this,
+                     &AppController::dbClosedForward,
+                     service,
                      &GoogleDriveService::onConnectClosedForUpload);
-    QObject::connect(this, &AppController::dbClosedForward, service,
+    QObject::connect(this,
+                     &AppController::dbClosedForward,
+                     service,
                      &GoogleDriveService::onConnectClosedForDownload);
 
-    QObject::connect(this, &AppController::deleteDatabaseFileRequest, service,
+    QObject::connect(this,
+                     &AppController::deleteDatabaseFileRequest,
+                     service,
                      &GoogleDriveService::handleDeleteDatabaseFileRequest);
-    QObject::connect(service, &GoogleDriveService::deleteDatabaseFileRespond, this,
+    QObject::connect(service,
+                     &GoogleDriveService::deleteDatabaseFileRespond,
+                     this,
                      &AppController::deleteDatabaseFileRespondForward);
 
     oauth->tryAutoLogin();
 }
 
 void AppController::handleGetAllDataRequest() {
-    if (m_core == nullptr) { return; }
+    if (m_core == nullptr) {
+        return;
+    }
 
     auto allRes = m_core->getAllUnified();
     if (allRes.empty()) {
@@ -253,7 +295,9 @@ void AppController::handleGetAllDataRequest() {
 }
 
 void AppController::handleLoadResourceByTypeRequest(ResourceType type) {
-    if (m_core == nullptr) { return; }
+    if (m_core == nullptr) {
+        return;
+    }
 
     auto res = m_core->getAllResourcesByType(type);
     if (res.empty()) {
@@ -267,7 +311,8 @@ void AppController::handleLoadResourceByTypeRequest(ResourceType type) {
 }
 
 void AppController::handleDefaultSettingsRequest() {
-    Q_EMIT settingsUpdateStatus(tr("Settings default!"), UiConst::SettingsMessageState::NotChange,
+    Q_EMIT settingsUpdateStatus(tr("Settings default!"),
+                                UiConst::SettingsMessageState::NotChange,
                                 UiConst::SettingsTabNotiLevel::Caution);
 }
 
@@ -275,7 +320,9 @@ void AppController::handleApplySettingsRequest(SettingsData const& data) {
     m_settings.setLanguage(data.language);
     m_settings.setTheme(data.theme);
 
-    if (!data.resourceDir.empty()) { m_settings.setResourceDir(data.resourceDir); }
+    if (!data.resourceDir.empty()) {
+        m_settings.setResourceDir(data.resourceDir);
+    }
 
     m_settings.setManagedResources(data.isManagedResource);
     m_settings.setResourceDirCustomized(data.isResourceDirCustomized);
@@ -302,7 +349,8 @@ void AppController::handleApplySettingsRequest(SettingsData const& data) {
 
         Q_EMIT requestSyntaxHighlightingUpdate(data.theme);
 
-        Q_EMIT settingsUpdateStatus(tr("Settings updated!"), UiConst::SettingsMessageState::Updated,
+        Q_EMIT settingsUpdateStatus(tr("Settings updated!"),
+                                    UiConst::SettingsMessageState::Updated,
                                     UiConst::SettingsTabNotiLevel::Good);
     } else {
         Q_EMIT settingsUpdateStatus(tr("Nothing changed, settings not save"),
@@ -311,9 +359,12 @@ void AppController::handleApplySettingsRequest(SettingsData const& data) {
 }
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void AppController::handleAddNoteRequest(QString const& title, QString const& textContent,
-                                         QString const& filePath, QString const& url,
-                                         QStringList const& tags, UiConst::AddResMode mode) {
+void AppController::handleAddNoteRequest(QString const& title,
+                                         QString const& textContent,
+                                         QString const& filePath,
+                                         QString const& url,
+                                         QStringList const& tags,
+                                         UiConst::AddResMode mode) {
     if (mode == UiConst::AddResMode::File && m_settings.isManagedResources()) {
         auto const& resDir = m_settings.resourceDir();
         bool const needStrictCheck = !m_settings.isDefaultResourceDir();
@@ -392,7 +443,9 @@ void AppController::handleAddNoteRequest(QString const& title, QString const& te
         }
     }
 
-    if (resId == 0) { return; }
+    if (resId == 0) {
+        return;
+    }
 
     addTagsToResource(resId, tags);
 
@@ -400,12 +453,15 @@ void AppController::handleAddNoteRequest(QString const& title, QString const& te
 }
 
 void AppController::addTagsToResource(sqlite3_int64 resourceId, QStringList const& tags) const {
-    if (tags.isEmpty()) { return; }
+    if (tags.isEmpty()) {
+        return;
+    }
 
     std::vector<std::string> tagNames;
     tagNames.reserve(static_cast<std::size_t>(tags.size()));
-    std::ranges::transform(tags, std::back_inserter(tagNames),
-                           [](QString const& s) { return s.toStdString(); });
+    std::ranges::transform(tags, std::back_inserter(tagNames), [](QString const& s) {
+        return s.toStdString();
+    });
     m_core->addTags(resourceId, tagNames);
 }
 
@@ -416,8 +472,8 @@ void AppController::handleSearchRequest(QString const& keyword, QString const& m
     }
 
     if (keyword.isEmpty()) {
-        DialogUtils::showInfo(m_mainWindow, tr("Information"),
-                              tr("Please enter a keyword to search."));
+        DialogUtils::showInfo(
+            m_mainWindow, tr("Information"), tr("Please enter a keyword to search."));
         return;
     }
 
@@ -428,7 +484,9 @@ void AppController::handleSearchRequest(QString const& keyword, QString const& m
 
     QObject::connect(thread, &QThread::started, worker, &ResourceSearchWorker::doSearch);
     QObject::connect(
-        worker, &ResourceSearchWorker::searchFinished, this,
+        worker,
+        &ResourceSearchWorker::searchFinished,
+        this,
         [this, mode](std::vector<UnifiedSearchResult> const& results) {
             Q_EMIT searchFinishedFromController(results, mode);
         },
@@ -456,7 +514,9 @@ void AppController::handleCheckUpdateRequested() {
 }
 
 void AppController::onUpdateDecision(bool accepted, UpdateInfoSummary const& updateInfo) {
-    if (!accepted) { return; }
+    if (!accepted) {
+        return;
+    }
 
     QUrl const kdownloadUrl(updateInfo.assetDownloadURL);
     QString const koutputPath = QDir::temp().filePath(updateInfo.assetName);
@@ -466,17 +526,23 @@ void AppController::onUpdateDecision(bool accepted, UpdateInfoSummary const& upd
 }
 
 void AppController::handleLoginGMRequested() {
-    if (m_drive != nullptr) { m_drive->oauth->handleLoginGMRequested(); }
+    if (m_drive != nullptr) {
+        m_drive->oauth->handleLoginGMRequested();
+    }
 }
 
 void AppController::handleUnlinkGMRequested(bool isDeleteDB) {
-    if (m_drive == nullptr) { return; }
+    if (m_drive == nullptr) {
+        return;
+    }
 
     auto* service = m_drive->service.get();
 
     if (isDeleteDB) {
         QObject::connect(
-            service, &GoogleDriveService::deleteDatabaseFileRespond, this,
+            service,
+            &GoogleDriveService::deleteDatabaseFileRespond,
+            this,
             [this](QString const& msg) {
                 Log::info("Cleanup on Cloud finished: {}. Now revoking token...",
                           msg.toStdString());
@@ -497,11 +563,15 @@ void AppController::finalizeUnlink() {
 }
 
 void AppController::uploadDbAuto() {
-    if (m_drive != nullptr) { m_drive->service->uploadDbAuto(); }
+    if (m_drive != nullptr) {
+        m_drive->service->uploadDbAuto();
+    }
 }
 
 void AppController::downloadDbAuto() {
-    if (m_drive != nullptr) { m_drive->service->downloadDbAuto(); }
+    if (m_drive != nullptr) {
+        m_drive->service->downloadDbAuto();
+    }
 }
 
 void AppController::updateTranslatedStrings() {
@@ -515,7 +585,9 @@ void AppController::updateTranslatedStrings() {
 }
 
 void AppController::handleGetDBInfoRequested() {
-    if (m_drive != nullptr) { m_drive->service->getDBInfo(); }
+    if (m_drive != nullptr) {
+        m_drive->service->getDBInfo();
+    }
 }
 
 void AppController::displayInfoGMUserLinked(QString const& email) {
@@ -528,7 +600,8 @@ void AppController::displayInfoGMUserLinked(QString const& email) {
     Q_EMIT gmailLinkedForView(htmlTextEmail);
 }
 
-sqlite_int64 AppController::handleTextMode(std::string const& title, QString const& textContent,
+sqlite_int64 AppController::handleTextMode(std::string const& title,
+                                           QString const& textContent,
                                            ResourceType& outType) {
     auto resId = m_core->addTextNote(title, textContent.toUtf8().toStdString(), outType);
     Q_EMIT addTabNotiRequest(tr("Note added successfully!"), UiConst::SettingsTabNotiLevel::Good);
@@ -544,15 +617,16 @@ sqlite_int64 AppController::handleFileMode(std::string const& title,
         contentToIndex = Utils::readFileToString(filePath);
     }
 
-    auto resId = m_core->addFileNote(filePath, title, outType, m_settings.isManagedResources(),
-                                     contentToIndex);
+    auto resId = m_core->addFileNote(
+        filePath, title, outType, m_settings.isManagedResources(), contentToIndex);
 
     Q_EMIT addTabNotiRequest(tr("File added successfully!"), UiConst::SettingsTabNotiLevel::Good);
 
     return resId;
 }
 
-sqlite_int64 AppController::handleUrlMode(std::string const& title, QString const& url,
+sqlite_int64 AppController::handleUrlMode(std::string const& title,
+                                          QString const& url,
                                           ResourceType& outType) {
     sqlite3_int64 resId{};
 
@@ -570,15 +644,21 @@ sqlite_int64 AppController::handleUrlMode(std::string const& title, QString cons
 
 UiConst::CleanupResult AppController::cleanupOldEpubCache(int days) {
     QDir const dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/epub");
-    if (!dir.exists()) { return UiConst::CleanupResult::PathError; }
+    if (!dir.exists()) {
+        return UiConst::CleanupResult::PathError;
+    }
 
-    if (dir.isEmpty()) { return UiConst::CleanupResult::AlreadyEmpty; }
+    if (dir.isEmpty()) {
+        return UiConst::CleanupResult::AlreadyEmpty;
+    }
 
     auto const entries = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
     QDateTime const now = QDateTime::currentDateTime();
 
     if (days <= 0) {
-        for (auto const& fi : entries) { QDir(fi.absoluteFilePath()).removeRecursively(); }
+        for (auto const& fi : entries) {
+            QDir(fi.absoluteFilePath()).removeRecursively();
+        }
         return UiConst::CleanupResult::Success;
     }
 
@@ -595,22 +675,30 @@ UiConst::CleanupResult AppController::cleanupOldEpubCache(int days) {
 
 UiConst::CleanupResult AppController::cleanupOldMarkdownCache(int days) {
     QDir const dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/markdown");
-    if (!dir.exists()) { return UiConst::CleanupResult::PathError; }
+    if (!dir.exists()) {
+        return UiConst::CleanupResult::PathError;
+    }
 
-    if (dir.isEmpty()) { return UiConst::CleanupResult::AlreadyEmpty; }
+    if (dir.isEmpty()) {
+        return UiConst::CleanupResult::AlreadyEmpty;
+    }
 
     auto const entries = dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
     QDateTime const now = QDateTime::currentDateTime();
 
     if (days <= 0) {
-        for (auto const& fi : entries) { QFile::remove(fi.absoluteFilePath()); }
+        for (auto const& fi : entries) {
+            QFile::remove(fi.absoluteFilePath());
+        }
         return UiConst::CleanupResult::Success;
     }
 
     qint64 const maxAgeSecs = static_cast<qint64>(days) * 86400;
 
     for (auto const& fi : entries) {
-        if (fi.lastModified().secsTo(now) >= maxAgeSecs) { QFile::remove(fi.absoluteFilePath()); }
+        if (fi.lastModified().secsTo(now) >= maxAgeSecs) {
+            QFile::remove(fi.absoluteFilePath());
+        }
     }
 
     return UiConst::CleanupResult::Success;
@@ -659,11 +747,14 @@ void AppController::createPackerFile(std::int64_t id, QString const& title) {
     QString const desktopDirAsDefault =
         QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
     QString const kDefaultDir = qSettings.get("packer/lastSaveDir", desktopDirAsDefault).toString();
-    QString const savePath = QFileDialog::getSaveFileName(m_mainWindow, tr("Save Shortcut"),
+    QString const savePath = QFileDialog::getSaveFileName(m_mainWindow,
+                                                          tr("Save Shortcut"),
                                                           QDir(kDefaultDir).filePath(suggestedName),
                                                           tr("Viewer Pack (*.rvpk)"));
 
-    if (savePath.isEmpty()) { return; } // user cancel
+    if (savePath.isEmpty()) {
+        return;
+    } // user cancel
 
     ViewerPackHeader hdr{};
 
@@ -689,7 +780,8 @@ void AppController::createPackerFile(std::int64_t id, QString const& title) {
 
     if (!result.has_value()) {
         Log::err("failed to write .rvpk for resource {}", id);
-        DialogUtils::showError(m_mainWindow, tr("Error"),
+        DialogUtils::showError(m_mainWindow,
+                               tr("Error"),
                                tr("Failed to create shortcut file.\nPlease check write permissions "
                                   "for the selected location."));
         return;
@@ -698,6 +790,7 @@ void AppController::createPackerFile(std::int64_t id, QString const& title) {
     QFileInfo const packerFile(savePath);
     qSettings.set("packer/lastSaveDir", packerFile.absoluteDir().path());
 
-    DialogUtils::showInfo(m_mainWindow, tr("Shortcut Created"),
+    DialogUtils::showInfo(m_mainWindow,
+                          tr("Shortcut Created"),
                           tr("Shortcut created successfully:\n%1").arg(savePath));
 }

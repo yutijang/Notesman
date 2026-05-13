@@ -32,7 +32,9 @@
 #include <filesystem>
 
 namespace {
-    constexpr int COUNTDOWN{60};
+
+constexpr int COUNTDOWN{60};
+
 } // namespace
 
 SettingsTabWidget::SettingsTabWidget(QWidget* parent) : QWidget(parent) {
@@ -76,39 +78,44 @@ void SettingsTabWidget::setupUi() {
 
 void SettingsTabWidget::setupConnections() {
     // Kết nối các nút để phát tín hiệu cho MainWindow
-    QObject::connect(m_applyBtn, &QPushButton::clicked, this,
-                     &SettingsTabWidget::onApplyBtnClicked);
-    QObject::connect(m_defaultBtn, &QPushButton::clicked, this,
-                     &SettingsTabWidget::onDefaultBtnClicked);
-    QObject::connect(m_resDirBtn, &QPushButton::clicked, this,
-                     &SettingsTabWidget::onBrowseBtnClicked);
+    QObject::connect(
+        m_applyBtn, &QPushButton::clicked, this, &SettingsTabWidget::onApplyBtnClicked);
+    QObject::connect(
+        m_defaultBtn, &QPushButton::clicked, this, &SettingsTabWidget::onDefaultBtnClicked);
+    QObject::connect(
+        m_resDirBtn, &QPushButton::clicked, this, &SettingsTabWidget::onBrowseBtnClicked);
 
-    QObject::connect(m_uploadDBBtn, &QPushButton::clicked, this,
-                     &SettingsTabWidget::onUploadButtonClicked);
-    QObject::connect(m_downloadDBBtn, &QPushButton::clicked, this,
-                     &SettingsTabWidget::onDownloadButtonClicked);
+    QObject::connect(
+        m_uploadDBBtn, &QPushButton::clicked, this, &SettingsTabWidget::onUploadButtonClicked);
+    QObject::connect(
+        m_downloadDBBtn, &QPushButton::clicked, this, &SettingsTabWidget::onDownloadButtonClicked);
     QObject::connect(m_checkRemoteDBInfoBtn, &QPushButton::clicked, [this] {
         m_checkRemoteDBInfoBtn->setEnabled(false);
         Q_EMIT requestDBInfo();
     });
 
-    QObject::connect(m_linkGDBtn, &QPushButton::clicked, this,
-                     &SettingsTabWidget::onLinkBtnClicked);
+    QObject::connect(
+        m_linkGDBtn, &QPushButton::clicked, this, &SettingsTabWidget::onLinkBtnClicked);
 
     QObject::connect(m_cancelLoginBtn, &QPushButton::clicked, this, [this]() {
         m_countdownTimer.stop();
         hideLoginStatus();
         m_linkGDBtn->setEnabled(true);
-        showNotification(tr("Login was canceled"), UiConst::SettingsMessageState::None,
+        showNotification(tr("Login was canceled"),
+                         UiConst::SettingsMessageState::None,
                          UiConst::SettingsTabNotiLevel::Caution);
         Q_EMIT cancelLoginRequested();
     });
 
     QObject::connect(m_cleanupEpubAfterChk, &QCheckBox::toggled, this, [this](bool isChecked) {
-        if (m_expiredEpubSpbx) { m_expiredEpubSpbx->setEnabled(isChecked); }
+        if (m_expiredEpubSpbx) {
+            m_expiredEpubSpbx->setEnabled(isChecked);
+        }
     });
     QObject::connect(m_cleanupMDAfterChk, &QCheckBox::toggled, this, [this](bool isChecked) {
-        if (m_expiredMDSpbx) { m_expiredMDSpbx->setEnabled(isChecked); }
+        if (m_expiredMDSpbx) {
+            m_expiredMDSpbx->setEnabled(isChecked);
+        }
     });
     QObject::connect(m_cleanupEpubCacheNowBtn, &QPushButton::clicked, [this] {
         m_cleanupEpubCacheNowBtn->setEnabled(false);
@@ -119,8 +126,9 @@ void SettingsTabWidget::setupConnections() {
         Q_EMIT cleanupMDCacheNowRequest();
     });
 
-    QObject::connect(m_regAssociationBtn, &QPushButton::clicked,
-                     [this] { Q_EMIT onFileAssociationBtnClicked(); });
+    QObject::connect(m_regAssociationBtn, &QPushButton::clicked, [this] {
+        Q_EMIT onFileAssociationBtnClicked();
+    });
 
     // Gán lại thuộc tính động cho nút browse
     m_resDirBtn->setProperty("targetEdit", QVariant::fromValue(m_resDirInp));
@@ -148,18 +156,26 @@ void SettingsTabWidget::retranslateUi() {
     if (m_cleanupEpubCacheNowBtn != nullptr) {
         m_cleanupEpubCacheNowBtn->setText(tr("Cleanup now"));
     }
-    if (m_expiredEpubSpbx != nullptr) { m_expiredEpubSpbx->setSuffix(tr(" days")); }
+    if (m_expiredEpubSpbx != nullptr) {
+        m_expiredEpubSpbx->setSuffix(tr(" days"));
+    }
 
     // Markdown
     if (m_cleanupMDAfterChk != nullptr) {
         m_cleanupMDAfterChk->setText(tr("Cleanup files older than"));
     }
-    if (m_cleanupMDCacheNowBtn != nullptr) { m_cleanupMDCacheNowBtn->setText(tr("Cleanup now")); }
-    if (m_expiredMDSpbx != nullptr) { m_expiredMDSpbx->setSuffix(tr(" days")); }
+    if (m_cleanupMDCacheNowBtn != nullptr) {
+        m_cleanupMDCacheNowBtn->setText(tr("Cleanup now"));
+    }
+    if (m_expiredMDSpbx != nullptr) {
+        m_expiredMDSpbx->setSuffix(tr(" days"));
+    }
 
     auto updateCombo = [this](UiConst::ResManKind kind, QString const& text) {
         int idx = m_resManCom->findData(QVariant::fromValue(kind));
-        if (idx != -1) { m_resManCom->setItemText(idx, text); }
+        if (idx != -1) {
+            m_resManCom->setItemText(idx, text);
+        }
     };
     updateCombo(UiConst::ResManKind::Internal, tr("Internal"));
     updateCombo(UiConst::ResManKind::SavePathOnly, tr("Save path only"));
@@ -215,19 +231,26 @@ void SettingsTabWidget::onApplyBtnClicked() {
 
 void SettingsTabWidget::onDefaultBtnClicked() {
     auto const reply =
-        DialogUtils::showQuestion(this, tr("Restore Defaults"),
+        DialogUtils::showQuestion(this,
+                                  tr("Restore Defaults"),
                                   tr("Do you want to restore default settings?\nChanges will not "
                                      "be saved until you click Apply."));
 
-    if (reply == QMessageBox::Yes) { Q_EMIT defaultSettingsRequested(); }
+    if (reply == QMessageBox::Yes) {
+        Q_EMIT defaultSettingsRequested();
+    }
 }
 
 void SettingsTabWidget::onBrowseBtnClicked() {
     auto* senderButton = qobject_cast<QPushButton*>(sender());
-    if (senderButton == nullptr) { return; }
+    if (senderButton == nullptr) {
+        return;
+    }
 
     auto* targetEdit = senderButton->property("targetEdit").value<QLineEdit*>();
-    if (targetEdit == nullptr) { return; }
+    if (targetEdit == nullptr) {
+        return;
+    }
 
     auto& qSettings = SettingsManager::instance();
     QString const kDefaultDir =
@@ -530,7 +553,9 @@ QGroupBox* SettingsTabWidget::setupCleanupGroup() {
 void SettingsTabWidget::showNotification(QString const& message,
                                          UiConst::SettingsMessageState /*unused*/,
                                          UiConst::SettingsTabNotiLevel notiType) {
-    if (m_notiSettingsChangedLbl == nullptr) { return; }
+    if (m_notiSettingsChangedLbl == nullptr) {
+        return;
+    }
 
     m_notiSettingsChangedLbl->setText(message);
     m_notiSettingsChangedLbl->setVisible(true);
@@ -666,7 +691,8 @@ void SettingsTabWidget::onLinkBtnClicked() {
 
     // Đã liên kết → Unlink
     auto reply = DialogUtils::showQuestion(
-        this, tr("Information"),
+        this,
+        tr("Information"),
         tr("Yep, you're unlinking your Google account! It'll be disconnected in a sec.\n\nBy the "
            "way, want to delete the data.db file on your Drive too, or leave it alone?"));
 
@@ -678,11 +704,12 @@ void SettingsTabWidget::handleLoginFailed(QString const& error) {
 
     m_linkGDBtn->setEnabled(true);
 
-    showNotification(error, UiConst::SettingsMessageState::None,
-                     UiConst::SettingsTabNotiLevel::Warning);
+    showNotification(
+        error, UiConst::SettingsMessageState::None, UiConst::SettingsTabNotiLevel::Warning);
 }
 
-void SettingsTabWidget::handleUploadDBRequested(bool isDisable, QString const& message,
+void SettingsTabWidget::handleUploadDBRequested(bool isDisable,
+                                                QString const& message,
                                                 UiConst::SettingsTabNotiLevel notiType) {
     if (m_uploadDBBtn != nullptr) {
         if (isDisable) {
@@ -699,7 +726,8 @@ void SettingsTabWidget::handleUploadDBRequested(bool isDisable, QString const& m
     }
 }
 
-void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, QString const& message,
+void SettingsTabWidget::handleDownloadDBRequested(bool isDisable,
+                                                  QString const& message,
                                                   UiConst::SettingsTabNotiLevel notiType) {
     if (m_downloadDBBtn != nullptr) {
         if (isDisable) {
@@ -718,24 +746,30 @@ void SettingsTabWidget::handleDownloadDBRequested(bool isDisable, QString const&
 
 void SettingsTabWidget::onUploadButtonClicked() {
     auto const reply =
-        DialogUtils::showQuestion(this, tr("Upload database to Google Drive"),
+        DialogUtils::showQuestion(this,
+                                  tr("Upload database to Google Drive"),
                                   tr("Do you want to upload <b>data.db</b> to Google "
                                      "Drive?<br><br>The file will be compacted locally "
                                      "and will replace the existing one on Drive."),
                                   true);
 
-    if (reply == QMessageBox::Yes) { Q_EMIT requestUpload(); }
+    if (reply == QMessageBox::Yes) {
+        Q_EMIT requestUpload();
+    }
 }
 
 void SettingsTabWidget::onDownloadButtonClicked() {
     auto const reply = DialogUtils::showQuestion(
-        this, tr("Download database from Google Drive"),
+        this,
+        tr("Download database from Google Drive"),
         tr("Do you want to download the file <b>data.db</b> from the linked Google "
            "Drive?<br><br>This will overwrite the <b>data.db</b> file currently used by this "
            "application."),
         true);
 
-    if (reply == QMessageBox::Yes) { Q_EMIT requestDownload(); }
+    if (reply == QMessageBox::Yes) {
+        Q_EMIT requestDownload();
+    }
 }
 
 void SettingsTabWidget::updateCountdownDisplay() {
@@ -764,8 +798,8 @@ void SettingsTabWidget::showLoginStatus() {
     m_countdownLabel->setText(QString::number(COUNTDOWN));
 
     m_countdownTimer.disconnect();  // tránh chồng signal
-    QObject::connect(&m_countdownTimer, &QTimer::timeout, this,
-                     &SettingsTabWidget::updateCountdownDisplay);
+    QObject::connect(
+        &m_countdownTimer, &QTimer::timeout, this, &SettingsTabWidget::updateCountdownDisplay);
     m_countdownTimer.start(1000);   // NOLINT(readability-magic-numbers)
 
     m_loginStatusWidget->setVisible(true);
@@ -778,7 +812,8 @@ void SettingsTabWidget::handleDBInfoGot(QStringList const& info) {
         DialogUtils::showInfo(this, tr("Database information"), tr("Database not exist"));
     } else {
         DialogUtils::showInfo(
-            this, tr("Database information"),
+            this,
+            tr("Database information"),
             tr("File: %1\nVersion: %2\nSize: %3\nLast created: %4\nLast modified: %5")
                 .arg(info[0])
                 .arg(info[1])

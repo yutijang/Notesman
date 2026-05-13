@@ -13,18 +13,22 @@
 #include <vector>
 
 // ========= CRUD =========
-sqlite3_int64 NotesAppCore::addTextNote(std::string const& title, std::string const& content,
+sqlite3_int64 NotesAppCore::addTextNote(std::string const& title,
+                                        std::string const& content,
                                         ResourceType type) const {
     return m_resService.addTextResource(title, content, type);
 }
 
 sqlite3_int64 NotesAppCore::addFileNote(std::filesystem::path const& filepath,
-                                        std::string const& title, ResourceType type, bool isManaged,
+                                        std::string const& title,
+                                        ResourceType type,
+                                        bool isManaged,
                                         std::string const& contentToIndex) const {
     return m_fileService.addFileResource(filepath, title, type, isManaged, contentToIndex);
 }
 
-std::optional<sqlite3_int64> NotesAppCore::addUrlNote(std::string_view title, ResourceType type,
+std::optional<sqlite3_int64> NotesAppCore::addUrlNote(std::string_view title,
+                                                      ResourceType type,
                                                       std::string_view rawUrl) const {
     return m_resService.addUrlResource(title, type, rawUrl);
 }
@@ -77,9 +81,8 @@ std::vector<UnifiedSearchResult>
     return m_resService.searchByContentUnifiedFull(keyword);
 }
 
-std::vector<UnifiedSearchResult>
-    NotesAppCore::searchUnifiedFull(std::string_view tagLikeKW, std::string_view ftsKW,
-                                    std::string_view domainLikeKW) const {
+std::vector<UnifiedSearchResult> NotesAppCore::searchUnifiedFull(
+    std::string_view tagLikeKW, std::string_view ftsKW, std::string_view domainLikeKW) const {
     return m_resService.searchUnifiedFull(tagLikeKW, ftsKW, domainLikeKW);
 }
 

@@ -20,7 +20,8 @@
 #include <vector>
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-sqlite3_int64 ResourceService::addTextResource(std::string const& title, std::string const& content,
+sqlite3_int64 ResourceService::addTextResource(std::string const& title,
+                                               std::string const& content,
                                                ResourceType type) {
     if (type != ResourceType::PlainText) [[unlikely]] {
         std::string msg{"addTextResource only supports ResourceType::plainText"};
@@ -41,8 +42,10 @@ sqlite3_int64 ResourceService::addTextResource(std::string const& title, std::st
 }
 
 sqlite3_int64 ResourceService::addFileResource(std::string const& filepath,
-                                               std::string const& title, ResourceType type,
-                                               bool isManaged, std::string const& contentToIndex) {
+                                               std::string const& title,
+                                               ResourceType type,
+                                               bool isManaged,
+                                               std::string const& contentToIndex) {
     return m_fileService.addFileResource(filepath, title, type, isManaged, contentToIndex);
 }
 
@@ -56,13 +59,17 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
                                                              bool includeContent) {
     // Lấy resource gốc
     auto resOpt = m_resRepo.getById(resourceId);
-    if (!resOpt.has_value()) [[unlikely]] { return std::nullopt; }
+    if (!resOpt.has_value()) [[unlikely]] {
+        return std::nullopt;
+    }
 
     // Lấy tag (có thể rỗng)
     auto tagPairs = m_tagRepo.getTagsByResourceId(resourceId);
     std::vector<std::string> tagNames;
     tagNames.reserve(tagPairs.size());
-    for (auto const& p : tagPairs) { tagNames.push_back(p.second); }
+    for (auto const& p : tagPairs) {
+        tagNames.push_back(p.second);
+    }
 
     FullResource fres;
     fres.resource = *resOpt;
@@ -74,7 +81,9 @@ std::optional<FullResource> ResourceService::getFullResource(sqlite3_int64 resou
         fres.filepath = std::nullopt;
     }
 
-    if (includeContent) { fres.content = m_textRepo.getTextById(resourceId); }
+    if (includeContent) {
+        fres.content = m_textRepo.getTextById(resourceId);
+    }
 
     fres.url = getUrlByResourceIdOnly(resourceId);
 
@@ -92,7 +101,9 @@ void ResourceService::deleteResource(sqlite3_int64 resourceId) {
 }
 
 void ResourceService::deleteResources(std::vector<sqlite3_int64> const& resourceIds) {
-    if (resourceIds.empty()) { return; }
+    if (resourceIds.empty()) {
+        return;
+    }
 
     for (auto const id : resourceIds) {
         auto fileEntry = m_fileRepo.getFileById(id);
@@ -117,7 +128,9 @@ std::vector<UnifiedSearchResult> ResourceService::searchByTitle(std::string cons
 std::vector<UnifiedSearchResult> ResourceService::searchByTitleFull(std::string const& keyword) {
     auto results = m_resRepo.searchByTitleFTS(keyword);
 
-    for (auto& item : results) { validateIsFile(item); }
+    for (auto& item : results) {
+        validateIsFile(item);
+    }
 
     return results;
 }
@@ -171,7 +184,9 @@ std::vector<UnifiedSearchResult> ResourceService::searchUnifiedFull(std::string_
             std::vector<std::string> tagNames;
             auto tags = m_tagRepo.getTagsByResourceId(item.res.id);
             tagNames.reserve(tags.size());
-            for (auto const& [id, name] : tags) { tagNames.push_back(name); }
+            for (auto const& [id, name] : tags) {
+                tagNames.push_back(name);
+            }
             item.tags = tagNames;
             item.displaySubText = Utils::joinTags(item.tags);
         } else if (hasFlag(item.flags, ResourceFlags::MatchTitle)) {
@@ -222,7 +237,9 @@ void ResourceService::addTagsToResource(sqlite3_int64 resourceId,
 
 void ResourceService::removeTagFromResource(sqlite3_int64 resourceId, std::string const& tag) {
     auto tagIdOpt = m_tagRepo.getTagIdByName(tag);
-    if (!tagIdOpt.has_value()) [[unlikely]] { return; }
+    if (!tagIdOpt.has_value()) [[unlikely]] {
+        return;
+    }
 
     m_tagRepo.deleteTagFromResource({.resourceId = resourceId, .tagId = *tagIdOpt});
 }
@@ -251,7 +268,9 @@ std::vector<UnifiedSearchResult> ResourceService::getFullResourcesByTag(std::str
         auto full = getFullResource(res.id);
         if (full.has_value()) {
             u.tags = full->tags;
-            if (!u.tags.empty()) { u.displaySubText = Utils::joinTags(u.tags); }
+            if (!u.tags.empty()) {
+                u.displaySubText = Utils::joinTags(u.tags);
+            }
 
             validateIsFile(u);
         }
@@ -276,7 +295,9 @@ FullResource ResourceService::buildFullFromResource(Resource const& res) {
     auto tagPairs = m_tagRepo.getTagsByResourceId(res.id); // vector<pair<id,name>>
     fr.tags.reserve(tagPairs.size());
 
-    for (auto& p : tagPairs) { fr.tags.push_back(p.second); }
+    for (auto& p : tagPairs) {
+        fr.tags.push_back(p.second);
+    }
 
     return fr;
 }
@@ -286,7 +307,9 @@ std::vector<FullResource> ResourceService::getAllFull() {
 
     if (auto resources = m_resRepo.getAll(); !resources.empty()) {
         out.reserve(resources.size());
-        for (auto& r : resources) { out.push_back(buildFullFromResource(r)); }
+        for (auto& r : resources) {
+            out.push_back(buildFullFromResource(r));
+        }
     }
 
     return out;
@@ -313,7 +336,9 @@ std::vector<UnifiedSearchResult> ResourceService::getAllUnified() {
 
         // Tags
         auto tagPairs = m_tagRepo.getTagsByResourceId(resId);
-        for (auto& p : tagPairs) { u.tags.push_back(p.second); }
+        for (auto& p : tagPairs) {
+            u.tags.push_back(p.second);
+        }
 
         u.flags = ResourceFlags::None;
 

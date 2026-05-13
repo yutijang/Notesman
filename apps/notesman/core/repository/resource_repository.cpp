@@ -26,9 +26,10 @@ sqlite3_int64 ResourceRepository::insert(Resource const& res) {
                       m_db.get());
 
     auto const typeStr = resourceTypeToString(res.type);
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, typeStr.data(),
-                                        static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 2, typeStr.data(), static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     if (res.type == ResourceType::PlainText || res.file_hash.empty()) {
         sqlite::checkBind(sqlite3_bind_null(stmt.get(), 3), m_db.get());
@@ -61,7 +62,9 @@ std::optional<Resource> ResourceRepository::getById(sqlite3_int64 resourceId) {
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return resourceFromStmt(stmt); }
+    if (stmt.step() == SQLITE_ROW) {
+        return resourceFromStmt(stmt);
+    }
 
     return std::nullopt;
 }
@@ -73,7 +76,9 @@ std::optional<std::string> ResourceRepository::getResourceUuid(sqlite3_int64 res
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnText(0); }
+    if (stmt.step() == SQLITE_ROW) {
+        return stmt.getColumnText(0);
+    }
 
     return std::nullopt;
 }
@@ -94,7 +99,9 @@ std::vector<Resource> ResourceRepository::getAll() {
     SQLiteStmt stmt(m_db.get(), sql);
 
     std::vector<Resource> results;
-    while (stmt.step() == SQLITE_ROW) { results.push_back(resourceFromStmt(stmt)); }
+    while (stmt.step() == SQLITE_ROW) {
+        results.push_back(resourceFromStmt(stmt));
+    }
 
     return results;
 }
@@ -116,9 +123,10 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchByTitleFTS(std::strin
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, keyword.data(),
-                                        static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     std::vector<UnifiedSearchResult> result;
     while (stmt.step() == SQLITE_ROW) {
@@ -156,15 +164,20 @@ std::optional<Resource> ResourceRepository::getByFileHash(std::string_view hash)
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, hash.data(), static_cast<int>(hash.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     int const rc = stmt.step();
 
-    if (rc == SQLITE_ROW) { return resourceFromStmt(stmt); }
+    if (rc == SQLITE_ROW) {
+        return resourceFromStmt(stmt);
+    }
 
-    if (rc == SQLITE_DONE) { return std::nullopt; }
+    if (rc == SQLITE_DONE) {
+        return std::nullopt;
+    }
 
     sqlite::checkStep(rc, m_db.get(), SQLITE_ROW, "getByFileHash");
 
@@ -194,7 +207,9 @@ std::optional<std::pair<std::string, std::string>>
         return std::make_pair(std::move(createdAt), std::move(updatedAt));
     }
 
-    if (rc == SQLITE_DONE) { return std::nullopt; }
+    if (rc == SQLITE_DONE) {
+        return std::nullopt;
+    }
 
     sqlite::checkStep(rc, m_db.get(), SQLITE_ROW, "getTimestamps");
 
@@ -216,9 +231,10 @@ void ResourceRepository::update(Resource const& res) {
                       m_db.get());
 
     auto const typeStr = resourceTypeToString(res.type);
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, typeStr.data(),
-                                        static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 2, typeStr.data(), static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
+        m_db.get());
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 3, res.id), m_db.get());
     sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "Update");
 }
@@ -269,7 +285,9 @@ void ResourceRepository::removeBatch(std::vector<sqlite3_int64> const& resourceI
         throw std::runtime_error("Failed to finalize transaction: " + msg);
     }
 
-    if (!success) { throw std::runtime_error("Failed to delete some resources"); }
+    if (!success) {
+        throw std::runtime_error("Failed to delete some resources");
+    }
 }
 
 void ResourceRepository::updateFileHash(sqlite3_int64 resourceID, std::string_view hash) {
@@ -277,9 +295,10 @@ void ResourceRepository::updateFileHash(sqlite3_int64 resourceID, std::string_vi
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, hash.data(), static_cast<int>(hash.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, hash.data(), static_cast<int>(hash.size()), SQLITE_TRANSIENT),
+        m_db.get());
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 2, resourceID), m_db.get());
     sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "updateFileHash");
 }
@@ -297,16 +316,20 @@ bool ResourceRepository::existsTitle(std::string_view title, ResourceType type) 
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, title.data(), static_cast<int>(title.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, title.data(), static_cast<int>(title.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     auto const typeStr = resourceTypeToString(type);
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, typeStr.data(),
-                                        static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 2, typeStr.data(), static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return sqlite3_column_int(stmt.get(), 0) != 0; }
+    if (stmt.step() == SQLITE_ROW) {
+        return sqlite3_column_int(stmt.get(), 0) != 0;
+    }
 
     return false;
 }
@@ -404,19 +427,25 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
 
             SQLiteStmt stmt(m_db.get(), sqlPhase1);
 
-            sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, tagLikeKW.data(),
+            sqlite::checkBind(sqlite3_bind_text(stmt.get(),
+                                                1,
+                                                tagLikeKW.data(),
                                                 static_cast<int>(tagLikeKW.size()),
                                                 SQLITE_TRANSIENT),
                               m_db.get());
 
             for (int i = 2; i <= 5; ++i) {
-                sqlite::checkBind(sqlite3_bind_text(stmt.get(), i, ftsKW.data(),
+                sqlite::checkBind(sqlite3_bind_text(stmt.get(),
+                                                    i,
+                                                    ftsKW.data(),
                                                     static_cast<int>(ftsKW.size()),
                                                     SQLITE_TRANSIENT),
                                   m_db.get());
             }
 
-            sqlite::checkBind(sqlite3_bind_text(stmt.get(), 6, domainLikeKW.data(),
+            sqlite::checkBind(sqlite3_bind_text(stmt.get(),
+                                                6,
+                                                domainLikeKW.data(),
                                                 static_cast<int>(domainLikeKW.size()),
                                                 SQLITE_TRANSIENT),
                               m_db.get());
@@ -465,13 +494,15 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
 
         SQLiteStmt stmt(m_db.get(), sqlPhase2);
 
-        sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, ftsKW.data(),
-                                            static_cast<int>(ftsKW.size()), SQLITE_TRANSIENT),
-                          m_db.get());
+        sqlite::checkBind(
+            sqlite3_bind_text(
+                stmt.get(), 1, ftsKW.data(), static_cast<int>(ftsKW.size()), SQLITE_TRANSIENT),
+            m_db.get());
 
-        sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, ftsKW.data(),
-                                            static_cast<int>(ftsKW.size()), SQLITE_TRANSIENT),
-                          m_db.get());
+        sqlite::checkBind(
+            sqlite3_bind_text(
+                stmt.get(), 2, ftsKW.data(), static_cast<int>(ftsKW.size()), SQLITE_TRANSIENT),
+            m_db.get());
 
         std::vector<UnifiedSearchResult> results;
         results.reserve(100);
@@ -483,12 +514,24 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
             int const reason = sqlite3_column_int(stmt.get(), 10);
 
             ResourceFlags flags{};
-            if ((reason & 1) != 0) { flags |= ResourceFlags::MatchTag; }
-            if ((reason & 2) != 0) { flags |= ResourceFlags::MatchTitle; }
-            if ((reason & 4) != 0) { flags |= ResourceFlags::MatchText; }
-            if ((reason & 8) != 0) { flags |= ResourceFlags::MatchFileText; }
-            if ((reason & 16) != 0) { flags |= ResourceFlags::MatchDomain; }
-            if ((reason & 32) != 0) { flags |= ResourceFlags::MatchUrlPath; }
+            if ((reason & 1) != 0) {
+                flags |= ResourceFlags::MatchTag;
+            }
+            if ((reason & 2) != 0) {
+                flags |= ResourceFlags::MatchTitle;
+            }
+            if ((reason & 4) != 0) {
+                flags |= ResourceFlags::MatchText;
+            }
+            if ((reason & 8) != 0) {
+                flags |= ResourceFlags::MatchFileText;
+            }
+            if ((reason & 16) != 0) {
+                flags |= ResourceFlags::MatchDomain;
+            }
+            if ((reason & 32) != 0) {
+                flags |= ResourceFlags::MatchUrlPath;
+            }
 
             item.flags = flags;
 
@@ -513,7 +556,8 @@ std::vector<UnifiedSearchResult> ResourceRepository::searchUnified(std::string_v
     } catch (...) {
         try {
             sqlite::checkExec(m_db.get(), "ROLLBACK", "rollback search tx");
-        } catch (...) {}
+        } catch (...) {
+        }
 
         throw;
     }
@@ -550,12 +594,14 @@ std::vector<UnifiedSearchResult>
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, keyword.data(),
-                                        static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
-                      m_db.get());
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, keyword.data(),
-                                        static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
+        m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 2, keyword.data(), static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     std::vector<UnifiedSearchResult> results;
     results.reserve(100);
@@ -623,9 +669,10 @@ std::vector<UnifiedSearchResult> ResourceRepository::getAllResourcesByType(Resou
     SQLiteStmt stmt(m_db.get(), sql);
 
     auto const typeStr = resourceTypeToString(type);
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, typeStr.data(),
-                                        static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, typeStr.data(), static_cast<int>(typeStr.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     std::vector<UnifiedSearchResult> results;
     int rc{};
@@ -638,7 +685,9 @@ std::vector<UnifiedSearchResult> ResourceRepository::getAllResourcesByType(Resou
         item.res.type = type;
         item.res.updated_at = stmt.getColumnText(3);
 
-        if (std::string url = stmt.getColumnText(4); !url.empty()) { item.url = url; }
+        if (std::string url = stmt.getColumnText(4); !url.empty()) {
+            item.url = url;
+        }
 
         if (std::string tagStr = stmt.getColumnText(5); !tagStr.empty()) {
             item.tags = splitTags(tagStr, ", ");
@@ -654,9 +703,10 @@ std::vector<UnifiedSearchResult> ResourceRepository::getAllResourcesByType(Resou
 
 std::vector<std::string> ResourceRepository::splitTags(std::string_view s,
                                                        std::string_view delimiter) {
-    auto view =
-        s | std::ranges::views::split(std::string_view{delimiter}) |
-        std::ranges::views::transform([](auto&& r) { return std::string(r.begin(), r.end()); });
+    auto view = s | std::ranges::views::split(std::string_view{delimiter}) |
+                std::ranges::views::transform([](auto&& r) {
+                    return std::string(r.begin(), r.end());
+                });
 
     return {view.begin(), view.end()};
 }

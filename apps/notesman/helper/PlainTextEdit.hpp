@@ -11,38 +11,40 @@ class QResizeEvent;
 class LineNumberArea;
 
 class PlainTextEdit final : public QPlainTextEdit {
-        Q_OBJECT
+    Q_OBJECT
 
-    public:
-        explicit PlainTextEdit(QWidget* parent = nullptr);
+  public:
+    explicit PlainTextEdit(QWidget* parent = nullptr);
 
-        [[nodiscard]] int lineNumberAreaWidth() const;
-        void lineNumberAreaPaintEvent(QPaintEvent* event);
+    [[nodiscard]] int lineNumberAreaWidth() const;
+    void lineNumberAreaPaintEvent(QPaintEvent* event);
 
-    protected:
-        void resizeEvent(QResizeEvent* event) override;
-        void insertFromMimeData(QMimeData const* source) override;
+  protected:
+    void resizeEvent(QResizeEvent* event) override;
+    void insertFromMimeData(QMimeData const* source) override;
 
-    private:
-        void updateLineNumberAreaWidth();
-        void updateLineNumberArea(QRect const& rect, int dy);
+  private:
+    void updateLineNumberAreaWidth();
+    void updateLineNumberArea(QRect const& rect, int dy);
 
-        QWidget* m_lineNumberArea;
+    QWidget* m_lineNumberArea;
 };
 
 class LineNumberArea final : public QWidget {
-        Q_OBJECT
+    Q_OBJECT
 
-    public:
-        explicit LineNumberArea(PlainTextEdit* editor) : QWidget(editor), m_editor(editor) {}
+  public:
+    explicit LineNumberArea(PlainTextEdit* editor) : QWidget(editor), m_editor(editor) {}
 
-        [[nodiscard]] QSize sizeHint() const override {
-            return {m_editor->lineNumberAreaWidth(), 0};
-        }
+    [[nodiscard]] QSize sizeHint() const override {
+        return {m_editor->lineNumberAreaWidth(), 0};
+    }
 
-    protected:
-        void paintEvent(QPaintEvent* event) override { m_editor->lineNumberAreaPaintEvent(event); }
+  protected:
+    void paintEvent(QPaintEvent* event) override {
+        m_editor->lineNumberAreaPaintEvent(event);
+    }
 
-    private:
-        PlainTextEdit* m_editor;
+  private:
+    PlainTextEdit* m_editor;
 };

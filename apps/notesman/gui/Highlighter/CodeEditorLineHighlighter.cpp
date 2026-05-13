@@ -17,7 +17,9 @@ CodeEditorLineHighlighter::CodeEditorLineHighlighter(PlainTextEdit* editor)
     Q_ASSERT(editor);
 
     // Kết nối tín hiệu di chuyển con trỏ
-    QObject::connect(m_editor, &PlainTextEdit::cursorPositionChanged, this,
+    QObject::connect(m_editor,
+                     &PlainTextEdit::cursorPositionChanged,
+                     this,
                      &CodeEditorLineHighlighter::highlightCurrentLine);
 
     // Cài đặt bộ lọc sự kiện để bắt Focus In/Out
@@ -63,7 +65,9 @@ void CodeEditorLineHighlighter::updateHighlighting([[maybe_unused]] bool hasFocu
 
 // SLOT: Áp dụng highlight cho dòng hiện tại
 void CodeEditorLineHighlighter::highlightCurrentLine() {
-    if (m_editor == nullptr) { return; }
+    if (m_editor == nullptr) {
+        return;
+    }
 
     QList<QTextEdit::ExtraSelection> extras;
 

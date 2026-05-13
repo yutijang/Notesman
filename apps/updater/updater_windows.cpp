@@ -13,276 +13,320 @@
 namespace fs = std::filesystem;
 
 namespace {
-    std::string wstringToUtf8(std::wstring const& ws) {
-        if (ws.empty()) { return {}; }
-        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, ws.data(), static_cast<int>(ws.size()),
-                                             nullptr, 0, nullptr, nullptr);
-        std::string result(static_cast<std::string::size_type>(sizeNeeded), 0);
-        WideCharToMultiByte(CP_UTF8, 0, ws.data(), static_cast<int>(ws.size()), result.data(),
-                            sizeNeeded, nullptr, nullptr);
-        return result;
+
+std::string wstringToUtf8(std::wstring const& ws) {
+    if (ws.empty()) {
+        return {};
+    }
+    int sizeNeeded = WideCharToMultiByte(
+        CP_UTF8, 0, ws.data(), static_cast<int>(ws.size()), nullptr, 0, nullptr, nullptr);
+    std::string result(static_cast<std::string::size_type>(sizeNeeded), 0);
+    WideCharToMultiByte(CP_UTF8,
+                        0,
+                        ws.data(),
+                        static_cast<int>(ws.size()),
+                        result.data(),
+                        sizeNeeded,
+                        nullptr,
+                        nullptr);
+    return result;
+}
+
+// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
+void clearFolder(std::wstring const& targetFolder, std::wstring const& resDirName) {
+    std::unordered_set<std::wstring> keepFiles{L"temp_update", L"data.db", L"config.ini", L"logs"};
+
+    if (!resDirName.empty() && resDirName != L"NULL_OR_ROOT") {
+        keepFiles.insert(resDirName);
     }
 
-    // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-    void clearFolder(std::wstring const& targetFolder, std::wstring const& resDirName) {
-        std::unordered_set<std::wstring> keepFiles{L"temp_update", L"data.db", L"config.ini",
-                                                   L"logs"};
+    fs::path dirPath(targetFolder);
+    std::error_code ec;
+    if (!fs::exists(dirPath, ec) || !fs::is_directory(dirPath, ec)) {
+        Log::err("Folder invalid: {} - error: {}", wstringToUtf8(targetFolder), ec.message());
 
-        if (!resDirName.empty() && resDirName != L"NULL_OR_ROOT") { keepFiles.insert(resDirName); }
+        return;
+    }
 
-        fs::path dirPath(targetFolder);
-        std::error_code ec;
-        if (!fs::exists(dirPath, ec) || !fs::is_directory(dirPath, ec)) {
-            Log::err("Folder invalid: {} - error: {}", wstringToUtf8(targetFolder), ec.message());
+    for (auto const& entry : fs::directory_iterator(dirPath, ec)) {
+        if (ec) {
+            Log::err("Error: {}", ec.message());
 
-            return;
+            ec.clear();
+            continue;
         }
 
-        for (auto const& entry : fs::directory_iterator(dirPath, ec)) {
-            if (ec) {
-                Log::err("Error: {}", ec.message());
+        auto const& path = entry.path();
+        auto const name = path.filename().wstring();
 
-                ec.clear();
+        if (keepFiles.contains(name)) {
+            continue;
+        }
+
+        if (entry.is_directory(ec)) {
+            fs::remove_all(path, ec);
+            if (ec) {
+                Log::err("Error remove all: {}", ec.message());
+            }
+        } else {
+            fs::remove(path, ec);
+            if (ec) {
+                Log::err("Error remove: {}", ec.message());
+            }
+        }
+        ec.clear();
+    }
+}
+
+bool unzipToFolder(std::wstring const& zipPath,
+                   std::wstring const& folderInZip,
+                   fs::path const& destFolder,
+                   bool overwrite) {
+    if (!fs::exists(zipPath)) {
+        return false;
+    }
+    fs::create_directories(destFolder);
+
+    std::string zipPathUtf8 = wstringToUtf8(zipPath);
+    mz_zip_archive zip{};
+    mz_zip_zero_struct(&zip);
+    if (mz_zip_reader_init_file(&zip, zipPathUtf8.c_str(), 0) == 0) {
+        return false;
+    }
+
+    std::string folderUtf8;
+    if (!folderInZip.empty()) {
+        folderUtf8 = wstringToUtf8(folderInZip);
+        if (folderUtf8.back() != '/') {
+            folderUtf8 += '/';
+        }
+    }
+
+    mz_uint const num = mz_zip_reader_get_num_files(&zip);
+    for (mz_uint i = 0; i < num; ++i) {
+        mz_zip_archive_file_stat st;
+        if (mz_zip_reader_file_stat(&zip, i, &st) == 0) {
+            mz_zip_reader_end(&zip);
+            return false;
+        }
+
+        std::string filename = st.m_filename;
+
+        if (!folderUtf8.empty()) {
+            if (!filename.starts_with(folderUtf8)) {
                 continue;
             }
-
-            auto const& path = entry.path();
-            auto const name = path.filename().wstring();
-
-            if (keepFiles.contains(name)) { continue; }
-
-            if (entry.is_directory(ec)) {
-                fs::remove_all(path, ec);
-                if (ec) { Log::err("Error remove all: {}", ec.message()); }
-            } else {
-                fs::remove(path, ec);
-                if (ec) { Log::err("Error remove: {}", ec.message()); }
+            filename = filename.substr(folderUtf8.size());
+            if (filename.empty()) {
+                continue;
             }
-            ec.clear();
-        }
-    }
-
-    bool unzipToFolder(std::wstring const& zipPath, std::wstring const& folderInZip,
-                       fs::path const& destFolder, bool overwrite) {
-        if (!fs::exists(zipPath)) { return false; }
-        fs::create_directories(destFolder);
-
-        std::string zipPathUtf8 = wstringToUtf8(zipPath);
-        mz_zip_archive zip{};
-        mz_zip_zero_struct(&zip);
-        if (mz_zip_reader_init_file(&zip, zipPathUtf8.c_str(), 0) == 0) { return false; }
-
-        std::string folderUtf8;
-        if (!folderInZip.empty()) {
-            folderUtf8 = wstringToUtf8(folderInZip);
-            if (folderUtf8.back() != '/') { folderUtf8 += '/'; }
         }
 
-        mz_uint const num = mz_zip_reader_get_num_files(&zip);
-        for (mz_uint i = 0; i < num; ++i) {
-            mz_zip_archive_file_stat st;
-            if (mz_zip_reader_file_stat(&zip, i, &st) == 0) {
-                mz_zip_reader_end(&zip);
-                return false;
-            }
-
-            std::string filename = st.m_filename;
-
-            if (!folderUtf8.empty()) {
-                if (!filename.starts_with(folderUtf8)) { continue; }
-                filename = filename.substr(folderUtf8.size());
-                if (filename.empty()) { continue; }
-            }
-
-            fs::path outPath = destFolder / filename;
-            if (st.m_is_directory != 0) {
-                fs::create_directories(outPath);
-            } else {
-                fs::create_directories(outPath.parent_path());
-                if (overwrite || !fs::exists(outPath)) {
-                    if (mz_zip_reader_extract_to_file(&zip, i, outPath.string().c_str(), 0) == 0) {
-                        mz_zip_reader_end(&zip);
-                        return false;
-                    }
+        fs::path outPath = destFolder / filename;
+        if (st.m_is_directory != 0) {
+            fs::create_directories(outPath);
+        } else {
+            fs::create_directories(outPath.parent_path());
+            if (overwrite || !fs::exists(outPath)) {
+                if (mz_zip_reader_extract_to_file(&zip, i, outPath.string().c_str(), 0) == 0) {
+                    mz_zip_reader_end(&zip);
+                    return false;
                 }
             }
         }
-
-        mz_zip_reader_end(&zip);
-        return true;
     }
 
-    bool copyRecursive(fs::path const& from, fs::path const& to) {
-        if (!fs::exists(from)) {
-            Log::err("copyRecursive failed: source not found: {}", wstringToUtf8(from));
-            return false;
-        }
+    mz_zip_reader_end(&zip);
+    return true;
+}
 
-        std::error_code ec;
-
-        fs::create_directories(to, ec);
-        if (ec) {
-            Log::err("copyRecursive failed: cannot create target directory: {} : {}",
-                     wstringToUtf8(to), ec.message());
-            return false;
-        }
-
-        fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
-
-        if (ec) {
-            Log::err("copyRecursive failed: {} (code {}) while copying from {} to {}", ec.message(),
-                     ec.value(), wstringToUtf8(from), wstringToUtf8(to));
-            return false;
-        }
-
-        return true;
+bool copyRecursive(fs::path const& from, fs::path const& to) {
+    if (!fs::exists(from)) {
+        Log::err("copyRecursive failed: source not found: {}", wstringToUtf8(from));
+        return false;
     }
 
-    bool waitForProcessExit(DWORD pid) {
-        HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, pid);
-        if (h == nullptr) { return false; }
+    std::error_code ec;
 
-        DWORD result = WaitForSingleObject(h, INFINITE);
-        CloseHandle(h);
-
-        return result == WAIT_OBJECT_0;
+    fs::create_directories(to, ec);
+    if (ec) {
+        Log::err("copyRecursive failed: cannot create target directory: {} : {}",
+                 wstringToUtf8(to),
+                 ec.message());
+        return false;
     }
 
-    DWORD getCurrentProcessId() {
-        return ::GetCurrentProcessId();
+    fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
+
+    if (ec) {
+        Log::err("copyRecursive failed: {} (code {}) while copying from {} to {}",
+                 ec.message(),
+                 ec.value(),
+                 wstringToUtf8(from),
+                 wstringToUtf8(to));
+        return false;
     }
 
-    void handleStage1(wchar_t* argv[]) {
-        // arguments received from main app
-        // argv[1] = --stage1
-        // argv[2] = app PID
-        // argv[3] = app dir
-        // argv[4] = zip path
-        // argv[5] = resource dir name
+    return true;
+}
 
-        auto const appPID = std::stoul(argv[2]);
-        waitForProcessExit(appPID);
-
-        std::wstring const appDir(argv[3]);
-        std::wstring const tempDir = appDir + L"\\temp_update";
-        std::wstring const zipPath(argv[4]);
-        bool isUnzip = unzipToFolder(zipPath, L"Notesman-x64", tempDir, false);
-        if (!isUnzip) {
-            Log::err("Error unzip assets into temp_update folder");
-            return;
-        }
-
-        // prepare arguments send to stage 2
-        // argv[1] = --stage2
-        // argv[2] = PID stage1 (current process: updater.exxe)
-        // argv[3] = app dir
-        // argv[4] = zip path
-        // argv[5] = resource dir name
-
-        std::wstring const exePath = tempDir + L"\\updater.exe";
-        std::wstring const entryForStage2{L"--stage2"};
-        std::wstring const currentPID = std::to_wstring(getCurrentProcessId());
-        std::wstring const resDirName(argv[5]);
-
-        std::wstring const cmdLine = L"\"" + exePath + L"\" "    // "C:\...\temp_update\updater.exe"
-                                   + entryForStage2 + L" "       // --stage2
-                                   + currentPID + L" "           // 1234
-                                   + L"\"" + appDir + L"\" "     // "C:\Apps\Notesman"
-                                   + L"\"" + zipPath + L"\" "    // "C:\Apps\update.zip"
-                                   + L"\"" + resDirName + L"\""; // resources or NULL_OR_ROOT
-
-        // CreateProcessW needs mutable buffer for cmdline
-        std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
-        cmdBuf.push_back(0);
-
-        STARTUPINFOW si{};
-        si.cb = sizeof(si);
-        si.dwFlags = STARTF_USESHOWWINDOW;
-        si.wShowWindow = SW_HIDE;
-
-        PROCESS_INFORMATION pi{};
-
-        BOOL ok = CreateProcessW(exePath.c_str(), // lpApplicationName
-                                 cmdBuf.data(),   // lpCommandLine (mutable)
-                                 nullptr, nullptr, FALSE, 0, nullptr,
-                                 tempDir.c_str(), // lpCurrentDirectory (wide!)
-                                 &si, &pi);
-
-        if (ok == 0) {
-            Log::err("CreateProcessW failed from stage1, error: {}", GetLastError());
-        } else {
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-        }
+bool waitForProcessExit(DWORD pid) {
+    HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, pid);
+    if (h == nullptr) {
+        return false;
     }
 
-    void handleStage2(wchar_t* argv[]) {
-        // arguments received from stage 1
-        // argv[1] = --stage2
-        // argv[2] = PID stage1 (current process: updater.exe)
-        // argv[3] = app dir
-        // argv[4] = zip path
-        // argv[5] = resource dir name
+    DWORD result = WaitForSingleObject(h, INFINITE);
+    CloseHandle(h);
 
-        auto const stage1PID = std::stoul(argv[2]);
-        waitForProcessExit(stage1PID);
+    return result == WAIT_OBJECT_0;
+}
 
-        std::wstring const appDir(argv[3]);
+DWORD getCurrentProcessId() {
+    return ::GetCurrentProcessId();
+}
 
-        // delete all file/folder in app dir
-        // except temp_update, data.db, config.ini, resources dir if exist
-        std::wstring const resDir(argv[5]);
-        clearFolder(appDir, resDir);
+void handleStage1(wchar_t* argv[]) {
+    // arguments received from main app
+    // argv[1] = --stage1
+    // argv[2] = app PID
+    // argv[3] = app dir
+    // argv[4] = zip path
+    // argv[5] = resource dir name
 
-        std::wstring const tempDir = appDir + L"\\temp_update";
-        bool isCopied = copyRecursive(tempDir, appDir);
-        if (!isCopied) {
-            Log::err("Error copy assets from: {} to: {}", wstringToUtf8(tempDir),
-                     wstringToUtf8(appDir));
-            return;
-        }
+    auto const appPID = std::stoul(argv[2]);
+    waitForProcessExit(appPID);
 
-        // prepare arguments send to main app
-        // argv[1] = --update-done
-        // argv[2] = PID stage2 (current process: updater.exxe)
-        // argv[3] = temp_update dir path for delete
-        // argv[4] = zip path
-
-        std::wstring const entryForUpdateDone{L"--update-done"};
-        std::wstring const currentPID = std::to_wstring(getCurrentProcessId());
-        std::wstring const zipPath(argv[4]);
-
-        std::wstring const exePath = appDir + L"\\Notesman.exe";
-
-        std::wstring const cmdLine = L"\"" + exePath + L"\" "  // "C:\Apps\Notesman.exe"
-                                   + entryForUpdateDone + L" " // --update-done
-                                   + currentPID + L" "         // 5678
-                                   + L"\"" + tempDir + L"\" "  // "C:\Apps\temp_update"
-                                   + L"\"" + zipPath + L"\"";  // "C:\Apps\update.zip"
-
-        std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
-        cmdBuf.push_back(0);
-
-        STARTUPINFOW si{};
-        si.cb = sizeof(si);
-        si.dwFlags = STARTF_USESHOWWINDOW;
-        si.wShowWindow = SW_SHOWNORMAL;
-
-        PROCESS_INFORMATION pi{};
-
-        BOOL ok = CreateProcessW(exePath.c_str(), // lpApplicationName
-                                 cmdBuf.data(),   // lpCommandLine (mutable)
-                                 nullptr, nullptr, FALSE, 0, nullptr,
-                                 appDir.c_str(),  // lpCurrentDirectory (wide!)
-                                 &si, &pi);
-
-        if (ok == 0) {
-            Log::err("CreateProcessW failed from stage2, error: {}", GetLastError());
-        } else {
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-        }
+    std::wstring const appDir(argv[3]);
+    std::wstring const tempDir = appDir + L"\\temp_update";
+    std::wstring const zipPath(argv[4]);
+    bool isUnzip = unzipToFolder(zipPath, L"Notesman-x64", tempDir, false);
+    if (!isUnzip) {
+        Log::err("Error unzip assets into temp_update folder");
+        return;
     }
+
+    // prepare arguments send to stage 2
+    // argv[1] = --stage2
+    // argv[2] = PID stage1 (current process: updater.exxe)
+    // argv[3] = app dir
+    // argv[4] = zip path
+    // argv[5] = resource dir name
+
+    std::wstring const exePath = tempDir + L"\\updater.exe";
+    std::wstring const entryForStage2{L"--stage2"};
+    std::wstring const currentPID = std::to_wstring(getCurrentProcessId());
+    std::wstring const resDirName(argv[5]);
+
+    std::wstring const cmdLine = L"\"" + exePath + L"\" "    // "C:\...\temp_update\updater.exe"
+                               + entryForStage2 + L" "       // --stage2
+                               + currentPID + L" "           // 1234
+                               + L"\"" + appDir + L"\" "     // "C:\Apps\Notesman"
+                               + L"\"" + zipPath + L"\" "    // "C:\Apps\update.zip"
+                               + L"\"" + resDirName + L"\""; // resources or NULL_OR_ROOT
+
+    // CreateProcessW needs mutable buffer for cmdline
+    std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
+    cmdBuf.push_back(0);
+
+    STARTUPINFOW si{};
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE;
+
+    PROCESS_INFORMATION pi{};
+
+    BOOL ok = CreateProcessW(exePath.c_str(), // lpApplicationName
+                             cmdBuf.data(),   // lpCommandLine (mutable)
+                             nullptr,
+                             nullptr,
+                             FALSE,
+                             0,
+                             nullptr,
+                             tempDir.c_str(), // lpCurrentDirectory (wide!)
+                             &si,
+                             &pi);
+
+    if (ok == 0) {
+        Log::err("CreateProcessW failed from stage1, error: {}", GetLastError());
+    } else {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    }
+}
+
+void handleStage2(wchar_t* argv[]) {
+    // arguments received from stage 1
+    // argv[1] = --stage2
+    // argv[2] = PID stage1 (current process: updater.exe)
+    // argv[3] = app dir
+    // argv[4] = zip path
+    // argv[5] = resource dir name
+
+    auto const stage1PID = std::stoul(argv[2]);
+    waitForProcessExit(stage1PID);
+
+    std::wstring const appDir(argv[3]);
+
+    // delete all file/folder in app dir
+    // except temp_update, data.db, config.ini, resources dir if exist
+    std::wstring const resDir(argv[5]);
+    clearFolder(appDir, resDir);
+
+    std::wstring const tempDir = appDir + L"\\temp_update";
+    bool isCopied = copyRecursive(tempDir, appDir);
+    if (!isCopied) {
+        Log::err(
+            "Error copy assets from: {} to: {}", wstringToUtf8(tempDir), wstringToUtf8(appDir));
+        return;
+    }
+
+    // prepare arguments send to main app
+    // argv[1] = --update-done
+    // argv[2] = PID stage2 (current process: updater.exxe)
+    // argv[3] = temp_update dir path for delete
+    // argv[4] = zip path
+
+    std::wstring const entryForUpdateDone{L"--update-done"};
+    std::wstring const currentPID = std::to_wstring(getCurrentProcessId());
+    std::wstring const zipPath(argv[4]);
+
+    std::wstring const exePath = appDir + L"\\Notesman.exe";
+
+    std::wstring const cmdLine = L"\"" + exePath + L"\" "  // "C:\Apps\Notesman.exe"
+                               + entryForUpdateDone + L" " // --update-done
+                               + currentPID + L" "         // 5678
+                               + L"\"" + tempDir + L"\" "  // "C:\Apps\temp_update"
+                               + L"\"" + zipPath + L"\"";  // "C:\Apps\update.zip"
+
+    std::vector<wchar_t> cmdBuf(cmdLine.begin(), cmdLine.end());
+    cmdBuf.push_back(0);
+
+    STARTUPINFOW si{};
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_SHOWNORMAL;
+
+    PROCESS_INFORMATION pi{};
+
+    BOOL ok = CreateProcessW(exePath.c_str(), // lpApplicationName
+                             cmdBuf.data(),   // lpCommandLine (mutable)
+                             nullptr,
+                             nullptr,
+                             FALSE,
+                             0,
+                             nullptr,
+                             appDir.c_str(), // lpCurrentDirectory (wide!)
+                             &si,
+                             &pi);
+
+    if (ok == 0) {
+        Log::err("CreateProcessW failed from stage2, error: {}", GetLastError());
+    } else {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    }
+}
 
 } // namespace
 

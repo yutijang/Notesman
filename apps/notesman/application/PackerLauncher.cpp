@@ -166,7 +166,8 @@ int PackerLauncher::run(QString const& packerFilePath) {
 
     if (res.resource.uuid != std::string_view(header.uuid)) {
         QMessageBox::warning(
-            nullptr, QObject::tr("Invalid resource"),
+            nullptr,
+            QObject::tr("Invalid resource"),
             QObject::tr("The file does not match the current database.\n"
                         "The resource may have been deleted or the data has been reset."));
         return 1;
@@ -183,9 +184,14 @@ int PackerLauncher::run(QString const& packerFilePath) {
     // Tạo viewer
     ResourceViewService viewService(*ctx.core);
 
-    auto viewer =
-        ResourceViewerFactory::create(static_cast<std::int64_t>(res.resource.id), res.resource.type,
-                                      title, absolutePath, url, theme, viewService, nullptr);
+    auto viewer = ResourceViewerFactory::create(static_cast<std::int64_t>(res.resource.id),
+                                                res.resource.type,
+                                                title,
+                                                absolutePath,
+                                                url,
+                                                theme,
+                                                viewService,
+                                                nullptr);
     if (!viewer) {
         Log::err("failed to create viewer for resource {}.", resourceId);
         return 1;
@@ -194,21 +200,29 @@ int PackerLauncher::run(QString const& packerFilePath) {
 #ifdef Q_OS_LINUX
     if (viewer->usesExternalWindow()) {
         QProcess* const proc = viewer->externalProcess();
-        if (proc == nullptr) { return 1; }
+        if (proc == nullptr) {
+            return 1;
+        }
 
         QEventLoop loop;
 
         QObject::connect(localServer.get(), &QLocalServer::newConnection, [&localServer, proc]() {
-            if (!localServer->hasPendingConnections()) [[unlikely]] { return; }
+            if (!localServer->hasPendingConnections()) [[unlikely]] {
+                return;
+            }
             QLocalSocket* client = localServer->nextPendingConnection();
-            if (!client) [[unlikely]] { return; }
+            if (!client) [[unlikely]] {
+                return;
+            }
 
             QObject::connect(client, &QLocalSocket::readyRead, [client, proc]() {
                 QByteArray const msg = client->readAll();
-                if (msg != "activate") { return; }
+                if (msg != "activate") {
+                    return;
+                }
                 ::kill(proc->processId(), SIGUSR1);
-                QObject::connect(client, &QLocalSocket::disconnected, client,
-                                 &QObject::deleteLater);
+                QObject::connect(
+                    client, &QLocalSocket::disconnected, client, &QObject::deleteLater);
             });
         });
 
@@ -226,18 +240,26 @@ int PackerLauncher::run(QString const& packerFilePath) {
 
     // Khi nhận "activate" từ instance thứ 2 → focus dialog
     QObject::connect(localServer.get(), &QLocalServer::newConnection, [&localServer, dlg]() {
-        if (!localServer->hasPendingConnections()) [[unlikely]] { return; }
+        if (!localServer->hasPendingConnections()) [[unlikely]] {
+            return;
+        }
 
         // Gắn parent = localServer → Qt delete khi disconnect
         QLocalSocket* client = localServer->nextPendingConnection();
-        if (!client) [[unlikely]] { return; }
+        if (!client) [[unlikely]] {
+            return;
+        }
 
         QObject::connect(client, &QLocalSocket::readyRead, [client, dlg]() {
             QByteArray const msg = client->readAll();
-            if (msg != "activate") { return; }
+            if (msg != "activate") {
+                return;
+            }
 #if defined(Q_OS_WIN)
             HWND hwnd = reinterpret_cast<HWND>(dlg->winId()); // NOLINT(performance-no-int-to-ptr)
-            if (IsIconic(hwnd) != 0) { ShowWindow(hwnd, SW_RESTORE); }
+            if (IsIconic(hwnd) != 0) {
+                ShowWindow(hwnd, SW_RESTORE);
+            }
             SetForegroundWindow(hwnd);
 #else
             if (dlg->isMinimized()) { dlg->showNormal(); }

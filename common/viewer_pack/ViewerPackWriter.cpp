@@ -21,7 +21,9 @@ std::expected<void, ViewerPackError> ViewerPackWriter::write(std::filesystem::pa
 
     {
         std::ofstream ofs(tempPath, std::ios::binary | std::ios::trunc);
-        if (!ofs.is_open()) { return std::unexpected(ViewerPackError::FileOpenFailed); }
+        if (!ofs.is_open()) {
+            return std::unexpected(ViewerPackError::FileOpenFailed);
+        }
 
         header.headerSize = static_cast<std::uint16_t>(sizeof(ViewerPackHeader));
         header.crc32 = computeHeaderCrc32(header);

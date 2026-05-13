@@ -10,24 +10,23 @@
 #include <vector>
 
 class TextContentRepository {
-    public:
-        explicit TextContentRepository(SQLiteDB& db) noexcept : m_db(db) {}
+  public:
+    explicit TextContentRepository(SQLiteDB& db) noexcept : m_db(db) {}
 
-        void insertText(sqlite3_int64 resourceId, std::string_view text);
+    void insertText(sqlite3_int64 resourceId, std::string_view text);
 
-        // Tạm thời không sử dụng
-        std::vector<std::pair<sqlite3_int64, std::string>>
-            searchByContentFTS(std::string_view keyword);
-        // =========
+    // Tạm thời không sử dụng
+    std::vector<std::pair<sqlite3_int64, std::string>> searchByContentFTS(std::string_view keyword);
+    // =========
 
-        std::optional<std::string> getTextById(sqlite3_int64 resourceId);
-        std::vector<std::pair<sqlite3_int64, std::string>> getAllTexts();
-        void updateText(sqlite3_int64 resourceId, std::string_view newText);
+    std::optional<std::string> getTextById(sqlite3_int64 resourceId);
+    std::vector<std::pair<sqlite3_int64, std::string>> getAllTexts();
+    void updateText(sqlite3_int64 resourceId, std::string_view newText);
 
-        bool exists(sqlite3_int64 resourceId);
+    bool exists(sqlite3_int64 resourceId);
 
-    private:
-        static std::pair<sqlite3_int64, std::string> rowToEntry(SQLiteStmt& stmt);
+  private:
+    static std::pair<sqlite3_int64, std::string> rowToEntry(SQLiteStmt& stmt);
 
-        SQLiteDB& m_db;
+    SQLiteDB& m_db;
 };

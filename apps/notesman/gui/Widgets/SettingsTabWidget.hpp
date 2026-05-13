@@ -21,126 +21,128 @@ class QCheckBox;
 class QSpinBox;
 
 class SettingsTabWidget final : public QWidget {
-        Q_OBJECT
+    Q_OBJECT
 
-    public:
-        explicit SettingsTabWidget(QWidget* parent = nullptr);
-        ~SettingsTabWidget() override = default;
+  public:
+    explicit SettingsTabWidget(QWidget* parent = nullptr);
+    ~SettingsTabWidget() override = default;
 
-        void retranslateUi();
+    void retranslateUi();
 
-        void showNotification(
-            QString const& message,
-            UiConst::SettingsMessageState state = UiConst::SettingsMessageState::None,
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
-        void handleDeleteDBFileRespond(QString const& msg);
-        void handleDBInfoGot(QStringList const& info);
-        void handleLoginFailed(QString const& error = QString{});
-        void handleDownloadDBRequested(
-            bool isDisable, QString const& message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
-        void handleUploadDBRequested(
-            bool isDisable, QString const& message = QString{},
-            UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
-        void handleAfterUnlinkAccount();
-        void handleAfterLinkAccount(QString const& htmlTextEmail);
-        void handleInitialSettingsLoad(SettingsData const& settings) const;
-        void handleSettingsStateChange(SettingsData const& settings) const;
-        void handleUiRefreshRequest(SettingsData const& settings) const;
+    void showNotification(
+        QString const& message,
+        UiConst::SettingsMessageState state = UiConst::SettingsMessageState::None,
+        UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
+    void handleDeleteDBFileRespond(QString const& msg);
+    void handleDBInfoGot(QStringList const& info);
+    void handleLoginFailed(QString const& error = QString{});
+    void handleDownloadDBRequested(
+        bool isDisable,
+        QString const& message = QString{},
+        UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
+    void handleUploadDBRequested(
+        bool isDisable,
+        QString const& message = QString{},
+        UiConst::SettingsTabNotiLevel notiType = UiConst::SettingsTabNotiLevel::Normal);
+    void handleAfterUnlinkAccount();
+    void handleAfterLinkAccount(QString const& htmlTextEmail);
+    void handleInitialSettingsLoad(SettingsData const& settings) const;
+    void handleSettingsStateChange(SettingsData const& settings) const;
+    void handleUiRefreshRequest(SettingsData const& settings) const;
 
-        void handleButtonAfterCleanup(UiConst::CleanupMode mode);
+    void handleButtonAfterCleanup(UiConst::CleanupMode mode);
 
-        void handleFileAssociationStatus(bool isRegistered);
+    void handleFileAssociationStatus(bool isRegistered);
 
-    Q_SIGNALS:
-        void applySettingsRequested(SettingsData const& data);
-        void defaultSettingsRequested();
-        void requestGoogleLogin();
-        void requestGoogleUnlink(bool isDeleteDB);
-        void requestUpload();
-        void requestDownload();
-        void cancelLoginRequested();
-        void statusUpdateRequest(QString const& msg, int timeout) const;
+  Q_SIGNALS:
+    void applySettingsRequested(SettingsData const& data);
+    void defaultSettingsRequested();
+    void requestGoogleLogin();
+    void requestGoogleUnlink(bool isDeleteDB);
+    void requestUpload();
+    void requestDownload();
+    void cancelLoginRequested();
+    void statusUpdateRequest(QString const& msg, int timeout) const;
 
-        void requestDBInfo();
+    void requestDBInfo();
 
-        void cleanupEpubCacheNowRequest();
-        void cleanupMDCacheNowRequest();
+    void cleanupEpubCacheNowRequest();
+    void cleanupMDCacheNowRequest();
 
-        void onFileAssociationBtnClicked();
+    void onFileAssociationBtnClicked();
 
-    private: // NOLINT(readability-redundant-access-specifiers)
-        void setupUi();
-        void setupConnections();
-        void updateCountdownDisplay();
-        void hideLoginStatus();
-        void showLoginStatus();
-        void validateResourceDir(SettingsData const& settings) const;
+  private: // NOLINT(readability-redundant-access-specifiers)
+    void setupUi();
+    void setupConnections();
+    void updateCountdownDisplay();
+    void hideLoginStatus();
+    void showLoginStatus();
+    void validateResourceDir(SettingsData const& settings) const;
 
-        void onApplyBtnClicked();
-        void onDefaultBtnClicked();
-        void onBrowseBtnClicked();
-        void loadSettingsToUi(SettingsData const& settings) const;
-        void onLinkBtnClicked();
-        void onUploadButtonClicked();
-        void onDownloadButtonClicked();
+    void onApplyBtnClicked();
+    void onDefaultBtnClicked();
+    void onBrowseBtnClicked();
+    void loadSettingsToUi(SettingsData const& settings) const;
+    void onLinkBtnClicked();
+    void onUploadButtonClicked();
+    void onDownloadButtonClicked();
 
-        [[nodiscard]] QHBoxLayout* setupLanguageGroup();
-        [[nodiscard]] QHBoxLayout* setupThemeGroup();
-        [[nodiscard]] QHBoxLayout* setupResourceDirGroup();
-        [[nodiscard]] QHBoxLayout* setupResourceManagerTypeGroup();
-        [[nodiscard]] QHBoxLayout* setupButtonGroup();
-        [[nodiscard]] QVBoxLayout* setupAccountLinkGroup();
-        [[nodiscard]] QWidget* setupLoginStatusGroup();
-        [[nodiscard]] QGroupBox* setupCleanupGroup();
-        [[nodiscard]] QGroupBox* setupFileAssociation();
+    [[nodiscard]] QHBoxLayout* setupLanguageGroup();
+    [[nodiscard]] QHBoxLayout* setupThemeGroup();
+    [[nodiscard]] QHBoxLayout* setupResourceDirGroup();
+    [[nodiscard]] QHBoxLayout* setupResourceManagerTypeGroup();
+    [[nodiscard]] QHBoxLayout* setupButtonGroup();
+    [[nodiscard]] QVBoxLayout* setupAccountLinkGroup();
+    [[nodiscard]] QWidget* setupLoginStatusGroup();
+    [[nodiscard]] QGroupBox* setupCleanupGroup();
+    [[nodiscard]] QGroupBox* setupFileAssociation();
 
-        QRadioButton* m_langEnRad{};
-        QRadioButton* m_langViRad{};
-        QRadioButton* m_themeLightRad{};
-        QRadioButton* m_themeDarkRad{};
-        QLineEdit* m_resDirInp{};
-        QPushButton* m_resDirBtn{};
-        QComboBox* m_resManCom{};
-        QPushButton* m_applyBtn{};
-        QPushButton* m_defaultBtn{};
-        QLabel* m_langLbl{};
-        QLabel* m_themeLbl{};
-        QLabel* m_resDirLbl{};
-        QLabel* m_resManLbl{};
-        QPushButton* m_linkGDBtn{};
-        QLabel* m_addressUserGMLoginLbl{};
-        QPushButton* m_uploadDBBtn{};
-        QPushButton* m_downloadDBBtn{};
-        QLabel* m_notiSettingsChangedLbl{};
-        QPushButton* m_checkRemoteDBInfoBtn{};
+    QRadioButton* m_langEnRad{};
+    QRadioButton* m_langViRad{};
+    QRadioButton* m_themeLightRad{};
+    QRadioButton* m_themeDarkRad{};
+    QLineEdit* m_resDirInp{};
+    QPushButton* m_resDirBtn{};
+    QComboBox* m_resManCom{};
+    QPushButton* m_applyBtn{};
+    QPushButton* m_defaultBtn{};
+    QLabel* m_langLbl{};
+    QLabel* m_themeLbl{};
+    QLabel* m_resDirLbl{};
+    QLabel* m_resManLbl{};
+    QPushButton* m_linkGDBtn{};
+    QLabel* m_addressUserGMLoginLbl{};
+    QPushButton* m_uploadDBBtn{};
+    QPushButton* m_downloadDBBtn{};
+    QLabel* m_notiSettingsChangedLbl{};
+    QPushButton* m_checkRemoteDBInfoBtn{};
 
-        bool m_isGMAccountLinked{};
+    bool m_isGMAccountLinked{};
 
-        // Cleanup cache EPUB + Markdown
-        QGroupBox* m_cleanupCacheGBox{};
-        QLabel* m_cleanupHtmlFromMDCacheLbl{};
-        QSpinBox* m_expiredEpubSpbx{};
-        QSpinBox* m_expiredMDSpbx{};
-        QPushButton* m_cleanupEpubCacheNowBtn{};
-        QPushButton* m_cleanupMDCacheNowBtn{};
-        QCheckBox* m_cleanupEpubAfterChk{};
-        QCheckBox* m_cleanupMDAfterChk{};
+    // Cleanup cache EPUB + Markdown
+    QGroupBox* m_cleanupCacheGBox{};
+    QLabel* m_cleanupHtmlFromMDCacheLbl{};
+    QSpinBox* m_expiredEpubSpbx{};
+    QSpinBox* m_expiredMDSpbx{};
+    QPushButton* m_cleanupEpubCacheNowBtn{};
+    QPushButton* m_cleanupMDCacheNowBtn{};
+    QCheckBox* m_cleanupEpubAfterChk{};
+    QCheckBox* m_cleanupMDAfterChk{};
 
-        QWidget* m_loginStatusWidget{};
-        QLabel* m_statusLabel{};
-        QLabel* m_countdownLabel{};
-        QPushButton* m_cancelLoginBtn{};
-        QTimer m_countdownTimer;
-        int m_remainingSeconds{};
-        QLabel* m_info1{};
-        QLabel* m_info2{};
-        QLabel* m_info3{};
-        QLabel* m_info4{};
+    QWidget* m_loginStatusWidget{};
+    QLabel* m_statusLabel{};
+    QLabel* m_countdownLabel{};
+    QPushButton* m_cancelLoginBtn{};
+    QTimer m_countdownTimer;
+    int m_remainingSeconds{};
+    QLabel* m_info1{};
+    QLabel* m_info2{};
+    QLabel* m_info3{};
+    QLabel* m_info4{};
 
-        QLabel* m_associationStatusLbl{};
-        QLabel* m_statusTagLbl{};
-        QGroupBox* m_fileAssociationGB{};
-        QPushButton* m_regAssociationBtn{};
-        bool m_isFileAssociated{};
+    QLabel* m_associationStatusLbl{};
+    QLabel* m_statusTagLbl{};
+    QGroupBox* m_fileAssociationGB{};
+    QPushButton* m_regAssociationBtn{};
+    bool m_isFileAssociated{};
 };

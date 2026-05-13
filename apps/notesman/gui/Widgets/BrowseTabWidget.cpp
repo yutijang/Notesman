@@ -61,22 +61,26 @@ void BrowseTabWidget::setupUI() {
 }
 
 void BrowseTabWidget::setupConnections() {
-    QObject::connect(m_searchBtn, &QPushButton::clicked, this,
-                     &BrowseTabWidget::onSearchButtonClicked);
+    QObject::connect(
+        m_searchBtn, &QPushButton::clicked, this, &BrowseTabWidget::onSearchButtonClicked);
 
     QObject::connect(m_searchInp, &QLineEdit::returnPressed, m_searchBtn, &QPushButton::click);
 
-    QObject::connect(m_resultsTbl, &QTableWidget::cellDoubleClicked, this,
+    QObject::connect(m_resultsTbl,
+                     &QTableWidget::cellDoubleClicked,
+                     this,
                      &BrowseTabWidget::onCellDoubleClicked);
 
-    QObject::connect(m_resultsTbl, &QWidget::customContextMenuRequested, this,
+    QObject::connect(m_resultsTbl,
+                     &QWidget::customContextMenuRequested,
+                     this,
                      &BrowseTabWidget::onCustomContextMenuRequested);
 
-    QObject::connect(m_clearTableBtn, &QPushButton::clicked, this,
-                     &BrowseTabWidget::onClearButtonClicked);
+    QObject::connect(
+        m_clearTableBtn, &QPushButton::clicked, this, &BrowseTabWidget::onClearButtonClicked);
 
-    QObject::connect(m_loadAllBtn, &QPushButton::clicked, this,
-                     &BrowseTabWidget::loadAllDataRequested);
+    QObject::connect(
+        m_loadAllBtn, &QPushButton::clicked, this, &BrowseTabWidget::loadAllDataRequested);
 
     QObject::connect(m_loadResTypeBtn, &QPushButton::clicked, [this] {
         Q_EMIT loadResourceByTypeRequested(currentResourceType(m_getResTypeCom));
@@ -101,7 +105,9 @@ void BrowseTabWidget::retranslateUi() {
 }
 
 void BrowseTabWidget::updateColumnWidths() {
-    if (m_resultsTbl == nullptr) { return; }
+    if (m_resultsTbl == nullptr) {
+        return;
+    }
 
     int const leftRightMargin{20};
     int tableWidth = m_resultsTbl->viewport()->width() - leftRightMargin;
@@ -112,7 +118,9 @@ void BrowseTabWidget::updateColumnWidths() {
 }
 
 void BrowseTabWidget::displayResults(std::vector<UnifiedSearchResult> const& results) {
-    if (results.empty()) { return; }
+    if (results.empty()) {
+        return;
+    }
 
     m_resultsTbl->setRowCount(0); // Dọn dẹp (clear) hoặc chuẩn bị lại bảng kết quả
 
@@ -181,7 +189,9 @@ void BrowseTabWidget::onCellDoubleClicked(int row) {
 
 void BrowseTabWidget::onCustomContextMenuRequested(QPoint const& pos) {
     QModelIndex const index = m_resultsTbl->indexAt(pos);
-    if (!index.isValid()) { return; }
+    if (!index.isValid()) {
+        return;
+    }
 
     int const row = index.row();
 
@@ -197,28 +207,40 @@ void BrowseTabWidget::onCustomContextMenuRequested(QPoint const& pos) {
 }
 
 std::optional<BrowseTabWidget::RowData> BrowseTabWidget::rowData(int row) const {
-    if (row < 0 || row >= m_resultsTbl->rowCount()) { return std::nullopt; }
+    if (row < 0 || row >= m_resultsTbl->rowCount()) {
+        return std::nullopt;
+    }
 
     auto* titleItem = m_resultsTbl->item(row, 1);
-    if (titleItem == nullptr) { return std::nullopt; }
+    if (titleItem == nullptr) {
+        return std::nullopt;
+    }
 
     QVariant const idVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::ResourceId));
-    if (!idVar.isValid()) { return std::nullopt; }
+    if (!idVar.isValid()) {
+        return std::nullopt;
+    }
     auto const id = static_cast<int>(idVar.toLongLong());
 
     QVariant const vRes = titleItem->data(static_cast<int>(ResultsTable::ItemRole::ResourceType));
     bool ok{};
     int const raw = vRes.toInt(&ok);
-    if (!ok) { return std::nullopt; }
+    if (!ok) {
+        return std::nullopt;
+    }
     auto const type = static_cast<ResourceType>(raw);
 
     QVariant const pathVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::FullPath));
     QString path;
-    if (pathVar.isValid() && !pathVar.isNull()) { path = pathVar.toString(); }
+    if (pathVar.isValid() && !pathVar.isNull()) {
+        path = pathVar.toString();
+    }
 
     QVariant const urlVar = titleItem->data(static_cast<int>(ResultsTable::ItemRole::Url));
     QString url;
-    if (urlVar.isValid() && !urlVar.isNull()) { url = urlVar.toString(); }
+    if (urlVar.isValid() && !urlVar.isNull()) {
+        url = urlVar.toString();
+    }
 
     RowData r{.id = id, .type = type, .title = titleItem->text(), .path = path, .url = url};
 
@@ -240,9 +262,15 @@ void BrowseTabWidget::onGetAllButtonClicked() {
 void BrowseTabWidget::onSearchButtonClicked() {
     // IIFE: Biểu thức lambda được định nghĩa và gọi ngay lập tức ()
     QString const mode = [this]() -> QString {
-        if (m_titleRad->isChecked()) { return "title"; }
-        if (m_contentRad->isChecked()) { return "content"; }
-        if (m_tagRad->isChecked()) { return "tag"; }
+        if (m_titleRad->isChecked()) {
+            return "title";
+        }
+        if (m_contentRad->isChecked()) {
+            return "content";
+        }
+        if (m_tagRad->isChecked()) {
+            return "tag";
+        }
         // Luôn phải có return cuối cùng cho các trường hợp còn lại
         return "all";
     }(); // Dấu ngoặc () ở cuối để gọi lambda ngay lập tức

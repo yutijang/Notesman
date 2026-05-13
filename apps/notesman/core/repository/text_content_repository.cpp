@@ -19,11 +19,12 @@ void TextContentRepository::insertText(sqlite3_int64 resourceId, std::string_vie
     SQLiteStmt stmt(m_db.get(), sql);
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, text.data(), static_cast<int>(text.size()),
-                                        SQLITE_TRANSIENT),
-                      m_db.get());
-    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE,
-                      "Insert content failed for resource ID");
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 2, text.data(), static_cast<int>(text.size()), SQLITE_TRANSIENT),
+        m_db.get());
+    sqlite::checkStep(
+        stmt.step(), m_db.get(), SQLITE_DONE, "Insert content failed for resource ID");
 }
 
 std::optional<std::string> TextContentRepository::getTextById(sqlite3_int64 resourceId) {
@@ -35,12 +36,16 @@ std::optional<std::string> TextContentRepository::getTextById(sqlite3_int64 reso
 
     int const rc = stmt.step();
     if (rc == SQLITE_ROW) {
-        if (sqlite3_column_type(stmt.get(), 0) != SQLITE_NULL) { return stmt.getColumnText(0); }
+        if (sqlite3_column_type(stmt.get(), 0) != SQLITE_NULL) {
+            return stmt.getColumnText(0);
+        }
         // Giá trị trả về trong lệnh truy vấn có chỉ số bắt đầu là 0 và vì chỉ
         // truy vấn 1 cột content nên giá trị iCol trong sqlite3_column_text() là 0
     }
 
-    if (rc == SQLITE_DONE) { return std::nullopt; }
+    if (rc == SQLITE_DONE) {
+        return std::nullopt;
+    }
 
     sqlite::checkStep(rc, m_db.get(), SQLITE_ROW, "getTextById");
 
@@ -52,9 +57,10 @@ void TextContentRepository::updateText(sqlite3_int64 resourceId, std::string_vie
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, newText.data(),
-                                        static_cast<int>(newText.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, newText.data(), static_cast<int>(newText.size()), SQLITE_TRANSIENT),
+        m_db.get());
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 2, resourceId), m_db.get());
     sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE, "updateText");
 
@@ -82,7 +88,9 @@ std::vector<std::pair<sqlite3_int64, std::string>> TextContentRepository::getAll
 
     std::vector<std::pair<sqlite3_int64, std::string>> results;
 
-    while (stmt.step() == SQLITE_ROW) { results.emplace_back(rowToEntry(stmt)); }
+    while (stmt.step() == SQLITE_ROW) {
+        results.emplace_back(rowToEntry(stmt));
+    }
 
     return results;
 }
@@ -103,12 +111,15 @@ std::vector<std::pair<sqlite3_int64, std::string>>
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, keyword.data(),
-                                        static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, keyword.data(), static_cast<int>(keyword.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     std::vector<std::pair<sqlite3_int64, std::string>> result;
-    while (stmt.step() == SQLITE_ROW) { result.emplace_back(rowToEntry(stmt)); }
+    while (stmt.step() == SQLITE_ROW) {
+        result.emplace_back(rowToEntry(stmt));
+    }
 
     return result;
 }

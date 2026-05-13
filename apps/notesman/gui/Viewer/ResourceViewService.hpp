@@ -7,15 +7,15 @@
 #include <sqlite3.h>
 
 class ResourceViewService {
-    public:
-        explicit ResourceViewService(NotesAppCore& core);
+  public:
+    explicit ResourceViewService(NotesAppCore& core);
 
-        // LOAD
-        [[nodiscard]] std::optional<QString> loadTextResource(sqlite3_int64 resourceId) const;
+    // LOAD
+    [[nodiscard]] std::optional<QString> loadTextResource(sqlite3_int64 resourceId) const;
 
-        // SAVE
-        void saveTextResource(sqlite3_int64 resourceId, QString const& content) const;
+    // SAVE
+    void saveTextResource(sqlite3_int64 resourceId, QString const& content) const;
 
-    private:
-        NotesAppCore& m_core;
+  private:
+    NotesAppCore& m_core;
 };

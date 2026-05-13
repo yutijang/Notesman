@@ -36,7 +36,9 @@ WebView2Widget::WebView2Widget(QWidget* parent) : QWidget(parent) {
 }
 
 WebView2Widget::~WebView2Widget() {
-    if (m_controller != nullptr) { m_controller->Close(); }
+    if (m_controller != nullptr) {
+        m_controller->Close();
+    }
 }
 
 void WebView2Widget::showEvent(QShowEvent* e) {
@@ -146,7 +148,9 @@ void WebView2Widget::initWebView() {
                                         LPWSTR uri{};
                                         args->get_Uri(&uri);
 
-                                        if (!uri) { return S_OK; }
+                                        if (!uri) {
+                                            return S_OK;
+                                        }
 
                                         QUrl target = QUrl(QString::fromWCharArray(uri));
                                         CoTaskMemFree(uri);
@@ -237,7 +241,9 @@ void WebView2Widget::loadFile(QString const& path) {
 }
 
 void WebView2Widget::find(QString const& text, bool backward) {
-    if ((m_webview == nullptr) || text.isEmpty()) { return; }
+    if ((m_webview == nullptr) || text.isEmpty()) {
+        return;
+    }
 
     QString const js = QString("window.find(\"%1\", false, %2, true, false, true, false);")
                            .arg(escapeJsString(text), backward ? "true" : "false");

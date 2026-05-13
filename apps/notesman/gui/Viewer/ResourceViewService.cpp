@@ -13,27 +13,35 @@ ResourceViewService::ResourceViewService(NotesAppCore& core) : m_core(core) {}
 
 std::optional<QString> ResourceViewService::loadTextResource(sqlite3_int64 resourceId) const {
     auto const fullResOpt = m_core.getFullResource(resourceId);
-    if (!fullResOpt) { return std::nullopt; }
+    if (!fullResOpt) {
+        return std::nullopt;
+    }
 
     auto const& fullRes = *fullResOpt;
 
     if (fullRes.filepath.has_value()) {
         QFile file(QString::fromStdString(*fullRes.filepath));
 
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) { return std::nullopt; }
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            return std::nullopt;
+        }
 
         QTextStream in(&file);
         return in.readAll();
     }
 
-    if (fullRes.content.has_value()) { return QString::fromStdString(*fullRes.content); }
+    if (fullRes.content.has_value()) {
+        return QString::fromStdString(*fullRes.content);
+    }
 
     return std::nullopt;
 }
 
 void ResourceViewService::saveTextResource(sqlite3_int64 resourceId, QString const& content) const {
     auto const fullResOpt = m_core.getFullResource(resourceId);
-    if (!fullResOpt) { return; }
+    if (!fullResOpt) {
+        return;
+    }
 
     auto const& fullRes = *fullResOpt;
 

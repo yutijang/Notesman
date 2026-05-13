@@ -7,25 +7,25 @@ class PlainTextEdit;
 class QEvent;
 
 class CodeEditorLineHighlighter final : public QObject {
-        Q_OBJECT
+    Q_OBJECT
 
-    public:
-        explicit CodeEditorLineHighlighter(PlainTextEdit* editor);
+  public:
+    explicit CodeEditorLineHighlighter(PlainTextEdit* editor);
 
-        // Đặt màu nền khi có focus và mất focus
-        void setColors(QColor const& background, QColor const& blurBackground);
+    // Đặt màu nền khi có focus và mất focus
+    void setColors(QColor const& background, QColor const& blurBackground);
 
-    protected:
-        // Ghi đè eventFilter để bắt sự kiện FocusIn và FocusOut của QTextEdit
-        bool eventFilter(QObject* obj, QEvent* event) override;
+  protected:
+    // Ghi đè eventFilter để bắt sự kiện FocusIn và FocusOut của QTextEdit
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
-    private: // NOLINT(readability-redundant-access-specifiers)
-        // Phương thức xử lý thay đổi focus và bật/tắt highlight
-        void updateHighlighting(bool hasFocus);
+  private: // NOLINT(readability-redundant-access-specifiers)
+    // Phương thức xử lý thay đổi focus và bật/tắt highlight
+    void updateHighlighting(bool hasFocus);
 
-        void highlightCurrentLine();                 // Cập nhật highlight khi con trỏ thay đổi
+    void highlightCurrentLine();                 // Cập nhật highlight khi con trỏ thay đổi
 
-        PlainTextEdit* m_editor;
-        QColor m_background = QColor("#dBdBdB");     // Màu nền dòng khi CÓ focus
-        QColor m_blurBackground = QColor("#efefef"); // Màu nền dòng khi MẤT focus
+    PlainTextEdit* m_editor;
+    QColor m_background = QColor("#dBdBdB");     // Màu nền dòng khi CÓ focus
+    QColor m_blurBackground = QColor("#efefef"); // Màu nền dòng khi MẤT focus
 };

@@ -31,8 +31,8 @@ enum class ResourceType : std::uint8_t {
 };
 
 struct ResourceTypeMeta {
-        ResourceType type;
-        std::string_view key;
+    ResourceType type;
+    std::string_view key;
 };
 
 inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceType::Count) - 1>
@@ -84,7 +84,9 @@ inline std::unordered_map<std::string_view, ResourceType> const K_EXT_MAP{
 
 [[nodiscard]] inline std::string_view resourceTypeToString(ResourceType type) noexcept {
     for (auto const& m : K_RESOURCE_TYPE_TABLE) {
-        if (m.type == type) { return m.key; }
+        if (m.type == type) {
+            return m.key;
+        }
     }
     assert(false && "Invalid ResourceType");
     std::unreachable();
@@ -92,13 +94,17 @@ inline std::unordered_map<std::string_view, ResourceType> const K_EXT_MAP{
 
 [[nodiscard]] inline ResourceType resourceTypeFromString(std::string_view str) {
     for (auto const& m : K_RESOURCE_TYPE_TABLE) {
-        if (m.key == str) { return m.type; }
+        if (m.key == str) {
+            return m.type;
+        }
     }
     throw std::runtime_error(std::format("Unknown ResourceType: {}", str));
 }
 
 [[nodiscard]] inline std::optional<ResourceType> resourceTypeFromExtension(std::string_view ext) {
-    if (auto it = K_EXT_MAP.find(ext); it != K_EXT_MAP.end()) { return it->second; }
+    if (auto it = K_EXT_MAP.find(ext); it != K_EXT_MAP.end()) {
+        return it->second;
+    }
     return std::nullopt;
 }
 
@@ -109,40 +115,40 @@ inline std::unordered_map<std::string_view, ResourceType> const K_EXT_MAP{
 }
 
 struct Resource {
-        sqlite3_int64 id{};    //> id của resource
-        std::string uuid;
+    sqlite3_int64 id{};     //> id của resource
+    std::string uuid;
 
-        std::string title;     //> tiêu đề của tài nguyên
-        ResourceType type;     //> plainText, cCppCode, htmlDoc, pdfDoc, epubDoc for viewer/behavior
-        std::string file_hash; //> hash file (có thể rỗng nếu là text)
-                               //
-        std::string created_at; //> timestamp tạo
-        std::string updated_at; //> timestamp cập nhật
+    std::string title;      //> tiêu đề của tài nguyên
+    ResourceType type;      //> plainText, cCppCode, htmlDoc, pdfDoc, epubDoc for viewer/behavior
+    std::string file_hash;  //> hash file (có thể rỗng nếu là text)
+                            //
+    std::string created_at; //> timestamp tạo
+    std::string updated_at; //> timestamp cập nhật
 };
 
 struct FullResource {
-        Resource resource;
-        std::optional<std::string> content;
-        std::optional<std::string> filepath;
-        std::optional<std::string> url;
-        std::vector<std::string> tags;
+    Resource resource;
+    std::optional<std::string> content;
+    std::optional<std::string> filepath;
+    std::optional<std::string> url;
+    std::vector<std::string> tags;
 };
 
 struct FileEntry {
-        sqlite3_int64 resource_id{};
-        std::optional<std::string> stored_path;
-        std::string original_path;
-        bool is_managed{};
+    sqlite3_int64 resource_id{};
+    std::optional<std::string> stored_path;
+    std::string original_path;
+    bool is_managed{};
 };
 
 struct UrlEntry {
-        sqlite3_int64 resource_id{}; // id của resource
-        std::string url;             // raw url người dùng nhập
-        std::string normalized_url;  // canonical form
-        std::string domain;          // ví dụ: w3schools.com
+    sqlite3_int64 resource_id{}; // id của resource
+    std::string url;             // raw url người dùng nhập
+    std::string normalized_url;  // canonical form
+    std::string domain;          // ví dụ: w3schools.com
 };
 
-using RFBits = std::uint16_t;        // ResourceFlagBits
+using RFBits = std::uint16_t;    // ResourceFlagBits
 
 // Bitmask
 enum class ResourceFlags : RFBits {
@@ -192,11 +198,11 @@ constexpr bool hasAnyFlags(ResourceFlags value, ResourceFlags flags) noexcept {
 }
 
 struct UnifiedSearchResult {
-        Resource res;
-        std::string displaySubText;
-        std::optional<std::string> rawSnippet;
-        std::optional<std::string> filePath;
-        std::optional<std::string> url;
-        std::vector<std::string> tags;
-        ResourceFlags flags;
+    Resource res;
+    std::string displaySubText;
+    std::optional<std::string> rawSnippet;
+    std::optional<std::string> filePath;
+    std::optional<std::string> url;
+    std::vector<std::string> tags;
+    ResourceFlags flags;
 };

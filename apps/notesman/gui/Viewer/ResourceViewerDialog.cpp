@@ -27,7 +27,8 @@
 #include <utility>
 
 ResourceViewerDialog::ResourceViewerDialog(QString const& title,
-                                           std::unique_ptr<IResourceViewer> viewer, QWidget* parent)
+                                           std::unique_ptr<IResourceViewer> viewer,
+                                           QWidget* parent)
     : QDialog(parent), m_viewer(std::move(viewer)) {
     Q_ASSERT(m_viewer);
 
@@ -42,7 +43,9 @@ ResourceViewerDialog::ResourceViewerDialog(QString const& title,
 void ResourceViewerDialog::showEvent(QShowEvent* event) {
     QDialog::showEvent(event);
 
-    if (m_geometryRestored) { return; }
+    if (m_geometryRestored) {
+        return;
+    }
 
     // adjustSize();
     restoreGeometryLogic();
@@ -74,11 +77,15 @@ void ResourceViewerDialog::setupUi(QString const& title) {
 
     setLayout(layout);
 
-    if (m_viewer) { layout->addWidget(m_viewer->widget()); }
+    if (m_viewer) {
+        layout->addWidget(m_viewer->widget());
+    }
 }
 
 void ResourceViewerDialog::setupActions() {
-    if (!m_viewer) { return; }
+    if (!m_viewer) {
+        return;
+    }
 
     auto* toolbar = new QToolBar(this);
     toolbar->setObjectName("ResourceViewerToolbar");
@@ -123,7 +130,9 @@ void ResourceViewerDialog::restoreGeometryLogic() {
     resize(finalSize);
 
     QScreen* scr = screen();
-    if (scr == nullptr) { scr = QGuiApplication::primaryScreen(); }
+    if (scr == nullptr) {
+        scr = QGuiApplication::primaryScreen();
+    }
     Q_ASSERT(scr);
 
     QRect const screenGeom = scr->availableGeometry();
@@ -150,12 +159,16 @@ void ResourceViewerDialog::restoreGeometryLogic() {
 
 QRect ResourceViewerDialog::ensureOnScreen(QRect const& rect) const {
     QScreen* scr = screen();
-    if (scr == nullptr) { scr = QGuiApplication::primaryScreen(); }
+    if (scr == nullptr) {
+        scr = QGuiApplication::primaryScreen();
+    }
     Q_ASSERT(scr);
 
     QRect const screenGeom = scr->availableGeometry();
 
-    if (screenGeom.intersects(rect)) { return rect; }
+    if (screenGeom.intersects(rect)) {
+        return rect;
+    }
 
     QRect fixed = rect;
     fixed.moveCenter(screenGeom.center());

@@ -57,7 +57,9 @@ bool DatabaseChecker::checkIntegrity(std::vector<std::string>& messages) {
 std::optional<int> DatabaseChecker::getDBVersion() {
     SQLiteStmt stmt(m_db.get(), "PRAGMA user_version;");
 
-    if (stmt.step() != SQLITE_ROW) { return std::nullopt; }
+    if (stmt.step() != SQLITE_ROW) {
+        return std::nullopt;
+    }
 
     return sqlite3_column_int(stmt.get(), 0);
 }

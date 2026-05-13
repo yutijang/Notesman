@@ -18,10 +18,12 @@ PlainTextEdit::PlainTextEdit(QWidget* parent)
     : QPlainTextEdit(parent), m_lineNumberArea(new LineNumberArea(this)) {
     setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
 
-    connect(this, &QPlainTextEdit::blockCountChanged, this,
-            &PlainTextEdit::updateLineNumberAreaWidth);
+    connect(
+        this, &QPlainTextEdit::blockCountChanged, this, &PlainTextEdit::updateLineNumberAreaWidth);
     connect(this, &QPlainTextEdit::updateRequest, this, &PlainTextEdit::updateLineNumberArea);
-    connect(this, &QPlainTextEdit::cursorPositionChanged, this, [this]() { viewport()->update(); });
+    connect(this, &QPlainTextEdit::cursorPositionChanged, this, [this]() {
+        viewport()->update();
+    });
 
     // setLineWrapMode(QTextEdit::WidgetWidth);
 
@@ -60,7 +62,9 @@ void PlainTextEdit::updateLineNumberArea(QRect const& rect, int dy) {
         m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->width(), rect.height());
     }
 
-    if (rect.contains(viewport()->rect())) { updateLineNumberAreaWidth(); }
+    if (rect.contains(viewport()->rect())) {
+        updateLineNumberAreaWidth();
+    }
 }
 
 void PlainTextEdit::resizeEvent(QResizeEvent* event) {

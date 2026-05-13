@@ -37,7 +37,9 @@ NotesCoreFactory::CoreInitResult NotesCoreFactory::createCore(std::filesystem::p
             (errorHandler != nullptr) &&
             errorHandler->askQuestion("Database Missing",
                                       "No database found. Would you like to create a new one?");
-        if (!wantsCreate) { return CoreInitResult(InitFailureReason::UserCancelled); }
+        if (!wantsCreate) {
+            return CoreInitResult(InitFailureReason::UserCancelled);
+        }
 
         if (!internalCreateDatabase(dbPath, errorHandler)) {
             return CoreInitResult(InitFailureReason::OpenFailed);
@@ -69,9 +71,12 @@ NotesCoreFactory::CoreInitResult NotesCoreFactory::createCore(std::filesystem::p
             bool const wantsRecreate =
                 (errorHandler != nullptr) &&
                 errorHandler->askQuestion(
-                    "Invalid Database", "The existing file is not a valid SQLite database.\nWould "
-                                        "you like to recreate it?");
-            if (!wantsRecreate) { return CoreInitResult(InitFailureReason::UserCancelled); }
+                    "Invalid Database",
+                    "The existing file is not a valid SQLite database.\nWould "
+                    "you like to recreate it?");
+            if (!wantsRecreate) {
+                return CoreInitResult(InitFailureReason::UserCancelled);
+            }
 
             if (!internalCreateDatabase(dbPath, errorHandler)) {
                 return CoreInitResult(InitFailureReason::OpenFailed);
@@ -132,12 +137,16 @@ NotesCoreFactory::CoreInitResult NotesCoreFactory::createCore(std::filesystem::p
         ctx->fileService =
             std::make_unique<FileService>(*ctx->fileRepo, *ctx->resRepo, *ctx->fileTextRepo);
         ctx->urlService = std::make_unique<UrlService>(*ctx->urlRepo, *ctx->resRepo);
-        ctx->resService = std::make_unique<ResourceService>(*ctx->db, *ctx->resRepo, *ctx->fileRepo,
-                                                            *ctx->textRepo, *ctx->tagRepo,
-                                                            *ctx->fileService, *ctx->urlService);
+        ctx->resService = std::make_unique<ResourceService>(*ctx->db,
+                                                            *ctx->resRepo,
+                                                            *ctx->fileRepo,
+                                                            *ctx->textRepo,
+                                                            *ctx->tagRepo,
+                                                            *ctx->fileService,
+                                                            *ctx->urlService);
 
-        ctx->core = std::make_unique<NotesAppCore>(*ctx->textRepo, *ctx->fileService,
-                                                   *ctx->urlService, *ctx->resService);
+        ctx->core = std::make_unique<NotesAppCore>(
+            *ctx->textRepo, *ctx->fileService, *ctx->urlService, *ctx->resService);
 
         return CoreInitResult(std::move(ctx));
 
@@ -158,7 +167,9 @@ bool NotesCoreFactory::internalCreateDatabase(std::filesystem::path const& dbPat
     if (!schemaFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QString const errMsg = QString("Schema resource not found: %1").arg(schemaResourcePath);
         Log::err(errMsg.toStdString());
-        if (errorHandler != nullptr) { errorHandler->showError("Error", errMsg); }
+        if (errorHandler != nullptr) {
+            errorHandler->showError("Error", errMsg);
+        }
         return false;
     }
 
@@ -187,7 +198,9 @@ NotesCoreFactory::InitFailureReason NotesCoreFactory::internalVerifyDatabase(SQL
 
     if (std::vector<std::string> issues; !checker.checkIntegrity(issues)) {
         std::string errMsg;
-        for (auto const& e : issues) { errMsg += e + "\n"; }
+        for (auto const& e : issues) {
+            errMsg += e + "\n";
+        }
         Log::err("Database integrity check failed:\n{}", errMsg);
         return InitFailureReason::VerifyDBCorrupted;
     }
@@ -199,7 +212,8 @@ NotesCoreFactory::InitFailureReason NotesCoreFactory::internalVerifyDatabase(SQL
     }
 
     if (int const currentVersion = *verOpt; currentVersion < app::meta::SCHEMA_VERSION) {
-        Log::err("Database version is outdated, current: {}, required: {}", currentVersion,
+        Log::err("Database version is outdated, current: {}, required: {}",
+                 currentVersion,
                  app::meta::SCHEMA_VERSION);
         return InitFailureReason::DBOutdated;
     }

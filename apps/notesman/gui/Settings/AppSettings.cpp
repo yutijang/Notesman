@@ -11,16 +11,22 @@
 #include <utility>
 
 bool AppSettings::load(std::filesystem::path const& path) {
-    if (!std::filesystem::exists(path)) { return false; }
+    if (!std::filesystem::exists(path)) {
+        return false;
+    }
 
     std::ifstream file(path);
-    if (!file.is_open()) { return false; }
+    if (!file.is_open()) {
+        return false;
+    }
 
     std::unordered_map<std::string, std::string> kv;
     std::string line;
     while (std::getline(file, line)) {
         auto pos = line.find('=');
-        if (pos == std::string::npos) { continue; }
+        if (pos == std::string::npos) {
+            continue;
+        }
 
         std::string key = line.substr(0, pos);
         std::string value = line.substr(pos + 1);
@@ -67,10 +73,14 @@ bool AppSettings::load(std::filesystem::path const& path) {
 }
 
 bool AppSettings::save(std::filesystem::path const& path) const {
-    if (!m_dirty) { return true; }
+    if (!m_dirty) {
+        return true;
+    }
 
     std::ofstream file(path, std::ios::trunc);
-    if (!file.is_open()) { return false; }
+    if (!file.is_open()) {
+        return false;
+    }
 
     file << "theme=" << (m_theme == UiConst::Theme::Light ? "light" : "dark") << "\n";
     file << "language=" << (m_language == UiConst::Language::English ? "en" : "vi") << "\n";

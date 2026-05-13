@@ -24,16 +24,22 @@ WebView2Guard::WebView2Guard() {
 }
 
 WebView2Guard::~WebView2Guard() {
-    if (m_loader != nullptr) { FreeLibrary(m_loader); }
+    if (m_loader != nullptr) {
+        FreeLibrary(m_loader);
+    }
 }
 
 void WebView2Guard::loadLoader() {
     m_loader = LoadLibraryW(L"WebView2Loader.dll");
-    if (m_loader == nullptr) { m_status = Status::LoaderMissing; }
+    if (m_loader == nullptr) {
+        m_status = Status::LoaderMissing;
+    }
 }
 
 void WebView2Guard::resolveFunctions() {
-    if (m_loader == nullptr) { return; }
+    if (m_loader == nullptr) {
+        return;
+    }
 
     m_getVersion = reinterpret_cast<FnGetVersion>(
         GetProcAddress(m_loader, "GetAvailableCoreWebView2BrowserVersionString"));
@@ -72,7 +78,9 @@ std::wstring WebView2Guard::runtimeVersion() const {
 HRESULT WebView2Guard::createEnvironment(
     wchar_t const* userDataDir,
     ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler* handler) const {
-    if (!available()) { return E_FAIL; }
+    if (!available()) {
+        return E_FAIL;
+    }
 
     return m_createEnv(nullptr,     // browserExecutableFolder
                        userDataDir, // userDataFolder

@@ -90,9 +90,9 @@
 #endif
 
 namespace {
-    constexpr int GUI_WIDTH{1200};
-    constexpr int GUI_HEIGHT{800};
-    constexpr int DL_MAX_PERCENT{100};
+constexpr int GUI_WIDTH{1200};
+constexpr int GUI_HEIGHT{800};
+constexpr int DL_MAX_PERCENT{100};
 } // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
@@ -121,16 +121,18 @@ void MainWindow::buildUi() {
 void MainWindow::setupBrowseTab() {
     m_browseTab = new BrowseTabWidget(this);
 
-    QObject::connect(m_browseTab, &BrowseTabWidget::resourceDoubleClicked, this,
-                     &MainWindow::viewResource);
+    QObject::connect(
+        m_browseTab, &BrowseTabWidget::resourceDoubleClicked, this, &MainWindow::viewResource);
 
-    QObject::connect(m_browseTab, &BrowseTabWidget::contextMenuRequested, this,
-                     &MainWindow::showContextMenu);
+    QObject::connect(
+        m_browseTab, &BrowseTabWidget::contextMenuRequested, this, &MainWindow::showContextMenu);
 
-    QObject::connect(m_browseTab, &BrowseTabWidget::statusUpdateRequest, this,
-                     &MainWindow::updateStatus);
+    QObject::connect(
+        m_browseTab, &BrowseTabWidget::statusUpdateRequest, this, &MainWindow::updateStatus);
 
-    QObject::connect(this, &MainWindow::updateColumnWidthsRequest, m_browseTab,
+    QObject::connect(this,
+                     &MainWindow::updateColumnWidthsRequest,
+                     m_browseTab,
                      &BrowseTabWidget::updateColumnWidths);
 
     m_resultsTbl = m_browseTab->resultsTable();
@@ -140,7 +142,9 @@ void MainWindow::setupBrowseTab() {
     m_deleteResourceAction->setEnabled(false);
     m_resultsTbl->addAction(m_deleteResourceAction);
 
-    QObject::connect(m_resultsTbl->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+    QObject::connect(m_resultsTbl->selectionModel(),
+                     &QItemSelectionModel::selectionChanged,
+                     this,
                      [this](QItemSelection const& sel, QItemSelection const&) {
                          m_deleteResourceAction->setEnabled(!sel.isEmpty());
                      });
@@ -157,14 +161,18 @@ void MainWindow::setupAddTab() {
 void MainWindow::setupSettingsTab() {
     m_settingsTab = new SettingsTabWidget(this);
 
-    QObject::connect(this, &MainWindow::settingsTabShowNotification, m_settingsTab,
+    QObject::connect(this,
+                     &MainWindow::settingsTabShowNotification,
+                     m_settingsTab,
                      &SettingsTabWidget::showNotification);
 
-    QObject::connect(this, &MainWindow::settingsStateChangeRequest, m_settingsTab,
+    QObject::connect(this,
+                     &MainWindow::settingsStateChangeRequest,
+                     m_settingsTab,
                      &SettingsTabWidget::handleSettingsStateChange);
 
-    QObject::connect(m_settingsTab, &SettingsTabWidget::statusUpdateRequest, this,
-                     &MainWindow::updateStatus);
+    QObject::connect(
+        m_settingsTab, &SettingsTabWidget::statusUpdateRequest, this, &MainWindow::updateStatus);
 
     m_tabWidget->addTab(m_settingsTab, QIcon(":/icons/settings_tab.ico"), tr("Settings"));
 }
@@ -173,7 +181,9 @@ void MainWindow::setupIconInfo() {
     m_infoWidget = new InfoCornerWidget(this);
     m_tabWidget->setCornerWidget(m_infoWidget, Qt::TopRightCorner);
 
-    QObject::connect(m_infoWidget, &InfoCornerWidget::checkUpdateRequested, this,
+    QObject::connect(m_infoWidget,
+                     &InfoCornerWidget::checkUpdateRequested,
+                     this,
                      &MainWindow::onCheckUpdateClicked);
 
     QObject::connect(m_infoWidget, &InfoCornerWidget::aboutRequested, this, &MainWindow::onAbout);
@@ -238,8 +248,11 @@ void MainWindow::setCore(NotesAppCore* core) {
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const& title,
-                              QString const& path, QString const& url) {
+void MainWindow::viewResource(std::int64_t id,
+                              ResourceType type,
+                              QString const& title,
+                              QString const& path,
+                              QString const& url) {
     // Query packer process — kiểm tra resourceId có đang mở trong packer không
     auto const uuidOpt = m_core->getResourceUuid(id);
     if (!uuidOpt) {
@@ -264,14 +277,23 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const&
     QString const absolutePath =
         CorePaths::resolveResourcePath(path, m_appController->resourceDir());
 
-    auto viewer = ResourceViewerFactory::create(id, type, title, absolutePath, url,
+    auto viewer = ResourceViewerFactory::create(id,
+                                                type,
+                                                title,
+                                                absolutePath,
+                                                url,
                                                 m_appController->currentTheme(),
-                                                *m_resourceViewService, this);
-    if (!viewer) { return; }
+                                                *m_resourceViewService,
+                                                this);
+    if (!viewer) {
+        return;
+    }
     {
 #ifdef Q_OS_LINUX
         if (viewer->usesExternalWindow()) {
-            if (m_viewerLocked) { return; }
+            if (m_viewerLocked) {
+                return;
+            }
 
             m_viewerLocked = true;
             this->setEnabled(false);
@@ -292,8 +314,10 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const&
 
             m_externalViewer = std::move(viewer);
 
-            QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                             this, [this]() {
+            QObject::connect(proc,
+                             QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                             this,
+                             [this]() {
                                  m_externalViewer.reset(); // delete HtmlViewer
                                  m_viewerLocked = false;
                                  this->setEnabled(true);
@@ -306,13 +330,19 @@ void MainWindow::viewResource(std::int64_t id, ResourceType type, QString const&
     auto* dlg = new ResourceViewerDialog{title, std::move(viewer), this};
 
     Q_EMIT viewerDialogOpened(id, dlg);
-    QObject::connect(dlg, &QDialog::finished, [this, id]() { Q_EMIT viewerDialogClosed(id); });
+    QObject::connect(dlg, &QDialog::finished, [this, id]() {
+        Q_EMIT viewerDialogClosed(id);
+    });
 
     dlg->exec();
 }
 
-void MainWindow::showContextMenu(QPoint const& pos, std::int64_t id, ResourceType type,
-                                 QString const& title, QString const& path, QString const& url) {
+void MainWindow::showContextMenu(QPoint const& pos,
+                                 std::int64_t id,
+                                 ResourceType type,
+                                 QString const& title,
+                                 QString const& path,
+                                 QString const& url) {
     if (m_browseTab == nullptr) {
         Log::warn("BrowseTabWidget not initialized!");
         return;
@@ -336,7 +366,9 @@ void MainWindow::showContextMenu(QPoint const& pos, std::int64_t id, ResourceTyp
     QObject::connect(addShortcutAction, &QAction::triggered, this, [this, id, title]() {
         try {
             m_appController->createPackerFile(id, title);
-        } catch (std::exception const& ex) { Log::err(ex.what()); }
+        } catch (std::exception const& ex) {
+            Log::err(ex.what());
+        }
     });
 
     menu.addSeparator();
@@ -363,26 +395,41 @@ void MainWindow::setAppController(AppController* controller) {
 
 // -----------------
 void MainWindow::setupSettingsConnections() {
-    QObject::connect(m_appController, &AppController::settingsLoaded, this,
+    QObject::connect(m_appController,
+                     &AppController::settingsLoaded,
+                     this,
                      [this](SettingsData const& settings) {
                          if (m_tabWidget->currentIndex() == 2) {
                              Q_EMIT settingsUiRefreshRequest(settings);
                          }
                      });
-    QObject::connect(this, &MainWindow::settingsUiRefreshRequest, m_settingsTab,
+    QObject::connect(this,
+                     &MainWindow::settingsUiRefreshRequest,
+                     m_settingsTab,
                      &SettingsTabWidget::handleUiRefreshRequest);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::defaultSettingsRequested, m_appController,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::defaultSettingsRequested,
+                     m_appController,
                      &AppController::handleDefaultSettingsRequest);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::applySettingsRequested, m_appController,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::applySettingsRequested,
+                     m_appController,
                      &AppController::handleApplySettingsRequest);
-    QObject::connect(m_appController, &AppController::settingsUpdateStatus, this,
-                     [this](QString const&, UiConst::SettingsMessageState state,
+    QObject::connect(m_appController,
+                     &AppController::settingsUpdateStatus,
+                     this,
+                     [this](QString const&,
+                            UiConst::SettingsMessageState state,
                             UiConst::SettingsTabNotiLevel /*unused*/) {
                          this->handleSettingsStateChange(state);
                      });
-    QObject::connect(m_appController, &AppController::settingsUpdateStatus, m_settingsTab,
+    QObject::connect(m_appController,
+                     &AppController::settingsUpdateStatus,
+                     m_settingsTab,
                      &SettingsTabWidget::showNotification);
-    QObject::connect(m_appController, &AppController::initialSettingsLoaded, m_settingsTab,
+    QObject::connect(m_appController,
+                     &AppController::initialSettingsLoaded,
+                     m_settingsTab,
                      &SettingsTabWidget::handleInitialSettingsLoad);
 }
 
@@ -399,98 +446,154 @@ void MainWindow::setupTabConnections() {
 }
 
 void MainWindow::setupBrowseConnections() {
-    QObject::connect(m_browseTab, &BrowseTabWidget::loadAllDataRequested, m_appController,
+    QObject::connect(m_browseTab,
+                     &BrowseTabWidget::loadAllDataRequested,
+                     m_appController,
                      &AppController::handleGetAllDataRequest);
-    QObject::connect(m_browseTab, &BrowseTabWidget::loadResourceByTypeRequested, m_appController,
+    QObject::connect(m_browseTab,
+                     &BrowseTabWidget::loadResourceByTypeRequested,
+                     m_appController,
                      &AppController::handleLoadResourceByTypeRequest);
-    QObject::connect(m_browseTab, &BrowseTabWidget::searchRequested, m_appController,
+    QObject::connect(m_browseTab,
+                     &BrowseTabWidget::searchRequested,
+                     m_appController,
                      &AppController::handleSearchRequest);
-    QObject::connect(m_appController, &AppController::displayResultForGetAll, m_browseTab,
+    QObject::connect(m_appController,
+                     &AppController::displayResultForGetAll,
+                     m_browseTab,
                      &BrowseTabWidget::displayResults);
-    QObject::connect(m_appController, &AppController::searchFinishedFromController, m_browseTab,
+    QObject::connect(m_appController,
+                     &AppController::searchFinishedFromController,
+                     m_browseTab,
                      &BrowseTabWidget::handleResultsSearchRequested);
 }
 
 void MainWindow::setupAddTabConnections() {
-    QObject::connect(m_addTab, &AddTabWidget::addNoteRequested, m_appController,
+    QObject::connect(m_addTab,
+                     &AddTabWidget::addNoteRequested,
+                     m_appController,
                      &AppController::handleAddNoteRequest);
-    QObject::connect(m_appController, &AppController::addTabNotiRequest, m_addTab,
+    QObject::connect(m_appController,
+                     &AppController::addTabNotiRequest,
+                     m_addTab,
                      &AddTabWidget::showNotification);
-    QObject::connect(m_appController, &AppController::resetAddTabInputsRequest, m_addTab,
+    QObject::connect(m_appController,
+                     &AppController::resetAddTabInputsRequest,
+                     m_addTab,
                      &AddTabWidget::resetAddTabInputs);
-    QObject::connect(m_addTab, &AddTabWidget::applySyntaxHighlighterRequest, this,
+    QObject::connect(m_addTab,
+                     &AddTabWidget::applySyntaxHighlighterRequest,
+                     this,
                      &MainWindow::handleSyntaxHighlightingFromAddTabRequested);
-    QObject::connect(m_appController, &AppController::requestSyntaxHighlightingUpdate, this,
+    QObject::connect(m_appController,
+                     &AppController::requestSyntaxHighlightingUpdate,
+                     this,
                      &MainWindow::handleSyntaxHighlightingUpdate);
 }
 
 void MainWindow::setupUpdateConnections() {
-    QObject::connect(this, &MainWindow::checkUpdateRequest, m_appController,
+    QObject::connect(this,
+                     &MainWindow::checkUpdateRequest,
+                     m_appController,
                      &AppController::handleCheckUpdateRequested);
-    QObject::connect(this, &MainWindow::updateDecision, m_appController,
-                     &AppController::onUpdateDecision);
+    QObject::connect(
+        this, &MainWindow::updateDecision, m_appController, &AppController::onUpdateDecision);
 }
 
 void MainWindow::setupGoogleDriveConnections() {
-    QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleLogin, m_appController,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::requestGoogleLogin,
+                     m_appController,
                      &AppController::handleLoginGMRequested);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::requestGoogleUnlink, m_appController,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::requestGoogleUnlink,
+                     m_appController,
                      &AppController::handleUnlinkGMRequested);
-    QObject::connect(m_appController, &AppController::gmailLinkedForView, m_settingsTab,
+    QObject::connect(m_appController,
+                     &AppController::gmailLinkedForView,
+                     m_settingsTab,
                      &SettingsTabWidget::handleAfterLinkAccount);
-    QObject::connect(m_appController, &AppController::gmailUnlinked, m_settingsTab,
+    QObject::connect(m_appController,
+                     &AppController::gmailUnlinked,
+                     m_settingsTab,
                      &SettingsTabWidget::handleAfterUnlinkAccount);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::cancelLoginRequested, m_appController,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::cancelLoginRequested,
+                     m_appController,
                      &AppController::cancelLoginRequestedForward);
-    QObject::connect(this, &MainWindow::loginFailedForward, m_settingsTab,
+    QObject::connect(this,
+                     &MainWindow::loginFailedForward,
+                     m_settingsTab,
                      &SettingsTabWidget::handleLoginFailed);
 }
 
 void MainWindow::setupDatabaseConnections() {
-    QObject::connect(m_settingsTab, &SettingsTabWidget::requestUpload, m_appController,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::requestUpload,
+                     m_appController,
                      &AppController::uploadDbAuto);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::requestDownload, m_appController,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::requestDownload,
+                     m_appController,
                      &AppController::downloadDbAuto);
-    QObject::connect(this, &MainWindow::startDownloadDBForward, m_settingsTab,
+    QObject::connect(this,
+                     &MainWindow::startDownloadDBForward,
+                     m_settingsTab,
                      &SettingsTabWidget::handleDownloadDBRequested);
-    QObject::connect(this, &MainWindow::startUploadDBForward, m_settingsTab,
+    QObject::connect(this,
+                     &MainWindow::startUploadDBForward,
+                     m_settingsTab,
                      &SettingsTabWidget::handleUploadDBRequested);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::requestDBInfo, m_appController,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::requestDBInfo,
+                     m_appController,
                      &AppController::handleGetDBInfoRequested);
-    QObject::connect(this, &MainWindow::returnDBInfoForward, m_settingsTab,
-                     &SettingsTabWidget::handleDBInfoGot);
-    QObject::connect(m_appController, &AppController::deleteDatabaseFileRespondForward,
-                     m_settingsTab, &SettingsTabWidget::handleDeleteDBFileRespond);
+    QObject::connect(
+        this, &MainWindow::returnDBInfoForward, m_settingsTab, &SettingsTabWidget::handleDBInfoGot);
+    QObject::connect(m_appController,
+                     &AppController::deleteDatabaseFileRespondForward,
+                     m_settingsTab,
+                     &SettingsTabWidget::handleDeleteDBFileRespond);
 }
 
 void MainWindow::setupCleanupConnections() {
-    QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController,
-                     [this] {
-                         auto result = AppController::cleanupOldEpubCacheNow();
-                         notiFromCleanupCacheResult(result, UiConst::CleanupMode::Epub);
-                     });
-    QObject::connect(m_settingsTab, &SettingsTabWidget::cleanupMDCacheNowRequest, m_appController,
-                     [this] {
-                         auto result = AppController::cleanupOldMarkdownCacheNow();
-                         notiFromCleanupCacheResult(result, UiConst::CleanupMode::Markdown);
-                     });
-    QObject::connect(this, &MainWindow::onCleanupFinished, m_settingsTab,
+    QObject::connect(
+        m_settingsTab, &SettingsTabWidget::cleanupEpubCacheNowRequest, m_appController, [this] {
+            auto result = AppController::cleanupOldEpubCacheNow();
+            notiFromCleanupCacheResult(result, UiConst::CleanupMode::Epub);
+        });
+    QObject::connect(
+        m_settingsTab, &SettingsTabWidget::cleanupMDCacheNowRequest, m_appController, [this] {
+            auto result = AppController::cleanupOldMarkdownCacheNow();
+            notiFromCleanupCacheResult(result, UiConst::CleanupMode::Markdown);
+        });
+    QObject::connect(this,
+                     &MainWindow::onCleanupFinished,
+                     m_settingsTab,
                      &SettingsTabWidget::handleButtonAfterCleanup);
 }
 
 void MainWindow::setupFileAssociationConnections() {
-    QObject::connect(this, &MainWindow::handleFileAssociationStatusRequest, m_settingsTab,
+    QObject::connect(this,
+                     &MainWindow::handleFileAssociationStatusRequest,
+                     m_settingsTab,
                      &SettingsTabWidget::handleFileAssociationStatus);
-    QObject::connect(m_settingsTab, &SettingsTabWidget::onFileAssociationBtnClicked,
-                     m_appController, &AppController::handleFileAssociationBtnRequest);
-    QObject::connect(m_appController, &AppController::refreshFileAssociationStatus, m_settingsTab,
+    QObject::connect(m_settingsTab,
+                     &SettingsTabWidget::onFileAssociationBtnClicked,
+                     m_appController,
+                     &AppController::handleFileAssociationBtnRequest);
+    QObject::connect(m_appController,
+                     &AppController::refreshFileAssociationStatus,
+                     m_settingsTab,
                      &SettingsTabWidget::handleFileAssociationStatus);
 }
 
 // -----------------
 
 void MainWindow::changeEvent(QEvent* event) {
-    if (event->type() == QEvent::LanguageChange) { retranslateUi(); }
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
     QMainWindow::changeEvent(event);
 }
 
@@ -536,7 +639,9 @@ void MainWindow::retranslateUi() {
 }
 
 void MainWindow::applySyntaxHighlightingTheme(UiConst::Theme theme) {
-    if (m_addTab->textEdit() == nullptr) { return; }
+    if (m_addTab->textEdit() == nullptr) {
+        return;
+    }
 
     // Chọn theme tô màu
     CppHighlighterTheme const hlTheme =
@@ -583,13 +688,16 @@ void MainWindow::onAbout() {
                        .arg(app::meta::WEBSITE));
 
     auto* msgLabel = msgBox.findChild<QLabel*>("qt_msgbox_label");
-    if (msgLabel != nullptr) { msgLabel->setStyleSheet("padding: 10px 30px 30px 10px;"); }
+    if (msgLabel != nullptr) {
+        msgLabel->setStyleSheet("padding: 10px 30px 30px 10px;");
+    }
 
     msgBox.setStandardButtons(QMessageBox::Ok);
 
     QPushButton* aboutQtButton = msgBox.addButton(tr("About Qt"), QMessageBox::ActionRole);
-    QObject::connect(aboutQtButton, &QPushButton::clicked, this,
-                     [this]() { QMessageBox::aboutQt(this); });
+    QObject::connect(aboutQtButton, &QPushButton::clicked, this, [this]() {
+        QMessageBox::aboutQt(this);
+    });
 
     msgBox.ensurePolished();
     msgBox.adjustSize();
@@ -627,7 +735,8 @@ void MainWindow::onUpdateAvailable(UpdateInfoSummary const& infoSummary) {
         (vPos >= 0 && vPos + 1 < relName.size()) ? relName.mid(vPos + 1) : QString{};
 
     auto const reply =
-        DialogUtils::showQuestion(this, tr("Update available"),
+        DialogUtils::showQuestion(this,
+                                  tr("Update available"),
                                   tr("A new version is available.\n\nCurrent version: %1\nNewer "
                                      "version: %2\n\nDo you want to download it?")
                                       .arg(app::meta::VERSION)
@@ -665,10 +774,14 @@ void MainWindow::onDownloadStarted() {
     m_progressDialog->show();
 
     QTimer::singleShot(0, this, [this] {
-        if (!m_progressDialog) { return; }
+        if (!m_progressDialog) {
+            return;
+        }
 
         QWidget* root = this->window();
-        if (!root) { return; }
+        if (!root) {
+            return;
+        }
 
         QRect const parentFrame = root->frameGeometry();
         QRect const dlgFrame = m_progressDialog->frameGeometry();
@@ -723,9 +836,12 @@ void MainWindow::onDownloadFinished(QString const& filePath) {
     }
 
     auto const reply = DialogUtils::showQuestion(
-        this, tr("Download complete"),
+        this,
+        tr("Download complete"),
         tr("The update package has been downloaded:\n%1\n\nDo you want update?").arg(filePath));
-    if (reply == QMessageBox::Yes) { runUpdate(filePath); }
+    if (reply == QMessageBox::Yes) {
+        runUpdate(filePath);
+    }
 }
 
 void MainWindow::handleDownloadFailCauseTimeout() {
@@ -743,8 +859,8 @@ void MainWindow::handleWindowsUpdate(QString const& filePath) {
 
     if (!QFile::exists(updaterPath)) {
         Log::err("Missing {}. Update failed!", kUpdaterName.toStdString());
-        DialogUtils::showError(this, tr("Error"),
-                               tr("Missing %1. Update failed!").arg(kUpdaterName));
+        DialogUtils::showError(
+            this, tr("Error"), tr("Missing %1. Update failed!").arg(kUpdaterName));
         return;
     }
 
@@ -768,7 +884,9 @@ void MainWindow::handleWindowsUpdate(QString const& filePath) {
 #elif defined(Q_OS_LINUX)
 void MainWindow::handleLinuxUpdate(QString const& filePath) {
     QString currentAppImage = qEnvironmentVariable("APPIMAGE");
-    if (currentAppImage.isEmpty()) { currentAppImage = QCoreApplication::arguments().first(); }
+    if (currentAppImage.isEmpty()) {
+        currentAppImage = QCoreApplication::arguments().first();
+    }
 
     QString const& downloadedAppImage = filePath;
 
@@ -778,8 +896,8 @@ void MainWindow::handleLinuxUpdate(QString const& filePath) {
     if (!AppImageExtractor::extractUpdater(downloadedAppImage, updaterTmpPath) ||
         !QFile::exists(updaterTmpPath)) {
         Log::err("Cannot extract updater from AppImage. Update failed!");
-        DialogUtils::showError(this, tr("Error"),
-                               tr("Cannot extract updater from AppImage. Update failed!"));
+        DialogUtils::showError(
+            this, tr("Error"), tr("Cannot extract updater from AppImage. Update failed!"));
         return;
     }
 
@@ -795,8 +913,8 @@ void MainWindow::handleLinuxUpdate(QString const& filePath) {
     pid_t pid = fork();
     if (pid == -1) {
         Log::err("Cannot start updater process. Update failed!");
-        DialogUtils::showError(this, tr("Error"),
-                               tr("Cannot start updater process. Update failed!"));
+        DialogUtils::showError(
+            this, tr("Error"), tr("Cannot start updater process. Update failed!"));
         return;
     }
 
@@ -823,14 +941,17 @@ void MainWindow::handleLinuxUpdate(QString const& filePath) {
         // Optional: close inherited fds (File Descriptors (FD))
         // except stdin/out/err (helps avoid fd leaks)
         long maxFks = sysconf(_SC_OPEN_MAX);
-        for (int fd = 3; fd < maxFks; ++fd) { ::close(fd); }
+        for (int fd = 3; fd < maxFks; ++fd) {
+            ::close(fd);
+        }
 
         // Exec: if returns, it failed — write errno to logfile for debug
         ::execv(upC, argvExec);
 
         // exec failed -> log and exit
         int err = errno;
-        int fd = ::open("/tmp/notesman-updater.err", O_WRONLY | O_CREAT | O_TRUNC,
+        int fd = ::open("/tmp/notesman-updater.err",
+                        O_WRONLY | O_CREAT | O_TRUNC,
                         0644); // NOLINT(readability-magic-numbers)
         if (fd != -1) {
             char const* msg = "execv failed: ";
@@ -882,9 +1003,13 @@ void MainWindow::handleSyntaxHighlightingFromAddTabRequested(bool checked) {
 }
 
 void MainWindow::disableSyntaxHighlightingTheme() {
-    if (m_addTab->textEdit() == nullptr) { return; }
+    if (m_addTab->textEdit() == nullptr) {
+        return;
+    }
 
-    if (m_cppHighlighter != nullptr) { m_cppHighlighter->stopGradualRehighlight(); }
+    if (m_cppHighlighter != nullptr) {
+        m_cppHighlighter->stopGradualRehighlight();
+    }
 
     delete m_cppHighlighter;
     m_cppHighlighter = nullptr;
@@ -903,10 +1028,14 @@ QAction* MainWindow::createDeleteAction(QObject* parent) const {
 
 void MainWindow::deleteSelectedResources() {
     auto* table = m_resultsTbl;
-    if (table == nullptr) { return; }
+    if (table == nullptr) {
+        return;
+    }
 
     auto const selectedRows = m_resultsTbl->selectionModel()->selectedRows();
-    if (selectedRows.isEmpty()) { return; }
+    if (selectedRows.isEmpty()) {
+        return;
+    }
 
     std::vector<sqlite3_int64> idsToDelete;
     auto const idsToDelCount =
@@ -917,15 +1046,21 @@ void MainWindow::deleteSelectedResources() {
     if (idsToDelCount == 1) {
         auto const& index = selectedRows[0];
         auto* itemSel = table->item(index.row(), 1);
-        if (itemSel != nullptr) { textSel = itemSel->text(); }
+        if (itemSel != nullptr) {
+            textSel = itemSel->text();
+        }
     }
 
     for (QModelIndex const& idx : selectedRows) {
         sqlite3_int64 const id = extractIdFromRow(table, idx.row());
-        if (id > 0) { idsToDelete.push_back(id); }
+        if (id > 0) {
+            idsToDelete.push_back(id);
+        }
     }
 
-    if (!confirmDelete(idsToDelCount, textSel)) { return; }
+    if (!confirmDelete(idsToDelCount, textSel)) {
+        return;
+    }
 
     removeSelectedRowsFromTable(table, selectedRows);
 
@@ -945,25 +1080,33 @@ void MainWindow::notifyDeleteResult(std::size_t const& count, QString const& nam
 }
 
 void MainWindow::deleteResourcesByIds(std::vector<sqlite3_int64> const& idsToDelete) {
-    if (idsToDelete.empty()) { return; }
+    if (idsToDelete.empty()) {
+        return;
+    }
 
     m_core->deleteResources(idsToDelete);
 }
 
 sqlite3_int64 MainWindow::extractIdFromRow(ResultsTable* resultTable, int row) {
     auto* item = resultTable->item(row, 1);
-    if (item == nullptr) { return -1; }
+    if (item == nullptr) {
+        return -1;
+    }
     return item->data(static_cast<int>(ResultsTable::ItemRole::ResourceId)).toLongLong();
 }
 
 std::optional<ResourceType> MainWindow::extractTypeFromRow(ResultsTable* resultTable, int row) {
     auto* item = resultTable->item(row, 1);
-    if (item == nullptr) { return std::nullopt; }
+    if (item == nullptr) {
+        return std::nullopt;
+    }
 
     QVariant const vRes = item->data(static_cast<int>(ResultsTable::ItemRole::ResourceType));
     bool ok{};
     int const raw = vRes.toInt(&ok);
-    if (!ok) { return std::nullopt; }
+    if (!ok) {
+        return std::nullopt;
+    }
 
     return static_cast<ResourceType>(raw);
 }

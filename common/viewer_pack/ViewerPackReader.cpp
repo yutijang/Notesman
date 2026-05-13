@@ -22,7 +22,9 @@ ViewerPackReader::ViewerPackReader(ViewerPackHeader header) noexcept : m_header(
 std::expected<ViewerPackReader, ViewerPackError>
     ViewerPackReader::read(std::filesystem::path const& filePath) {
     std::ifstream file(filePath, std::ios::binary);
-    if (!file) { return std::unexpected(ViewerPackError::FileOpenFailed); }
+    if (!file) {
+        return std::unexpected(ViewerPackError::FileOpenFailed);
+    }
 
     ViewerPackHeader header{};
     file.read(reinterpret_cast<char*>(&header), sizeof(header));
@@ -31,15 +33,21 @@ std::expected<ViewerPackReader, ViewerPackError>
         return std::unexpected(ViewerPackError::FileSizeMismatch);
     }
 
-    if (!validateMagic(header)) { return std::unexpected(ViewerPackError::MagicMismatch); }
+    if (!validateMagic(header)) {
+        return std::unexpected(ViewerPackError::MagicMismatch);
+    }
 
-    if (!validateVersion(header)) { return std::unexpected(ViewerPackError::UnsupportedVersion); }
+    if (!validateVersion(header)) {
+        return std::unexpected(ViewerPackError::UnsupportedVersion);
+    }
 
     if (!validateHeaderSize(header)) {
         return std::unexpected(ViewerPackError::HeaderSizeMismatch);
     }
 
-    if (!validateCrc(header)) { return std::unexpected(ViewerPackError::CrcMismatch); }
+    if (!validateCrc(header)) {
+        return std::unexpected(ViewerPackError::CrcMismatch);
+    }
 
     return ViewerPackReader{header};
 }

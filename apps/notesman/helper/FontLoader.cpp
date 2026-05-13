@@ -11,7 +11,9 @@
 
 void FontLoader::loadCustomFontOnce() {
     static bool loaded{}; // đảm bảo chỉ chạy 1 lần
-    if (loaded) { return; }
+    if (loaded) {
+        return;
+    }
     loaded = true;
 
     QString const fontPath = ":/fonts/Roboto-Condensed-webfont.ttf";

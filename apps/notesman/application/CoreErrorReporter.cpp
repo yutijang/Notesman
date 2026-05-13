@@ -14,6 +14,7 @@ void CoreErrorReporter::showInfo(QString const& title, QString const& message) {
 
 bool CoreErrorReporter::askQuestion(QString const& title, QString const& question) {
     Log::err("[{}] {} — no user input available in headless mode, declining automatically.",
-             title.toStdString(), question.toStdString());
+             title.toStdString(),
+             question.toStdString());
     return false;
 }

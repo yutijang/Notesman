@@ -21,23 +21,26 @@
 #include <utility>
 
 namespace {
-    QString pathForType(ResourceType type) noexcept {
-        switch (type) {
-            case ResourceType::PlainText: return QStringLiteral(":/icons/type-text.svg");
-            case ResourceType::CCppCode : return QStringLiteral(":/icons/type-cpp.svg");
-            case ResourceType::Markdown : return QStringLiteral(":/icons/type-md.svg");
-            case ResourceType::HtmlDoc  : return QStringLiteral(":/icons/type-html.svg");
-            case ResourceType::PdfDoc   : return QStringLiteral(":/icons/type-pdf.svg");
-            case ResourceType::EpubDoc  : return QStringLiteral(":/icons/type-epub.svg");
-            case ResourceType::Url      : return QStringLiteral(":/icons/type-url.svg");
-            case ResourceType::Unknown  :
-            case ResourceType::Count    : break;
-        }
-        return {};
+
+QString pathForType(ResourceType type) noexcept {
+    switch (type) {
+        case ResourceType::PlainText: return QStringLiteral(":/icons/type-text.svg");
+        case ResourceType::CCppCode : return QStringLiteral(":/icons/type-cpp.svg");
+        case ResourceType::Markdown : return QStringLiteral(":/icons/type-md.svg");
+        case ResourceType::HtmlDoc  : return QStringLiteral(":/icons/type-html.svg");
+        case ResourceType::PdfDoc   : return QStringLiteral(":/icons/type-pdf.svg");
+        case ResourceType::EpubDoc  : return QStringLiteral(":/icons/type-epub.svg");
+        case ResourceType::Url      : return QStringLiteral(":/icons/type-url.svg");
+        case ResourceType::Unknown  :
+        case ResourceType::Count    : break;
     }
+    return {};
+}
+
 } // namespace
 
-void ResourceTitleDelegate::paint(QPainter* painter, QStyleOptionViewItem const& option,
+void ResourceTitleDelegate::paint(QPainter* painter,
+                                  QStyleOptionViewItem const& option,
                                   QModelIndex const& index) const {
     QStyleOptionViewItem opt(option);
     initStyleOption(&opt, index);
@@ -70,8 +73,10 @@ void ResourceTitleDelegate::paint(QPainter* painter, QStyleOptionViewItem const&
 
     QRect rect = option.rect;
 
-    QRect iconRect(rect.right() - iconWidth - spacing, rect.center().y() - (iconSize / 2),
-                   iconWidth, iconSize);
+    QRect iconRect(rect.right() - iconWidth - spacing,
+                   rect.center().y() - (iconSize / 2),
+                   iconWidth,
+                   iconSize);
 
     QRect textRect = rect.adjusted(spacing, 0, -(iconWidth + (spacing * 2)), 0);
 
@@ -131,7 +136,9 @@ void ResourceTitleDelegate::paint(QPainter* painter, QStyleOptionViewItem const&
     }
 
     // ===== ICON =====
-    if (renderer != nullptr) { renderer->render(painter, iconRect); }
+    if (renderer != nullptr) {
+        renderer->render(painter, iconRect);
+    }
 
     painter->restore();
 }
@@ -145,12 +152,16 @@ QSize ResourceTitleDelegate::sizeHint(QStyleOptionViewItem const& option,
 
 QSvgRenderer* ResourceTitleDelegate::getRenderer(ResourceType type) const {
     auto it = m_rendererCache.find(type);
-    if (it != m_rendererCache.end()) { return it->second.get(); }
+    if (it != m_rendererCache.end()) {
+        return it->second.get();
+    }
 
     QString path = pathForType(type);
     auto renderer = std::make_unique<QSvgRenderer>(path);
 
-    if (!renderer->isValid()) { return nullptr; }
+    if (!renderer->isValid()) {
+        return nullptr;
+    }
 
     QSvgRenderer* ptr = renderer.get();
     m_rendererCache[type] = std::move(renderer);

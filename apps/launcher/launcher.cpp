@@ -28,7 +28,9 @@ static void showMessage(LPCWSTR text, LPCWSTR title) {
 
 static void zeroMemoryW(void* ptr, SIZE_T size) noexcept {
     auto* p = static_cast<BYTE*>(ptr);
-    while ((size--) != 0U) { *p++ = 0; } // NOLINT
+    while ((size--) != 0U) {
+        *p++ = 0;
+    } // NOLINT
 }
 
 // Hàm bổ trợ để xóa bit đánh dấu của HMODULE
@@ -37,19 +39,25 @@ inline std::size_t getBaseAddr(HMODULE hMod) noexcept {
 }
 
 static BOOL isAlreadyInList(wchar_t const* list, wchar_t const* name) {
-    if (list == nullptr || list[0] == L'\0') { return FALSE; }
+    if (list == nullptr || list[0] == L'\0') {
+        return FALSE;
+    }
 
     // Nếu tìm thấy chuỗi 'name' nằm trong 'list'
-    if (StrStrW(list, name) != nullptr) { return TRUE; }
+    if (StrStrW(list, name) != nullptr) {
+        return TRUE;
+    }
     return FALSE;
 }
 
 static BOOL isLibraryAvailable(wchar_t const* dllName, int depth, wchar_t* outMissingName) {
-    if ((dllName == nullptr) || dllName[0] == L'\0' || depth < 0) { return FALSE; }
+    if ((dllName == nullptr) || dllName[0] == L'\0' || depth < 0) {
+        return FALSE;
+    }
 
     // Thêm LOAD_WITH_ALTERED_SEARCH_PATH để Windows tìm DLL con cùng thư mục với DLL cha
-    HMODULE hMod = LoadLibraryExW(dllName, nullptr,
-                                  DONT_RESOLVE_DLL_REFERENCES | LOAD_WITH_ALTERED_SEARCH_PATH);
+    HMODULE hMod = LoadLibraryExW(
+        dllName, nullptr, DONT_RESOLVE_DLL_REFERENCES | LOAD_WITH_ALTERED_SEARCH_PATH);
 
     if (hMod == nullptr) {
         // Nếu thất bại ở đây -> không tìm thấy chính DLL này
@@ -99,11 +107,17 @@ static BOOL isLibraryAvailable(wchar_t const* dllName, int depth, wchar_t* outMi
     return TRUE;
 }
 
-static void appendAnotherMissing(wchar_t* missing, int maxLen, wchar_t const* name,
+static void appendAnotherMissing(wchar_t* missing,
+                                 int maxLen,
+                                 wchar_t const* name,
                                  wchar_t const* note = nullptr) {
-    if (isAlreadyInList(missing, name) != 0) { return; }
+    if (isAlreadyInList(missing, name) != 0) {
+        return;
+    }
 
-    if (lstrlenW(missing) > 0 && lstrlenW(missing) < maxLen - 2) { lstrcatW(missing, L"\n"); }
+    if (lstrlenW(missing) > 0 && lstrlenW(missing) < maxLen - 2) {
+        lstrcatW(missing, L"\n");
+    }
 
     if (note != nullptr) {
         if (lstrlenW(missing) + lstrlenW(name) + lstrlenW(note) + 2 < maxLen) {
@@ -126,7 +140,9 @@ static void appendAnotherMissing(wchar_t* missing, int maxLen, wchar_t const* na
 static int checkDependencies(LPCWSTR exePath, wchar_t* missing, int maxLen) {
     // Dùng DONT_RESOLVE_DLL_REFERENCES để đảm bảo Header được ánh xạ đúng
     HMODULE hMod = LoadLibraryExW(exePath, nullptr, DONT_RESOLVE_DLL_REFERENCES);
-    if (hMod == nullptr) { return -1; }
+    if (hMod == nullptr) {
+        return -1;
+    }
 
     // Ép kiểu chuẩn xác: Một số flag của LoadLibrary có thể set bit thấp của handle
     // cần xóa bit đó để lấy địa chỉ bộ nhớ thực tế
@@ -263,8 +279,8 @@ static void callMainCore(wchar_t const* filenameCore) {
     DWORD flags = CREATE_NO_WINDOW | DETACHED_PROCESS;
 #endif
 
-    if (CreateProcessW(nullptr, cmdLine, nullptr, nullptr, FALSE, flags, nullptr, nullptr, &si,
-                       &pi) == 0) {
+    if (CreateProcessW(
+            nullptr, cmdLine, nullptr, nullptr, FALSE, flags, nullptr, nullptr, &si, &pi) == 0) {
         simple_log::write(L"Unable to launch " + std::wstring(filenameCore));
         showMessage((std::wstring(L"Unable to launch ") + filenameCore).c_str(), L"Error");
 
@@ -283,7 +299,9 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
     // Lấy đường dẫn thư mục (Directory)
     std::wstring appDir = exePath;
     size_t lastSlash = appDir.find_last_of(L"\\/");
-    if (lastSlash != std::string::npos) { appDir = appDir.substr(0, lastSlash); }
+    if (lastSlash != std::string::npos) {
+        appDir = appDir.substr(0, lastSlash);
+    }
 
     // Thiết lập CWD
     SetCurrentDirectoryW(appDir.c_str());
@@ -306,7 +324,9 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
     for (wchar_t const* exeName : targets) {
         // Kiểm tra xem file EXE có tồn tại hay không trước khi kiểm tra DLL
         if (fileExists(exeName) == 0) {
-            if (totalMissing > 0) { lstrcatW(missing, L"\n"); }
+            if (totalMissing > 0) {
+                lstrcatW(missing, L"\n");
+            }
             lstrcatW(missing, L"  • ");
             lstrcatW(missing, L"File not found: ");
             lstrcatW(missing, wcsrchr(exeName, L'\\') + 1); // Lấy tên file từ path
@@ -343,19 +363,27 @@ int WINAPI wWinMain(HINSTANCE /*unused*/, HINSTANCE /*unused*/, PWSTR /*unused*/
                 nullptr,
                 L"The application is missing required Microsoft Visual C++ Runtime libraries.\n\n"
                 L"Do you want to install the Microsoft Visual C++ Redistributable now?",
-                L"System Component Required", MB_YESNO | MB_ICONQUESTION);
+                L"System Component Required",
+                MB_YESNO | MB_ICONQUESTION);
 
             if (msgBox == IDYES) {
                 if (fileExists(L"VCRedist\\vc_redist.x64.exe") != 0) {
                     simple_log::write(L"Launching vc_redist.x64.exe installer...");
-                    ShellExecuteW(nullptr, L"open", L"VCRedist\\vc_redist.x64.exe",
-                                  L"/passive /norestart", nullptr, SW_SHOWNORMAL);
+                    ShellExecuteW(nullptr,
+                                  L"open",
+                                  L"VCRedist\\vc_redist.x64.exe",
+                                  L"/passive /norestart",
+                                  nullptr,
+                                  SW_SHOWNORMAL);
                 } else {
                     simple_log::write(L"Error: vc_redist.x64.exe installer file not found.");
                     // Nếu không có file kèm theo, mở link tải chính thức
-                    ShellExecuteW(nullptr, L"open",
-                                  L"https://aka.ms/vs/17/release/vc_redist.x64.exe", nullptr,
-                                  nullptr, SW_SHOWNORMAL);
+                    ShellExecuteW(nullptr,
+                                  L"open",
+                                  L"https://aka.ms/vs/17/release/vc_redist.x64.exe",
+                                  nullptr,
+                                  nullptr,
+                                  SW_SHOWNORMAL);
                 }
             }
         } else {

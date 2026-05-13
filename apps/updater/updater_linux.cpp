@@ -16,7 +16,9 @@ namespace fs = std::filesystem;
 
 void logUpdater(std::string const& msg) {
     std::ofstream f("/tmp/notesman_debug.log", std::ios::app);
-    if (f.is_open()) { f << "[UPDATER] " << msg << '\n'; }
+    if (f.is_open()) {
+        f << "[UPDATER] " << msg << '\n';
+    }
 }
 
 int main(int argc, char** argv) {
@@ -30,7 +32,9 @@ int main(int argc, char** argv) {
     std::error_code ec;
     fs::path const currentApp = fs::weakly_canonical(argv[1], ec);
     fs::path const newApp = fs::weakly_canonical(argv[2], ec);
-    if (ec || !fs::exists(currentApp) || !fs::exists(newApp)) { return 2; }
+    if (ec || !fs::exists(currentApp) || !fs::exists(newApp)) {
+        return 2;
+    }
 
     logUpdater("currentApp: " + currentApp.string());
     logUpdater("newApp: " + newApp.string());
@@ -46,7 +50,9 @@ int main(int argc, char** argv) {
         return 4;
     }
 
-    if (::chmod(targetApp.c_str(), 0755) != 0) { return 5; } // NOLINT(readability-magic-numbers)
+    if (::chmod(targetApp.c_str(), 0755) != 0) {
+        return 5;
+    } // NOLINT(readability-magic-numbers)
 
     // prepare args for execv
     // argv[0] = targetApp

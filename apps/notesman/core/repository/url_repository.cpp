@@ -11,8 +11,10 @@
 #include <string_view>
 #include <vector>
 
-void UrlRepository::insertUrl(sqlite3_int64 resourceId, std::string_view url,
-                              std::string_view normalizedUrl, std::string_view domain,
+void UrlRepository::insertUrl(sqlite3_int64 resourceId,
+                              std::string_view url,
+                              std::string_view normalizedUrl,
+                              std::string_view domain,
                               std::string_view urlPath) {
     static constexpr char const* sql = R"(
         INSERT INTO resource_urls (
@@ -29,28 +31,38 @@ void UrlRepository::insertUrl(sqlite3_int64 resourceId, std::string_view url,
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, url.data(), static_cast<int>(url.size()),
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 2, url.data(), static_cast<int>(url.size()), SQLITE_TRANSIENT),
+        m_db.get());
+
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(),
+                                        3,
+                                        normalizedUrl.data(),
+                                        static_cast<int>(normalizedUrl.size()),
                                         SQLITE_TRANSIENT),
                       m_db.get());
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 3, normalizedUrl.data(),
-                                        static_cast<int>(normalizedUrl.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 4, domain.data(), static_cast<int>(domain.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 4, domain.data(),
-                                        static_cast<int>(domain.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 5, urlPath.data(), static_cast<int>(urlPath.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 5, urlPath.data(),
-                                        static_cast<int>(urlPath.size()), SQLITE_TRANSIENT),
-                      m_db.get());
-
-    sqlite::checkStep(stmt.step(), m_db.get(), SQLITE_DONE,
+    sqlite::checkStep(stmt.step(),
+                      m_db.get(),
+                      SQLITE_DONE,
                       "insertUrl, resource id: " + std::to_string(resourceId));
 }
 
-void UrlRepository::updateUrl(sqlite3_int64 resourceId, std::string_view url,
-                              std::string_view normalizedUrl, std::string_view domain,
+void UrlRepository::updateUrl(sqlite3_int64 resourceId,
+                              std::string_view url,
+                              std::string_view normalizedUrl,
+                              std::string_view domain,
                               std::string_view urlPath) {
     static constexpr char const* sql = R"(
         UPDATE resource_urls
@@ -64,21 +76,27 @@ void UrlRepository::updateUrl(sqlite3_int64 resourceId, std::string_view url,
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, url.data(), static_cast<int>(url.size()),
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, url.data(), static_cast<int>(url.size()), SQLITE_TRANSIENT),
+        m_db.get());
+
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(),
+                                        2,
+                                        normalizedUrl.data(),
+                                        static_cast<int>(normalizedUrl.size()),
                                         SQLITE_TRANSIENT),
                       m_db.get());
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 2, normalizedUrl.data(),
-                                        static_cast<int>(normalizedUrl.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 3, domain.data(), static_cast<int>(domain.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 3, domain.data(),
-                                        static_cast<int>(domain.size()), SQLITE_TRANSIENT),
-                      m_db.get());
-
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 4, urlPath.data(),
-                                        static_cast<int>(urlPath.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 4, urlPath.data(), static_cast<int>(urlPath.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 5, resourceId), m_db.get());
 
@@ -140,7 +158,9 @@ std::vector<UrlEntry> UrlRepository::getAllUrls() const {
 
     std::vector<UrlEntry> results;
 
-    while (stmt.step() == SQLITE_ROW) { results.emplace_back(urlEntryFromStmt(stmt)); }
+    while (stmt.step() == SQLITE_ROW) {
+        results.emplace_back(urlEntryFromStmt(stmt));
+    }
 
     return results;
 }
@@ -157,11 +177,16 @@ std::optional<sqlite3_int64>
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, normalizedUrl.data(),
-                                        static_cast<int>(normalizedUrl.size()), SQLITE_TRANSIENT),
+    sqlite::checkBind(sqlite3_bind_text(stmt.get(),
+                                        1,
+                                        normalizedUrl.data(),
+                                        static_cast<int>(normalizedUrl.size()),
+                                        SQLITE_TRANSIENT),
                       m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnInt64(0); }
+    if (stmt.step() == SQLITE_ROW) {
+        return stmt.getColumnInt64(0);
+    }
 
     return std::nullopt;
 }
@@ -176,12 +201,15 @@ std::vector<sqlite3_int64> UrlRepository::getResourceIdsByDomain(std::string_vie
 
     SQLiteStmt stmt(m_db.get(), sql);
 
-    sqlite::checkBind(sqlite3_bind_text(stmt.get(), 1, domain.data(),
-                                        static_cast<int>(domain.size()), SQLITE_TRANSIENT),
-                      m_db.get());
+    sqlite::checkBind(
+        sqlite3_bind_text(
+            stmt.get(), 1, domain.data(), static_cast<int>(domain.size()), SQLITE_TRANSIENT),
+        m_db.get());
 
     std::vector<sqlite3_int64> results;
-    while (stmt.step() == SQLITE_ROW) { results.emplace_back(stmt.getColumnInt64(0)); }
+    while (stmt.step() == SQLITE_ROW) {
+        results.emplace_back(stmt.getColumnInt64(0));
+    }
 
     return results;
 }
@@ -199,7 +227,9 @@ std::optional<std::string> UrlRepository::getUrlByResourceIdOnly(sqlite3_int64 r
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnText(0); }
+    if (stmt.step() == SQLITE_ROW) {
+        return stmt.getColumnText(0);
+    }
 
     return std::nullopt;
 }
@@ -217,7 +247,9 @@ std::optional<std::string> UrlRepository::getDomainByResourceId(sqlite3_int64 re
 
     sqlite::checkBind(sqlite3_bind_int64(stmt.get(), 1, resourceId), m_db.get());
 
-    if (stmt.step() == SQLITE_ROW) { return stmt.getColumnText(0); }
+    if (stmt.step() == SQLITE_ROW) {
+        return stmt.getColumnText(0);
+    }
 
     return std::nullopt;
 }

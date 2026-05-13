@@ -1,14 +1,14 @@
 #pragma once
 
 class WebKitGTKGuard {
-    public:
-        static WebKitGTKGuard& instance();
+  public:
+    static WebKitGTKGuard& instance();
 
-        [[nodiscard]] bool available() const noexcept;
+    [[nodiscard]] bool available() const noexcept;
 
-    private:
-        WebKitGTKGuard();
-        ~WebKitGTKGuard();
+  private:
+    WebKitGTKGuard();
+    ~WebKitGTKGuard();
 
-        void* m_handle = nullptr;
+    void* m_handle = nullptr;
 };
