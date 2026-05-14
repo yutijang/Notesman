@@ -1,4 +1,4 @@
-#include "MarkdownToHtml.hpp"
+#include "gui/Viewer/MarkdownToHtml.hpp"
 
 #include <QByteArray>
 #include <QDir>

@@ -1,4 +1,4 @@
-#include "EpubResolver.hpp"
+#include "gui/Viewer/EpubResolver.hpp"
 
 #include <QByteArray>
 #include <QCryptographicHash>

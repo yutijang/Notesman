@@ -1,4 +1,4 @@
-#include "SettingsTabWidget.hpp"
+#include "gui/Widgets/SettingsTabWidget.hpp"
 
 #include "gui/Settings/SettingsData.hpp"
 #include "gui/UiConstants.hpp"

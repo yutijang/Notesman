@@ -1,4 +1,4 @@
-#include "InfoCornerWidget.hpp"
+#include "gui/Widgets/InfoCornerWidget.hpp"
 
 #include <QFont>
 #include <QList>

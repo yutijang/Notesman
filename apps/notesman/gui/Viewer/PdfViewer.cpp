@@ -1,6 +1,6 @@
-#include "PdfViewer.hpp"
+#include "gui/Viewer/PdfViewer.hpp"
 
-#include "PdfPageWidget.hpp"
+#include "gui/Viewer/PdfPageWidget.hpp"
 
 #include <QFutureWatcher>
 #include <QLayoutItem>

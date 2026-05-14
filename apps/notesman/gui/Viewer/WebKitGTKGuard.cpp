@@ -1,4 +1,4 @@
-#include "WebKitGTKGuard.hpp"
+#include "gui/Viewer/WebKitGTKGuard.hpp"
 
 #include <dlfcn.h>
 

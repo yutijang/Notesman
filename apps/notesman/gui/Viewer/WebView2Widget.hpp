@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ContentMode.hpp"
+#include "gui/Viewer/ContentMode.hpp"
 
 #include <QString>
 #include <QUrl>

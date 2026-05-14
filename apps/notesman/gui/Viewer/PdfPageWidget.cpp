@@ -1,4 +1,4 @@
-#include "PdfPageWidget.hpp"
+#include "gui/Viewer/PdfPageWidget.hpp"
 
 #include <QImage>
 #include <QPainter>

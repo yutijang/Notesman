@@ -4,7 +4,7 @@ constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindowsd.dll";
 constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindows.dll";
 #endif
 
-#include "SecurityUtils.hpp"
+#include "common/security_utils/SecurityUtils.hpp"
 #include "simple_log.hpp"
 
 // clang-format off

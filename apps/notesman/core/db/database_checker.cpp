@@ -1,4 +1,4 @@
-#include "database_checker.hpp"
+#include "core/db/database_checker.hpp"
 
 #include "common/logger/Logger.hpp"
 #include "core/db/sqldb_raii.hpp"

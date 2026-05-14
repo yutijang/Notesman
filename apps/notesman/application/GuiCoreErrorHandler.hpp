@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ICoreErrorHandler.hpp"
+#include "application/ICoreErrorHandler.hpp"
 
 #include <QString>
 

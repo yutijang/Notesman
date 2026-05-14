@@ -1,4 +1,4 @@
-#include "ViewerPackCrc32.hpp"
+#include "common/viewer_pack/ViewerPackCrc32.hpp"
 
 #include <cstddef>
 #include <cstdint>

@@ -1,12 +1,12 @@
-#include "../../common/logger/Logger.hpp"
 #include "application/AppInitializer.hpp"
 #include "application/PackerLauncher.hpp"
+#include "common/logger/Logger.hpp"
 
 #include <QApplication>
 #include <QStringList>
 
 #ifdef Q_OS_WIN
-#include "SecurityUtils.hpp"
+#include "common/security_utils/SecurityUtils.hpp"
 #endif
 
 int main(int argc, char* argv[]) {
