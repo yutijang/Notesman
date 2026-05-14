@@ -1,9 +1,9 @@
-#include "ResourceSearchWorker.hpp"
+#include "application/workers/ResourceSearchWorker.hpp"
 
-#include "Logger.hpp"
-#include "NotesAppCore.hpp"
-#include "helper.hpp"
-#include "model.hpp"
+#include "application/NotesAppCore.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/model/model.hpp"
+#include "helper/helper.hpp"
 
 #include <QObject>
 #include <QStringView>

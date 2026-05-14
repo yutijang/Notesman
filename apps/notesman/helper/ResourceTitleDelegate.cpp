@@ -1,7 +1,7 @@
-#include "ResourceTitleDelegate.hpp"
+#include "helper/ResourceTitleDelegate.hpp"
 
-#include "ResultsTable.hpp"
-#include "model.hpp"
+#include "core/model/model.hpp"
+#include "helper/ResultsTable.hpp"
 
 #include <QApplication>
 #include <QColor>

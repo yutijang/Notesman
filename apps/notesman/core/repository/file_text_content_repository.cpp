@@ -1,7 +1,7 @@
-#include "file_text_content_repository.hpp"
+#include "core/repository/file_text_content_repository.hpp"
 
-#include "sqldb_raii.hpp"
-#include "sqlite_utils.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/db/sqlite_utils.hpp"
 
 #include <optional>
 #include <sqlite3.h>

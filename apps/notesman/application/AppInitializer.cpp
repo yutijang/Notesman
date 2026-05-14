@@ -1,26 +1,26 @@
-#include "AppInitializer.hpp"
+#include "application/AppInitializer.hpp"
 
 #ifdef Q_OS_WIN
 #include <functional>
 #include <windows.h>
 #endif
 
-#include "AppController.hpp"
-#include "AppSettings.hpp"
-#include "CorePaths.hpp"
-#include "DialogUtils.hpp"
-#include "FontLoader.hpp"
-#include "GuiCoreErrorHandler.hpp"
-#include "IpcConstants.hpp"
-#include "Logger.hpp"
-#include "MainWindow.hpp"
-#include "NotesCoreFactory.hpp"
-#include "SettingsManager.hpp"
 #include "app_version.hpp"
-#include "database_checker.hpp"
-#include "resource_repository.hpp"
+#include "application/AppController.hpp"
+#include "application/GuiCoreErrorHandler.hpp"
+#include "application/NotesCoreFactory.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/database_checker.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/repository/resource_repository.hpp"
+#include "gui/MainWindow.hpp"
+#include "gui/Settings/AppSettings.hpp"
+#include "helper/CorePaths.hpp"
+#include "helper/DialogUtils.hpp"
+#include "helper/FontLoader.hpp"
+#include "helper/IpcConstants.hpp"
+#include "helper/SettingsManager.hpp"
 #include "schema_version.hpp"
-#include "sqldb_raii.hpp"
 
 #include <QApplication>
 #include <QDir>

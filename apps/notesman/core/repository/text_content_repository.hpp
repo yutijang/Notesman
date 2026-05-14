@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sqldb_raii.hpp"
+#include "core/db/sqldb_raii.hpp"
 
 #include <optional>
 #include <sqlite3.h>

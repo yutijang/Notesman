@@ -1,6 +1,6 @@
-#include "AppInitializer.hpp"
-#include "Logger.hpp"
-#include "PackerLauncher.hpp"
+#include "../../common/logger/Logger.hpp"
+#include "application/AppInitializer.hpp"
+#include "application/PackerLauncher.hpp"
 
 #include <QApplication>
 #include <QStringList>

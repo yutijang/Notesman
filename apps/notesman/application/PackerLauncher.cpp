@@ -1,4 +1,4 @@
-#include "PackerLauncher.hpp"
+#include "application/PackerLauncher.hpp"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -8,21 +8,21 @@
 #include <csignal>
 #endif
 
-#include "AppSettings.hpp"
-#include "AppUIApplier.hpp"
-#include "CoreErrorReporter.hpp"
-#include "CorePaths.hpp"
-#include "FontLoader.hpp"
-#include "IpcConstants.hpp"
-#include "Logger.hpp"
-#include "NotesCoreFactory.hpp"
-#include "ResourceViewService.hpp"
-#include "ResourceViewerDialog.hpp"
-#include "ResourceViewerFactory.hpp"
-#include "UiConstants.hpp"
-#include "ViewerPackHeader.hpp"
-#include "ViewerPackReader.hpp"
-#include "model.hpp"
+#include "application/AppUIApplier.hpp"
+#include "application/CoreErrorReporter.hpp"
+#include "application/NotesCoreFactory.hpp"
+#include "application/ResourceViewerFactory.hpp"
+#include "common/logger/Logger.hpp"
+#include "common/viewer_pack/ViewerPackHeader.hpp"
+#include "common/viewer_pack/ViewerPackReader.hpp"
+#include "core/model/model.hpp"
+#include "gui/Settings/AppSettings.hpp"
+#include "gui/UiConstants.hpp"
+#include "gui/Viewer/ResourceViewService.hpp"
+#include "gui/Viewer/ResourceViewerDialog.hpp"
+#include "helper/CorePaths.hpp"
+#include "helper/FontLoader.hpp"
+#include "helper/IpcConstants.hpp"
 
 #include <QFileInfo>
 #include <QLocalServer>

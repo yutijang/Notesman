@@ -1,4 +1,4 @@
-#include "AppImageExtractor.hpp"
+#include "helper/AppImageExtractor.hpp"
 
 #include <QDateTime>
 #include <QDir>

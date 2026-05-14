@@ -1,17 +1,17 @@
-#include "Logger.hpp"
-#include "file_repository.hpp"
-#include "sqldb_raii.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/repository/file_repository.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <sqlite3.h>
 #include <stdexcept>
 
 namespace {
-    SQLiteDB createInMemoryDB() {
-        SQLiteDB db(":memory:");
-        sqlite3* rawPtr = db.get();
+SQLiteDB createInMemoryDB() {
+    SQLiteDB db(":memory:");
+    sqlite3* rawPtr = db.get();
 
-        char const* schema = R"SQL(
+    char const* schema = R"SQL(
             CREATE TABLE files (
                 resource_id INTEGER PRIMARY KEY,
                 stored_path TEXT,
@@ -20,10 +20,10 @@ namespace {
             );
         )SQL";
 
-        REQUIRE(sqlite3_exec(rawPtr, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
+    REQUIRE(sqlite3_exec(rawPtr, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
 
-        return db;
-    }
+    return db;
+}
 } // namespace
 
 TEST_CASE("FileRepository basic insert and get", "[FileRepository]") {

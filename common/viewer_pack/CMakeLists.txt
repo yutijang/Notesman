@@ -8,5 +8,5 @@ add_library(viewer_pack STATIC
 add_library(common::viewer_pack ALIAS viewer_pack)
 
 target_include_directories(viewer_pack
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC ${PROJECT_SOURCE_DIR}
 )

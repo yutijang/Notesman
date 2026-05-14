@@ -1,15 +1,15 @@
-#include "Logger.hpp"
-#include "file_repository.hpp"
-#include "file_service.hpp"
-#include "file_text_content_repository.hpp"
-#include "model.hpp"
-#include "resource_repository.hpp"
-#include "resource_service.hpp"
-#include "sqldb_raii.hpp"
-#include "tag_repository.hpp"
-#include "text_content_repository.hpp"
-#include "url_repository.hpp"
-#include "url_service.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/model/model.hpp"
+#include "core/repository/file_repository.hpp"
+#include "core/repository/file_text_content_repository.hpp"
+#include "core/repository/resource_repository.hpp"
+#include "core/repository/tag_repository.hpp"
+#include "core/repository/text_content_repository.hpp"
+#include "core/repository/url_repository.hpp"
+#include "core/service/file_service.hpp"
+#include "core/service/resource_service.hpp"
+#include "core/service/url_service.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
@@ -22,8 +22,8 @@
 #include <vector>
 
 namespace {
-    void createMinimalSchema(sqlite3* db) {
-        char const* schema = R"SQL(
+void createMinimalSchema(sqlite3* db) {
+    char const* schema = R"SQL(
         -- =====================================================
         -- Core tables
         -- =====================================================
@@ -69,8 +69,8 @@ namespace {
         );
     )SQL";
 
-        REQUIRE(sqlite3_exec(db, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
-    }
+    REQUIRE(sqlite3_exec(db, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
+}
 } // namespace
 
 // ======================================================================
@@ -145,7 +145,9 @@ TEST_CASE("ResourceService getFullResource combines repositories correctly", "[R
                  "INSERT INTO text_content VALUES (1, 'hello');"
                  "INSERT INTO tags (name) VALUES ('qt');"
                  "INSERT INTO resource_tags VALUES (1, 1);",
-                 nullptr, nullptr, nullptr);
+                 nullptr,
+                 nullptr,
+                 nullptr);
 
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
@@ -182,13 +184,15 @@ TEST_CASE("ResourceService deleteResource removes managed files", "[ResourceServ
     std::ofstream(tmpFile) << "dummy";
 
     sqlite3_stmt* stmt{};
-    sqlite3_prepare_v2(db.get(), "INSERT INTO resources (title, type) VALUES ('F', 'pdf');", -1,
-                       &stmt, nullptr);
+    sqlite3_prepare_v2(
+        db.get(), "INSERT INTO resources (title, type) VALUES ('F', 'pdf');", -1, &stmt, nullptr);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
     sqlite3_exec(db.get(),
                  ("INSERT INTO files VALUES (1, '" + tmpFile.string() + "', 'orig', 1);").c_str(),
-                 nullptr, nullptr, nullptr);
+                 nullptr,
+                 nullptr,
+                 nullptr);
 
     REQUIRE(std::filesystem::exists(tmpFile));
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
@@ -213,7 +217,9 @@ TEST_CASE("ResourceService addTagToResource handles existing/new tags correctly"
     sqlite3_exec(db.get(),
                  "INSERT INTO resources (title, type) VALUES ('Doc', 'text');"
                  "INSERT INTO tags (name) VALUES ('qt');",
-                 nullptr, nullptr, nullptr);
+                 nullptr,
+                 nullptr,
+                 nullptr);
 
     ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
 
@@ -236,8 +242,11 @@ TEST_CASE("ResourceService isExistTitle delegates correctly", "[ResourceService]
     SQLiteDB db(":memory:");
     createMinimalSchema(db.get());
 
-    sqlite3_exec(db.get(), "INSERT INTO resources (title, type) VALUES ('abc', 'pdf');", nullptr,
-                 nullptr, nullptr);
+    sqlite3_exec(db.get(),
+                 "INSERT INTO resources (title, type) VALUES ('abc', 'pdf');",
+                 nullptr,
+                 nullptr,
+                 nullptr);
 
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
@@ -267,7 +276,9 @@ TEST_CASE("ResourceService searchByTitleFull aggregates results", "[ResourceServ
                  "INSERT INTO resource_tags VALUES (2, 2);"
                  "INSERT INTO resources_fts(rowid, title) VALUES (1, 'Qt C++');"
                  "INSERT INTO resources_fts(rowid, title) VALUES (2, 'Qt GUI');",
-                 nullptr, nullptr, nullptr);
+                 nullptr,
+                 nullptr,
+                 nullptr);
 
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);
@@ -300,7 +311,9 @@ TEST_CASE("ResourceService searchByContentFull aggregates results", "[ResourceSe
                  "INSERT INTO resource_tags VALUES (2, 2);"
                  "INSERT INTO text_content_fts(rowid, content) "
                  "SELECT resource_id, content FROM text_content;",
-                 nullptr, nullptr, nullptr);
+                 nullptr,
+                 nullptr,
+                 nullptr);
 
     ResourceRepository resRepo(db);
     FileRepository fileRepo(db);

@@ -22,5 +22,5 @@
 #include <sqlite3.h> // IWYU pragma: keep
 
 // project
-#include "model.hpp"      // IWYU pragma: keep
-#include "sqldb_raii.hpp" // IWYU pragma: keep
+#include "core/db/sqldb_raii.hpp" // IWYU pragma: keep
+#include "core/model/model.hpp"   // IWYU pragma: keep

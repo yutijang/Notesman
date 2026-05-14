@@ -1,6 +1,6 @@
-#include "AppUIApplier.hpp"
+#include "application/AppUIApplier.hpp"
 
-#include "UiConstants.hpp"
+#include "gui/UiConstants.hpp"
 
 #include <QApplication>
 #include <QColor>

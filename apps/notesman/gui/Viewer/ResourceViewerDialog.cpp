@@ -1,8 +1,8 @@
-#include "ResourceViewerDialog.hpp"
+#include "gui/Viewer/ResourceViewerDialog.hpp"
 
-#include "DialogUtils.hpp"
-#include "IResourceViewer.hpp"
-#include "SettingsManager.hpp"
+#include "gui/Viewer/IResourceViewer.hpp"
+#include "helper/DialogUtils.hpp"
+#include "helper/SettingsManager.hpp"
 
 #include <QCloseEvent>
 #include <QDialog>

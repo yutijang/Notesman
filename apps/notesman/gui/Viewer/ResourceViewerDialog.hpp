@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IResourceViewer.hpp"
+#include "gui/Viewer/IResourceViewer.hpp"
 
 #include <QDialog>
 #include <QObject>

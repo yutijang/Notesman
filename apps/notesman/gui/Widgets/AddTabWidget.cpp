@@ -1,11 +1,11 @@
-#include "AddTabWidget.hpp"
+#include "gui/Widgets/AddTabWidget.hpp"
 
-#include "DialogUtils.hpp"
-#include "PlainTextEdit.hpp"
-#include "SettingsManager.hpp"
-#include "TagInput.hpp"
-#include "UiConstants.hpp"
-#include "model.hpp"
+#include "core/model/model.hpp"
+#include "gui/TagInput/TagInput.hpp"
+#include "gui/UiConstants.hpp"
+#include "helper/DialogUtils.hpp"
+#include "helper/PlainTextEdit.hpp"
+#include "helper/SettingsManager.hpp"
 
 #include <QButtonGroup>
 #include <QCheckBox>

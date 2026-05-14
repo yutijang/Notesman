@@ -1,4 +1,4 @@
-#include "TagInput.hpp"
+#include "gui/TagInput/TagInput.hpp"
 
 #include <QApplication>
 #include <QFont>

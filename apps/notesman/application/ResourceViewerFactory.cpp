@@ -1,16 +1,16 @@
-#include "ResourceViewerFactory.hpp"
+#include "application/ResourceViewerFactory.hpp"
 
-#include "ContentMode.hpp"
-#include "EpubResolver.hpp"
-#include "HtmlViewer.hpp"
-#include "IResourceViewer.hpp"
-#include "Logger.hpp"
-#include "MarkdownToHtml.hpp"
-#include "PdfViewer.hpp"
-#include "ResourceViewService.hpp"
-#include "TextViewer.hpp"
-#include "UiConstants.hpp"
-#include "model.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/model/model.hpp"
+#include "gui/UiConstants.hpp"
+#include "gui/Viewer/ContentMode.hpp"
+#include "gui/Viewer/EpubResolver.hpp"
+#include "gui/Viewer/HtmlViewer.hpp"
+#include "gui/Viewer/IResourceViewer.hpp"
+#include "gui/Viewer/MarkdownToHtml.hpp"
+#include "gui/Viewer/PdfViewer.hpp"
+#include "gui/Viewer/ResourceViewService.hpp"
+#include "gui/Viewer/TextViewer.hpp"
 
 #include <QString>
 #include <QUrl>

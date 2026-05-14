@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UiConstants.hpp"
+#include "gui/UiConstants.hpp"
 
 #include <QObject>
 #include <QString>

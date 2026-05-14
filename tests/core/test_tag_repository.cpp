@@ -1,6 +1,6 @@
-#include "model.hpp"
-#include "sqldb_raii.hpp"
-#include "tag_repository.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/model/model.hpp"
+#include "core/repository/tag_repository.hpp"
 
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
@@ -9,11 +9,11 @@
 #include <vector>
 
 namespace {
-    SQLiteDB createInMemoryDB() {
-        SQLiteDB db(":memory:");
-        sqlite3* rawPtr = db.get();
+SQLiteDB createInMemoryDB() {
+    SQLiteDB db(":memory:");
+    sqlite3* rawPtr = db.get();
 
-        char const* schema = R"SQL(
+    char const* schema = R"SQL(
             PRAGMA foreign_keys = ON;
 
             CREATE TABLE resources (
@@ -40,31 +40,31 @@ namespace {
             );
         )SQL";
 
-        REQUIRE(sqlite3_exec(rawPtr, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
+    REQUIRE(sqlite3_exec(rawPtr, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
 
-        return db;
-    }
+    return db;
+}
 
-    Resource makeResource(std::string const& title, ResourceType type = ResourceType::PlainText) {
-        Resource r{};
-        r.title = title;
-        r.type = type;
-        return r;
-    }
+Resource makeResource(std::string const& title, ResourceType type = ResourceType::PlainText) {
+    Resource r{};
+    r.title = title;
+    r.type = type;
+    return r;
+}
 
-    sqlite3_int64 insertResource(SQLiteDB& db, Resource const& res) {
-        SQLiteStmt stmt(db.get(), "INSERT INTO resources (title, type) VALUES (?, ?);");
+sqlite3_int64 insertResource(SQLiteDB& db, Resource const& res) {
+    SQLiteStmt stmt(db.get(), "INSERT INTO resources (title, type) VALUES (?, ?);");
 
-        sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt.get(), 1, res.title.c_str(), -1, SQLITE_TRANSIENT);
 
-        auto const typeStr = resourceTypeToString(res.type);
-        sqlite3_bind_text(stmt.get(), 2, typeStr.data(), static_cast<int>(typeStr.size()),
-                          SQLITE_TRANSIENT);
+    auto const typeStr = resourceTypeToString(res.type);
+    sqlite3_bind_text(
+        stmt.get(), 2, typeStr.data(), static_cast<int>(typeStr.size()), SQLITE_TRANSIENT);
 
-        REQUIRE(stmt.step() == SQLITE_DONE);
+    REQUIRE(stmt.step() == SQLITE_DONE);
 
-        return sqlite3_last_insert_rowid(db.get());
-    }
+    return sqlite3_last_insert_rowid(db.get());
+}
 } // namespace
 
 TEST_CASE("TagRepository basic tag operations", "[TagRepository]") {
@@ -144,7 +144,9 @@ TEST_CASE("TagRepository query tags and resources", "[TagRepository][query]") {
         auto tags = repo.getTagsByResourceId(resA);
 
         REQUIRE(tags.size() == 2);
-        auto foundQt = std::ranges::any_of(tags, [](auto const& t) { return t.second == "qt"; });
+        auto foundQt = std::ranges::any_of(tags, [](auto const& t) {
+            return t.second == "qt";
+        });
         REQUIRE(foundQt);
     }
 

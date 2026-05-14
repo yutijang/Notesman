@@ -1,13 +1,13 @@
 #pragma once
 
-#include "file_repository.hpp"
-#include "file_service.hpp"
-#include "model.hpp"
-#include "resource_repository.hpp"
-#include "sqldb_raii.hpp"
-#include "tag_repository.hpp"
-#include "text_content_repository.hpp"
-#include "url_service.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/model/model.hpp"
+#include "core/repository/file_repository.hpp"
+#include "core/repository/resource_repository.hpp"
+#include "core/repository/tag_repository.hpp"
+#include "core/repository/text_content_repository.hpp"
+#include "core/service/file_service.hpp"
+#include "core/service/url_service.hpp"
 
 #include <optional>
 #include <sqlite3.h>

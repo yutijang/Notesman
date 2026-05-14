@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger.hpp"
+#include "common/logger/Logger.hpp"
 
 #include <source_location>
 #include <sqlite3.h>

@@ -1,9 +1,9 @@
 #include "SettingsTabWidget.hpp"
 
-#include "DialogUtils.hpp"
-#include "SettingsData.hpp"
-#include "SettingsManager.hpp"
-#include "UiConstants.hpp"
+#include "gui/Settings/SettingsData.hpp"
+#include "gui/UiConstants.hpp"
+#include "helper/DialogUtils.hpp"
+#include "helper/SettingsManager.hpp"
 
 #include <QButtonGroup>
 #include <QCheckBox>

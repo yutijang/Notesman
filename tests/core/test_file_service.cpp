@@ -1,9 +1,9 @@
-#include "file_repository.hpp"
-#include "file_service.hpp"
-#include "file_text_content_repository.hpp"
-#include "model.hpp"
-#include "resource_repository.hpp"
-#include "sqldb_raii.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/model/model.hpp"
+#include "core/repository/file_repository.hpp"
+#include "core/repository/file_text_content_repository.hpp"
+#include "core/repository/resource_repository.hpp"
+#include "core/service/file_service.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
@@ -14,8 +14,8 @@
 #include <string_view>
 
 namespace {
-    void createMinimalFileServiceSchema(sqlite3* db) {
-        char const* schema = R"SQL(
+void createMinimalFileServiceSchema(sqlite3* db) {
+    char const* schema = R"SQL(
                 -- resources table (thêm created_at/updated_at vì repo/service có dùng)
                 CREATE TABLE resources (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,15 +46,15 @@ namespace {
                     USING fts5(content, content='text_content', content_rowid='resource_id');
             )SQL";
 
-        REQUIRE(sqlite3_exec(db, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
-    }
+    REQUIRE(sqlite3_exec(db, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
+}
 
-    std::filesystem::path createTempFile(std::string const& name, std::string_view content) {
-        auto path = std::filesystem::temp_directory_path() / name;
-        std::ofstream ofs(path);
-        ofs << content;
-        return path;
-    }
+std::filesystem::path createTempFile(std::string const& name, std::string_view content) {
+    auto path = std::filesystem::temp_directory_path() / name;
+    std::ofstream ofs(path);
+    ofs << content;
+    return path;
+}
 
 } // namespace
 
@@ -136,7 +136,9 @@ TEST_CASE("FileService::findResourceByFile finds by existing hash", "[FileServic
         db.get(),
         ("INSERT INTO resources (title, type, file_hash) VALUES ('A','pdf','" + hash + "');")
             .c_str(),
-        nullptr, nullptr, nullptr);
+        nullptr,
+        nullptr,
+        nullptr);
 
     // gọi hàm: trả về optional<sqlite3_int64>
     auto idOpt = service.findResourceByFile(file.string());
@@ -165,7 +167,9 @@ TEST_CASE("FileService::refreshFileHash updates existing resource", "[FileServic
     // Tạo resource ID = 1
     sqlite3_exec(db.get(),
                  "INSERT INTO resources (id, title, type, file_hash) VALUES (1,'Old','pdf','123');",
-                 nullptr, nullptr, nullptr);
+                 nullptr,
+                 nullptr,
+                 nullptr);
 
     // Tạo file thật và insert dòng vào bảng files để mô phỏng file đã lưu
     auto file = createTempFile("refresh.txt", "new content");
@@ -179,8 +183,9 @@ TEST_CASE("FileService::refreshFileHash updates existing resource", "[FileServic
 
     // Kiểm tra hash mới được cập nhật
     sqlite3_stmt* stmt = nullptr;
-    REQUIRE(sqlite3_prepare_v2(db.get(), "SELECT file_hash FROM resources WHERE id=1;", -1, &stmt,
-                               nullptr) == SQLITE_OK);
+    REQUIRE(sqlite3_prepare_v2(
+                db.get(), "SELECT file_hash FROM resources WHERE id=1;", -1, &stmt, nullptr) ==
+            SQLITE_OK);
     REQUIRE(sqlite3_step(stmt) == SQLITE_ROW);
     auto const* hash = reinterpret_cast<char const*>(sqlite3_column_text(stmt, 0));
     CHECK_FALSE(std::string(hash).empty());

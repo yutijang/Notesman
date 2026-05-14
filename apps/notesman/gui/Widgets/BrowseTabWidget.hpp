@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model.hpp" // std::vector bắt buộc phải biết định nghĩa đầy đủ (tức là kích thước và cấu trúc) của kiểu dữ liệu mà nó chứa (FullResource) ngay tại thời điểm mẫu lớp std::vector được khởi tạo (instantiate) hoặc khai báo
+#include "core/model/model.hpp" // std::vector bắt buộc phải biết định nghĩa đầy đủ (tức là kích thước và cấu trúc) của kiểu dữ liệu mà nó chứa (FullResource) ngay tại thời điểm mẫu lớp std::vector được khởi tạo (instantiate) hoặc khai báo
 
 #include <QObject>
 #include <QString>

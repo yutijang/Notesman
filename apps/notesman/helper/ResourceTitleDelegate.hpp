@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model.hpp"
+#include "core/model/model.hpp"
 
 #include <QModelIndex>
 #include <QSize>

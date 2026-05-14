@@ -1,7 +1,7 @@
 #pragma once
 
-#include "model.hpp"
-#include "sqldb_raii.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/model/model.hpp"
 
 #include <optional>
 #include <sqlite3.h>

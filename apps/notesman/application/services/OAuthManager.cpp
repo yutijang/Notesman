@@ -1,10 +1,10 @@
-#include "OAuthManager.hpp"
+#include "application/services/OAuthManager.hpp"
 
-#include "Logger.hpp"
-#include "SettingsManager.hpp"
 #include "app_version.hpp"
-#include "free_port.hpp"
+#include "common/logger/Logger.hpp"
 #include "google_oauth_config.hpp"
+#include "helper/SettingsManager.hpp"
+#include "helper/free_port.hpp"
 
 #include <QByteArray>
 #include <QCryptographicHash>

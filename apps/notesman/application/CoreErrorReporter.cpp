@@ -1,6 +1,6 @@
-#include "CoreErrorReporter.hpp"
+#include "application/CoreErrorReporter.hpp"
 
-#include "Logger.hpp"
+#include "common/logger/Logger.hpp"
 
 #include <QString>
 

@@ -1,4 +1,4 @@
-#include "PlainTextEdit.hpp"
+#include "helper/PlainTextEdit.hpp"
 
 #include <QColor>
 #include <QMimeData>

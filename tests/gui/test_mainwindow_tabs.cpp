@@ -1,4 +1,4 @@
-#include "MainWindow.hpp"
+#include "gui/MainWindow.hpp"
 
 #include <QApplication>
 #include <QCoreApplication>
@@ -10,14 +10,16 @@
 
 // Helper để quản lý vòng đời QApplication trong test
 struct QtTestFixture {
-        QtTestFixture() {
-            static int argc = 1;
-            static char arg0[] = "test_app";
-            static char* argv[] = {arg0, nullptr};
-            if (!qApp) { app = std::make_unique<QApplication>(argc, argv); }
+    QtTestFixture() {
+        static int argc = 1;
+        static char arg0[] = "test_app";
+        static char* argv[] = {arg0, nullptr};
+        if (!qApp) {
+            app = std::make_unique<QApplication>(argc, argv);
         }
+    }
 
-        std::unique_ptr<QApplication> app;
+    std::unique_ptr<QApplication> app;
 };
 
 TEST_CASE("MainWindow Tab Structure Check", "[GUI][MainWindow][Structure]") {

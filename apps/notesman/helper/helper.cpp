@@ -1,6 +1,6 @@
-#include "helper.hpp"
+#include "helper/helper.hpp"
 
-#include "model.hpp"
+#include "core/model/model.hpp"
 
 #include <array>
 #include <cctype>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cpphighlightertheme.hpp"
+#include "gui/Highlighter/cpphighlightertheme.hpp"
 
 #include <QObject>
 #include <QPointer>

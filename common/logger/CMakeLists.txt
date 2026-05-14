@@ -18,5 +18,5 @@ target_compile_definitions(common_logger
 )
 
 target_include_directories(common_logger
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC ${PROJECT_SOURCE_DIR}
 )

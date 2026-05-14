@@ -1,8 +1,8 @@
-#include "NotesAppCore.hpp"
+#include "application/NotesAppCore.hpp"
 
-#include "file_service.hpp"
-#include "model.hpp"
-#include "resource_service.hpp"
+#include "core/model/model.hpp"
+#include "core/service/file_service.hpp"
+#include "core/service/resource_service.hpp"
 
 #include <filesystem>
 #include <optional>

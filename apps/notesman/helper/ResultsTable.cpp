@@ -1,4 +1,4 @@
-#include "ResultsTable.hpp"
+#include "helper/ResultsTable.hpp"
 
 #include <QApplication>
 #include <QFocusEvent>

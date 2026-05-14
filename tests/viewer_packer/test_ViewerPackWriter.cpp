@@ -1,7 +1,7 @@
-#include "ViewerPackCrc32.hpp"
-#include "ViewerPackError.hpp"
-#include "ViewerPackHeader.hpp"
-#include "ViewerPackWriter.hpp"
+#include "common/viewer_pack/ViewerPackCrc32.hpp"
+#include "common/viewer_pack/ViewerPackError.hpp"
+#include "common/viewer_pack/ViewerPackHeader.hpp"
+#include "common/viewer_pack/ViewerPackWriter.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
@@ -13,21 +13,21 @@
 namespace fs = std::filesystem;
 
 namespace {
-    ViewerPackHeader makeHeader() {
-        ViewerPackHeader header{};
+ViewerPackHeader makeHeader() {
+    ViewerPackHeader header{};
 
-        std::memcpy(header.magic, ViewerPackHeader::RVPK_MAGIC, 4);
-        header.version = ViewerPackHeader::VERSION;
+    std::memcpy(header.magic, ViewerPackHeader::RVPK_MAGIC, 4);
+    header.version = ViewerPackHeader::VERSION;
 
-        return header;
-    }
+    return header;
+}
 
-    fs::path makeTempDir() {
-        fs::path const dir = fs::temp_directory_path() / "ViewerPackWriterTests";
-        fs::create_directory(dir);
+fs::path makeTempDir() {
+    fs::path const dir = fs::temp_directory_path() / "ViewerPackWriterTests";
+    fs::create_directory(dir);
 
-        return dir;
-    }
+    return dir;
+}
 }; // namespace
 
 TEST_CASE("ViewerPackWriter writes file successfully", "[ViewerPackWriter]") {

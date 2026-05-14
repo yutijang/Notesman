@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UpdateInfoSummary.hpp"
+#include "application/services/UpdateInfoSummary.hpp"
 
 #include <QAnyStringView>
 #include <QNetworkAccessManager>

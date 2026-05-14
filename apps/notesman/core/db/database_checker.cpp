@@ -1,7 +1,7 @@
 #include "database_checker.hpp"
 
-#include "Logger.hpp"
-#include "sqldb_raii.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/sqldb_raii.hpp"
 
 #include <cstddef>
 #include <exception>

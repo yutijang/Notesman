@@ -1,5 +1,5 @@
-#include "AppSettings.hpp"
-#include "UiConstants.hpp"
+#include "gui/Settings/AppSettings.hpp"
+#include "gui/UiConstants.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 

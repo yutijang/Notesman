@@ -1,6 +1,6 @@
-#include "DownloadManager.hpp"
+#include "application/services/DownloadManager.hpp"
 
-#include "Logger.hpp"
+#include "common/logger/Logger.hpp"
 
 #include <QDir>
 #include <QNetworkReply>

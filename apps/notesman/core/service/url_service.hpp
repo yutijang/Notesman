@@ -1,8 +1,8 @@
 #pragma once
 
-#include "model.hpp"
-#include "resource_repository.hpp"
-#include "url_repository.hpp"
+#include "core/model/model.hpp"
+#include "core/repository/resource_repository.hpp"
+#include "core/repository/url_repository.hpp"
 
 #include <optional>
 #include <sqlite3.h>

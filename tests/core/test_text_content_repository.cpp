@@ -1,6 +1,6 @@
-#include "Logger.hpp"
-#include "sqldb_raii.hpp"
-#include "text_content_repository.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/repository/text_content_repository.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <sqlite3.h>
@@ -8,11 +8,11 @@
 #include <string>
 
 namespace {
-    SQLiteDB createInMemoryDB() {
-        SQLiteDB db(":memory:");
-        sqlite3* rawPtr = db.get();
+SQLiteDB createInMemoryDB() {
+    SQLiteDB db(":memory:");
+    sqlite3* rawPtr = db.get();
 
-        char const* schema = R"SQL(
+    char const* schema = R"SQL(
             PRAGMA foreign_keys = ON;
 
             CREATE TABLE text_content (
@@ -49,9 +49,9 @@ namespace {
             END;
         )SQL";
 
-        REQUIRE(sqlite3_exec(rawPtr, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
-        return db;
-    }
+    REQUIRE(sqlite3_exec(rawPtr, schema, nullptr, nullptr, nullptr) == SQLITE_OK);
+    return db;
+}
 } // namespace
 
 TEST_CASE("TextContentRepository basic CRUD", "[TextContentRepository]") {

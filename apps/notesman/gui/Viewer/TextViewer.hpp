@@ -1,8 +1,8 @@
 #pragma once
 
-#include "IResourceViewer.hpp"
-#include "ResourceViewService.hpp"
-#include "UiConstants.hpp"
+#include "gui/UiConstants.hpp"
+#include "gui/Viewer/IResourceViewer.hpp"
+#include "gui/Viewer/ResourceViewService.hpp"
 
 #include <QString>
 #include <QWidget>

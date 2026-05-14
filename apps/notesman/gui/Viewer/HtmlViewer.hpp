@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ContentMode.hpp"
-#include "IResourceViewer.hpp"
+#include "gui/Viewer/IResourceViewer.hpp"
 
 #include <QString>
 #include <QUrl>

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "AppSettings.hpp"
-#include "GoogleDriveService.hpp"
-#include "OAuthManager.hpp"
-#include "SettingsData.hpp"
-#include "UiConstants.hpp"
-#include "UpdateInfoSummary.hpp"
-#include "model.hpp"
+#include "application/services/GoogleDriveService.hpp"
+#include "application/services/OAuthManager.hpp"
+#include "application/services/UpdateInfoSummary.hpp"
+#include "core/model/model.hpp"
+#include "gui/Settings/AppSettings.hpp"
+#include "gui/Settings/SettingsData.hpp"
+#include "gui/UiConstants.hpp"
 
 #include <QObject>
 #include <QStringList>

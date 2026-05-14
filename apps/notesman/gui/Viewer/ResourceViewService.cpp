@@ -1,7 +1,7 @@
-#include "ResourceViewService.hpp"
+#include "gui/Viewer/ResourceViewService.hpp"
 
-#include "NotesAppCore.hpp"
-#include "model.hpp"
+#include "application/NotesAppCore.hpp"
+#include "core/model/model.hpp"
 
 #include <QFile>
 #include <QString>

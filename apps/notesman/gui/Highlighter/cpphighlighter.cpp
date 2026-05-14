@@ -1,6 +1,6 @@
-#include "cpphighlighter.hpp"
+#include "gui/Highlighter/cpphighlighter.hpp"
 
-#include "cpphighlightertheme.hpp"
+#include "gui/Highlighter/cpphighlightertheme.hpp"
 
 #include <QApplication>
 #include <QColor>

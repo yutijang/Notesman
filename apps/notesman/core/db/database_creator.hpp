@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Logger.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/sqldb_raii.hpp"
 #include "schema_version.hpp"
-#include "sqldb_raii.hpp"
 
 #include <exception>
 #include <sqlite3.h>

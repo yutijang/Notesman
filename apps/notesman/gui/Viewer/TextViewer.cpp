@@ -1,13 +1,13 @@
-#include "TextViewer.hpp"
+#include "gui/Viewer/TextViewer.hpp"
 
-#include "CodeEditorLineHighlighter.hpp"
-#include "DialogUtils.hpp"
-#include "PlainTextEdit.hpp"
-#include "ResourceViewService.hpp"
-#include "UiConstants.hpp"
-#include "cpphighlighter.hpp"
-#include "cpphighlightertheme.hpp"
-#include "helper.hpp"
+#include "gui/Highlighter/CodeEditorLineHighlighter.hpp"
+#include "gui/Highlighter/cpphighlighter.hpp"
+#include "gui/Highlighter/cpphighlightertheme.hpp"
+#include "gui/UiConstants.hpp"
+#include "gui/Viewer/ResourceViewService.hpp"
+#include "helper/DialogUtils.hpp"
+#include "helper/PlainTextEdit.hpp"
+#include "helper/helper.hpp"
 
 #include <QColor>
 #include <QFont>

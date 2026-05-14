@@ -1,8 +1,8 @@
-#include "text_content_repository.hpp"
+#include "core/repository/text_content_repository.hpp"
 
-#include "Logger.hpp"
-#include "sqldb_raii.hpp"
-#include "sqlite_utils.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/db/sqlite_utils.hpp"
 
 #include <optional>
 #include <sqlite3.h>

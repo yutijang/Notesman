@@ -1,11 +1,11 @@
 #pragma once
 
-#include "IResourceViewer.hpp"
-#include "ResourceViewService.hpp"
-#include "SettingsData.hpp"
-#include "UiConstants.hpp"
-#include "UpdateInfoSummary.hpp"
-#include "model.hpp"
+#include "application/services/UpdateInfoSummary.hpp"
+#include "core/model/model.hpp"
+#include "gui/Settings/SettingsData.hpp"
+#include "gui/UiConstants.hpp"
+#include "gui/Viewer/IResourceViewer.hpp"
+#include "gui/Viewer/ResourceViewService.hpp"
 
 #include <QMainWindow>
 #include <QModelIndexList>

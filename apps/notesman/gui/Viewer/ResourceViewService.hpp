@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotesAppCore.hpp"
+#include "application/NotesAppCore.hpp"
 
 #include <QString>
 #include <optional>

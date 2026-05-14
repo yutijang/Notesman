@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SettingsData.hpp"
-#include "UiConstants.hpp"
+#include "gui/Settings/SettingsData.hpp"
+#include "gui/UiConstants.hpp"
 
 #include <filesystem>
 

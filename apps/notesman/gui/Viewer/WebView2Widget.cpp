@@ -1,8 +1,8 @@
-#include "WebView2Widget.hpp"
+#include "gui/Viewer/WebView2Widget.hpp"
 
-#include "ContentMode.hpp"
-#include "Logger.hpp"
-#include "WebView2Guard.hpp"
+#include "common/logger/Logger.hpp"
+#include "gui/Viewer/ContentMode.hpp"
+#include "gui/Viewer/WebView2Guard.hpp"
 
 #include <QDebug>
 #include <QFileInfo>

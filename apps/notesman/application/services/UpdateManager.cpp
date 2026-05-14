@@ -1,10 +1,10 @@
-#include "UpdateManager.hpp"
+#include "application/services/UpdateManager.hpp"
 
-#include "Logger.hpp"
-#include "SettingsManager.hpp"
-#include "UiConstants.hpp"
-#include "UpdateInfoSummary.hpp"
 #include "app_version.hpp"
+#include "application/services/UpdateInfoSummary.hpp"
+#include "common/logger/Logger.hpp"
+#include "gui/UiConstants.hpp"
+#include "helper/SettingsManager.hpp"
 
 #include <QAnyStringView>
 #include <QJsonArray>

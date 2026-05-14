@@ -1,7 +1,7 @@
-#include "FontLoader.hpp"
+#include "helper/FontLoader.hpp"
 
-#include "Logger.hpp"
-#include "UiConstants.hpp"
+#include "common/logger/Logger.hpp"
+#include "gui/UiConstants.hpp"
 
 #include <QApplication>
 #include <QFont>

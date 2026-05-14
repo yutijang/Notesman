@@ -1,9 +1,9 @@
-#include "resource_repository.hpp"
+#include "core/repository/resource_repository.hpp"
 
-#include "Logger.hpp"
-#include "model.hpp"
-#include "sqldb_raii.hpp"
-#include "sqlite_utils.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/db/sqlite_utils.hpp"
+#include "core/model/model.hpp"
 
 #include <optional>
 #include <ranges>

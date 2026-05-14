@@ -1,6 +1,6 @@
-#include "GuiCoreErrorHandler.hpp"
+#include "application/GuiCoreErrorHandler.hpp"
 
-#include "DialogUtils.hpp"
+#include "helper/DialogUtils.hpp"
 
 #include <QMessageBox>
 #include <QString>

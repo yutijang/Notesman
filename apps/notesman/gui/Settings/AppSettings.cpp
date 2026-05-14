@@ -1,7 +1,7 @@
-#include "AppSettings.hpp"
+#include "gui/Settings/AppSettings.hpp"
 
-#include "SettingsData.hpp"
-#include "UiConstants.hpp"
+#include "gui/Settings/SettingsData.hpp"
+#include "gui/UiConstants.hpp"
 
 #include <filesystem>
 #include <fstream>

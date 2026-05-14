@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ViewerPackError.hpp"
-#include "ViewerPackHeader.hpp"
+#include "common/viewer_pack/ViewerPackError.hpp"
+#include "common/viewer_pack/ViewerPackHeader.hpp"
 
 #include <cstdint>
 #include <expected>

@@ -1,10 +1,10 @@
-#include "file_service.hpp"
+#include "core/service/file_service.hpp"
 
-#include "Logger.hpp"
-#include "file_repository.hpp"
-#include "file_text_content_repository.hpp"
-#include "model.hpp"
-#include "resource_repository.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/model/model.hpp"
+#include "core/repository/file_repository.hpp"
+#include "core/repository/file_text_content_repository.hpp"
+#include "core/repository/resource_repository.hpp"
 
 #include <array>
 #include <cstddef>

@@ -1,12 +1,12 @@
-#include "GoogleDriveService.hpp"
+#include "application/services/GoogleDriveService.hpp"
 
-#include "CorePaths.hpp"
-#include "Logger.hpp"
-#include "OAuthManager.hpp"
-#include "SettingsManager.hpp"
-#include "UiConstants.hpp"
-#include "database_maintenance.hpp"
-#include "helper.hpp"
+#include "application/services/OAuthManager.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/db/database_maintenance.hpp"
+#include "gui/UiConstants.hpp"
+#include "helper/CorePaths.hpp"
+#include "helper/SettingsManager.hpp"
+#include "helper/helper.hpp"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>

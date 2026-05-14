@@ -1,13 +1,13 @@
-#include "resource_service.hpp"
+#include "core/service/resource_service.hpp"
 
-#include "Logger.hpp"
-#include "file_repository.hpp"
-#include "file_service.hpp"
-#include "helper.hpp"
-#include "model.hpp"
-#include "resource_repository.hpp"
-#include "tag_repository.hpp"
-#include "text_content_repository.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/model/model.hpp"
+#include "core/repository/file_repository.hpp"
+#include "core/repository/resource_repository.hpp"
+#include "core/repository/tag_repository.hpp"
+#include "core/repository/text_content_repository.hpp"
+#include "core/service/file_service.hpp"
+#include "helper/helper.hpp"
 
 #include <cassert>
 #include <filesystem>

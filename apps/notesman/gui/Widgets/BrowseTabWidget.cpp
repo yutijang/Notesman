@@ -1,10 +1,10 @@
-#include "BrowseTabWidget.hpp"
+#include "gui/Widgets/BrowseTabWidget.hpp"
 
-#include "Logger.hpp"
-#include "ResourceTitleDelegate.hpp"
-#include "ResultsTable.hpp"
-#include "UiConstants.hpp"
-#include "model.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/model/model.hpp"
+#include "gui/UiConstants.hpp"
+#include "helper/ResourceTitleDelegate.hpp"
+#include "helper/ResultsTable.hpp"
 
 #include <QAbstractItemView>
 #include <QButtonGroup>

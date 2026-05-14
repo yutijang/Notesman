@@ -1,6 +1,6 @@
-#include "CodeEditorLineHighlighter.hpp"
+#include "gui/Highlighter/CodeEditorLineHighlighter.hpp"
 
-#include "PlainTextEdit.hpp"
+#include "helper/PlainTextEdit.hpp"
 
 #include <QColor>
 #include <QEvent>

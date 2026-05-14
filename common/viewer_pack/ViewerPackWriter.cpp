@@ -1,8 +1,8 @@
-#include "ViewerPackWriter.hpp"
+#include "common/viewer_pack/ViewerPackWriter.hpp"
 
-#include "ViewerPackCrc32.hpp"
-#include "ViewerPackError.hpp"
-#include "ViewerPackHeader.hpp"
+#include "common/viewer_pack/ViewerPackCrc32.hpp"
+#include "common/viewer_pack/ViewerPackError.hpp"
+#include "common/viewer_pack/ViewerPackHeader.hpp"
 
 #include <cstddef>
 #include <cstdint>

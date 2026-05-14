@@ -1,7 +1,7 @@
-#include "url_service.hpp"
+#include "core/service/url_service.hpp"
 
-#include "Logger.hpp"
-#include "model.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/model/model.hpp"
 
 #include <algorithm>
 #include <boost/url/param.hpp>

@@ -1,8 +1,8 @@
-#include "tag_repository.hpp"
+#include "core/repository/tag_repository.hpp"
 
-#include "model.hpp"
-#include "sqldb_raii.hpp"
-#include "sqlite_utils.hpp"
+#include "core/db/sqldb_raii.hpp"
+#include "core/db/sqlite_utils.hpp"
+#include "core/model/model.hpp"
 
 #include <cstddef>
 #include <optional>

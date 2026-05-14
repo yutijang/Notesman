@@ -1,6 +1,6 @@
-#include "FileAssociation.hpp"
+#include "application/FileAssociation.hpp"
 
-#include "Logger.hpp"
+#include "common/logger/Logger.hpp"
 
 #include <QCoreApplication>
 #include <QString>

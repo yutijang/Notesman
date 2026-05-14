@@ -1,8 +1,8 @@
 #pragma once
 
-#include "IResourceViewer.hpp"
-#include "UiConstants.hpp"
-#include "model.hpp"
+#include "core/model/model.hpp"
+#include "gui/UiConstants.hpp"
+#include "gui/Viewer/IResourceViewer.hpp"
 
 #include <QString>
 #include <cstdint>

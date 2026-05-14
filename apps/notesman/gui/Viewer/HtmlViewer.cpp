@@ -1,8 +1,8 @@
-#include "HtmlViewer.hpp"
+#include "gui/Viewer/HtmlViewer.hpp"
 
-#include "ContentMode.hpp"
-#include "DialogUtils.hpp"
-#include "Logger.hpp"
+#include "common/logger/Logger.hpp"
+#include "gui/Viewer/ContentMode.hpp"
+#include "helper/DialogUtils.hpp"
 
 #include <QDesktopServices>
 #include <QFileInfo>

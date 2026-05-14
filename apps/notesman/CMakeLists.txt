@@ -58,11 +58,7 @@ add_library(notes-core STATIC
 
 target_include_directories(notes-core
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/db
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/model
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/repository
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/service
-        ${CMAKE_CURRENT_SOURCE_DIR}/helper
+        ${CMAKE_CURRENT_SOURCE_DIR}
         ${NOTESMAN_GENERATED_DIR} # db version
 )
 
@@ -156,16 +152,7 @@ add_library(notes-app-lib-core STATIC
 
 target_include_directories(notes-app-lib-core
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/application
-        ${CMAKE_CURRENT_SOURCE_DIR}/application/workers
-        ${CMAKE_CURRENT_SOURCE_DIR}/application/services
-        ${CMAKE_CURRENT_SOURCE_DIR}/gui
-        ${CMAKE_CURRENT_SOURCE_DIR}/gui/Highlighter
-        ${CMAKE_CURRENT_SOURCE_DIR}/gui/TagInput
-        ${CMAKE_CURRENT_SOURCE_DIR}/gui/Widgets
-        ${CMAKE_CURRENT_SOURCE_DIR}/gui/Viewer
-        ${CMAKE_CURRENT_SOURCE_DIR}/gui/Settings
-        ${CMAKE_CURRENT_SOURCE_DIR}/helper
+        ${CMAKE_CURRENT_SOURCE_DIR}
         ${NOTESMAN_GENERATED_DIR} # OAuth config include dir
 )
 

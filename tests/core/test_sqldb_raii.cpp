@@ -1,4 +1,4 @@
-#include "sqldb_raii.hpp"
+#include "core/db/sqldb_raii.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -7,27 +7,31 @@
 #include <string>
 
 namespace {
-    // Helper: Check PRAGMA value
-    int getPragmaInt(sqlite3* db, char const* pragma) {
-        int value{};
-        char* errMsg{};
+// Helper: Check PRAGMA value
+int getPragmaInt(sqlite3* db, char const* pragma) {
+    int value{};
+    char* errMsg{};
 
-        std::string sql = std::string("PRAGMA ") + pragma + ";";
-        int rc = sqlite3_exec(
-            db, sql.c_str(),
-            [](void* data, int, char**, char**) -> int {
-                *static_cast<int*>(data) = 1; // Set value nếu row tồn tại
-                return SQLITE_OK;
-            },
-            &value, &errMsg);
+    std::string sql = std::string("PRAGMA ") + pragma + ";";
+    int rc = sqlite3_exec(
+        db,
+        sql.c_str(),
+        [](void* data, int, char**, char**) -> int {
+            *static_cast<int*>(data) = 1; // Set value nếu row tồn tại
+            return SQLITE_OK;
+        },
+        &value,
+        &errMsg);
 
-        if (rc != SQLITE_OK) {
-            if (errMsg != nullptr) { sqlite3_free(errMsg); }
-            value = 0; // Default on error
+    if (rc != SQLITE_OK) {
+        if (errMsg != nullptr) {
+            sqlite3_free(errMsg);
         }
-
-        return value;
+        value = 0; // Default on error
     }
+
+    return value;
+}
 } // namespace
 
 TEST_CASE("SQLiteDB - RAII and Initialization", "[DB][RAII]") {

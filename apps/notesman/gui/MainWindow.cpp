@@ -1,34 +1,34 @@
-#include "MainWindow.hpp"
+#include "gui/MainWindow.hpp"
 
-#include "AddTabWidget.hpp"
-#include "AppController.hpp"
-#include "BrowseTabWidget.hpp"
-#include "CodeEditorLineHighlighter.hpp"
-#include "CorePaths.hpp"
-#include "DialogUtils.hpp"
-#include "FileAssociation.hpp"
-#include "HtmlViewer.hpp"
-#include "IResourceViewer.hpp"
-#include "InfoCornerWidget.hpp"
-#include "IpcConstants.hpp"
-#include "Logger.hpp"
-#include "NotesAppCore.hpp"
-#include "PlainTextEdit.hpp"
-#include "ResourceSearchWorker.hpp"
-#include "ResourceViewService.hpp"
-#include "ResourceViewerDialog.hpp"
-#include "ResourceViewerFactory.hpp"
-#include "ResultsTable.hpp"
-#include "SettingsData.hpp"
-#include "SettingsManager.hpp"
-#include "SettingsTabWidget.hpp"
-#include "TextViewer.hpp"
-#include "UiConstants.hpp"
-#include "UpdateInfoSummary.hpp"
 #include "app_version.hpp"
-#include "cpphighlighter.hpp"
-#include "cpphighlightertheme.hpp"
-#include "model.hpp"
+#include "application/AppController.hpp"
+#include "application/FileAssociation.hpp"
+#include "application/NotesAppCore.hpp"
+#include "application/ResourceViewerFactory.hpp"
+#include "application/services/UpdateInfoSummary.hpp"
+#include "application/workers/ResourceSearchWorker.hpp"
+#include "common/logger/Logger.hpp"
+#include "core/model/model.hpp"
+#include "gui/Highlighter/CodeEditorLineHighlighter.hpp"
+#include "gui/Highlighter/cpphighlighter.hpp"
+#include "gui/Highlighter/cpphighlightertheme.hpp"
+#include "gui/Settings/SettingsData.hpp"
+#include "gui/UiConstants.hpp"
+#include "gui/Viewer/HtmlViewer.hpp"
+#include "gui/Viewer/IResourceViewer.hpp"
+#include "gui/Viewer/ResourceViewService.hpp"
+#include "gui/Viewer/ResourceViewerDialog.hpp"
+#include "gui/Viewer/TextViewer.hpp"
+#include "gui/Widgets/AddTabWidget.hpp"
+#include "gui/Widgets/BrowseTabWidget.hpp"
+#include "gui/Widgets/InfoCornerWidget.hpp"
+#include "gui/Widgets/SettingsTabWidget.hpp"
+#include "helper/CorePaths.hpp"
+#include "helper/DialogUtils.hpp"
+#include "helper/IpcConstants.hpp"
+#include "helper/PlainTextEdit.hpp"
+#include "helper/ResultsTable.hpp"
+#include "helper/SettingsManager.hpp"
 
 #include <QApplication>
 #include <QColor>
@@ -77,7 +77,7 @@
 #include <vector>
 
 #if defined(Q_OS_LINUX)
-#include "AppImageExtractor.hpp"
+#include "helper/AppImageExtractor.hpp"
 
 #include <cerrno>
 #include <cstdlib>
@@ -86,7 +86,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #elif defined(Q_OS_WIN)
-#include "helper.hpp"
+#include "helper/helper.hpp"
 #endif
 
 namespace {
