@@ -91,16 +91,28 @@ FetchContent_Declare(
 
 set(BUILD_TRANSLATIONS OFF CACHE BOOL "" FORCE)
 set(BUILD_TEST_APPLICATION OFF CACHE BOOL "" FORCE)
+set(BUILD_WITH_QT6 ON CACHE BOOL "" FORCE) #important
+
+# Save global state
+set(PROJECT_BUILD_TESTING ${BUILD_TESTING})
+set(PROJECT_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+
+# Disable only for dependency
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static QtKeychain" FORCE)
-set(BUILD_WITH_QT6 ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(qtkeychain)
+
+# Restore global state
+set(BUILD_TESTING ${PROJECT_BUILD_TESTING} CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS ${PROJECT_BUILD_SHARED_LIBS} CACHE BOOL "" FORCE)
 
 # --- Tắt warning cho mã nguồn qtkeychain ---
 if (TARGET qt6keychain)
     target_compile_options(qt6keychain PRIVATE
         -Wno-ignored-attributes
         -Wno-attributes
+        -Wno-switch
     )
 endif()
 # ------------------------------------------------------------
