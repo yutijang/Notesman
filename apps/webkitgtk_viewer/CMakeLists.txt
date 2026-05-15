@@ -28,4 +28,5 @@ target_link_libraries(webkitgtk_viewer
     PRIVATE
         ${GTK_LIBRARIES}
         ${WEBKIT_LIBRARIES}
+        project_warnings
 )

@@ -137,16 +137,15 @@ NotesCoreFactory::CoreInitResult NotesCoreFactory::createCore(std::filesystem::p
         ctx->fileService =
             std::make_unique<FileService>(*ctx->fileRepo, *ctx->resRepo, *ctx->fileTextRepo);
         ctx->urlService = std::make_unique<UrlService>(*ctx->urlRepo, *ctx->resRepo);
-        ctx->resService = std::make_unique<ResourceService>(*ctx->db,
-                                                            *ctx->resRepo,
+        ctx->resService = std::make_unique<ResourceService>(*ctx->resRepo,
                                                             *ctx->fileRepo,
                                                             *ctx->textRepo,
                                                             *ctx->tagRepo,
                                                             *ctx->fileService,
                                                             *ctx->urlService);
 
-        ctx->core = std::make_unique<NotesAppCore>(
-            *ctx->textRepo, *ctx->fileService, *ctx->urlService, *ctx->resService);
+        ctx->core =
+            std::make_unique<NotesAppCore>(*ctx->textRepo, *ctx->fileService, *ctx->resService);
 
         return CoreInitResult(std::move(ctx));
 

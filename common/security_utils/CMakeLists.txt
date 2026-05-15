@@ -10,4 +10,6 @@ target_link_libraries(security_utils
     INTERFACE
         bcrypt
         shell32
+    PRIVATE
+        project_warnings
 )

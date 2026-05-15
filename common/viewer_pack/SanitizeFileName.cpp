@@ -44,12 +44,12 @@ bool isWindowsReservedName(std::string_view filename) {
 constexpr std::array<bool, 256> createForbiddenLookup() {
     std::array<bool, 256> lookup = {false};
     // Các mã điều khiển ASCII (0-31)
-    for (int i = 0; i < 32; ++i) {
+    for (std::size_t i = 0; i < 32; ++i) {
         lookup[i] = true;
     }
     // Ký tự cấm trên Windows/Linux
-    for (unsigned char c : {'<', '>', ':', '"', '/', '\\', '|', '?', '*'}) {
-        lookup[c] = true;
+    for (char const c : {'<', '>', ':', '"', '/', '\\', '|', '?', '*'}) {
+        lookup[static_cast<size_t>(c)] = true;
     }
     return lookup;
 }

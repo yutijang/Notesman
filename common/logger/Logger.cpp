@@ -27,7 +27,7 @@ namespace {
 
 std::once_flag gOnce;
 
-std::filesystem::path getExeDir() {
+[[maybe_unused]] std::filesystem::path getExeDir() {
 #if defined(_WIN32)
     wchar_t buf[MAX_PATH];
     GetModuleFileNameW(nullptr, buf, MAX_PATH);

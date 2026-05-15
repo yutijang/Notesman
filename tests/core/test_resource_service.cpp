@@ -92,7 +92,7 @@ TEST_CASE("ResourceService addTextResource basic behavior", "[ResourceService]")
     UrlService urlService(urlRepo, resRepo);
     FileService fileService(fileRepo, resRepo, fileTextRepo);
 
-    ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
+    ResourceService service(resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
 
     SECTION("throws if not ResourceType::plainText") {
         REQUIRE_THROWS_AS(service.addTextResource("Doc", "Body", ResourceType::PdfDoc),
@@ -124,7 +124,7 @@ TEST_CASE("ResourceService addFileResource delegates correctly", "[ResourceServi
     UrlService urlService(urlRepo, resRepo);
     FileService fileService(fileRepo, resRepo, fileTextRepo);
 
-    ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
+    ResourceService service(resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
 
     std::filesystem::path tmp = std::filesystem::temp_directory_path() / "rs_test.txt";
     std::ofstream(tmp) << "temp";
@@ -158,7 +158,7 @@ TEST_CASE("ResourceService getFullResource combines repositories correctly", "[R
     UrlService urlService(urlRepo, resRepo);
     FileService fileService(fileRepo, resRepo, fileTextRepo);
 
-    ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
+    ResourceService service(resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
 
     auto result = service.getFullResource(1);
     REQUIRE(result.has_value());
@@ -195,7 +195,7 @@ TEST_CASE("ResourceService deleteResource removes managed files", "[ResourceServ
                  nullptr);
 
     REQUIRE(std::filesystem::exists(tmpFile));
-    ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
+    ResourceService service(resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
     service.deleteResource(1);
     CHECK_FALSE(std::filesystem::exists(tmpFile));
 }
@@ -221,7 +221,7 @@ TEST_CASE("ResourceService addTagToResource handles existing/new tags correctly"
                  nullptr,
                  nullptr);
 
-    ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
+    ResourceService service(resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
 
     SECTION("links existing tag") {
         REQUIRE_NOTHROW(service.addTagToResource(1, "qt"));
@@ -257,7 +257,7 @@ TEST_CASE("ResourceService isExistTitle delegates correctly", "[ResourceService]
     UrlService urlService(urlRepo, resRepo);
     FileService fileService(fileRepo, resRepo, fileTextRepo);
 
-    ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
+    ResourceService service(resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
     CHECK(service.isExistTitle("abc", ResourceType::PdfDoc));
 }
 
@@ -289,7 +289,7 @@ TEST_CASE("ResourceService searchByTitleFull aggregates results", "[ResourceServ
     UrlService urlService(urlRepo, resRepo);
     FileService fileService(fileRepo, resRepo, fileTextRepo);
 
-    ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
+    ResourceService service(resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
     auto result = service.searchByTitleFull("Qt");
 
     REQUIRE(result.size() == 2);
@@ -324,7 +324,7 @@ TEST_CASE("ResourceService searchByContentFull aggregates results", "[ResourceSe
     UrlService urlService(urlRepo, resRepo);
     FileService fileService(fileRepo, resRepo, fileTextRepo);
 
-    ResourceService service(db, resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
+    ResourceService service(resRepo, fileRepo, textRepo, tagRepo, fileService, urlService);
 
     auto results = service.searchByContentFull("plus");
     REQUIRE(results.size() == 2);

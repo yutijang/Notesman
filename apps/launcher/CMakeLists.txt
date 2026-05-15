@@ -19,6 +19,7 @@ target_link_libraries(${LAUNCHER}
         user32
         shlwapi
         security_utils
+        project_warnings
 )
 
 # --- metadata ---------------------------------------

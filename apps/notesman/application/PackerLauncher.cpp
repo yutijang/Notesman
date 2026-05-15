@@ -1,11 +1,14 @@
 #include "application/PackerLauncher.hpp"
 
+#include <limits>
+
 #ifdef Q_OS_WIN
 #include <windows.h>
 #elif defined(Q_OS_LINUX)
 #include <QEventLoop>
 #include <QProcess>
 #include <csignal>
+#include <ctime>
 #endif
 
 #include "application/AppUIApplier.hpp"
@@ -220,7 +223,13 @@ int PackerLauncher::run(QString const& packerFilePath) {
                 if (msg != "activate") {
                     return;
                 }
-                ::kill(proc->processId(), SIGUSR1);
+
+                qint64 const pid64 = proc->processId();
+                if (pid64 <= 0 || pid64 > std::numeric_limits<pid_t>::max()) [[unlikely]] {
+                    return;
+                }
+                // ::kill(proc->processId(), SIGUSR1);
+                ::kill(static_cast<pid_t>(pid64), SIGUSR1);
                 QObject::connect(
                     client, &QLocalSocket::disconnected, client, &QObject::deleteLater);
             });

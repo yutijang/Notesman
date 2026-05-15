@@ -4,7 +4,6 @@
 #include "core/repository/text_content_repository.hpp"
 #include "core/service/file_service.hpp"
 #include "core/service/resource_service.hpp"
-#include "core/service/url_service.hpp"
 
 #include <filesystem>
 #include <optional>
@@ -18,10 +17,8 @@ class NotesAppCore {
   public:
     explicit NotesAppCore(TextContentRepository& textRepo,
                           FileService& fileService,
-                          UrlService& urlService,
                           ResourceService& resService)
-        : m_textRepo(textRepo), m_fileService(fileService), m_urlService(urlService),
-          m_resService(resService) {}
+        : m_textRepo(textRepo), m_fileService(fileService), m_resService(resService) {}
 
     ~NotesAppCore() = default;
 
@@ -97,6 +94,5 @@ class NotesAppCore {
   private:
     TextContentRepository& m_textRepo;
     FileService& m_fileService;
-    UrlService& m_urlService;
     ResourceService& m_resService;
 };

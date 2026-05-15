@@ -60,6 +60,37 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 # -----------------------------------------------------------
 
+# -----------------------------------------------------------
+add_library(project_warnings INTERFACE)
+
+target_compile_options(project_warnings INTERFACE
+
+    # Clang/GCC-style warnings
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+        -Werror
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wshadow
+        -Wconversion
+        -Wsign-conversion
+        -Wnon-virtual-dtor
+    >
+
+    # clang++ / GCC only
+    $<$<AND:$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<BOOL:${MSVC}>>>:
+        -Wold-style-cast
+    >
+
+    # MSVC driver mode
+    $<$<BOOL:${MSVC}>:
+        /W4
+        /EHsc
+        /permissive-
+    >
+)
+# -----------------------------------------------------------
+
 # Dependencies
 find_package(OpenSSL REQUIRED)
 find_package(Qt6 COMPONENTS Core Gui Widgets Network Svg Concurrent REQUIRED)

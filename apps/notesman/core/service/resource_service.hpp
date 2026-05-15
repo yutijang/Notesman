@@ -18,15 +18,14 @@
 
 class ResourceService {
   public:
-    explicit ResourceService(SQLiteDB& db,
-                             ResourceRepository& resRepo,
+    explicit ResourceService(ResourceRepository& resRepo,
                              FileRepository& fileRepo,
                              TextContentRepository& textRepo,
                              TagRepository& tagRepo,
                              FileService& fileService,
                              UrlService& urlService) noexcept
-        : m_db(db), m_resRepo(resRepo), m_fileRepo(fileRepo), m_textRepo(textRepo),
-          m_tagRepo(tagRepo), m_fileService(fileService), m_urlService(urlService) {}
+        : m_resRepo(resRepo), m_fileRepo(fileRepo), m_textRepo(textRepo), m_tagRepo(tagRepo),
+          m_fileService(fileService), m_urlService(urlService) {}
 
     // ========== CRUD ==========
     sqlite3_int64
@@ -91,7 +90,6 @@ class ResourceService {
     FullResource buildFullFromResource(Resource const& res);
     void validateIsFile(UnifiedSearchResult& item);
 
-    SQLiteDB& m_db;
     ResourceRepository& m_resRepo;
     FileRepository& m_fileRepo;
     TextContentRepository& m_textRepo;

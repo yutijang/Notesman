@@ -74,6 +74,8 @@ target_link_libraries(notes-core
         OpenSSL::Crypto
         common::logger
         common::viewer_pack
+    PRIVATE
+        project_warnings        
 )
 
 target_compile_definitions(notes-core
@@ -175,12 +177,14 @@ target_link_libraries(notes-app-lib-core
         md4c::md4c-html
         Boost::url
         libzip::zip
+    PRIVATE
+        project_warnings
 )
 
 if (WIN32)
     target_link_libraries(notes-app-lib-core
         PRIVATE
-        unofficial::webview2::webview2 user32 ole32 oleaut32 shlwapi Shell32
+            unofficial::webview2::webview2 user32 ole32 oleaut32 shlwapi Shell32
     )
 endif()
 
@@ -222,6 +226,7 @@ target_link_libraries(notes-app-lib-qtkeychain
     PRIVATE
         notes-app-lib-core
         qt6keychain
+        project_warnings
 )
 #===
 
@@ -240,6 +245,7 @@ target_link_libraries(${PROJECT_NAME}
         notes-app-lib-core # Thứ tự QUAN TRỌNG
         notes-app-lib-qtkeychain
         $<$<TARGET_EXISTS:security_utils>:security_utils>
+        project_warnings
 )
 
 if(WIN32)

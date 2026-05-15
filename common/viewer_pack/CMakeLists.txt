@@ -5,6 +5,11 @@ add_library(viewer_pack STATIC
     ViewerPackCrc32.cpp
 )
 
+target_link_libraries(viewer_pack
+    PRIVATE
+        project_warnings
+)
+
 add_library(common::viewer_pack ALIAS viewer_pack)
 
 target_include_directories(viewer_pack

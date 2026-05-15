@@ -91,10 +91,12 @@ sqlite3_int64 FileService::addFileResource(std::filesystem::path const& filepath
     }
 
     // Lưu Metadata vào bảng resources và lấy ID
-    sqlite3_int64 resourceId =
-        m_resRepo.insert({.title = title,
-                          .type = type,
-                          .file_hash = hash}); // NOLINT (-Wmissing-designated-field-initializers)
+    sqlite3_int64 resourceId = m_resRepo.insert({.uuid = {},
+                                                 .title = title,
+                                                 .type = type,
+                                                 .file_hash = hash,
+                                                 .created_at = {},
+                                                 .updated_at = {}});
 
     // Lưu thông tin file vào bảng files
     m_fileRepo.insertFile(resourceId, storedPath, filepath, isManaged);

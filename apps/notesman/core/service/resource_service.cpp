@@ -30,10 +30,12 @@ sqlite3_int64 ResourceService::addTextResource(std::string const& title,
     }
 
     // Insert vào resources (file_hash để trống)
-    sqlite3_int64 resourceId =
-        m_resRepo.insert({.title = title,
-                          .type = type,
-                          .file_hash = ""}); // NOLINT (-Wmissing-designated-field-initializers)
+    sqlite3_int64 resourceId = m_resRepo.insert({.uuid = {},
+                                                 .title = title,
+                                                 .type = type,
+                                                 .file_hash = {},
+                                                 .created_at = {},
+                                                 .updated_at = {}});
 
     // Insert nội dung text vào text_content
     m_textRepo.insertText(resourceId, content);

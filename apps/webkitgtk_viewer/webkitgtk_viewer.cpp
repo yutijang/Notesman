@@ -1,10 +1,14 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
+#include <glib.h>
+#include <gtk/gtk.h>
+#include <webkit2/webkit2.h>
+#pragma clang diagnostic pop
+
 #include <csignal>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <glib.h>
-#include <gtk/gtk.h>
-#include <webkit2/webkit2.h>
 
 namespace {
 
@@ -57,8 +61,13 @@ gchar* readStdinAll() {
     return g_string_free(buf, FALSE);
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
+
 void viewPolicy(GtkWidget* webview) {
     g_signal_connect(webview, "context-menu", G_CALLBACK(onContextMenu), nullptr);
+    // g_signal_connect(webview, "context-menu", reinterpret_cast<GCallback>(onContextMenu),
+    // nullptr);
 
     g_signal_connect(
         webview,
@@ -166,3 +175,5 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
+#pragma clang diagnostic pop

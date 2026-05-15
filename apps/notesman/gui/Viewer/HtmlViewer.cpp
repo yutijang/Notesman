@@ -55,7 +55,8 @@ constexpr int K_WAITSTART{3000};
 
 } // namespace
 
-HtmlViewer::HtmlViewer(QString title, QWidget* parent) : m_title(std::move(title)) {
+HtmlViewer::HtmlViewer(QString title, [[maybe_unused]] QWidget* parent)
+    : m_title(std::move(title)) {
 #ifdef Q_OS_WIN
     m_rootWidget = new QWidget(parent);
     setupView();
@@ -104,7 +105,7 @@ void HtmlViewer::setupView() {
 #endif
 }
 
-bool HtmlViewer::initFromFile(QString path, ContentMode mode) {
+bool HtmlViewer::initFromFile(QString path, [[maybe_unused]] ContentMode mode) {
     if (path.isEmpty()) [[unlikely]] {
         return false;
     }
@@ -157,7 +158,7 @@ bool HtmlViewer::initFromFile(QString path, ContentMode mode) {
 #endif
 }
 
-bool HtmlViewer::initFromUrl(QUrl url, ContentMode mode) {
+bool HtmlViewer::initFromUrl(QUrl url, [[maybe_unused]] ContentMode mode) {
     if (!url.isValid()) [[unlikely]] {
         Log::fatal("url INVALID - {}", url.toString().toStdString());
         return false;
