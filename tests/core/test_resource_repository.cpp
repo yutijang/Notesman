@@ -17,6 +17,7 @@ SQLiteDB createInMemoryDB() {
 
             CREATE TABLE resources (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                uuid TEXT NOT NULL UNIQUE DEFAULT (lower(hex(randomblob(16)))),
                 title TEXT NOT NULL,
                 type TEXT NOT NULL,
                 file_hash TEXT,

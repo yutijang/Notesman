@@ -29,6 +29,7 @@ void createMinimalSchema(sqlite3* db) {
         -- =====================================================
         CREATE TABLE resources (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid TEXT NOT NULL UNIQUE DEFAULT (lower(hex(randomblob(16)))),
             title TEXT NOT NULL,
             type TEXT NOT NULL,
             file_hash TEXT,
@@ -66,6 +67,18 @@ void createMinimalSchema(sqlite3* db) {
             resource_id INTEGER NOT NULL,
             tag_id INTEGER NOT NULL,
             PRIMARY KEY (resource_id, tag_id)
+        );
+
+        CREATE TABLE resource_urls (
+            resource_id    INTEGER PRIMARY KEY,
+            url            TEXT NOT NULL,
+            normalized_url TEXT NOT NULL UNIQUE,
+            domain         TEXT NOT NULL,
+            url_path       TEXT,
+            created_at     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (resource_id)
+                REFERENCES resources(id)
+                ON DELETE CASCADE
         );
     )SQL";
 

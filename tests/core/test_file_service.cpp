@@ -19,6 +19,7 @@ void createMinimalFileServiceSchema(sqlite3* db) {
                 -- resources table (thêm created_at/updated_at vì repo/service có dùng)
                 CREATE TABLE resources (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    uuid TEXT NOT NULL UNIQUE DEFAULT (lower(hex(randomblob(16)))),
                     title TEXT NOT NULL,
                     type TEXT NOT NULL,
                     file_hash TEXT,

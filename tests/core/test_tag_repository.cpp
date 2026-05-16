@@ -18,6 +18,7 @@ SQLiteDB createInMemoryDB() {
 
             CREATE TABLE resources (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                uuid        TEXT NOT NULL UNIQUE DEFAULT (lower(hex(randomblob(16)))),
                 title       TEXT NOT NULL,
                 type        TEXT NOT NULL,
                 file_hash   TEXT UNIQUE NULL,
@@ -160,7 +161,7 @@ TEST_CASE("TagRepository query tags and resources", "[TagRepository][query]") {
         auto res = repo.getResourcesViaOneTag("qt");
 
         REQUIRE(res.size() == 2);
-        REQUIRE(res[0].title.find("Doc") != std::string::npos);
+        REQUIRE(res[0].title.contains("Doc") != std::string::npos);
     }
 
     SECTION("getResourcesViaTags (AND logic) returns only matching resources") {

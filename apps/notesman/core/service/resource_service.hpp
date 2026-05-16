@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/db/sqldb_raii.hpp"
 #include "core/model/model.hpp"
 #include "core/repository/file_repository.hpp"
 #include "core/repository/resource_repository.hpp"
