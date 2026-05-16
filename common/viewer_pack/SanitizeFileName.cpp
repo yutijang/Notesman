@@ -50,7 +50,7 @@ constexpr std::array<bool, 256> createForbiddenLookup() {
     }
     // Ký tự cấm trên Windows/Linux
     for (char const c : {'<', '>', ':', '"', '/', '\\', '|', '?', '*'}) {
-        lookup[static_cast<size_t>(c)] = true;
+        lookup[static_cast<std::size_t>(c)] = true;
     }
     return lookup;
 }
