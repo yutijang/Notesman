@@ -1,7 +1,7 @@
 #include "common/logger/Logger.hpp"
 
 #if defined(_WIN32)
-#include <windows.h>
+#include <Windows.h>
 #else
 #include <climits>
 #include <cstdio>
@@ -72,6 +72,15 @@ std::filesystem::path getLogDir() {
 }
 
 } // namespace
+
+namespace Log::detail {
+
+spdlog::logger*& loggerInstance() {
+    static spdlog::logger* gLogger{};
+    return gLogger;
+}
+
+} // namespace Log::detail
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void Log::init(std::string const& loggerName, std::string const& fileName) {

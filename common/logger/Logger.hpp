@@ -26,10 +26,8 @@ struct SourceLocFmt {
 };
 
 namespace detail {
-inline spdlog::logger*& loggerInstance() {
-    static spdlog::logger* gLogger{};
-    return gLogger;
-}
+
+spdlog::logger*& loggerInstance();
 
 inline spdlog::logger& get() {
     if (loggerInstance() == nullptr) {
@@ -37,6 +35,7 @@ inline spdlog::logger& get() {
     }
     return *loggerInstance();
 }
+
 } // namespace detail
 
 template<typename... Args> inline void info(SourceLocFmt sf, Args&&... args) {

@@ -135,6 +135,7 @@ set(HELPER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/ResourceTitleDelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/PlainTextEdit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helper/DialogUtils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helper/SettingsManager.cpp
 )
 
 if(UNIX)

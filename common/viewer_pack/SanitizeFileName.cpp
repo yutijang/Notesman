@@ -20,16 +20,17 @@ bool isWindowsReservedName(std::string_view filename) {
     }
 
     // Uppercase để so sánh không phân biệt hoa thường
-    char upper[6] = {};
+    // char upper[6] = {};
+    std::array<char, 6> upper{};
     if (base.size() >= sizeof(upper)) {
         return false;
     } // COM10 không reserved
 
-    for (std::size_t i = 0; i < base.size(); ++i) {
-        upper[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(base[i])));
-    }
+    std::ranges::transform(base, upper.begin(), [](unsigned char const c) {
+        return static_cast<char>(std::toupper(c));
+    });
 
-    std::string_view u(upper);
+    std::string_view const u(upper.data(), base.size());
 
     // Danh sách reserved
     static constexpr std::string_view reserved[] = {
@@ -58,6 +59,7 @@ constexpr auto FORBIDDEN_LOOKUP = createForbiddenLookup();
 } // namespace
 
 namespace ViewerPackUltis {
+
 std::string sanitizeFileName(std::string_view input, char replacement) {
     if (input.empty()) {
         return "unnamed";

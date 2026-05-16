@@ -8,9 +8,9 @@ constexpr wchar_t QT_PLATFORM_DLL[] = L"platforms\\qwindows.dll";
 #include "simple_log.hpp"
 
 // clang-format off
-#include <windows.h>
+#include <Windows.h>
 #include <shellapi.h>
-#include <shlwapi.h>
+#include <Shlwapi.h>
 // clang-format on
 
 #include <cstddef>

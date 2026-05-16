@@ -51,7 +51,9 @@ bool ensureHtmlRuntimeAvailable(QWidget* parent) {
     return false;
 }
 
+#ifdef Q_OS_LINUX
 constexpr int K_WAITSTART{3000};
+#endif
 
 } // namespace
 

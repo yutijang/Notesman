@@ -377,7 +377,6 @@ void AddTabWidget::showNotification(QString const& message,
                 notiTextColor = "#E74C3C";
                 break;
             }
-            default: break; // NOLINT (-Wcovered-switch-default)
         }
 
         QString objName = m_notiLbl->objectName();
@@ -432,7 +431,10 @@ QString AddTabWidget::buildResourceFileFilter() {
             case ResourceType::HtmlDoc  : label = tr("HTML Documents"); break;
             case ResourceType::PdfDoc   : label = tr("PDF Documents"); break;
             case ResourceType::EpubDoc  : label = tr("Epub Books"); break;
-            default                     : label = tr("Other Files"); break;
+            case ResourceType::Unknown  :
+            case ResourceType::Markdown :
+            case ResourceType::Url      :
+            case ResourceType::Count    : break;
         }
         filters << QString("%1 (%2)").arg(label, it.value().join(' '));
     }

@@ -15,11 +15,12 @@ target_compile_definitions(${LAUNCHER}
 
 target_link_libraries(${LAUNCHER}
     PRIVATE
+        # project_warnings
+
         kernel32
         user32
         shlwapi
         security_utils
-        project_warnings
 )
 
 # --- metadata ---------------------------------------

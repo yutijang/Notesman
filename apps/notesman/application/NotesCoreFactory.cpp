@@ -121,7 +121,10 @@ NotesCoreFactory::CoreInitResult NotesCoreFactory::createCore(std::filesystem::p
                     case InitFailureReason::GetNullDBVersion:
                         errorHandler->showError("Error", "Failed to read database version.");
                         break;
-                    default: break;
+                    case InitFailureReason::Ok:
+                    case InitFailureReason::UserCancelled:
+                    case InitFailureReason::OpenFailed:
+                    case InitFailureReason::ReadFailed   : break;
                 }
             }
             return CoreInitResult(verifyResult);

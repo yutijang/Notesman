@@ -22,14 +22,14 @@
 namespace {
 
 void rewriteRelativeUrls(QString& html, QUrl const& baseUrl) {
-    static QRegularExpression const re(R"((href|src)\s*=\s*["']([^"':#][^"']*)["'])",
-                                       QRegularExpression::CaseInsensitiveOption);
+    static auto const* re = new QRegularExpression(R"((href|src)\s*=\s*["']([^"':#][^"']*)["'])",
+                                                   QRegularExpression::CaseInsensitiveOption);
 
     QString result;
     result.reserve(html.size());
 
     qsizetype lastPos{};
-    auto it = re.globalMatch(html);
+    auto it = re->globalMatch(html);
 
     while (it.hasNext()) {
         QRegularExpressionMatch m = it.next();

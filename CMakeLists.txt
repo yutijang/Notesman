@@ -70,23 +70,49 @@ target_compile_options(project_warnings INTERFACE
         -Werror
         -Wall
         -Wextra
-        -Wpedantic
-        -Wshadow
         -Wconversion
         -Wsign-conversion
         -Wnon-virtual-dtor
+        -Wcast-align
+        -Wnull-dereference
+        -Wdouble-promotion
+        -Wimplicit-fallthrough
+        -Wundef
+        -Wswitch-enum
     >
 
-    # clang++ / GCC only
-    $<$<AND:$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<BOOL:${MSVC}>>>:
-        -Wold-style-cast
-    >
-
-    # MSVC driver mode
-    $<$<BOOL:${MSVC}>:
+    # clang-cl
+    $<$<AND:$<CXX_COMPILER_ID:Clang>,$<BOOL:${MSVC}>>:
+        /WX
         /W4
         /EHsc
         /permissive-
+        /utf-8
+        /Zc:__cplusplus
+
+        -Wno-c++98-compat
+        -Wno-c++98-compat-pedantic
+        -Wno-switch-default
+        -Wno-nrvo
+
+        -Wno-padded
+
+        -Wno-exit-time-destructors
+        -Wno-unsafe-buffer-usage
+        -Wno-global-constructors        
+    >
+    # xử lý "_autogen", cần xem xét
+    # -Wno-unsafe-buffer-usage, -Wno-global-constructors
+
+    # MSVC cl.exe only
+    $<$<CXX_COMPILER_ID:MSVC>:
+        /WX
+        /W4
+        /EHsc
+        /permissive-
+        /utf-8
+        /Zc:__cplusplus
+        /Zc:preprocessor
     >
 )
 # -----------------------------------------------------------

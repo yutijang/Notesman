@@ -576,7 +576,6 @@ void SettingsTabWidget::showNotification(QString const& message,
                 notiTextColor = "#E74C3C";
                 break;
             }
-            default: break; // NOLINT (-Wcovered-switch-default)
         }
 
         QString objName = m_notiSettingsChangedLbl->objectName();

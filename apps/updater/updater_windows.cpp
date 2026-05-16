@@ -1,5 +1,6 @@
 #include "common/logger/Logger.hpp"
 
+#include <Windows.h>
 #include <filesystem>
 #include <miniz.h>
 #include <miniz_common.h>
@@ -8,7 +9,6 @@
 #include <system_error>
 #include <unordered_set>
 #include <vector>
-#include <windows.h>
 
 namespace fs = std::filesystem;
 

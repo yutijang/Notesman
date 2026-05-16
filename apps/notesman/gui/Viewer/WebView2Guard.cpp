@@ -1,5 +1,7 @@
 #include "gui/Viewer/WebView2Guard.hpp"
 
+#include "helper/LoadFunction.hpp"
+
 #include <string>
 
 WebView2Guard& WebView2Guard::instance() {
@@ -41,11 +43,11 @@ void WebView2Guard::resolveFunctions() {
         return;
     }
 
-    m_getVersion = reinterpret_cast<FnGetVersion>(
-        GetProcAddress(m_loader, "GetAvailableCoreWebView2BrowserVersionString"));
+    m_getVersion = Win32Utils::loadFunction<FnGetVersion>(
+        m_loader, "GetAvailableCoreWebView2BrowserVersionString");
 
-    m_createEnv = reinterpret_cast<FnCreateEnv>(
-        GetProcAddress(m_loader, "CreateCoreWebView2EnvironmentWithOptions"));
+    m_createEnv =
+        Win32Utils::loadFunction<FnCreateEnv>(m_loader, "CreateCoreWebView2EnvironmentWithOptions");
 }
 
 void WebView2Guard::checkRuntime() {

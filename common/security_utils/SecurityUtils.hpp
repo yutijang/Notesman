@@ -9,6 +9,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <shellapi.h>
+#include <span>
+#include <stdexcept>
 
 namespace security_utils {
 

@@ -9,7 +9,7 @@
 
 #ifdef Q_OS_WIN
 
-#include <shlobj.h> // SHChangeNotify
+#include <ShlObj.h> // SHChangeNotify
 #include <windows.h>
 
 namespace {
