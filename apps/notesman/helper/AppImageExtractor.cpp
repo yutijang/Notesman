@@ -11,7 +11,6 @@
 #include <sys/stat.h>
 #include <unistd.h> // for ::chmod
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 bool AppImageExtractor::extractUpdater(QString const& appImagePath, QString const& outputPath) {
     if (!QFile::exists(appImagePath)) {
         return false;

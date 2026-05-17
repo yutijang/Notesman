@@ -37,7 +37,6 @@ constexpr wchar_t const* K_DESCRIPTION = L"Notesman Resource Pack";
 // subKey: relative path từ HKCU
 // valueName: tên value (nullptr hoặc L"" = Default value)
 // data: string cần ghi
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 [[nodiscard]] bool
     writeRegString(wchar_t const* subKey, wchar_t const* valueName, std::wstring const& data) {
     HKEY hKey = nullptr;

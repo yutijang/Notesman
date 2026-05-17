@@ -15,7 +15,6 @@ class ResourceSearchWorker final : public QObject {
     explicit ResourceSearchWorker(NotesAppCore* core, QObject* parent = nullptr)
         : QObject(parent), m_core(core) {}
 
-    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     void setSearchParams(QString const& keyword, QString const& mode) {
         m_keyword = keyword.trimmed();
         m_mode = mode;

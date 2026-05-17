@@ -32,7 +32,6 @@ std::string wstringToUtf8(std::wstring const& ws) {
     return result;
 }
 
-// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 void clearFolder(std::wstring const& targetFolder, std::wstring const& resDirName) {
     std::unordered_set<std::wstring> keepFiles{L"temp_update", L"data.db", L"config.ini", L"logs"};
 

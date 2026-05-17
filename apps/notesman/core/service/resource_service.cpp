@@ -19,7 +19,6 @@
 #include <utility>
 #include <vector>
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 sqlite3_int64 ResourceService::addTextResource(std::string const& title,
                                                std::string const& content,
                                                ResourceType type) {

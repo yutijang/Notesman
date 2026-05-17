@@ -247,7 +247,6 @@ void MainWindow::setCore(NotesAppCore* core) {
     m_tabWidget->setTabEnabled(m_tabWidget->indexOf(m_browseTab), true);
 }
 
-// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
 void MainWindow::viewResource(std::int64_t id,
                               ResourceType type,
                               QString const& title,

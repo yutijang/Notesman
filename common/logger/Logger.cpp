@@ -82,7 +82,6 @@ spdlog::logger*& loggerInstance() {
 
 } // namespace Log::detail
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void Log::init(std::string const& loggerName, std::string const& fileName) {
     std::call_once(gOnce, [&] {
         std::vector<spdlog::sink_ptr> sinks;

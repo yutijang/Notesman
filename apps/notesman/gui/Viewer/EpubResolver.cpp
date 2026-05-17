@@ -67,7 +67,6 @@ QString makeWorkDir(QString const& epubPath) {
     return base;
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 bool extractZip(QString const& zipPath, QString const& outDir) {
     int err = 0;
     zip* za = zip_open(zipPath.toUtf8().constData(), ZIP_RDONLY, &err);
