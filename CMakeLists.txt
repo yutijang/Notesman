@@ -210,3 +210,9 @@ if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 # ------------------------------------------------------------
+
+# Tools
+if (EXISTS "${CMAKE_SOURCE_DIR}/tools/CMakeLists.txt")
+    add_subdirectory(tools)
+endif()
+# ------------------------------------------------------------

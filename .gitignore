@@ -39,6 +39,8 @@ apps/notesman/oauth_private.cmake
 extern/sqlite3/
 extern/miniz/
 
+/tools/
+
 .github/workflows/windows-debug.yml
 .github/workflows/linux-release.yml
 .github/workflows/linux-debug.yml
