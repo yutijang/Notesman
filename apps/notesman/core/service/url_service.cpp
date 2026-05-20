@@ -30,10 +30,10 @@ std::optional<sqlite3_int64>
     // NOLINTNEXTLINE (-Wmissing-designated-field-initializers)
     sqlite3_int64 resourceId = m_resRepo.insert({.uuid = {},
                                                  .title = std::string(title),
-                                                 .type = type,
                                                  .file_hash = {},
                                                  .created_at = {},
-                                                 .updated_at = {}});
+                                                 .updated_at = {},
+                                                 .type = type});
     auto partsOpt = getUrlParts(*normalizedUrl);
     if (!partsOpt) {
         return std::nullopt;

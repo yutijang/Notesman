@@ -39,7 +39,8 @@ class HtmlViewer final : public IResourceViewer,
 #endif
 
   private:
-    HtmlViewer(QString title, QWidget* parent);
+    explicit HtmlViewer(QString title, QWidget* parent);
+
     bool initFromFile(QString path, ContentMode mode);
     bool initFromUrl(QUrl url, ContentMode mode);
 

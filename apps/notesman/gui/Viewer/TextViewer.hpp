@@ -48,11 +48,8 @@ class TextViewer final : public IResourceViewer,
     void findPrevious() override;
 
     sqlite3_int64 m_resourceId;
-    bool m_editable{};
     ResourceViewService& m_viewService;
     QString m_originalContent;
-    UiConst::Theme m_currentTheme{};
-    bool m_isAppliedSH{};
 
     QWidget* m_rootWidget{};
     PlainTextEdit* m_editor{};
@@ -60,4 +57,8 @@ class TextViewer final : public IResourceViewer,
     CodeEditorLineHighlighter* m_lineHighlighter{};
 
     QString m_lastSearchText;
+
+    bool m_editable{};
+    bool m_isAppliedSH{};
+    UiConst::Theme m_currentTheme{};
 };

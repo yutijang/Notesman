@@ -26,7 +26,7 @@ class TagInput final : public QWidget {
   Q_SIGNALS:
     void tagAdded(QString const& tag);
 
-  private: // NOLINT(readability-redundant-access-specifiers)
+  private:
     void createInput();
     void onTextChanged(QString const& text);
     void onTagClicked();

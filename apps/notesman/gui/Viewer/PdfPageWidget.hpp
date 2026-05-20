@@ -35,9 +35,9 @@ class PdfPageWidget final : public QWidget {
   private:
     std::unique_ptr<poppler::page> m_page;
     QImage m_image;
-    bool m_rendered{};
     double m_currentDpi{0.0};
 
-    QSize m_baseSize;    // size tại dpi gốc
     double m_scale{1.0}; // scale hiển thị hiện tại
+    QSize m_baseSize;    // size tại dpi gốc
+    bool m_rendered{};
 };

@@ -75,7 +75,7 @@ target_link_libraries(notes-core
         common::logger
         common::viewer_pack
     PRIVATE
-        project_warnings        
+        project_warnings
 )
 
 target_compile_definitions(notes-core
@@ -207,6 +207,10 @@ target_compile_definitions(notes-app-lib-core
         QT_NO_KEYWORDS
 )
 
+set_target_properties(notes-app-lib-core PROPERTIES
+    AUTOMOC ON
+)
+
 #===
 add_library(notes-app-lib-qtkeychain STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/application/services/OAuthManager.cpp
@@ -225,9 +229,14 @@ target_precompile_headers(notes-app-lib-qtkeychain
 
 target_link_libraries(notes-app-lib-qtkeychain
     PRIVATE
+        project_warnings
+
         notes-app-lib-core
         qt6keychain
-        project_warnings
+)
+
+set_target_properties(notes-app-lib-qtkeychain PROPERTIES
+    AUTOMOC ON
 )
 #===
 
@@ -243,10 +252,11 @@ target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
+        project_warnings
+        
         notes-app-lib-core # Thứ tự QUAN TRỌNG
         notes-app-lib-qtkeychain
         $<$<TARGET_EXISTS:security_utils>:security_utils>
-        project_warnings
 )
 
 if(WIN32)
@@ -295,19 +305,7 @@ target_compile_definitions(${PROJECT_NAME}
         $<$<CONFIG:Release>:QT_NO_DEBUG_FATAL_WARNINGS>
 )
 
-# # Thêm warning flags
-# target_compile_options(${PROJECT_NAME} PRIVATE
-#     -Wall
-#     -Wextra
-#     -Wpedantic
-#     -Wconversion
-#     -Wshadow
-#     -Wnon-virtual-dtor
-#     -Wold-style-cast
-#     -Wno-unused-parameter
-# )
-
-# # Thêm clang-tidy
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     CXX_CLANG_TIDY "clang-tidy;-checks=clang-analyzer-*,bugprone-*,performance-*,modernize-*,readability-*,cppcoreguidelines-init-variables,google-build-using-namespace,cppcoreguidelines-pro-type-member-init,cppcoreguidelines-slicing,-modernize-use-trailing-return-type"
-# )
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    AUTOMOC ON
+    AUTORCC ON
+)

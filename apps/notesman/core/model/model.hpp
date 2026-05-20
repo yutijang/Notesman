@@ -31,19 +31,20 @@ enum class ResourceType : std::uint8_t {
 };
 
 struct ResourceTypeMeta {
-    ResourceType type;
-    std::string_view key;
+    std::string_view key; // size: 16, align: 8, offset: 0
+    ResourceType type;    // size: 1, align: 1, offset: 16
+                          // +7 tail padding
 };
 
 inline constexpr std::array<ResourceTypeMeta, static_cast<std::size_t>(ResourceType::Count) - 1>
     K_RESOURCE_TYPE_TABLE{
-        {{.type = ResourceType::PlainText, .key = "text"},
-         {.type = ResourceType::CCppCode, .key = "cpp"},
-         {.type = ResourceType::Markdown, .key = "markdown"},
-         {.type = ResourceType::HtmlDoc, .key = "html"},
-         {.type = ResourceType::PdfDoc, .key = "pdf"},
-         {.type = ResourceType::EpubDoc, .key = "epub"},
-         {.type = ResourceType::Url, .key = "url"}}
+        {{.key = "text", .type = ResourceType::PlainText},
+         {.key = "cpp", .type = ResourceType::CCppCode},
+         {.key = "markdown", .type = ResourceType::Markdown},
+         {.key = "html", .type = ResourceType::HtmlDoc},
+         {.key = "pdf", .type = ResourceType::PdfDoc},
+         {.key = "epub", .type = ResourceType::EpubDoc},
+         {.key = "url", .type = ResourceType::Url}}
 };
 
 inline std::unordered_map<std::string_view, ResourceType> const K_EXT_MAP{
@@ -115,15 +116,20 @@ inline std::unordered_map<std::string_view, ResourceType> const K_EXT_MAP{
 }
 
 struct Resource {
-    sqlite3_int64 id{};     //> id của resource
-    std::string uuid;
-
-    std::string title;      //> tiêu đề của tài nguyên
-    ResourceType type;      //> plainText, cCppCode, htmlDoc, pdfDoc, epubDoc for viewer/behavior
-    std::string file_hash;  //> hash file (có thể rỗng nếu là text)
-                            //
-    std::string created_at; //> timestamp tạo
-    std::string updated_at; //> timestamp cập nhật
+    // định danh xác minh cho packer
+    std::string uuid; // size: 24, align: 8, offset: 0
+    // tiêu đề của tài nguyên
+    std::string title; // size: 24, align: 8, offset: 24
+    // hash file (có thể rỗng nếu là text)
+    std::string file_hash; // size: 24, align: 8, offset: 48
+    // timestamp tạo
+    std::string created_at; // size: 24, align: 8, offset: 72
+    // timestamp cập nhật
+    std::string updated_at; // size: 24, align: 8, offset: 96
+    // id của resource
+    sqlite3_int64 id{}; // size: 8, align: 8, offset: 120
+    // plainText, cCppCode, htmlDoc, pdfDoc, epubDoc for viewer/behavior
+    ResourceType type; // size: 1, align: 1, offset: 128
 };
 
 struct FullResource {
@@ -135,10 +141,10 @@ struct FullResource {
 };
 
 struct FileEntry {
-    sqlite3_int64 resource_id{};
-    std::optional<std::string> stored_path;
-    std::string original_path;
-    bool is_managed{};
+    sqlite3_int64 resource_id{};            // size: 8, offset: 0
+    std::optional<std::string> stored_path; // size: 32, offset: 8
+    std::string original_path;              // size: 24, offset:40
+    bool is_managed{};                      // size: 1, offset:64
 };
 
 struct UrlEntry {

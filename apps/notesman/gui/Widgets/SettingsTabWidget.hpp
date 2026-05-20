@@ -71,7 +71,7 @@ class SettingsTabWidget final : public QWidget {
 
     void onFileAssociationBtnClicked();
 
-  private: // NOLINT(readability-redundant-access-specifiers)
+  private:
     void setupUi();
     void setupConnections();
     void updateCountdownDisplay();
@@ -117,8 +117,6 @@ class SettingsTabWidget final : public QWidget {
     QLabel* m_notiSettingsChangedLbl{};
     QPushButton* m_checkRemoteDBInfoBtn{};
 
-    bool m_isGMAccountLinked{};
-
     // Cleanup cache EPUB + Markdown
     QGroupBox* m_cleanupCacheGBox{};
     QLabel* m_cleanupHtmlFromMDCacheLbl{};
@@ -134,7 +132,7 @@ class SettingsTabWidget final : public QWidget {
     QLabel* m_countdownLabel{};
     QPushButton* m_cancelLoginBtn{};
     QTimer m_countdownTimer;
-    int m_remainingSeconds{};
+
     QLabel* m_info1{};
     QLabel* m_info2{};
     QLabel* m_info3{};
@@ -144,5 +142,8 @@ class SettingsTabWidget final : public QWidget {
     QLabel* m_statusTagLbl{};
     QGroupBox* m_fileAssociationGB{};
     QPushButton* m_regAssociationBtn{};
+
+    int m_remainingSeconds{};
     bool m_isFileAssociated{};
+    bool m_isGMAccountLinked{};
 };

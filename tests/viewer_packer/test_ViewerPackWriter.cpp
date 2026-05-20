@@ -13,6 +13,7 @@
 namespace fs = std::filesystem;
 
 namespace {
+
 ViewerPackHeader makeHeader() {
     ViewerPackHeader header{};
 
@@ -28,6 +29,7 @@ fs::path makeTempDir() {
 
     return dir;
 }
+
 }; // namespace
 
 TEST_CASE("ViewerPackWriter writes file successfully", "[ViewerPackWriter]") {

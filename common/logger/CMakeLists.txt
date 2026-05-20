@@ -7,7 +7,7 @@ add_library(common::logger ALIAS common_logger)
 target_link_libraries(common_logger
     PUBLIC
         spdlog::spdlog
-    PRIVATE
+    PRIVATE        
         project_warnings
 )
 

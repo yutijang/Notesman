@@ -49,7 +49,7 @@ class BrowseTabWidget final : public QWidget {
 
     void loadResourceByTypeRequested(ResourceType type);
 
-  private: // NOLINT(readability-redundant-access-specifiers)
+  private:
     struct RowData {
         int id;
         ResourceType type;

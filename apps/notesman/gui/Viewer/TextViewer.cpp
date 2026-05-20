@@ -29,7 +29,7 @@ TextViewer::TextViewer(sqlite3_int64 resourceId,
                        ResourceViewService& viewService,
                        UiConst::Theme theme,
                        QWidget* parent)
-    : m_resourceId(resourceId), m_editable(editable), m_viewService(viewService),
+    : m_resourceId(resourceId), m_viewService(viewService), m_editable(editable),
       m_currentTheme(theme) {
     m_rootWidget = new QWidget(parent);
 

@@ -139,7 +139,7 @@ class AppController final : public QObject {
 
     void refreshFileAssociationStatus(bool isRegistered);
 
-  private: // NOLINT(readability-redundant-access-specifiers)
+  private:
     void addTagsToResource(sqlite3_int64 resourceId, QStringList const& tags) const;
     void finalizeUnlink();
     sqlite_int64
@@ -151,14 +151,16 @@ class AppController final : public QObject {
 
     void displayInfoGMUserLinked(QString const& email);
 
+    NotesAppCore* m_core{};
+    MainWindow* m_mainWindow{};
     AppSettings m_settings;
+
+    UpdateInfoSummary m_lastUpdateInfoSummary{};
+    QString m_currentLinkedEmail;
 
     std::unique_ptr<QTranslator> m_translator;
     std::unique_ptr<UpdateManager> m_updateManager;
     std::unique_ptr<DownloadManager> m_downloadManager;
-
-    // std::unique_ptr<OAuthManager> m_oauthManager;
-    // std::unique_ptr<GoogleDriveService> m_GDService;
 
     struct GDContext {
         std::unique_ptr<OAuthManager> oauth;         // khai báo trước
@@ -171,9 +173,4 @@ class AppController final : public QObject {
     };
 
     std::unique_ptr<GDContext> m_drive;
-
-    NotesAppCore* m_core{};
-    MainWindow* m_mainWindow{};
-    UpdateInfoSummary m_lastUpdateInfoSummary{};
-    QString m_currentLinkedEmail;
 };

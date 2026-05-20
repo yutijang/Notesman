@@ -158,15 +158,6 @@ class MainWindow : public QMainWindow {
     void setupCleanupConnections();
     void setupFileAssociationConnections();
 
-#if defined(Q_OS_WIN)
-    void handleWindowsUpdate(QString const& filePath);
-#elif defined(Q_OS_LINUX)
-    void handleLinuxUpdate(QString const& filePath);
-
-    std::unique_ptr<IResourceViewer> m_externalViewer;
-    bool m_viewerLocked{};
-#endif
-
     NotesAppCore* m_core{};
     AppController* m_appController{};
 
@@ -184,16 +175,21 @@ class MainWindow : public QMainWindow {
     CppHighlighter* m_cppHighlighter{};
     CodeEditorLineHighlighter* m_lineHighlighter{};
 
-    // Settings Tab
-
     InfoCornerWidget* m_infoWidget{};
-
-    UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::None};
 
     QProgressDialog* m_progressDialog{};
 
-    // ResourceViewService* m_resourceViewService{};
     std::unique_ptr<ResourceViewService> m_resourceViewService;
 
+#if defined(Q_OS_WIN)
+    void handleWindowsUpdate(QString const& filePath);
+#elif defined(Q_OS_LINUX)
+    void handleLinuxUpdate(QString const& filePath);
+
+    std::unique_ptr<IResourceViewer> m_externalViewer;
+    bool m_viewerLocked{};
+#endif
+
+    UiConst::SettingsMessageState m_settingsMessageState{UiConst::SettingsMessageState::None};
     UiConst::StatusState m_statusState{UiConst::StatusState::Ready};
 };

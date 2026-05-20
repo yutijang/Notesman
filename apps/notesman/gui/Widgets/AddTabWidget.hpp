@@ -47,7 +47,7 @@ class AddTabWidget final : public QWidget {
                           UiConst::AddResMode mode);
     void applySyntaxHighlighterRequest(bool checked);
 
-  private: // NOLINT(readability-redundant-access-specifiers)
+  private:
     void setupUi();
     void setupConnections();
     void onToggleCodeHighlighter(bool checked);

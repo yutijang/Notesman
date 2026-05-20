@@ -40,12 +40,6 @@ class PdfViewer final : public IResourceViewer {
     void createPageWidgetsStep();
     void createAndRenderFirstPageImmediately();
 
-    QTimer m_scrollDebounce;
-    bool m_rendering{};
-    int m_lastScrollY{};
-    int m_pageCreateIndex{};
-    bool m_warmupDone{};
-
     QString m_pdfPath;
     QWidget* m_rootWidget{};
     QScrollArea* m_scrollArea{};
@@ -54,6 +48,12 @@ class PdfViewer final : public IResourceViewer {
 
     std::shared_ptr<poppler::document> m_document;
     QFutureWatcher<std::shared_ptr<poppler::document>> m_docWatcher;
+
+    QTimer m_scrollDebounce;
+    int m_lastScrollY{};
+    int m_pageCreateIndex{};
+    bool m_rendering{};
+    bool m_warmupDone{};
 };
 
 class PdfViewerRootWidget final : public QWidget {

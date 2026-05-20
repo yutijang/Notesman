@@ -53,8 +53,8 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 # Qt setup
 # ============================================================
 # Bật Qt MOC/UIC/RCC cho toàn project
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+# set(CMAKE_AUTOMOC ON)
+# set(CMAKE_AUTORCC ON)
 
 # Set general output dir
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
@@ -115,7 +115,6 @@ target_compile_options(project_warnings INTERFACE
         /Zc:preprocessor
     >
 )
-# -----------------------------------------------------------
 
 # Dependencies
 find_package(OpenSSL REQUIRED)

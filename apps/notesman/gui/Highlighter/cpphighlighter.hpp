@@ -57,11 +57,11 @@ class CppHighlighter final : public QSyntaxHighlighter {
     QTextCharFormat m_identifierFormat;
     QTextCharFormat m_delimiterFormat;
 
-    CppHighlighterTheme m_theme;
-
     // gradual rehighlight state
     QTimer* m_gradualTimer{};
     QPointer<QTextDocument> m_targetDoc; // doc rehighlighting
     int m_currentBlockIndex{};
     int m_batchSize{10};                 // NOLINT(readability-magic-numbers)
+
+    CppHighlighterTheme m_theme;
 };

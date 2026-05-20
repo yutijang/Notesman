@@ -54,7 +54,7 @@ class AppInitializer final : public QObject {
     void cleanupEpubCacheRequest(int days);
     void cleanupMDCacheRequest(int days);
 
-  private: // NOLINT(readability-redundant-access-specifiers)
+  private:
     using InitFailureReason = NotesCoreFactory::InitFailureReason;
 
     InitFailureReason initializeCore();

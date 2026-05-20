@@ -15,8 +15,6 @@ jobs:
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
-      CC: clang
-      CXX: clang++
       LDFLAGS: "-fuse-ld=lld"
 
     steps:
@@ -79,26 +77,6 @@ jobs:
             "$VCPKG_ROOT/bootstrap-vcpkg.sh"
           fi
 
-      - name: Write overlay triplet
-        if: steps.restore-cache.outputs.cache-matched-key == ''
-        run: |
-          mkdir -p "${GITHUB_WORKSPACE}/vcpkg-triplets"
-          cat > "${GITHUB_WORKSPACE}/vcpkg-triplets/x64-linux-dynamic.cmake" <<'EOF'
-          set(VCPKG_TARGET_ARCHITECTURE x64)
-          set(VCPKG_CRT_LINKAGE dynamic)
-          set(VCPKG_LIBRARY_LINKAGE dynamic)
-          set(VCPKG_CMAKE_SYSTEM_NAME Linux)
-
-          set(VCPKG_C_COMPILER clang-22)
-          set(VCPKG_CXX_COMPILER clang++-22)
-
-          set(VCPKG_CXX_FLAGS "-stdlib=libc++")
-          set(VCPKG_C_FLAGS "")
-          set(VCPKG_LINKER_FLAGS "-stdlib=libc++ -fuse-ld=lld")
-          set(QT_FEATURE_shared ON CACHE BOOL "")
-          set(QT_FEATURE_static OFF CACHE BOOL "")
-          EOF
-
       - name: Install dependencies via vcpkg
         if: steps.restore-cache.outputs.cache-matched-key == ''
         run: |
@@ -109,6 +87,8 @@ jobs:
             --x-install-root="${{ github.workspace }}/vcpkg_installed" \
             --clean-after-build
         env:
+          CC: clang
+          CXX: clang++        
           VCPKG_FEATURE_FLAGS: manifests
           VCPKG_BUILD_TYPE: release
 

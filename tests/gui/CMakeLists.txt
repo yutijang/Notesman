@@ -20,7 +20,6 @@ target_link_libraries(gui-tests
 
 set_target_properties(gui-tests PROPERTIES
     AUTOMOC ON
-    AUTOUIC ON
 )
 
 # add_test(NAME gui-tests COMMAND $<TARGET_FILE:gui-tests>)

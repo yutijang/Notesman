@@ -35,6 +35,6 @@ class ResourceViewerDialog final : public QDialog {
     [[nodiscard]] QRect ensureOnScreen(QRect const& rect) const;
     QRect calcFallbackRect(QWidget* parent, DialogAnchor anchor) const;
 
-    bool m_geometryRestored{};
     std::unique_ptr<IResourceViewer> m_viewer;
+    bool m_geometryRestored{};
 };

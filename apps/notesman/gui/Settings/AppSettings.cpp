@@ -160,15 +160,15 @@ void AppSettings::setExpiredCleanupMDCache(int days) noexcept {
 
 SettingsData AppSettings::toUiSettings() const {
     return {
+        .resourceDir = m_resourceDir,
+        .expiredCleanupEpubCache = m_expiredCleanupEpubCache,
+        .expiredCleanupMDCache = m_expiredCleanupMDCache,
         .theme = m_theme,
         .language = m_language,
-        .resourceDir = m_resourceDir,
         .isManagedResource = m_isManagedResource,
         .isResourceDirCustomized = m_isResourceDirCustomized,
         .isEpubCleanupCache = m_isEpubCleanupCache,
         .isMDCleanupCache = m_isMDCleanupCache,
-        .expiredCleanupEpubCache = m_expiredCleanupEpubCache,
-        .expiredCleanupMDCache = m_expiredCleanupMDCache,
     };
 }
 

@@ -58,6 +58,6 @@ class OAuthManager final : public QObject {
     QNetworkAccessManager m_networkManager;
     QString m_accessToken;
     QDateTime m_accessTokenExpiry;
-    bool m_isLogin{};
     QTimer* m_currentLoginTimer{};
+    bool m_isLogin{};
 };

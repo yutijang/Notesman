@@ -71,7 +71,4 @@ target_precompile_headers(${LAUNCHER}
 set_target_properties(${LAUNCHER} PROPERTIES
     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
     OUTPUT_NAME "Notesman"
-    AUTOMOC OFF
-    AUTOUIC OFF
-    AUTORCC OFF
 )
