@@ -32,15 +32,14 @@ class WebView2Widget final : public QWidget {
   private:
     void initWebView();
 
-    bool m_initialized{};
     QString m_pendingFile;
-
     QUrl m_pendingUrl;
-
-    ContentMode m_contentMode{ContentMode::HtmlFile};
     QUrl m_baseUrl;
 
     Microsoft::WRL::ComPtr<ICoreWebView2Environment> m_env;
     Microsoft::WRL::ComPtr<ICoreWebView2Controller> m_controller;
     Microsoft::WRL::ComPtr<ICoreWebView2> m_webview;
+
+    bool m_initialized{};
+    ContentMode m_contentMode{ContentMode::HtmlFile};
 };

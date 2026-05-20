@@ -27,9 +27,6 @@ class WebView2Guard final {
     void resolveFunctions();
     void checkRuntime();
 
-    HMODULE m_loader{};
-    Status m_status{Status::LoaderMissing};
-
     using FnGetVersion = HRESULT(STDMETHODCALLTYPE*)(PCWSTR, LPWSTR*);
     using FnCreateEnv =
         HRESULT(WINAPI*)(LPCWSTR,
@@ -41,4 +38,7 @@ class WebView2Guard final {
     FnCreateEnv m_createEnv{};
 
     std::wstring m_version;
+
+    HMODULE m_loader{};
+    Status m_status{Status::LoaderMissing};
 };
