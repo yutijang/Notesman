@@ -53,11 +53,12 @@ jobs:
           sudo ./llvm.sh 22 all          
           sudo apt-get install -y libc++-22-dev libc++abi-22-dev
 
-      - name: Install CMake 4.3.0 (Primary Build System)
+      - name: Install CMake (Primary Build System)
         run: |
-          wget -q https://github.com/Kitware/CMake/releases/download/v4.3.0/cmake-4.3.0-linux-x86_64.sh
-          sudo sh cmake-4.3.0-linux-x86_64.sh --prefix=/usr/local --skip-license --exclude-subdir
-          rm cmake-4.3.0-linux-x86_64.sh
+          VER=4.3.2
+          wget -q https://github.com/Kitware/CMake/releases/download/v$VER/cmake-$VER-linux-x86_64.sh
+          sudo sh cmake-$VER-linux-x86_64.sh --prefix=/usr/local --skip-license --exclude-subdir
+          rm cmake-$VER-linux-x86_64.sh
           cmake --version
 
       - name: Restore vcpkg & Qt6 artifacts

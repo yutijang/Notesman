@@ -53,22 +53,23 @@ jobs:
           path: |
             C:\llvm-22
             C:\cmake-4.3
-          key: tools-windows-llvm22.1.1-cmake4.3.0
+          key: tools-windows-llvm22.1.6-cmake4.3.2
 
       - name: Install LLVM 22.1.1
         if: steps.cache-tools.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
-          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.1/LLVM-22.1.1-win64.exe"
+          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.6/LLVM-22.1.6-win64.exe"
           $installer = "$env:RUNNER_TEMP\llvm.exe"
           Invoke-WebRequest $url -OutFile $installer
           Start-Process $installer -ArgumentList "/S /D=C:\llvm-22" -Wait
 
-      - name: Install CMake 4.3.0
+      - name: Install CMake 4.3
         if: steps.cache-tools.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
-          $url = "https://github.com/Kitware/CMake/releases/download/v4.3.0/cmake-4.3.0-windows-x86_64.zip"
+          $ver = "4.3.2"
+          $url = "https://github.com/Kitware/CMake/releases/download/v$ver/cmake-$ver-windows-x86_64.zip"
           $zip = "$env:RUNNER_TEMP\cmake.zip"
           $dir = "C:\cmake-4.3"
           Invoke-WebRequest $url -OutFile $zip
