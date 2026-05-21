@@ -206,6 +206,19 @@ jobs:
         run: |
           echo "RELEASE_DIR=release\Notesman-x64" >> $env:GITHUB_ENV
 
+      - name: Find zlib DLL in workspace
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path "${{ github.workspace }}" -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "zlib*.dll" }
+
+          if (-not $files) {
+            Write-Error "CRITICAL: No zlib DLL found anywhere in workspace"
+            exit 1
+          }
+
+          $files | ForEach-Object { Write-Host "FOUND: $($_.FullName)" }
+
       - name: Prepare release folder
         shell: pwsh
         run: |
