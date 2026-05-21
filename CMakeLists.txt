@@ -65,7 +65,7 @@ add_library(project_warnings INTERFACE)
 
 target_compile_options(project_warnings INTERFACE
 
-    # Clang/GCC-style warnings
+    # Clang/GCC-style warnings (match clang, GCC, clang-cl)
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
         -Werror
         -Wall
@@ -81,7 +81,7 @@ target_compile_options(project_warnings INTERFACE
         -Wswitch-enum
     >
 
-    # clang-cl
+    # clang-cl (expanding)
     $<$<AND:$<CXX_COMPILER_ID:Clang>,$<BOOL:${MSVC}>>:
         /WX
         /W4
@@ -99,7 +99,7 @@ target_compile_options(project_warnings INTERFACE
 
         -Wno-exit-time-destructors
         -Wno-unsafe-buffer-usage
-        -Wno-global-constructors        
+        -Wno-global-constructors
     >
     # xử lý "_autogen", cần xem xét
     # -Wno-unsafe-buffer-usage, -Wno-global-constructors
@@ -113,6 +113,14 @@ target_compile_options(project_warnings INTERFACE
         /utf-8
         /Zc:__cplusplus
         /Zc:preprocessor
+    >
+
+    $<$<NOT:$<BOOL:${MSVC}>>:
+        --target=x86_64-pc-linux-gnu
+    >
+
+    $<$<AND:$<CXX_COMPILER_ID:Clang>,$<BOOL:${MSVC}>>:
+        --target=x86_64-pc-windows-msvc
     >
 )
 
