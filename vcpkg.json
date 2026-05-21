@@ -48,6 +48,10 @@
         {
             "name": "webview2",
             "platform": "windows"
+        },
+        {
+            "name": "pkgconf",
+            "platform": "windows"
         }
     ],
     "overrides": [

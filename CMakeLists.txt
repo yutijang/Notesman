@@ -130,6 +130,7 @@ find_package(Qt6 COMPONENTS Core Gui Widgets Network Svg Concurrent REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 
+# với poppler trên Windows + vcpkg, pkg-config là bắt buộc, không có alternative qua CMake config target.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(POPPLER_CPP REQUIRED IMPORTED_TARGET poppler-cpp)
 
