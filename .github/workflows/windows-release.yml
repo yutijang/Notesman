@@ -201,6 +201,38 @@ jobs:
         shell: pwsh
         run: cmake --build build --parallel
 
+      - name: Find z.dll in workspace
+        shell: pwsh
+        run: |
+          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
+          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
+          $workspace = "${{ github.workspace }}"
+
+          $paths = @(
+              "$vcpkgRoot\packages",
+              "$vcpkgRoot\installed\$arch\bin",
+              "$vcpkgRoot\installed\$arch\debug\bin",
+              $workspace
+          )
+
+          Write-Host "Searching z.dll..."
+
+          $found = $false
+
+          foreach ($p in $paths) {
+              if (Test-Path $p) {
+                  Get-ChildItem $p -Recurse -Filter "z.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+                      Write-Host "FOUND: $($_.FullName)"
+                      $found = $true
+                  }
+              }
+          }
+
+          if (-not $found) {
+              Write-Error "CRITICAL: z.dll not found anywhere"
+              # exit 1
+          }
+
       - name: Set RELEASE_DIR
         shell: pwsh
         run: |
@@ -255,7 +287,7 @@ jobs:
               @{ pkg = "webview2"; filter = "WebView2Loader.dll" },
               @{ pkg = "md4c"; filter = "md4c*.dll" },
               @{ pkg = "poppler"; filter = "poppler*.dll" },
-              @{ pkg = "poppler"; filter = "z.dll" }
+              @{ pkg = "poppler"; filter = "z.dll" },
               @{ pkg = "libiconv"; filter = "iconv-2.dll" },
               @{ pkg = "openjpeg"; filter = "openjp2.dll" },
               @{ pkg = "libjpeg-turbo"; filter = "jpeg62.dll" },
