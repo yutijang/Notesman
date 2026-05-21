@@ -16,7 +16,11 @@
             "platform": "windows"
         },
         {
-            "name": "zlib",
+            "name": "webview2",
+            "platform": "windows"
+        },
+        {
+            "name": "pkgconf",
             "platform": "windows"
         },
         {
@@ -44,14 +48,6 @@
                 "xkb",
                 "fontconfig"
             ]
-        },
-        {
-            "name": "webview2",
-            "platform": "windows"
-        },
-        {
-            "name": "pkgconf",
-            "platform": "windows"
         }
     ],
     "overrides": [
