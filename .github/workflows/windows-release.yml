@@ -255,7 +255,6 @@ jobs:
               @{ pkg = "webview2"; filter = "WebView2Loader.dll" },
               @{ pkg = "md4c"; filter = "md4c*.dll" },
               @{ pkg = "poppler"; filter = "poppler*.dll" },
-              @{ pkg = "poppler"; filter = "z.dll" },
               @{ pkg = "libiconv"; filter = "iconv-2.dll" },
               @{ pkg = "openjpeg"; filter = "openjp2.dll" },
               @{ pkg = "libjpeg-turbo"; filter = "jpeg62.dll" },
