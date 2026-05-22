@@ -53,7 +53,7 @@ jobs:
           path: |
             C:\llvm-22
             C:\cmake-4.3
-          key: tools-windows-llvm22.1.6-cmake4.3.2
+          key: tools-windows-llvm22.1.6-cmake4.3.3
 
       - name: Install LLVM 22.1.1
         if: steps.cache-tools.outputs.cache-hit != 'true'
@@ -68,7 +68,7 @@ jobs:
         if: steps.cache-tools.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
-          $ver = "4.3.2"
+          $ver = "4.3.3"
           $url = "https://github.com/Kitware/CMake/releases/download/v$ver/cmake-$ver-windows-x86_64.zip"
           $zip = "$env:RUNNER_TEMP\cmake.zip"
           $dir = "C:\cmake-4.3"
@@ -201,38 +201,6 @@ jobs:
         shell: pwsh
         run: cmake --build build --parallel
 
-      - name: Find z.dll in workspace
-        shell: pwsh
-        run: |
-          $arch = "${{ env.VCPKG_DEFAULT_TRIPLET }}"
-          $vcpkgRoot = "${{ env.VCPKG_ROOT }}"
-          $workspace = "${{ github.workspace }}"
-
-          $paths = @(
-              "$vcpkgRoot\packages",
-              "$vcpkgRoot\installed\$arch\bin",
-              "$vcpkgRoot\installed\$arch\debug\bin",
-              $workspace
-          )
-
-          Write-Host "Searching z.dll..."
-
-          $found = $false
-
-          foreach ($p in $paths) {
-              if (Test-Path $p) {
-                  Get-ChildItem $p -Recurse -Filter "z.dll" -ErrorAction SilentlyContinue | ForEach-Object {
-                      Write-Host "FOUND: $($_.FullName)"
-                      $found = $true
-                  }
-              }
-          }
-
-          if (-not $found) {
-              Write-Error "CRITICAL: z.dll not found anywhere"
-              # exit 1
-          }
-
       - name: Set RELEASE_DIR
         shell: pwsh
         run: |
@@ -303,6 +271,7 @@ jobs:
               @{ pkg = "miniz"; filter = "miniz.dll" },
               @{ pkg = "openssl"; filter = "lib*.dll" },
               @{ pkg = "boost-url"; filter = "boost_url*.dll" },
+              @{ pkg = "zlib"; filter = "z.dll" },
               @{ pkg = "libzip"; filter = "zip.dll" }
           )
 
