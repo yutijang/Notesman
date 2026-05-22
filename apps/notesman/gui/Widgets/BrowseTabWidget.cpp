@@ -119,6 +119,7 @@ void BrowseTabWidget::updateColumnWidths() {
 
 void BrowseTabWidget::displayResults(std::vector<UnifiedSearchResult> const& results) {
     if (results.empty()) {
+        Q_EMIT statusUpdateRequest(tr("No results found"), UiConst::NOTI_TIMEOUT);
         return;
     }
 

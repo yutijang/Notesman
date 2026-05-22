@@ -81,6 +81,7 @@
 
 #include <cerrno>
 #include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -909,7 +910,7 @@ void MainWindow::handleLinuxUpdate(QString const& filePath) {
     QStringList args{currentAppImage, downloadedAppImage};
     QString const workDir = QDir::tempPath();
 
-    pid_t pid = fork();
+    auto pid = fork();
     if (pid == -1) {
         Log::err("Cannot start updater process. Update failed!");
         DialogUtils::showError(
@@ -931,15 +932,15 @@ void MainWindow::handleLinuxUpdate(QString const& filePath) {
 
         // strdup so pointers still valid even if Qt objects go away (not necessary after fork, but
         // harmless)
-        char* upC = strdup(upBA.constData());
-        char* a0C = strdup(a0BA.constData());
-        char* a1C = strdup(a1BA.constData());
+        char* upC = ::strdup(upBA.constData());
+        char* a0C = ::strdup(a0BA.constData());
+        char* a1C = ::strdup(a1BA.constData());
 
         char* argvExec[] = {upC, a0C, a1C, nullptr};
 
         // Optional: close inherited fds (File Descriptors (FD))
         // except stdin/out/err (helps avoid fd leaks)
-        long maxFks = sysconf(_SC_OPEN_MAX);
+        long maxFks = ::sysconf(_SC_OPEN_MAX);
         for (int fd = 3; fd < maxFks; ++fd) {
             ::close(fd);
         }
@@ -954,18 +955,18 @@ void MainWindow::handleLinuxUpdate(QString const& filePath) {
                         0644); // NOLINT(readability-magic-numbers)
         if (fd != -1) {
             char const* msg = "execv failed: ";
-            ::write(fd, msg, strlen(msg));
-            char const* estr = strerror(err);
-            ::write(fd, estr, strlen(estr));
+            ::write(fd, msg, ::strlen(msg));
+            char const* estr = ::strerror(err);
+            ::write(fd, estr, ::strlen(estr));
             ::write(fd, "\n", 1);
             ::close(fd);
         }
 
-        free(upC);
-        free(a0C);
-        free(a1C);
+        ::free(upC);
+        ::free(a0C);
+        ::free(a1C);
 
-        _exit(127);                                         // NOLINT(readability-magic-numbers)
+        ::_exit(127);                                       // NOLINT(readability-magic-numbers)
     }
 
     QTimer::singleShot(200, qApp, &QCoreApplication::quit); // NOLINT(readability-magic-numbers)
