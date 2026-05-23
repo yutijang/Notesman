@@ -83,15 +83,18 @@ jobs:
         run: |
           export CC=clang-22
           export CXX=clang++-22
+
+          mkdir -p /dev/shm/vcpkg_buildtrees
+          
           "$VCPKG_ROOT/vcpkg" install --triplet "${{ env.VCPKG_DEFAULT_TRIPLET }}" \
             --overlay-triplets="$GITHUB_WORKSPACE/cmake/vcpkg-triplets" \
             --x-install-root="${{ github.workspace }}/vcpkg_installed" \
             --clean-after-build
         env:
-          CC: clang
-          CXX: clang++        
           VCPKG_FEATURE_FLAGS: manifests
           VCPKG_BUILD_TYPE: release
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+          VCPKG_BUILDTREES_ROOT: /dev/shm/vcpkg_buildtrees
 
       - name: Export vcpkg build logs
         if: failure()
