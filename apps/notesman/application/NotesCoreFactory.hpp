@@ -1,22 +1,23 @@
 #pragma once
 
 #include "application/ICoreErrorHandler.hpp"
-#include "application/NotesAppCore.hpp"
-#include "core/db/sqldb_raii.hpp"
-#include "core/repository/file_repository.hpp"
-#include "core/repository/file_text_content_repository.hpp"
-#include "core/repository/resource_repository.hpp"
-#include "core/repository/tag_repository.hpp"
-#include "core/repository/text_content_repository.hpp"
-#include "core/repository/url_repository.hpp"
-#include "core/service/file_service.hpp"
-#include "core/service/resource_service.hpp"
-#include "core/service/url_service.hpp"
 
 #include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <utility>
+
+class SQLiteDB;
+class ResourceRepository;
+class FileRepository;
+class TextContentRepository;
+class FileTextContentRepository;
+class TagRepository;
+class UrlRepository;
+class FileService;
+class UrlService;
+class ResourceService;
+class NotesAppCore;
 
 class NotesCoreFactory {
   public:
@@ -44,6 +45,8 @@ class NotesCoreFactory {
         std::unique_ptr<ResourceService> resService;
 
         std::unique_ptr<NotesAppCore> core;
+
+        ~CoreContext();
     };
 
     struct CoreInitResult {

@@ -30,6 +30,8 @@
 #include <utility>
 #include <vector>
 
+NotesCoreFactory::CoreContext::~CoreContext() = default;
+
 NotesCoreFactory::CoreInitResult NotesCoreFactory::createCore(std::filesystem::path const& dbPath,
                                                               ICoreErrorHandler* errorHandler) {
     if (!std::filesystem::exists(dbPath)) {
