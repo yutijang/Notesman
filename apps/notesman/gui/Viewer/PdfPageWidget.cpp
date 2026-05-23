@@ -18,7 +18,8 @@ double quantizeDpi(double dpi) noexcept {
     return std::round(dpi / 4.0) * 4.0; // NOLINT(readability-magic-numbers)
 }
 
-constexpr double K_PDF_POINTS_PER_INCH = 72.0;
+constexpr double K_PDF_POINTS_PER_INCH{72.0};
+
 } // namespace
 
 PdfPageWidget::PdfPageWidget(std::unique_ptr<poppler::page> page, QWidget* parent)
@@ -34,9 +35,9 @@ PdfPageWidget::PdfPageWidget(std::unique_ptr<poppler::page> page, QWidget* paren
 }
 
 void PdfPageWidget::setScale(double scale) {
-    if (std::abs(m_scale - scale) < 0.001) {
+    if (std::abs(m_scale - scale) < 0.001) { // NOLINT(readability-magic-numbers)
         return;
-    } // NOLINT(readability-magic-numbers)
+    }
 
     m_scale = scale;
 
