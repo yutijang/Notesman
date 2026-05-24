@@ -81,9 +81,6 @@ jobs:
       - name: Install dependencies via vcpkg
         if: steps.restore-cache.outputs.cache-matched-key == ''
         run: |
-          export CC=clang-22
-          export CXX=clang++-22
-
           mkdir -p /dev/shm/vcpkg_buildtrees
           
           "$VCPKG_ROOT/vcpkg" install --triplet "${{ env.VCPKG_DEFAULT_TRIPLET }}" \
@@ -91,6 +88,8 @@ jobs:
             --x-install-root="${{ github.workspace }}/vcpkg_installed" \
             --clean-after-build
         env:
+          CC: clang-22
+          CXX: clang++-22        
           VCPKG_FEATURE_FLAGS: manifests
           VCPKG_BUILD_TYPE: release
           CMAKE_BUILD_PARALLEL_LEVEL: 2
