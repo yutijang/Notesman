@@ -60,7 +60,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 # -----------------------------------------------------------
 
-# -----------------------------------------------------------
+# --- Add global flags --------------------------------------
 add_library(project_warnings INTERFACE)
 
 target_compile_options(project_warnings INTERFACE
@@ -123,6 +123,30 @@ target_compile_options(project_warnings INTERFACE
         --target=x86_64-pc-windows-msvc
     >
 )
+# ------------------------------------------------------------
+# --- Add sanitizers debug -----------------------------------
+add_library(project_sanitizers INTERFACE)
+
+# Linux: Clang (non-MSVC) hoặc GCC
+set(IS_LINUX_CLANG_OR_GCC
+    $<AND:$<CONFIG:Debug>,$<NOT:$<BOOL:${MSVC}>>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>
+)
+
+# Windows: clang-cl (Clang + MSVC frontend)
+set(IS_CLANG_CL
+    $<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang>,$<BOOL:${MSVC}>>
+)
+
+target_compile_options(project_sanitizers INTERFACE
+    $<${IS_LINUX_CLANG_OR_GCC}:-fsanitize=address;-fno-omit-frame-pointer>
+    $<${IS_CLANG_CL}:/fsanitize=address;/Zi>
+)
+
+target_link_options(project_sanitizers INTERFACE
+    $<${IS_LINUX_CLANG_OR_GCC}:-fsanitize=address>
+    # clang-cl: không cần link flag, runtime tự link qua compile flag
+)
+# ------------------------------------------------------------
 
 # Dependencies
 find_package(OpenSSL REQUIRED)
@@ -143,7 +167,7 @@ endif()
 
 find_package(boost_url CONFIG REQUIRED)
 find_package(libzip CONFIG REQUIRED)
-# -----------------------------------------------------------
+# ------------------------------------------------------------
 
 # Third-party build
 # --- QtKeychain ---------------------------------------------

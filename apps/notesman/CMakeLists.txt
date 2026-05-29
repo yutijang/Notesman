@@ -76,6 +76,7 @@ target_link_libraries(notes-core
         common::viewer_pack
     PRIVATE
         project_warnings
+        project_sanitizers
 )
 
 target_compile_definitions(notes-core
@@ -180,6 +181,7 @@ target_link_libraries(notes-app-lib-core
         libzip::zip
     PRIVATE
         project_warnings
+        project_sanitizers
 )
 
 if (WIN32)
@@ -230,6 +232,7 @@ target_precompile_headers(notes-app-lib-qtkeychain
 target_link_libraries(notes-app-lib-qtkeychain
     PRIVATE
         project_warnings
+        project_sanitizers
 
         notes-app-lib-core
         qt6keychain
@@ -253,6 +256,7 @@ target_precompile_headers(${PROJECT_NAME} REUSE_FROM notes-app-lib-core)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         project_warnings
+        project_sanitizers
         
         notes-app-lib-core # Thứ tự QUAN TRỌNG
         notes-app-lib-qtkeychain

@@ -11,7 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
+#include <ios>
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <optional>

@@ -150,11 +150,7 @@ bool HtmlViewer::initFromFile(QString path, [[maybe_unused]] ContentMode mode) {
         return false;
     }
 
-    if (m_process != nullptr) {
-        m_process->deleteLater();
-    }
-
-    m_process = process.release();
+    m_process = std::move(process);
 
     return true;
 #endif
@@ -197,11 +193,7 @@ bool HtmlViewer::initFromUrl(QUrl url, [[maybe_unused]] ContentMode mode) {
         return false;
     }
 
-    if (m_process != nullptr) {
-        m_process->deleteLater();
-    }
-
-    m_process = process.release();
+    m_process = std::move(process);
 
     return true;
 #endif
@@ -291,8 +283,7 @@ bool HtmlViewer::onClose([[maybe_unused]] QWidget* parent) {
     if (m_process != nullptr) {
         m_process->terminate();
         m_process->waitForFinished(500); // NOLINT(readability-magic-numbers)
-        delete m_process;
-        m_process = nullptr;
+        m_process->reset();
     }
 #endif
 

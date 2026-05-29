@@ -27,6 +27,7 @@ target_include_directories(webkitgtk_viewer
 target_link_libraries(webkitgtk_viewer
     PRIVATE
         project_warnings
+        project_sanitizers
 
         ${GTK_LIBRARIES}
         ${WEBKIT_LIBRARIES}

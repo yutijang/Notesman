@@ -34,7 +34,7 @@ class HtmlViewer final : public IResourceViewer,
     }
 
     [[nodiscard]] QProcess* externalProcess() const override {
-        return m_process;
+        return m_process.get();
     }
 #endif
 
@@ -68,6 +68,6 @@ class HtmlViewer final : public IResourceViewer,
 #if defined(Q_OS_WIN)
     WebView2Widget* m_view{};
 #elif defined(Q_OS_LINUX)
-    QProcess* m_process{};
+    std::unique_ptr<QProcess> m_process;
 #endif
 };
