@@ -132,19 +132,12 @@ set(IS_LINUX_CLANG_OR_GCC
     $<AND:$<CONFIG:Debug>,$<NOT:$<BOOL:${MSVC}>>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>
 )
 
-# Windows: clang-cl (Clang + MSVC frontend)
-set(IS_CLANG_CL
-    $<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang>,$<BOOL:${MSVC}>>
-)
-
 target_compile_options(project_sanitizers INTERFACE
     $<${IS_LINUX_CLANG_OR_GCC}:-fsanitize=address;-fno-omit-frame-pointer>
-    $<${IS_CLANG_CL}:/fsanitize=address;/Zi>
 )
 
 target_link_options(project_sanitizers INTERFACE
     $<${IS_LINUX_CLANG_OR_GCC}:-fsanitize=address>
-    # clang-cl: không cần link flag, runtime tự link qua compile flag
 )
 # ------------------------------------------------------------
 
